@@ -44,11 +44,13 @@ public class RPGPlugin extends JavaPlugin {
     private PassiveSkillExecutor passiveSkillExecutor;
     private com.example.rpgplugin.currency.CurrencyManager currencyManager;
     private com.example.rpgplugin.currency.CurrencyListener currencyListener;
+    private com.example.rpgplugin.trade.TradeManager tradeManager;
 
     // リスナー
     private VanillaExpHandler vanillaExpHandler;
     private SkillMenuListener skillMenuListener;
     private com.example.rpgplugin.gui.menu.class.ClassMenuListener classMenuListener;
+    private com.example.rpgplugin.trade.TradeMenuListener tradeMenuListener;
 
     @Override
     public void onEnable() {
@@ -90,6 +92,9 @@ public class RPGPlugin extends JavaPlugin {
 
             // 通貨システムの初期化
             initializeCurrencySystem();
+
+            // トレードシステムの初期化
+            initializeTradeSystem();
 
             // モジュールマネージャーの初期化
             setupModuleManager();
@@ -139,6 +144,11 @@ public class RPGPlugin extends JavaPlugin {
             // プレイヤーマネージャーのシャットダウン
             if (playerManager != null) {
                 playerManager.shutdown();
+            }
+
+            // トレードマネージャーのシャットダウン
+            if (tradeManager != null) {
+                tradeManager.shutdown();
             }
 
             // ストレージシステムのシャットダウン
@@ -329,6 +339,32 @@ public class RPGPlugin extends JavaPlugin {
         vanillaExpHandler = new VanillaExpHandler(this, playerManager);
         getServer().getPluginManager().registerEvents(vanillaExpHandler, this);
         getLogger().info("VanillaExpHandler initialized!");
+    }
+
+    /**
+     * トレードシステムを初期化
+     */
+    private void initializeTradeSystem() {
+        getLogger().info("Initializing TradeSystem...");
+
+        // トレードマネージャー
+        tradeManager = new com.example.rpgplugin.trade.TradeManager(this);
+
+        // トレード履歴リポジトリ
+        com.example.rpgplugin.trade.repository.TradeHistoryRepository historyRepository =
+            new com.example.rpgplugin.trade.repository.TradeHistoryRepository(
+                storageManager.getDatabaseManager(),
+                getLogger()
+            );
+
+        // トレードマネージャーを初期化
+        tradeManager.initialize(historyRepository);
+
+        // トレードメニューリスナー
+        tradeMenuListener = new com.example.rpgplugin.trade.TradeMenuListener(tradeManager);
+        getServer().getPluginManager().registerEvents(tradeMenuListener, this);
+
+        getLogger().info("TradeSystem initialized!");
     }
 
     /**
@@ -612,6 +648,15 @@ public class RPGPlugin extends JavaPlugin {
      */
     public com.example.rpgplugin.currency.CurrencyListener getCurrencyListener() {
         return currencyListener;
+    }
+
+    /**
+     * トレードマネージャーを取得します
+     *
+     * @return TradeManagerインスタンス
+     */
+    public com.example.rpgplugin.trade.TradeManager getTradeManager() {
+        return tradeManager;
     }
 
     /**

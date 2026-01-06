@@ -201,10 +201,10 @@ public class SchemaManager {
     }
 
     /**
-     * バージョン3のマイグレーション: 通貨・オークションシステムテーブルを追加
+     * バージョン3のマイグレーション: 通貨・オークション・トレードシステムテーブルを追加
      */
     private void applyMigrationV3(Statement stmt) throws SQLException {
-        logger.info("Applying version 3 migration: adding currency and auction tables");
+        logger.info("Applying version 3 migration: adding currency, auction, and trade tables");
 
         // player_currency テーブル
         String playerCurrencySql = """
@@ -259,6 +259,28 @@ public class SchemaManager {
         stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_active ON auction_listings(is_active)");
         stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_auction ON auction_bids(auction_id)");
         stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_bidder ON auction_bids(bidder_uuid)");
+
+        // trade_history テーブル（トレード履歴）
+        String tradeHistorySql = """
+            CREATE TABLE IF NOT EXISTS trade_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player1_uuid TEXT NOT NULL,
+                player2_uuid TEXT NOT NULL,
+                player1_items TEXT,
+                player2_items TEXT,
+                gold_amount1 REAL DEFAULT 0.0,
+                gold_amount2 REAL DEFAULT 0.0,
+                trade_time INTEGER DEFAULT (strftime('%s', 'now')),
+                FOREIGN KEY (player1_uuid) REFERENCES player_data(uuid),
+                FOREIGN KEY (player2_uuid) REFERENCES player_data(uuid)
+            )
+        """;
+        stmt.execute(tradeHistorySql);
+
+        // インデックス作成（トレード）
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player1 ON trade_history(player1_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player2 ON trade_history(player2_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_time ON trade_history(trade_time)");
 
         logger.info("Version 3 migration completed successfully");
     }

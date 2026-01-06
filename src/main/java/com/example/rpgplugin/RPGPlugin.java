@@ -38,6 +38,7 @@ public class RPGPlugin extends JavaPlugin {
     private SkillManager skillManager;
     private com.example.rpgplugin.class.ClassManager classManager;
     private com.example.rpgplugin.damage.DamageManager damageManager;
+    private com.example.rpgplugin.auction.AuctionManager auctionManager;
     private SkillConfig skillConfig;
     private ActiveSkillExecutor activeSkillExecutor;
     private PassiveSkillExecutor passiveSkillExecutor;
@@ -95,6 +96,9 @@ public class RPGPlugin extends JavaPlugin {
 
             // モジュールの有効化
             enableModules();
+
+            // オークションシステムの初期化
+            initializeAuctionSystem();
 
             // バニラ経験値ハンドラーの登録
             setupVanillaExpHandler();
@@ -338,6 +342,39 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
+     * オークションシステムを初期化
+     */
+    private void initializeAuctionSystem() {
+        getLogger().info("Initializing AuctionManager...");
+        auctionManager = new com.example.rpgplugin.auction.AuctionManager(
+                getLogger(),
+                storageManager.getDatabaseManager()
+        );
+
+        // アクティブなオークションをロード
+        auctionManager.loadActiveAuctions();
+
+        // 入札延長タスクスケジューラーを開始
+        startAuctionExpirationTask();
+
+        getLogger().info("AuctionManager initialized!");
+    }
+
+    /**
+     * 入札延長タスクスケジューラーを開始
+     */
+    private void startAuctionExpirationTask() {
+        // 5秒ごとに期限切れオークションをチェック
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            if (auctionManager != null) {
+                auctionManager.checkExpiredAuctions();
+            }
+        }, 5L * 20L, 5L * 20L); // 5秒 = 100 ticks (20 ticks/sec)
+
+        getLogger().info("Auction expiration checker started (runs every 5 seconds)");
+    }
+
+    /**
      * ログレベルを設定します
      *
      * @param level ログレベル文字列
@@ -458,6 +495,15 @@ public class RPGPlugin extends JavaPlugin {
      */
     public SkillManager getSkillManager() {
         return skillManager;
+    }
+
+    /**
+     * オークションマネージャーを取得
+     *
+     * @return オークションマネージャー
+     */
+    public com.example.rpgplugin.auction.AuctionManager getAuctionManager() {
+        return auctionManager;
     }
 
     /**

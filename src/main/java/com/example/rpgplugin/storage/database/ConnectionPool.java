@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class ConnectionPool {
 
+    private static final int MAX_RETRIES = 3;
+
     private final BlockingQueue<PooledConnection> availableConnections;
     private final ConnectionFactory connectionFactory;
     private final int maxPoolSize;
@@ -51,8 +53,23 @@ public class ConnectionPool {
      * @throws SQLException 取得失敗時
      */
     public Connection getConnection() throws SQLException {
+        return getConnectionWithRetry(0);
+    }
+
+    /**
+     * コネクションを取得（再帰リトライ付き）
+     *
+     * @param retryCount 現在のリトライ回数
+     * @return コネクション
+     * @throws SQLException 取得失敗時
+     */
+    private Connection getConnectionWithRetry(int retryCount) throws SQLException {
         if (isShutdown) {
             throw new SQLException("Connection pool has been shutdown");
+        }
+
+        if (retryCount >= MAX_RETRIES) {
+            throw new SQLException("Max connection retries exceeded (" + MAX_RETRIES + ")");
         }
 
         PooledConnection pooledConn = availableConnections.poll();
@@ -83,7 +100,8 @@ public class ConnectionPool {
                 throw new SQLException("Connection timeout after " + connectionTimeoutMillis + "ms");
             }
             if (!pooledConn.isValid()) {
-                return getConnection(); // 再帰
+                // 無効なコネクションの場合、リトライ
+                return getConnectionWithRetry(retryCount + 1);
             }
             return pooledConn;
         } catch (InterruptedException e) {

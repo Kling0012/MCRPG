@@ -151,6 +151,7 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
                     stmt.setLong(6, player.getLastLogin());
 
                     stmt.addBatch();
+                    stmt.clearParameters();
                 }
 
                 stmt.executeBatch();

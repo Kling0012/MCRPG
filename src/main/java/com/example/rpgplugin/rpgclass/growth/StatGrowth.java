@@ -1,4 +1,4 @@
-package com.example.rpgplugin.class.growth;
+package com.example.rpgplugin.rpgclass.growth;
 
 import com.example.rpgplugin.stats.Stat;
 import org.bukkit.configuration.ConfigurationSection;

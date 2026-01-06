@@ -280,7 +280,7 @@ public class ConfigWatcher {
                 notifyFileListeners(fileName, fullPath);
                 reloadSchedule.remove(fileName);
             }
-        , RELOAD_DELAY_MS / 50); // Minecraft tick (50ms) に変換
+        }, RELOAD_DELAY_MS / 50); // Minecraft tick (50ms) に変換
     }
 
     /**

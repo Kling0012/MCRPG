@@ -1,6 +1,6 @@
-package com.example.rpgplugin.class;
+package com.example.rpgplugin.rpgclass;
 
-import com.example.rpgplugin.class.requirements.ClassRequirement;
+import com.example.rpgplugin.rpgclass.requirements.ClassRequirement;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import org.bukkit.entity.Player;

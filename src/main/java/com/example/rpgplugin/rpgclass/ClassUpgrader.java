@@ -1,6 +1,6 @@
-package com.example.rpgplugin.class;
+package com.example.rpgplugin.rpgclass;
 
-import com.example.rpgplugin.class.requirements.ItemRequirement;
+import com.example.rpgplugin.rpgclass.requirements.ItemRequirement;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.storage.models.PlayerData;
@@ -116,8 +116,8 @@ public class ClassUpgrader {
      * @param requirements 要件リスト
      * @return 消費成功時はtrue
      */
-    private boolean consumeRequiredItems(Player player, java.util.List<com.example.rpgplugin.class.requirements.ClassRequirement> requirements) {
-        for (com.example.rpgplugin.class.requirements.ClassRequirement req : requirements) {
+    private boolean consumeRequiredItems(Player player, java.util.List<com.example.rpgplugin.rpgclass.requirements.ClassRequirement> requirements) {
+        for (com.example.rpgplugin.rpgclass.requirements.ClassRequirement req : requirements) {
             if (req instanceof ItemRequirement) {
                 ItemRequirement itemReq = (ItemRequirement) req;
                 if (itemReq.isConsumeOnUse()) {

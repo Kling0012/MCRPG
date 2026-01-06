@@ -1,8 +1,8 @@
-package com.example.rpgplugin.class;
+package com.example.rpgplugin.rpgclass;
 
 import com.example.rpgplugin.RPGPlugin;
-import com.example.rpgplugin.class.growth.StatGrowth;
-import com.example.rpgplugin.class.requirements.*;
+import com.example.rpgplugin.rpgclass.growth.StatGrowth;
+import com.example.rpgplugin.rpgclass.requirements.*;
 import com.example.rpgplugin.player.PlayerManager;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;

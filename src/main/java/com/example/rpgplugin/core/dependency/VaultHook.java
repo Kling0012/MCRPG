@@ -26,7 +26,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class VaultHook {
 
     private final JavaPlugin plugin;
-    private final net.milkbowl.vault.Vault vault;
 
     private Economy economy;
     private Chat chat;
@@ -39,7 +38,6 @@ public class VaultHook {
      */
     public VaultHook(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.vault = (net.milkbowl.vault.Vault) Bukkit.getPluginManager().getPlugin("Vault");
     }
 
     /**

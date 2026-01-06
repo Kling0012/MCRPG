@@ -40,7 +40,7 @@ public class RPGPlugin extends JavaPlugin {
     private ConfigWatcher configWatcher;
     private StatManager statManager;
     private SkillManager skillManager;
-    private com.example.rpgplugin.class.ClassManager classManager;
+    private com.example.rpgplugin.rpgclass.ClassManager classManager;
     private com.example.rpgplugin.damage.DamageManager damageManager;
     private com.example.rpgplugin.auction.AuctionManager auctionManager;
     private SkillConfig skillConfig;
@@ -55,7 +55,7 @@ public class RPGPlugin extends JavaPlugin {
     // リスナー
     private VanillaExpHandler vanillaExpHandler;
     private SkillMenuListener skillMenuListener;
-    private com.example.rpgplugin.gui.menu.class.ClassMenuListener classMenuListener;
+    private com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener classMenuListener;
     private com.example.rpgplugin.trade.TradeMenuListener tradeMenuListener;
 
     @Override
@@ -285,15 +285,15 @@ public class RPGPlugin extends JavaPlugin {
      */
     private void initializeClassManager() {
         getLogger().info("Initializing ClassManager...");
-        classManager = new com.example.rpgplugin.class.ClassManager(playerManager);
+        classManager = new com.example.rpgplugin.rpgclass.ClassManager(playerManager);
 
         // クラス設定を読み込み
-        com.example.rpgplugin.class.ClassLoader classLoader = new com.example.rpgplugin.class.ClassLoader(this, classManager);
-        int classCount = classLoader.loadClasses();
+        com.example.rpgplugin.rpgclass.ClassLoader clsLoader = new com.example.rpgplugin.rpgclass.ClassLoader(this, playerManager);
+        int classCount = clsLoader.loadClasses();
         getLogger().info("Loaded " + classCount + " classes");
 
         // クラスメニューリスナー
-        classMenuListener = new com.example.rpgplugin.gui.menu.class.ClassMenuListener(this);
+        classMenuListener = new com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener(this);
         getServer().getPluginManager().registerEvents(classMenuListener, this);
 
         getLogger().info("ClassManager initialized!");
@@ -618,7 +618,7 @@ public class RPGPlugin extends JavaPlugin {
      *
      * @return クラスマネージャー
      */
-    public com.example.rpgplugin.class.ClassManager getClassManager() {
+    public com.example.rpgplugin.rpgclass.ClassManager getClassManager() {
         return classManager;
     }
 
@@ -699,7 +699,7 @@ public class RPGPlugin extends JavaPlugin {
      *
      * @return ClassMenuListenerインスタンス
      */
-    public com.example.rpgplugin.gui.menu.class.ClassMenuListener getClassMenuListener() {
+    public com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener getClassMenuListener() {
         return classMenuListener;
     }
 

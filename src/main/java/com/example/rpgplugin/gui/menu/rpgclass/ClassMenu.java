@@ -1,9 +1,9 @@
-package com.example.rpgplugin.gui.menu.class;
+package com.example.rpgplugin.gui.menu.rpgclass;
 
 import com.example.rpgplugin.RPGPlugin;
-import com.example.rpgplugin.class.ClassManager;
-import com.example.rpgplugin.class.ClassUpgrader;
-import com.example.rpgplugin.class.RPGClass;
+import com.example.rpgplugin.rpgclass.ClassManager;
+import com.example.rpgplugin.rpgclass.ClassUpgrader;
+import com.example.rpgplugin.rpgclass.RPGClass;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

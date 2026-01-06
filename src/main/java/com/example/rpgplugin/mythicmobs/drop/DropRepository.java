@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * @author RPGPlugin Team
  * @version 1.0.0
  */
-public class DropRepository implements IRepository<DropData> {
+public class DropRepository implements IRepository<DropData, Integer> {
 
     private final ConnectionPool connectionPool;
     private final Logger logger;

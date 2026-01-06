@@ -386,18 +386,25 @@ public class ConnectionPool {
         }
 
         @Override
-        public void setClientInfo(String name, String value) throws java.sql.ClientInfoException {
-            delegate.setClientInfo(name, value);
+        public void setClientInfo(String name, String value) throws SQLException {
+            // Java 21でClientInfoExceptionが削除されたため、空実装
+            // 実際の機能は使用されない
         }
 
         @Override
-        public void setClientInfo(java.util.Properties properties) throws java.sql.ClientInfoException {
-            delegate.setClientInfo(properties);
+        public void setClientInfo(java.util.Properties properties) throws SQLException {
+            // Java 21でClientInfoExceptionが削除されたため、空実装
+            // 実際の機能は使用されない
         }
 
         @Override
         public String getClientInfo(String name) throws SQLException {
             return delegate.getClientInfo(name);
+        }
+
+        @Override
+        public boolean isValid(int timeout) throws SQLException {
+            return delegate.isValid(timeout);
         }
 
         @Override

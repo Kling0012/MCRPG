@@ -1,4 +1,4 @@
-package com.example.rpgplugin.class.requirements;
+package com.example.rpgplugin.rpgclass.requirements;
 
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;

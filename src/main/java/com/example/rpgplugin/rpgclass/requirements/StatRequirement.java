@@ -33,9 +33,12 @@ public class StatRequirement implements ClassRequirement {
             return false;
         }
 
-        return playerManager.getRPGPlayer(player.getUniqueId())
-                .map(rpgPlayer -> rpgPlayer.getFinalStat(requiredStat) >= requiredValue)
-                .orElse(false);
+        var rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer == null) {
+            return false;
+        }
+
+        return rpgPlayer.getFinalStat(requiredStat) >= requiredValue;
     }
 
     @Override

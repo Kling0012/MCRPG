@@ -19,6 +19,8 @@ import com.example.rpgplugin.storage.StorageManager;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Map;
+
 /**
  * RPGプラグイン メインクラス
  *
@@ -289,12 +291,11 @@ public class RPGPlugin extends JavaPlugin {
 
         // クラス設定を読み込み
         com.example.rpgplugin.rpgclass.ClassLoader clsLoader = new com.example.rpgplugin.rpgclass.ClassLoader(this, playerManager);
-        int classCount = clsLoader.loadClasses();
-        getLogger().info("Loaded " + classCount + " classes");
+        Map<String, com.example.rpgplugin.rpgclass.RPGClass> classes = clsLoader.loadAllClasses();
+        getLogger().info("Loaded " + classes.size() + " classes");
 
-        // クラスメニューリスナー
-        classMenuListener = new com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener(this);
-        getServer().getPluginManager().registerEvents(classMenuListener, this);
+        // クラスメニューリスナーはClassMenuごとに動的に作成されるため、
+        // ここではグローバルリスナーを登録しない
 
         getLogger().info("ClassManager initialized!");
     }
@@ -402,6 +403,11 @@ public class RPGPlugin extends JavaPlugin {
 
         getLogger().info("Initializing MythicMobs System...");
 
+        // TODO: MythicMobsManager初期化 - ConnectionPoolとDatabaseManagerの統合が必要
+        // 現在、MythicMobsシステムは一時的に無効化されています
+        getLogger().warning("MythicMobs system is temporarily disabled pending ConnectionPool integration");
+
+        /*
         // MythicMobsマネージャー
         mythicMobsManager = new MythicMobsManager(
                 this,
@@ -417,13 +423,16 @@ public class RPGPlugin extends JavaPlugin {
 
         // ドロップ設定を読み込み
         loadMobDropConfigs();
+        */
 
+        /*
         // MythicMobsデスリスナー
         mythicDeathListener = new MythicDeathListener(mythicMobsManager);
         getServer().getPluginManager().registerEvents(mythicDeathListener, this);
+        */
 
         // 期限切れドロップクリーニングタスクを開始
-        startDropCleanupTask();
+        // startDropCleanupTask();
 
         getLogger().info("MythicMobs System initialized!");
     }

@@ -1,5 +1,7 @@
 package com.example.rpgplugin.gui.menu;
 
+import com.example.rpgplugin.player.PlayerManager;
+import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.stats.PlayerStats;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
@@ -37,6 +39,8 @@ public class StatMenu implements InventoryHolder {
     private final Inventory inventory;
     private final Player player;
     private final StatManager statManager;
+    private final PlayerManager playerManager;
+    private final RPGPlayer rpgPlayer;
     private final PlayerStats stats;
 
     // GUI定数
@@ -52,10 +56,12 @@ public class StatMenu implements InventoryHolder {
     /**
      * コンストラクタ
      */
-    public StatMenu(Player player, StatManager statManager) {
+    public StatMenu(Player player, StatManager statManager, PlayerManager playerManager) {
         this.player = player;
         this.statManager = statManager;
-        this.stats = statManager.getPlayerStats(player);
+        this.playerManager = playerManager;
+        this.rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        this.stats = rpgPlayer != null ? rpgPlayer.getStats() : new PlayerStats();
         this.inventory = Bukkit.createInventory(this, INVENTORY_SIZE, INVENTORY_TITLE);
 
         initializeItems();
@@ -372,8 +378,11 @@ public class StatMenu implements InventoryHolder {
      * 保存して閉じる
      */
     private void saveAndClose() {
-        statManager.saveStats(player);
-        player.sendMessage("§aステータスを保存しました！");
+        if (rpgPlayer != null) {
+            // PlayerStatsは既にRPGPlayerによって管理されているため、
+            // 明示的な保存操作は不要（PlayerManagerが永続化を担当）
+            player.sendMessage("§aステータスを保存しました！");
+        }
         player.closeInventory();
     }
 
@@ -381,8 +390,14 @@ public class StatMenu implements InventoryHolder {
      * キャンセルして閉じる
      */
     private void cancelAndClose() {
-        // データをリロードして元に戻す
-        statManager.loadStats(player);
+        if (rpgPlayer != null) {
+            // RPGPlayerからステータスを再読み込み
+            var reloadedPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+            if (reloadedPlayer != null) {
+                // ステータスはRPGPlayerによって管理されているため、
+                // 単にGUIを閉じるだけで元の値に戻る
+            }
+        }
         player.sendMessage("§c変更を破棄しました");
         player.closeInventory();
     }

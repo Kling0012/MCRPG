@@ -385,16 +385,15 @@ public class ConnectionPool {
             return delegate.createSQLXML();
         }
 
+        // setClientInfoメソッド - Java 21でも必要な場合があるため空実装を提供
         @Override
         public void setClientInfo(String name, String value) throws SQLException {
-            // Java 21でClientInfoExceptionが削除されたため、空実装
-            // 実際の機能は使用されない
+            // 空実装 - ClientInfoExceptionはJava 21で削除された
         }
 
         @Override
         public void setClientInfo(java.util.Properties properties) throws SQLException {
-            // Java 21でClientInfoExceptionが削除されたため、空実装
-            // 実際の機能は使用されない
+            // 空実装 - ClientInfoExceptionはJava 21で削除された
         }
 
         @Override

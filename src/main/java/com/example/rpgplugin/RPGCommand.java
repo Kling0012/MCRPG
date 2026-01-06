@@ -147,10 +147,11 @@ public class RPGCommand implements CommandExecutor {
      */
     private void handleStatsCommand(Player player) {
         StatManager statManager = RPGPlugin.getInstance().getStatManager();
+        PlayerManager playerManager = RPGPlugin.getInstance().getPlayerManager();
 
         // StatMenuを開く
-        if (statManager != null) {
-            StatMenu menu = new StatMenu(player, statManager);
+        if (statManager != null && playerManager != null) {
+            StatMenu menu = new StatMenu(player, statManager, playerManager);
             menu.open();
         } else {
             // フォールバック: テキストベースのステータス表示

@@ -31,6 +31,7 @@ import org.bukkit.entity.Player;
  *   <li>stats - ステータスGUIを表示</li>
  *   <li>skill - スキルGUIを表示</li>
  *   <li>cast - スキルを発動</li>
+ *   <li>class - クラス管理</li>
  *   <li>help - ヘルプを表示</li>
  *   <li>reload - 設定をリロード（管理者のみ）</li>
  * </ul>
@@ -87,6 +88,10 @@ public class RPGCommand implements CommandExecutor {
                 handleCastCommand(player, args);
                 break;
 
+            case "class":
+                handleClassCommand(player, args);
+                break;
+
             case "help":
                 showHelp(player);
                 break;
@@ -109,6 +114,7 @@ public class RPGCommand implements CommandExecutor {
         player.sendMessage(ChatColor.YELLOW + "=== RPG Plugin ===");
         player.sendMessage(ChatColor.GRAY + "/rpg stats - ステータスGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg class - クラスGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
         player.sendMessage(ChatColor.GRAY + "/rpg help - ヘルプを表示");
         if (player.hasPermission("rpg.admin")) {
@@ -348,5 +354,153 @@ public class RPGCommand implements CommandExecutor {
         // スキル発動
         // TODO: ActiveSkillExecutorを使用した発動処理
         player.sendMessage(ChatColor.YELLOW + "スキル発動処理を実装中: " + skill.getColoredDisplayName());
+    }
+
+    /**
+     * クラスコマンドを処理します
+     *
+     * <p>引数なし: GUIを開く</p>
+     * <p>&lt;クラスID&gt;: クラスを変更</p>
+     * <p>list: クラス一覧を表示</p>
+     *
+     * @param player プレイヤー
+     * @param args 引数
+     */
+    private void handleClassCommand(Player player, String[] args) {
+        ClassManager classManager = RPGPlugin.getInstance().getClassManager();
+        if (classManager == null) {
+            player.sendMessage(ChatColor.RED + "クラスマネージャーが初期化されていません");
+            return;
+        }
+
+        // 引数なし: GUIを開く
+        if (args.length == 1) {
+            openClassMenu(player);
+            return;
+        }
+
+        String subCommand = args[1].toLowerCase();
+
+        switch (subCommand) {
+            case "list":
+                handleClassListCommand(player, classManager);
+                break;
+
+            default:
+                // クラスIDとして解釈
+                handleClassSetCommand(player, classManager, subCommand);
+                break;
+        }
+    }
+
+    /**
+     * クラスGUIを開きます
+     *
+     * @param player プレイヤー
+     */
+    private void openClassMenu(Player player) {
+        ClassManager classManager = RPGPlugin.getInstance().getClassManager();
+        PlayerManager playerManager = RPGPlugin.getInstance().getPlayerManager();
+
+        if (classManager == null || playerManager == null) {
+            player.sendMessage(ChatColor.RED + "クラスシステムが初期化されていません");
+            return;
+        }
+
+        try {
+            ClassMenu menu = new ClassMenu(
+                player,
+                playerManager.getRPGPlayer(player.getUniqueId()),
+                classManager
+            );
+
+            // リスナーに登録
+            ClassMenuListener listener = RPGPlugin.getInstance().getClassMenuListener();
+            if (listener != null) {
+                listener.registerMenu(player, menu);
+            }
+
+            menu.open();
+        } catch (Exception e) {
+            player.sendMessage(ChatColor.RED + "GUIを開けませんでした: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * クラス一覧コマンドを処理します
+     *
+     * @param player プレイヤー
+     * @param classManager クラスマネージャー
+     */
+    private void handleClassListCommand(Player player, ClassManager classManager) {
+        player.sendMessage(ChatColor.YELLOW + "=== 利用可能なクラス ===");
+
+        // 初期クラス（Rank1）
+        for (com.example.rpgplugin.class.RPGClass rpgClass : classManager.getInitialClasses()) {
+            player.sendMessage(String.format("%s%s§r - %s",
+                ChatColor.GOLD,
+                rpgClass.getDisplayName(),
+                rpgClass.getDescription()
+            ));
+        }
+
+        player.sendMessage(ChatColor.GRAY + "使用法: /rpg class <クラスID>");
+    }
+
+    /**
+     * クラス設定コマンドを処理します
+     *
+     * @param player プレイヤー
+     * @param classManager クラスマネージャー
+     * @param classId クラスID
+     */
+    private void handleClassSetCommand(Player player, ClassManager classManager, String classId) {
+        // クラス存在確認
+        if (!classManager.hasClass(classId)) {
+            player.sendMessage(ChatColor.RED + "クラスが見つかりません: " + classId);
+            player.sendMessage(ChatColor.GRAY + "使用法: /rpg class list でクラス一覧を確認");
+            return;
+        }
+
+        // 現在のクラスを確認
+        if (classManager.getPlayerClass(player).isPresent()) {
+            player.sendMessage(ChatColor.RED + "既にクラスを選択しています");
+            player.sendMessage(ChatColor.GRAY + "クラスの変更は現在実装中です");
+            return;
+        }
+
+        // クラス設定
+        boolean success = classManager.setPlayerClass(player, classId);
+        if (success) {
+            com.example.rpgplugin.class.RPGClass rpgClass = classManager.getClass(classId).get();
+            player.sendMessage(ChatColor.GREEN + "クラスを設定しました: " + rpgClass.getDisplayName());
+            player.sendMessage(ChatColor.GRAY + rpgClass.getDescription());
+        } else {
+            player.sendMessage(ChatColor.RED + "クラスの設定に失敗しました");
+        }
+    }
+
+    /**
+     * ヘルプを表示します
+     *
+     * @param player プレイヤー
+     */
+    private void showHelp(Player player) {
+        player.sendMessage(ChatColor.YELLOW + "=== ヘルプ ===");
+        player.sendMessage(ChatColor.GOLD + "--- 基本コマンド ---");
+        player.sendMessage(ChatColor.GRAY + "/rpg stats - ステータスGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
+        player.sendMessage(ChatColor.GOLD + "--- クラスコマンド ---");
+        player.sendMessage(ChatColor.GRAY + "/rpg class - クラスGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg class list - クラス一覧を表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg class <クラスID> - クラスを選択");
+        player.sendMessage(ChatColor.GOLD + "--- スキルコマンド ---");
+        player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
+        player.sendMessage(ChatColor.GOLD + "--- その他 ---");
+        player.sendMessage(ChatColor.GRAY + "/rpg help - このヘルプを表示");
+        if (player.hasPermission("rpg.admin")) {
+            player.sendMessage(ChatColor.GRAY + "/rpg reload - 設定をリロード");
+        }
     }
 }

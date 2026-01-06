@@ -41,6 +41,8 @@ public class RPGPlugin extends JavaPlugin {
     private ConfigWatcher configWatcher;
     private StatManager statManager;
     private SkillManager skillManager;
+    private ClassManager classManager;
+    private com.example.rpgplugin.damage.DamageManager damageManager;
     private SkillConfig skillConfig;
     private ActiveSkillExecutor activeSkillExecutor;
     private PassiveSkillExecutor passiveSkillExecutor;
@@ -48,6 +50,7 @@ public class RPGPlugin extends JavaPlugin {
     // リスナー
     private VanillaExpHandler vanillaExpHandler;
     private SkillMenuListener skillMenuListener;
+    private ClassMenuListener classMenuListener;
 
     // ダメージマネージャー
     private com.example.rpgplugin.damage.DamageManager damageManager;
@@ -83,6 +86,9 @@ public class RPGPlugin extends JavaPlugin {
 
             // ステータスシステムの初期化
             initializeStatManager();
+
+            // クラスシステムの初期化
+            initializeClassManager();
 
             // スキルシステムの初期化
             initializeSkillSystem();
@@ -250,6 +256,25 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
+     * クラスシステムを初期化
+     */
+    private void initializeClassManager() {
+        getLogger().info("Initializing ClassManager...");
+        classManager = new ClassManager(playerManager);
+
+        // クラス設定を読み込み
+        ClassLoader classLoader = new ClassLoader(this, classManager);
+        int classCount = classLoader.loadClasses();
+        getLogger().info("Loaded " + classCount + " classes");
+
+        // クラスメニューリスナー
+        classMenuListener = new ClassMenuListener(this);
+        getServer().getPluginManager().registerEvents(classMenuListener, this);
+
+        getLogger().info("ClassManager initialized!");
+    }
+
+    /**
      * スキルシステムを初期化
      */
     private void initializeSkillSystem() {
@@ -405,6 +430,24 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
+     * クラスマネージャーを取得
+     *
+     * @return クラスマネージャー
+     */
+    public ClassManager getClassManager() {
+        return classManager;
+    }
+
+    /**
+     * スキルマネージャーを取得
+     *
+     * @return スキルマネージャー
+     */
+    public SkillManager getSkillManager() {
+        return skillManager;
+    }
+
+    /**
      * 依存関係マネージャーを取得します
      *
      * @return DependencyManagerインスタンス
@@ -456,6 +499,24 @@ public class RPGPlugin extends JavaPlugin {
      */
     public SkillManager getSkillManager() {
         return skillManager;
+    }
+
+    /**
+     * スキルメニューリスナーを取得します
+     *
+     * @return SkillMenuListenerインスタンス
+     */
+    public SkillMenuListener getSkillMenuListener() {
+        return skillMenuListener;
+    }
+
+    /**
+     * クラスメニューリスナーを取得します
+     *
+     * @return ClassMenuListenerインスタンス
+     */
+    public ClassMenuListener getClassMenuListener() {
+        return classMenuListener;
     }
 
     /**

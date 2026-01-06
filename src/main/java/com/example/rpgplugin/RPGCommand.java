@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
  *   <li>skill - スキルGUIを表示</li>
  *   <li>cast - スキルを発動</li>
  *   <li>class - クラス管理</li>
+ *   <li>balance - 残高確認</li>
  *   <li>help - ヘルプを表示</li>
  *   <li>reload - 設定をリロード（管理者のみ）</li>
  * </ul>
@@ -89,6 +90,10 @@ public class RPGCommand implements CommandExecutor {
                 handleClassCommand(player, args);
                 break;
 
+            case "balance":
+                handleBalanceCommand(player);
+                break;
+
             case "help":
                 showHelp(player);
                 break;
@@ -113,6 +118,7 @@ public class RPGCommand implements CommandExecutor {
         player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg class - クラスGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
+        player.sendMessage(ChatColor.GRAY + "/rpg balance - 残高を確認");
         player.sendMessage(ChatColor.GRAY + "/rpg help - ヘルプを表示");
         if (player.hasPermission("rpg.admin")) {
             player.sendMessage(ChatColor.GRAY + "/rpg reload - 設定をリロード");
@@ -463,6 +469,32 @@ public class RPGCommand implements CommandExecutor {
     }
 
     /**
+     * 残高コマンドを処理します
+     *
+     * <p>現在のゴールド残高を表示します。</p>
+     *
+     * @param player プレイヤー
+     */
+    private void handleBalanceCommand(Player player) {
+        com.example.rpgplugin.currency.CurrencyManager currencyManager = RPGPlugin.getInstance().getCurrencyManager();
+        if (currencyManager == null) {
+            player.sendMessage(ChatColor.RED + "通貨システムが初期化されていません");
+            return;
+        }
+
+        double balance = currencyManager.getGoldBalance(player);
+
+        player.sendMessage("");
+        player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "========== 残高情報 ==========");
+        player.sendMessage(ChatColor.YELLOW + "プレイヤー: " + ChatColor.WHITE + player.getName());
+        player.sendMessage("");
+        player.sendMessage(ChatColor.GOLD + "----- 所持金 -----");
+        player.sendMessage(ChatColor.YELLOW + "ゴールド: " + ChatColor.WHITE + String.format("%.2f", balance) + " G");
+        player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "================================");
+        player.sendMessage("");
+    }
+
+    /**
      * ヘルプを表示します
      *
      * @param player プレイヤー
@@ -472,6 +504,7 @@ public class RPGCommand implements CommandExecutor {
         player.sendMessage(ChatColor.GOLD + "--- 基本コマンド ---");
         player.sendMessage(ChatColor.GRAY + "/rpg stats - ステータスGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg balance - 残高を確認");
         player.sendMessage(ChatColor.GOLD + "--- クラスコマンド ---");
         player.sendMessage(ChatColor.GRAY + "/rpg class - クラスGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg class list - クラス一覧を表示");

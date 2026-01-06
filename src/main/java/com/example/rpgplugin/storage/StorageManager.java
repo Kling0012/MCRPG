@@ -3,6 +3,7 @@ package com.example.rpgplugin.storage;
 import com.example.rpgplugin.storage.database.DatabaseManager;
 import com.example.rpgplugin.storage.models.PlayerData;
 import com.example.rpgplugin.storage.repository.CacheRepository;
+import com.example.rpgplugin.storage.repository.PlayerCurrencyRepository;
 import com.example.rpgplugin.storage.repository.PlayerDataRepository;
 import org.bukkit.plugin.Plugin;
 
@@ -21,6 +22,7 @@ public class StorageManager {
 
     private DatabaseManager databaseManager;
     private PlayerDataRepository playerDataRepository;
+    private PlayerCurrencyRepository playerCurrencyRepository;
     private CacheRepository cacheRepository;
 
     private boolean initialized = false;
@@ -49,6 +51,9 @@ public class StorageManager {
 
         // プレイヤーデータリポジトリの初期化
         playerDataRepository = new PlayerDataRepository(databaseManager, logger);
+
+        // プレイヤー通貨リポジトリの初期化
+        playerCurrencyRepository = new PlayerCurrencyRepository(databaseManager, logger);
 
         // キャッシュリポジトリの初期化
         cacheRepository = new CacheRepository(playerDataRepository, logger);
@@ -211,6 +216,15 @@ public class StorageManager {
      */
     public PlayerDataRepository getPlayerDataRepository() {
         return playerDataRepository;
+    }
+
+    /**
+     * プレイヤー通貨リポジトリを取得
+     *
+     * @return プレイヤー通貨リポジトリ
+     */
+    public PlayerCurrencyRepository getPlayerCurrencyRepository() {
+        return playerCurrencyRepository;
     }
 
     /**

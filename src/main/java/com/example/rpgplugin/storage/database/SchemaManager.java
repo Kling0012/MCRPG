@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  */
 public class SchemaManager {
 
-    private static final int CURRENT_SCHEMA_VERSION = 2;
+    private static final int CURRENT_SCHEMA_VERSION = 3;
 
     private final DatabaseManager dbManager;
     private final Logger logger;
@@ -121,6 +121,9 @@ public class SchemaManager {
             case 2:
                 applyMigrationV2(stmt);
                 break;
+            case 3:
+                applyMigrationV3(stmt);
+                break;
             default:
                 throw new SQLException("Unknown migration version: " + version);
         }
@@ -195,6 +198,30 @@ public class SchemaManager {
         }
 
         logger.info("Version 2 migration completed successfully");
+    }
+
+    /**
+     * バージョン3のマイグレーション: 通貨システムテーブルを追加
+     */
+    private void applyMigrationV3(Statement stmt) throws SQLException {
+        logger.info("Applying version 3 migration: adding currency tables");
+
+        // player_currency テーブル
+        String playerCurrencySql = """
+            CREATE TABLE IF NOT EXISTS player_currency (
+                uuid TEXT PRIMARY KEY,
+                gold_balance REAL DEFAULT 0.0,
+                total_earned REAL DEFAULT 0.0,
+                total_spent REAL DEFAULT 0.0,
+                FOREIGN KEY (uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
+            )
+        """;
+        stmt.execute(playerCurrencySql);
+
+        // インデックス作成
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_currency_uuid ON player_currency(uuid)");
+
+        logger.info("Version 3 migration completed successfully");
     }
 
     /**

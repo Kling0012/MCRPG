@@ -41,6 +41,8 @@ public class RPGPlugin extends JavaPlugin {
     private SkillConfig skillConfig;
     private ActiveSkillExecutor activeSkillExecutor;
     private PassiveSkillExecutor passiveSkillExecutor;
+    private com.example.rpgplugin.currency.CurrencyManager currencyManager;
+    private com.example.rpgplugin.currency.CurrencyListener currencyListener;
 
     // リスナー
     private VanillaExpHandler vanillaExpHandler;
@@ -84,6 +86,9 @@ public class RPGPlugin extends JavaPlugin {
 
             // スキルシステムの初期化
             initializeSkillSystem();
+
+            // 通貨システムの初期化
+            initializeCurrencySystem();
 
             // モジュールマネージャーの初期化
             setupModuleManager();
@@ -291,6 +296,25 @@ public class RPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(skillMenuListener, this);
 
         getLogger().info("SkillSystem initialized!");
+    }
+
+    /**
+     * 通貨システムを初期化
+     */
+    private void initializeCurrencySystem() {
+        getLogger().info("Initializing CurrencySystem...");
+
+        // 通貨マネージャー
+        currencyManager = new com.example.rpgplugin.currency.CurrencyManager(
+                storageManager.getPlayerCurrencyRepository(),
+                getLogger()
+        );
+
+        // 通貨リスナー
+        currencyListener = new com.example.rpgplugin.currency.CurrencyListener(this, currencyManager);
+        getServer().getPluginManager().registerEvents(currencyListener, this);
+
+        getLogger().info("CurrencySystem initialized!");
     }
 
     /**
@@ -524,6 +548,24 @@ public class RPGPlugin extends JavaPlugin {
      */
     public PassiveSkillExecutor getPassiveSkillExecutor() {
         return passiveSkillExecutor;
+    }
+
+    /**
+     * 通貨マネージャーを取得します
+     *
+     * @return CurrencyManagerインスタンス
+     */
+    public com.example.rpgplugin.currency.CurrencyManager getCurrencyManager() {
+        return currencyManager;
+    }
+
+    /**
+     * 通貨リスナーを取得します
+     *
+     * @return CurrencyListenerインスタンス
+     */
+    public com.example.rpgplugin.currency.CurrencyListener getCurrencyListener() {
+        return currencyListener;
     }
 
     /**

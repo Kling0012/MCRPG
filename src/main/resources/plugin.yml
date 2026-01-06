@@ -5,6 +5,18 @@ api-version: '1.20'
 author: YourName
 description: A Minecraft RPG plugin
 
+# 依存プラグイン
+depend:
+  - Vault
+  - MythicMobs
+
+# オプション依存（あれば機能拡張）
+softdepend:
+  - PlaceholderAPI
+
+# プラグインが読み込まれる前にロードする必要があるプラグイン
+loadbefore: []
+
 commands:
   rpg:
     description: Main RPG command

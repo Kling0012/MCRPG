@@ -1,8 +1,16 @@
 package com.example.rpgplugin;
 
+import com.example.rpgplugin.class.ClassManager;
+import com.example.rpgplugin.class.ClassUpgrader;
 import com.example.rpgplugin.gui.menu.StatMenu;
-import com.example.rpgplayer.PlayerManager;
+import com.example.rpgplugin.gui.menu.class.ClassMenu;
+import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
+import com.example.rpgplugin.skill.Skill;
+import com.example.rpgplugin.skill.SkillManager;
+import com.example.rpgplugin.skill.SkillTree;
+import com.example.rpgplugin.gui.menu.SkillMenu;
+import com.example.rpgplugin.gui.menu.SkillMenuListener;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.stats.calculator.StatCalculator;

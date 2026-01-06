@@ -1,0 +1,40 @@
+# 弓使いクラス設定
+id: archer
+name: 弓使い
+display_name: "&a弓使い"
+description:
+  - "&f遠距離から正確に攻撃する支援クラス"
+  - "&fDEXとINTが成長しやすい"
+rank: 1
+max_level: 50
+icon: BOW
+
+stat_growth:
+  auto:
+    dexterity: 2
+    intelligence: 1
+  manual_points: 3
+
+next_rank:
+  class_id: archer_rank2
+  requirements:
+    - type: level
+      value: 20
+    - type: stat
+      stat: DEXTERITY
+      value: 50
+
+available_skills:
+  - aimed_shot
+  - poison_arrow
+  - evasion
+
+passive_bonuses:
+  - type: ranged_damage_multiplier
+    value: 1.2
+  - type: movement_speed
+    value: 0.1
+
+exp_diminish:
+  start_level: 30
+  reduction_rate: 0.5

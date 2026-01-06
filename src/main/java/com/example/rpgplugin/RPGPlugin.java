@@ -1,5 +1,10 @@
 package com.example.rpgplugin;
 
+import com.example.rpgplugin.class.ClassLoader;
+import com.example.rpgplugin.class.ClassManager;
+import com.example.rpgplugin.class.ClassUpgrader;
+import com.example.rpgplugin.gui.menu.class.ClassMenu;
+import com.example.rpgplugin.gui.menu.class.ClassMenuListener;
 import com.example.rpgplugin.core.config.ConfigWatcher;
 import com.example.rpgplugin.core.config.YamlConfigManager;
 import com.example.rpgplugin.core.dependency.DependencyManager;

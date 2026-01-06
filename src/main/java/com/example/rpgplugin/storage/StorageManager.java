@@ -156,7 +156,7 @@ public class StorageManager {
      *
      * @return オンラインプレイヤーコレクション
      */
-    public var getOnlinePlayers() {
+    public java.util.Collection<PlayerData> getOnlinePlayers() {
         if (!initialized) {
             logger.warning("StorageManager is not initialized");
             return java.util.Collections.emptyList();

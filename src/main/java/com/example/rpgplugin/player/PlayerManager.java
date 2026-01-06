@@ -179,7 +179,7 @@ public class PlayerManager implements Listener {
         }
 
         // データベースからロード
-        PlayerData playerData = playerDataRepository.findById(uuid.toString());
+        PlayerData playerData = playerDataRepository.findById(uuid).orElse(null);
         Player player = Bukkit.getPlayer(uuid);
 
         if (player == null) {

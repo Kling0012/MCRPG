@@ -49,7 +49,8 @@ public class VaultHook {
      * @return セットアップに成功した場合はtrue
      */
     public boolean setup() {
-        if (vault == null || !vault.isEnabled()) {
+        // Vaultプラグインの存在確認
+        if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
             plugin.getLogger().warning("Vault is not enabled!");
             return false;
         }

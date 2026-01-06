@@ -4,6 +4,8 @@ import com.example.rpgplugin.core.config.ConfigWatcher;
 import com.example.rpgplugin.core.config.YamlConfigManager;
 import com.example.rpgplugin.core.dependency.DependencyManager;
 import com.example.rpgplugin.core.module.ModuleManager;
+import com.example.rpgplugin.player.PlayerManager;
+import com.example.rpgplugin.player.VanillaExpHandler;
 import com.example.rpgplugin.storage.StorageManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -23,8 +25,12 @@ public class RPGPlugin extends JavaPlugin {
     // マネージャー
     private DependencyManager dependencyManager;
     private ModuleManager moduleManager;
+    private PlayerManager playerManager;
     private YamlConfigManager configManager;
     private ConfigWatcher configWatcher;
+
+    // リスナー
+    private VanillaExpHandler vanillaExpHandler;
 
     @Override
     public void onEnable() {
@@ -52,11 +58,17 @@ public class RPGPlugin extends JavaPlugin {
             // ストレージシステムの初期化
             initializeStorage();
 
+            // プレイヤーマネージャーの初期化
+            setupPlayerManager();
+
             // モジュールマネージャーの初期化
             setupModuleManager();
 
             // モジュールの有効化
             enableModules();
+
+            // バニラ経験値ハンドラーの登録
+            setupVanillaExpHandler();
 
             // コマンドハンドラーの登録
             registerCommands();
@@ -89,6 +101,11 @@ public class RPGPlugin extends JavaPlugin {
             // モジュールの無効化
             if (moduleManager != null) {
                 moduleManager.disableAll();
+            }
+
+            // プレイヤーマネージャーのシャットダウン
+            if (playerManager != null) {
+                playerManager.shutdown();
             }
 
             // ストレージシステムのシャットダウン
@@ -187,6 +204,27 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
+     * プレイヤーマネージャーをセットアップします
+     */
+    private void setupPlayerManager() {
+        getLogger().info("Initializing PlayerManager...");
+        playerManager = new PlayerManager(this, storageManager.getPlayerDataRepository());
+        playerManager.initialize();
+        getServer().getPluginManager().registerEvents(playerManager, this);
+        getLogger().info("PlayerManager initialized!");
+    }
+
+    /**
+     * バニラ経験値ハンドラーをセットアップします
+     */
+    private void setupVanillaExpHandler() {
+        getLogger().info("Initializing VanillaExpHandler...");
+        vanillaExpHandler = new VanillaExpHandler(this, playerManager);
+        getServer().getPluginManager().registerEvents(vanillaExpHandler, this);
+        getLogger().info("VanillaExpHandler initialized!");
+    }
+
+    /**
      * ログレベルを設定します
      *
      * @param level ログレベル文字列
@@ -271,6 +309,15 @@ public class RPGPlugin extends JavaPlugin {
      */
     public StorageManager getStorageManager() {
         return storageManager;
+    }
+
+    /**
+     * プレイヤーマネージャーを取得
+     *
+     * @return プレイヤーマネージャー
+     */
+    public PlayerManager getPlayerManager() {
+        return playerManager;
     }
 
     /**

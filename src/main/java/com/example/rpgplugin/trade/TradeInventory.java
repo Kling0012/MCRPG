@@ -328,7 +328,7 @@ public class TradeInventory implements InventoryHolder {
         if (slot == CONFIRM_SLOT) {
             boolean newState = session.toggleConfirmation(viewer);
             viewer.sendMessage(newState ? ChatColor.GREEN + "確認しました" : ChatColor.YELLOW + "確認を解除しました");
-            refreshGUI();
+            // GUI更新はTradeMenuListenerで実施
             return true;
         }
 

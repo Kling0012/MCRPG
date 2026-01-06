@@ -27,8 +27,8 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
     @Override
     public void save(PlayerData player) throws SQLException {
         String sql = """
-            INSERT OR REPLACE INTO player_data (uuid, username, class_id, class_rank, first_join, last_login)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO player_data (uuid, username, class_id, class_rank, class_history, first_join, last_login)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = dbManager.getConnection();
@@ -38,8 +38,9 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
             stmt.setString(2, player.getUsername());
             stmt.setString(3, player.getClassId());
             stmt.setInt(4, player.getClassRank());
-            stmt.setLong(5, player.getFirstJoin());
-            stmt.setLong(6, player.getLastLogin());
+            stmt.setString(5, player.getClassHistory());
+            stmt.setLong(6, player.getFirstJoin());
+            stmt.setLong(7, player.getLastLogin());
 
             stmt.executeUpdate();
             logger.fine("Player data saved: " + player.getUuid());
@@ -132,8 +133,8 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
     @Override
     public void saveAll(List<PlayerData> players) throws SQLException {
         String sql = """
-            INSERT OR REPLACE INTO player_data (uuid, username, class_id, class_rank, first_join, last_login)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO player_data (uuid, username, class_id, class_rank, class_history, first_join, last_login)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = dbManager.getConnection();
@@ -147,8 +148,9 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
                     stmt.setString(2, player.getUsername());
                     stmt.setString(3, player.getClassId());
                     stmt.setInt(4, player.getClassRank());
-                    stmt.setLong(5, player.getFirstJoin());
-                    stmt.setLong(6, player.getLastLogin());
+                    stmt.setString(5, player.getClassHistory());
+                    stmt.setLong(6, player.getFirstJoin());
+                    stmt.setLong(7, player.getLastLogin());
 
                     stmt.addBatch();
                     stmt.clearParameters();
@@ -238,9 +240,10 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
         String username = rs.getString("username");
         String classId = rs.getString("class_id");
         int classRank = rs.getInt("class_rank");
+        String classHistory = rs.getString("class_history");
         long firstJoin = rs.getLong("first_join");
         long lastLogin = rs.getLong("last_login");
 
-        return new PlayerData(uuid, username, classId, classRank, firstJoin, lastLogin);
+        return new PlayerData(uuid, username, classId, classRank, classHistory, firstJoin, lastLogin);
     }
 }

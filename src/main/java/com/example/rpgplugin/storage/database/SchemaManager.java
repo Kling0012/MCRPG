@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  */
 public class SchemaManager {
 
-    private static final int CURRENT_SCHEMA_VERSION = 1;
+    private static final int CURRENT_SCHEMA_VERSION = 2;
 
     private final DatabaseManager dbManager;
     private final Logger logger;
@@ -118,6 +118,9 @@ public class SchemaManager {
             case 1:
                 applyMigrationV1(stmt);
                 break;
+            case 2:
+                applyMigrationV2(stmt);
+                break;
             default:
                 throw new SQLException("Unknown migration version: " + version);
         }
@@ -168,6 +171,30 @@ public class SchemaManager {
         stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_data_class ON player_data(class_id)");
 
         logger.info("Version 1 schema created successfully");
+    }
+
+    /**
+     * バージョン2のマイグレーション: クラス履歴カラムを追加
+     */
+    private void applyMigrationV2(Statement stmt) throws SQLException {
+        logger.info("Applying version 2 migration: adding class_history column");
+
+        // class_historyカラムを追加（既存の場合はスキップ）
+        String alterSql = """
+            ALTER TABLE player_data ADD COLUMN class_history TEXT DEFAULT NULL
+        """;
+        try {
+            stmt.execute(alterSql);
+            logger.info("class_history column added successfully");
+        } catch (SQLException e) {
+            // カラムが既に存在する場合のエラーを無視
+            if (!e.getMessage().contains("duplicate column name")) {
+                throw e;
+            }
+            logger.info("class_history column already exists");
+        }
+
+        logger.info("Version 2 migration completed successfully");
     }
 
     /**

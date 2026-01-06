@@ -144,6 +144,31 @@ public class RPGPlayer {
     }
 
     /**
+     * クラス履歴を取得します
+     *
+     * @return クラスIDのリスト
+     */
+    public java.util.List<String> getClassHistory() {
+        return playerData.getClassHistoryList();
+    }
+
+    /**
+     * クラス履歴に追加します
+     *
+     * @param classId クラスID
+     */
+    public void addClassToHistory(String classId) {
+        playerData.addClassToHistory(classId);
+    }
+
+    /**
+     * クラス履歴をクリアします
+     */
+    public void clearClassHistory() {
+        playerData.setClassHistory(null);
+    }
+
+    /**
      * 初回参加日時を取得します
      *
      * @return 初回参加日時（エポックミリ秒）

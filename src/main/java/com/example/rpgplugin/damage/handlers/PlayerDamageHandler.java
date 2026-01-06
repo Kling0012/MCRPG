@@ -66,14 +66,14 @@ public class PlayerDamageHandler {
         Player player = (Player) damager;
 
         // RPGPlayer取得
-        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player);
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
         if (rpgPlayer == null) {
             logWarning("RPGPlayer not found for: " + player.getName());
             return -1;
         }
 
         // ステータス取得
-        Map<Stat, Integer> stats = rpgPlayer.getStats().getAllTotalStats();
+        Map<Stat, Integer> stats = rpgPlayer.getStatManager().getAllFinalStats();
 
         // 基本ダメージ取得
         double baseDamage = event.getDamage();
@@ -140,8 +140,7 @@ public class PlayerDamageHandler {
     private boolean isPhysicalDamage(EntityDamageEvent.DamageCause cause) {
         return switch (cause) {
             case ENTITY_ATTACK,
-                 ENTITY_SWEEP_ATTACK,
-                 PLAYER_ATTACK -> true;
+                 ENTITY_SWEEP_ATTACK -> true;
             default -> false;
         };
     }

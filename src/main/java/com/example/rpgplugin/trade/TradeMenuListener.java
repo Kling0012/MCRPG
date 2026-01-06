@@ -105,6 +105,9 @@ public class TradeMenuListener implements Listener {
         // 確認ボタン（スロット49）
         if (slot == 49) {
             if (tradeInv.handleClick(slot)) {
+                // 双方のGUIを更新
+                updateBothGUIs(session);
+
                 // 双方が確認済みの場合、トレードを実行
                 if (session.canExecute()) {
                     tradeManager.executeTrade(session);
@@ -176,8 +179,8 @@ public class TradeMenuListener implements Listener {
 
         if (added) {
             player.sendMessage(org.bukkit.ChatColor.GREEN + "アイテムを追加しました");
-            // GUIを更新
-            // TODO: 双方向同期
+            // 双方のGUIを更新
+            updateBothGUIs(session);
         }
 
         return added;
@@ -199,8 +202,8 @@ public class TradeMenuListener implements Listener {
 
         if (removed) {
             player.sendMessage(org.bukkit.ChatColor.YELLOW + "アイテムを削除しました");
-            // GUIを更新
-            // TODO: 双方向同期
+            // 双方のGUIを更新
+            updateBothGUIs(session);
         }
     }
 
@@ -242,7 +245,28 @@ public class TradeMenuListener implements Listener {
         session.addItem(player, slot, item);
 
         player.sendMessage(org.bukkit.ChatColor.YELLOW + "アイテムの半分を削除しました");
-        // TODO: GUI更新
+        // 双方のGUIを更新
+        updateBothGUIs(session);
+    }
+
+    /**
+     * 両プレイヤーのGUIを更新
+     *
+     * @param session トレードセッション
+     */
+    private void updateBothGUIs(TradeSession session) {
+        var p1 = session.getParty1().getPlayer();
+        var p2 = session.getParty2().getPlayer();
+
+        if (p1 != null && p1.isOnline() && p1.getOpenInventory().getTopInventory().getHolder() instanceof TradeInventory) {
+            TradeInventory inv1 = (TradeInventory) p1.getOpenInventory().getTopInventory().getHolder();
+            inv1.refreshGUI();
+        }
+
+        if (p2 != null && p2.isOnline() && p2.getOpenInventory().getTopInventory().getHolder() instanceof TradeInventory) {
+            TradeInventory inv2 = (TradeInventory) p2.getOpenInventory().getTopInventory().getHolder();
+            inv2.refreshGUI();
+        }
     }
 
     /**
@@ -289,16 +313,41 @@ public class TradeMenuListener implements Listener {
         }
 
         TradeInventory tradeInv = (TradeInventory) holder;
+        Player player = tradeInv.getViewer();
 
         // プレイヤー以外のドラッグはキャンセル
-        if (event.getWhoClicked() != tradeInv.getViewer()) {
+        if (event.getWhoClicked() != player) {
             event.setCancelled(true);
             return;
         }
 
-        // ドラッグをキャンセル（アイテムの移動を防止）
-        event.setCancelled(true);
+        TradeSession session = tradeInv.getSession();
 
-        // TODO: ドラッグでのアイテム追加処理
+        // 自分のアイテムスロットへのドラッグのみ許可
+        for (Integer slot : event.getInventorySlots()) {
+            if (!tradeInv.isOwnItemSlot(slot)) {
+                event.setCancelled(true);
+                player.sendMessage(org.bukkit.ChatColor.RED + "自分のアイテムスロットにのみドラッグできます");
+                return;
+            }
+        }
+
+        // ドラッグされたアイテムを取得
+        ItemStack draggedItem = event.getOldCursor();
+        if (draggedItem == null || draggedItem.getType().isAir()) {
+            event.setCancelled(true);
+            return;
+        }
+
+        // 最初のスロットにアイテムを追加
+        int firstSlot = event.getInventorySlots().iterator().next();
+        int itemIndex = tradeInv.getItemIndex(firstSlot);
+
+        if (addItemToTrade(session, player, itemIndex, draggedItem)) {
+            // カーソルをクリア
+            event.getView().setCursor(null);
+        }
+
+        event.setCancelled(true);
     }
 }

@@ -1,11 +1,15 @@
 package com.example.rpgplugin.trade;
 
 import com.example.rpgplugin.trade.repository.TradeHistoryRepository;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +39,9 @@ public class TradeManager {
     // トレード申請: requesterUuid -> targetUuid
     private final Map<UUID, UUID> pendingRequests;
 
+    // 申請時刻: requesterUuid -> timestamp
+    private final Map<UUID, Long> requestTimestamps;
+
     // アクティブなトレードセッション: sessionId -> TradeSession
     private final Map<String, TradeSession> activeSessions;
 
@@ -43,6 +50,9 @@ public class TradeManager {
 
     // トレード履歴リポジトリ
     private TradeHistoryRepository historyRepository;
+
+    // JSONシリアライズ用Gson
+    private final Gson gson = new Gson();
 
     // タイムアウト設定
     private static final long REQUEST_TIMEOUT_MS = TimeUnit.MINUTES.toMillis(2);
@@ -60,6 +70,7 @@ public class TradeManager {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
         this.pendingRequests = new ConcurrentHashMap<>();
+        this.requestTimestamps = new ConcurrentHashMap<>();
         this.activeSessions = new ConcurrentHashMap<>();
         this.playerToSession = new ConcurrentHashMap<>();
     }
@@ -111,6 +122,7 @@ public class TradeManager {
 
         // 申請を登録
         pendingRequests.put(requesterUuid, targetUuid);
+        requestTimestamps.put(requesterUuid, System.currentTimeMillis());
 
         // 通知
         requester.sendMessage(ChatColor.GREEN + "トレード申請を " + target.getName() + " に送信しました");
@@ -154,6 +166,7 @@ public class TradeManager {
 
         // 申請を削除
         pendingRequests.remove(requesterUuid);
+        requestTimestamps.remove(requesterUuid);
 
         // トレードセッションを作成
         TradeSession session = new TradeSession(requester, player, logger);
@@ -201,6 +214,7 @@ public class TradeManager {
 
         // 申請を削除
         pendingRequests.remove(requesterUuid);
+        requestTimestamps.remove(requesterUuid);
 
         // 通知
         player.sendMessage(ChatColor.YELLOW + "トレード申請を拒否しました");
@@ -321,13 +335,42 @@ public class TradeManager {
      * @param session トレードセッション
      */
     private void exchangeGold(TradeSession session) {
-        // TODO: 経済システムとの連携
-        // 現時点ではプレイヤーメッセージのみ
-        double gold1 = session.getParty1().getOffer().getGoldAmount();
-        double gold2 = session.getParty2().getOffer().getGoldAmount();
+        var p1 = session.getParty1();
+        var p2 = session.getParty2();
+
+        Player player1 = p1.getPlayer();
+        Player player2 = p2.getPlayer();
+
+        if (player1 == null || player2 == null) {
+            throw new IllegalStateException("Both players must be online");
+        }
+
+        // CurrencyManagerを取得
+        com.example.rpgplugin.currency.CurrencyManager currencyManager = plugin.getCurrencyManager();
+        if (currencyManager == null) {
+            logger.warning("CurrencyManager is not available, skipping gold exchange");
+            return;
+        }
+
+        double gold1 = p1.getOffer().getGoldAmount();
+        double gold2 = p2.getOffer().getGoldAmount();
 
         if (gold1 > 0 || gold2 > 0) {
-            logger.info(String.format("[Trade] Gold exchange: P1=%.2f, P2=%.2f", gold1, gold2));
+            // P1のゴールドをP2に
+            if (gold1 > 0) {
+                currencyManager.withdrawGold(player1, gold1);
+                currencyManager.depositGold(player2, gold1);
+                logger.info(String.format("[Trade] %s transferred %.2f gold to %s",
+                    player1.getName(), gold1, player2.getName()));
+            }
+
+            // P2のゴールドをP1に
+            if (gold2 > 0) {
+                currencyManager.withdrawGold(player2, gold2);
+                currencyManager.depositGold(player1, gold2);
+                logger.info(String.format("[Trade] %s transferred %.2f gold to %s",
+                    player2.getName(), gold2, player1.getName()));
+            }
         }
     }
 
@@ -378,10 +421,32 @@ public class TradeManager {
         long now = System.currentTimeMillis();
 
         // 申請のタイムアウトチェック
-        Iterator<Map.Entry<UUID, UUID>> requestIt = pendingRequests.entrySet().iterator();
-        while (requestIt.hasNext()) {
-            Map.Entry<UUID, UUID> entry = requestIt.next();
-            // TODO: 申請時刻を記録してタイムアウトチェック
+        Iterator<Map.Entry<UUID, Long>> timestampIt = requestTimestamps.entrySet().iterator();
+        while (timestampIt.hasNext()) {
+            Map.Entry<UUID, Long> entry = timestampIt.next();
+            UUID requesterUuid = entry.getKey();
+            Long timestamp = entry.getValue();
+
+            if (now - timestamp > REQUEST_TIMEOUT_MS) {
+                // 申請を削除
+                UUID targetUuid = pendingRequests.remove(requesterUuid);
+                requestTimestamps.remove(requesterUuid);
+
+                // 通知
+                Player requester = Bukkit.getPlayer(requesterUuid);
+                Player target = targetUuid != null ? Bukkit.getPlayer(targetUuid) : null;
+
+                if (requester != null && requester.isOnline()) {
+                    requester.sendMessage(ChatColor.YELLOW + "トレード申請が期限切れになりました");
+                }
+                if (target != null && target.isOnline()) {
+                    target.sendMessage(ChatColor.YELLOW + "トレード申請が期限切れになりました");
+                }
+
+                logger.info(String.format("[Trade] Request expired: %s -> %s",
+                    requester != null ? requester.getName() : "offline",
+                    target != null ? target.getName() : "offline"));
+            }
         }
 
         // セッションのタイムアウトチェック
@@ -419,9 +484,22 @@ public class TradeManager {
         pendingRequests.entrySet().removeIf(entry -> entry.getValue().equals(uuid1));
 
         // 既存のセッションをキャンセル
-        playerToSession.get(uuid1);
-        playerToSession.get(uuid2);
-        // TODO: 既存セッションのキャンセル処理
+        String sessionId1 = playerToSession.get(uuid1);
+        String sessionId2 = playerToSession.get(uuid2);
+
+        if (sessionId1 != null) {
+            TradeSession session1 = activeSessions.get(sessionId1);
+            if (session1 != null) {
+                cancelSession(session1, "新しいトレードが開始されました");
+            }
+        }
+
+        if (sessionId2 != null) {
+            TradeSession session2 = activeSessions.get(sessionId2);
+            if (session2 != null) {
+                cancelSession(session2, "新しいトレードが開始されました");
+            }
+        }
     }
 
     /**
@@ -545,8 +623,46 @@ public class TradeManager {
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            // TODO: 履歴保存処理
-            logger.info(String.format("[Trade] History saved for session %s", session.getSessionId()));
+            try {
+                // アイテムデータをJSONにシリアライズ
+                Type itemListType = new TypeToken<List<Map<String, Object>>>(){}.getType();
+                List<Map<String, Object>> p1ItemsData = new ArrayList<>();
+                List<Map<String, Object>> p2ItemsData = new ArrayList<>();
+
+                for (ItemStack item : session.getParty1().getOffer().getItems()) {
+                    p1ItemsData.add(item.serialize());
+                }
+
+                for (ItemStack item : session.getParty2().getOffer().getItems()) {
+                    p2ItemsData.add(item.serialize());
+                }
+
+                String p1ItemsJson = gson.toJson(p1ItemsData);
+                String p2ItemsJson = gson.toJson(p2ItemsData);
+
+                // トレード履歴レコードを作成
+                TradeHistoryRepository.TradeHistoryRecord record =
+                    new TradeHistoryRepository.TradeHistoryRecord(
+                        session.getParty1().getUuid(),
+                        session.getParty2().getUuid(),
+                        p1ItemsJson,
+                        p2ItemsJson,
+                        session.getParty1().getOffer().getGoldAmount(),
+                        session.getParty2().getOffer().getGoldAmount(),
+                        System.currentTimeMillis() / 1000 // Unixタイムスタンプ（秒）
+                    );
+
+                // 保存
+                boolean saved = historyRepository.save(record);
+                if (saved) {
+                    logger.info(String.format("[Trade] History saved for session %s", session.getSessionId()));
+                } else {
+                    logger.warning(String.format("[Trade] Failed to save history for session %s", session.getSessionId()));
+                }
+            } catch (Exception e) {
+                logger.severe("Failed to save trade history: " + e.getMessage());
+                e.printStackTrace();
+            }
         });
     }
 

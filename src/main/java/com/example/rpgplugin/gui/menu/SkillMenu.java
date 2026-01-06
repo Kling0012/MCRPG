@@ -64,7 +64,7 @@ public class SkillMenu {
         this.skillTree = skillTree;
 
         PlayerManager playerManager = plugin.getPlayerManager();
-        this.rpgPlayer = playerManager.getPlayer(player);
+        this.rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
 
         this.inventory = Bukkit.createInventory(null, INVENTORY_SIZE, INVENTORY_TITLE);
 

@@ -88,7 +88,7 @@ public class ActiveSkillExecutor implements SkillExecutor {
             return 0.0;
         }
 
-        RPGPlayer rpgPlayer = playerManager.getPlayer(player);
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
         if (rpgPlayer == null) {
             return 0.0;
         }
@@ -97,7 +97,7 @@ public class ActiveSkillExecutor implements SkillExecutor {
         Stat stat = damageConfig.getStatMultiplier();
         double statValue = 0.0;
         if (stat != null) {
-            statValue = rpgPlayer.getFinalStat(stat);
+            statValue = rpgPlayer.getStatManager().getFinalStat(stat);
         }
 
         // ダメージ計算

@@ -163,13 +163,7 @@ public class ClassMenuListener implements Listener {
             player.closeInventory();
         } else {
             player.sendMessage(ChatColor.RED + result.getMessage());
-
-            if (!result.isRankedUp() && !result.getFailedRequirements().isEmpty()) {
-                player.sendMessage(ChatColor.RED + "【不足条件】");
-                for (String req : result.getFailedRequirements()) {
-                    player.sendMessage(ChatColor.RED + " - " + req);
-                }
-            }
+            // TODO: 失敗条件の詳細表示を実装
         }
     }
 

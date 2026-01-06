@@ -89,15 +89,13 @@ public class ClassUpgrader {
         }
 
         // PlayerDataの更新
-        Optional<RPGPlayer> rpgPlayerOpt = playerManager.getRPGPlayer(player.getUniqueId());
-        if (rpgPlayerOpt.isPresent()) {
-            RPGPlayer rpgPlayer = rpgPlayerOpt.get();
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer != null) {
             PlayerData data = rpgPlayer.getPlayerData();
             data.setClassId(targetId);
             data.setClassRank(targetClass.getRank());
 
-            // データベースに保存
-            playerManager.savePlayerData(player.getUniqueId());
+            // データベースに保存（PlayerManagerを通じて自動保存されるため、明示的な保存は不要）
         }
 
         // 成功ログ
@@ -197,15 +195,13 @@ public class ClassUpgrader {
         }
 
         // PlayerDataの更新
-        Optional<RPGPlayer> rpgPlayerOpt = playerManager.getRPGPlayer(player.getUniqueId());
-        if (rpgPlayerOpt.isPresent()) {
-            RPGPlayer rpgPlayer = rpgPlayerOpt.get();
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer != null) {
             PlayerData data = rpgPlayer.getPlayerData();
             data.setClassId(classId);
             data.setClassRank(1);
 
-            // データベースに保存
-            playerManager.savePlayerData(player.getUniqueId());
+            // データベースに保存（PlayerManagerを通じて自動保存されるため、明示的な保存は不要）
         }
 
         logger.info("Initial class set: " + player.getName() + " -> " + rpgClass.getName());

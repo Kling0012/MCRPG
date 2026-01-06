@@ -1,0 +1,58 @@
+# ファイアボール（アクティブスキル）
+
+name: "fireball"
+display_name: "§6ファイアボール"
+type: "ACTIVE"
+description: "爆発するファイアボールを放つ"
+
+# スキルレベル
+max_level: 5
+
+# マナコスト
+mana_cost: 25
+
+# クールダウン（秒）
+cooldown: 12
+
+# キャスト時間（秒）
+cast_time: 1
+
+# ダメージ計算式
+damage_formula: "BASE_DAMAGE + (LEVEL * 8) + (INTELLIGENCE * 2.0)"
+
+# 基本ダメージ
+base_damage: 30
+
+# 爆発範囲
+explosion_radius: 3
+
+# レベルごとの効果
+levels:
+  1:
+    damage_multiplier: 1.0
+    explosion_radius: 3
+    burn_duration: 3
+  2:
+    damage_multiplier: 1.3
+    explosion_radius: 3.5
+    burn_duration: 4
+  3:
+    damage_multiplier: 1.6
+    explosion_radius: 4
+    burn_duration: 5
+  4:
+    damage_multiplier: 2.0
+    explosion_radius: 4.5
+    burn_duration: 6
+  5:
+    damage_multiplier: 2.5
+    explosion_radius: 5
+    burn_duration: 8
+
+# 必要条件
+requirements:
+  level: 1
+  class: ["mage"]
+
+# アンロックコスト
+unlock_cost: 0

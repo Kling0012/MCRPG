@@ -27,3 +27,9 @@ permissions:
   rpg.use:
     description: Allows using RPG commands
     default: true
+  rpg.admin:
+    description: Allows administrative RPG commands
+    default: op
+    children:
+      rpg.use: true
+

@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  */
 public class SchemaManager {
 
-    private static final int CURRENT_SCHEMA_VERSION = 2;
+    private static final int CURRENT_SCHEMA_VERSION = 3;
 
     private final DatabaseManager dbManager;
     private final Logger logger;
@@ -121,6 +121,9 @@ public class SchemaManager {
             case 2:
                 applyMigrationV2(stmt);
                 break;
+            case 3:
+                applyMigrationV3(stmt);
+                break;
             default:
                 throw new SQLException("Unknown migration version: " + version);
         }
@@ -198,6 +201,54 @@ public class SchemaManager {
     }
 
     /**
+     * バージョン3のマイグレーション: オークションシステム
+     */
+    private void applyMigrationV3(Statement stmt) throws SQLException {
+        logger.info("Applying version 3 migration: creating auction system tables");
+
+        // auction_listings テーブル
+        String auctionListingsSql = """
+            CREATE TABLE IF NOT EXISTS auction_listings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seller_uuid TEXT NOT NULL,
+                seller_name TEXT NOT NULL,
+                item_data TEXT NOT NULL,
+                starting_price REAL NOT NULL,
+                current_bid REAL DEFAULT 0,
+                current_bidder TEXT,
+                duration_seconds INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                expires_at INTEGER NOT NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                FOREIGN KEY (seller_uuid) REFERENCES player_data(uuid)
+            )
+        """;
+        stmt.execute(auctionListingsSql);
+
+        // auction_bids テーブル（入札履歴）
+        String auctionBidsSql = """
+            CREATE TABLE IF NOT EXISTS auction_bids (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                auction_id INTEGER NOT NULL,
+                bidder_uuid TEXT NOT NULL,
+                bid_amount REAL NOT NULL,
+                bid_time INTEGER DEFAULT (strftime('%s', 'now')),
+                FOREIGN KEY (auction_id) REFERENCES auction_listings(id) ON DELETE CASCADE
+            )
+        """;
+        stmt.execute(auctionBidsSql);
+
+        // インデックス作成
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_seller ON auction_listings(seller_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_expires ON auction_listings(expires_at)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_active ON auction_listings(is_active)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_auction ON auction_bids(auction_id)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_bidder ON auction_bids(bidder_uuid)");
+
+        logger.info("Version 3 migration completed successfully");
+    }
+
+    /**
      * すべてのテーブルが存在することを確認
      */
     private void ensureTablesExist(Statement stmt) throws SQLException {
@@ -205,6 +256,8 @@ public class SchemaManager {
 
         boolean hasPlayerData = false;
         boolean hasPlayerStats = false;
+        boolean hasAuctionListings = false;
+        boolean hasAuctionBids = false;
 
         while (rs.next()) {
             String tableName = rs.getString("name");
@@ -212,12 +265,21 @@ public class SchemaManager {
                 hasPlayerData = true;
             } else if ("player_stats".equals(tableName)) {
                 hasPlayerStats = true;
+            } else if ("auction_listings".equals(tableName)) {
+                hasAuctionListings = true;
+            } else if ("auction_bids".equals(tableName)) {
+                hasAuctionBids = true;
             }
         }
 
         if (!hasPlayerData || !hasPlayerStats) {
             logger.warning("Some tables are missing, applying version 1 schema");
             applyMigrationV1(stmt);
+        }
+
+        if (!hasAuctionListings || !hasAuctionBids) {
+            logger.warning("Auction tables are missing, applying version 3 schema");
+            applyMigrationV3(stmt);
         }
     }
 

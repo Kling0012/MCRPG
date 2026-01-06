@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
  *   <li>skill - スキルGUIを表示</li>
  *   <li>cast - スキルを発動</li>
  *   <li>class - クラス管理</li>
+ *   <li>auction - オークションシステム</li>
  *   <li>help - ヘルプを表示</li>
  *   <li>reload - 設定をリロード（管理者のみ）</li>
  * </ul>
@@ -89,6 +90,10 @@ public class RPGCommand implements CommandExecutor {
                 handleClassCommand(player, args);
                 break;
 
+            case "auction":
+                handleAuctionCommand(player, args);
+                break;
+
             case "help":
                 showHelp(player);
                 break;
@@ -112,6 +117,7 @@ public class RPGCommand implements CommandExecutor {
         player.sendMessage(ChatColor.GRAY + "/rpg stats - ステータスGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg class - クラスGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg auction - オークションシステム");
         player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
         player.sendMessage(ChatColor.GRAY + "/rpg help - ヘルプを表示");
         if (player.hasPermission("rpg.admin")) {
@@ -463,6 +469,25 @@ public class RPGCommand implements CommandExecutor {
     }
 
     /**
+     * オークションコマンドを処理します
+     *
+     * @param player プレイヤー
+     * @param args 引数
+     */
+    private void handleAuctionCommand(Player player, String[] args) {
+        com.example.rpgplugin.auction.AuctionManager auctionManager = RPGPlugin.getInstance().getAuctionManager();
+        if (auctionManager == null) {
+            player.sendMessage(ChatColor.RED + "オークションマネージャーが初期化されていません");
+            return;
+        }
+
+        // AuctionCommandに委譲
+        com.example.rpgplugin.auction.AuctionCommand auctionCommand =
+                new com.example.rpgplugin.auction.AuctionCommand(auctionManager);
+        auctionCommand.onCommand(player, null, "auction", args);
+    }
+
+    /**
      * ヘルプを表示します
      *
      * @param player プレイヤー
@@ -476,6 +501,10 @@ public class RPGCommand implements CommandExecutor {
         player.sendMessage(ChatColor.GRAY + "/rpg class - クラスGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg class list - クラス一覧を表示");
         player.sendMessage(ChatColor.GRAY + "/rpg class <クラスID> - クラスを選択");
+        player.sendMessage(ChatColor.GOLD + "--- オークションコマンド ---");
+        player.sendMessage(ChatColor.GRAY + "/rpg auction list - オークション一覧");
+        player.sendMessage(ChatColor.GRAY + "/rpg auction bid <ID> <金額> - 入札");
+        player.sendMessage(ChatColor.GRAY + "/rpg auction create <価格> <秒数> - 出品");
         player.sendMessage(ChatColor.GOLD + "--- スキルコマンド ---");
         player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
         player.sendMessage(ChatColor.GOLD + "--- その他 ---");

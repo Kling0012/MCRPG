@@ -1,0 +1,26 @@
+# テレポート - メイジの移動スキル
+id: teleport
+name: テレポート
+display_name: "&dテレポート"
+type: active
+description:
+  - "&d短距離を瞬間移動する"
+  - "&eINTに依存して距離増加"
+max_level: 3
+cooldown: 20.0
+mana_cost: 30
+
+skill_tree:
+  parent: ice_spike
+  unlock_requirements:
+    - type: level
+      value: 15
+    - type: stat
+      stat: INTELLIGENCE
+      value: 40
+  cost: 3
+
+icon_material: ENDER_PEARL
+available_classes:
+  - Mage
+  - Wizard

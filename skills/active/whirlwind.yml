@@ -1,0 +1,33 @@
+# ワールウィンド - 戦士の範囲攻撃スキル
+id: whirlwind
+name: ワールウィンド
+display_name: "&6ワールウィンド"
+type: active
+description:
+  - "&6周囲の敵を攻撃する"
+  - "&eSTRに依存してダメージ増加"
+max_level: 3
+cooldown: 15.0
+mana_cost: 25
+
+damage:
+  base: 60.0
+  stat_multiplier:
+    stat: STRENGTH
+    multiplier: 1.8
+  level_multiplier: 15.0
+
+skill_tree:
+  parent: shield_bash
+  unlock_requirements:
+    - type: level
+      value: 15
+    - type: stat
+      stat: STRENGTH
+      value: 40
+  cost: 3
+
+icon_material: IRON_AXE
+available_classes:
+  - Warrior
+  - Knight

@@ -1,0 +1,24 @@
+# イーグルアイ - アーチャーの上級パッシブ
+id: eagle_eye
+name: イーグルアイ
+display_name: "&7イーグルアイ"
+type: passive
+description:
+  - "&7命中率が大幅に増加する"
+  - "&eDEXに依存して効果上昇"
+max_level: 3
+
+skill_tree:
+  parent: critical_eye
+  unlock_requirements:
+    - type: level
+      value: 12
+    - type: stat
+      stat: DEXTERITY
+      value: 35
+  cost: 3
+
+icon_material: SPECTRAL_ARROW
+available_classes:
+  - Archer
+  - Hunter

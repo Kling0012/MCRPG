@@ -1,0 +1,24 @@
+# アイアンスキン - 戦士の防御パッシブ
+id: iron_skin
+name: アイアンスキン
+display_name: "&8アイアンスキン"
+type: passive
+description:
+  - "&8物理防御力が増加する"
+  - "&eVITに依存して効果上昇"
+max_level: 3
+
+skill_tree:
+  parent: health_boost
+  unlock_requirements:
+    - type: level
+      value: 8
+    - type: stat
+      stat: VITALITY
+      value: 25
+  cost: 2
+
+icon_material: IRON_CHESTPLATE
+available_classes:
+  - Warrior
+  - Knight

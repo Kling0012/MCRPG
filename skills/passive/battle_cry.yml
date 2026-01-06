@@ -1,0 +1,24 @@
+# バトルクライ - 戦士の上級パッシブ
+id: battle_cry
+name: バトルクライ
+display_name: "&6バトルクライ"
+type: passive
+description:
+  - "&6攻撃力が大幅に増加する"
+  - "&eSTRに依存して効果上昇"
+max_level: 3
+
+skill_tree:
+  parent: iron_skin
+  unlock_requirements:
+    - type: level
+      value: 12
+    - type: stat
+      stat: STRENGTH
+      value: 35
+  cost: 3
+
+icon_material: GOLDEN_SWORD
+available_classes:
+  - Warrior
+  - Knight

@@ -1,0 +1,33 @@
+# トラップ - アーチャーの設置スキル
+id: trap
+name: トラップ
+display_name: "&7トラップ"
+type: active
+description:
+  - "&7足元に罠を設置する"
+  - "&eDEXに依存してダメージ増加"
+max_level: 3
+cooldown: 25.0
+mana_cost: 20
+
+damage:
+  base: 40.0
+  stat_multiplier:
+    stat: DEXTERITY
+    multiplier: 1.3
+  level_multiplier: 12.0
+
+skill_tree:
+  parent: multishot
+  unlock_requirements:
+    - type: level
+      value: 15
+    - type: stat
+      stat: DEXTERITY
+      value: 35
+  cost: 3
+
+icon_material: TRIPWIRE_HOOK
+available_classes:
+  - Archer
+  - Hunter

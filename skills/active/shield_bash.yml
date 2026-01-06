@@ -1,0 +1,33 @@
+# シールドバッシュ - 戦士の防御スキル
+id: shield_bash
+name: シールドバッシュ
+display_name: "&7シールドバッシュ"
+type: active
+description:
+  - "&7盾で敵を殴りつける"
+  - "&eVITに依存してダメージ増加"
+max_level: 3
+cooldown: 12.0
+mana_cost: 15
+
+damage:
+  base: 30.0
+  stat_multiplier:
+    stat: VITALITY
+    multiplier: 1.2
+  level_multiplier: 8.0
+
+skill_tree:
+  parent: power_strike
+  unlock_requirements:
+    - type: level
+      value: 10
+    - type: stat
+      stat: VITALITY
+      value: 25
+  cost: 2
+
+icon_material: SHIELD
+available_classes:
+  - Warrior
+  - Knight

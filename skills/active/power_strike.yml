@@ -1,0 +1,33 @@
+# パワーストライク - 戦士の基本攻撃スキル
+id: power_strike
+name: パワーストライク
+display_name: "&6パワーストライク"
+type: active
+description:
+  - "&c強力な一撃を放つ"
+  - "&eSTRに依存してダメージ増加"
+max_level: 5
+cooldown: 8.0
+mana_cost: 10
+
+damage:
+  base: 50.0
+  stat_multiplier:
+    stat: STRENGTH
+    multiplier: 1.5
+  level_multiplier: 10.0
+
+skill_tree:
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 5
+    - type: stat
+      stat: STRENGTH
+      value: 20
+  cost: 1
+
+icon_material: IRON_SWORD
+available_classes:
+  - Warrior
+  - Knight

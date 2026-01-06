@@ -74,7 +74,6 @@ public class CurrencyListener implements Listener {
 
         // ゴールドを付与
         boolean success = currencyManager.depositGold(killer, goldDrop);
-        */
 
         if (success) {
             // メッセージを送信
@@ -82,6 +81,7 @@ public class CurrencyListener implements Listener {
 
             plugin.getLogger().fine("[Currency] " + killer.getName() + " earned " + goldDrop + "G from " + entity.getType().name());
         }
+        */
     }
 
     /**

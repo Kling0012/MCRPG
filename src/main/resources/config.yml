@@ -50,14 +50,25 @@ exp_diminish:
   # 減衰システムを有効化
   enabled: true
 
-  # 減衰開始レベル
+  # 減衰開始レベル（クラス設定で上書き可）
   start_level: 30
 
-  # 軽減率（0.0 - 1.0）
+  # 軽減率（0.0 - 1.0）（クラス設定で上書き可）
   reduction_rate: 0.5
 
   # 軽減率の増加（レベルごと）
   reduction_increment: 0.01
+
+  # 減衰除外設定
+  exemptions:
+    # プレイヤーキルによる経験値は減衰対象外
+    player_kills: true
+
+    # ボスモブからの経験値は減衰対象外
+    boss_mobs: true
+
+    # イベント報酬は減衰対象外
+    event_rewards: true
 
 # ================================
 # 経済システム
@@ -118,6 +129,17 @@ debug:
 
   # パフォーマンスログ出力
   performance_logging: false
+
+  # 経験値変化のログ出力
+  log_exp_changes: false
+
+  # 経験値減衰のログ出力
+  log_exp_diminish: false
+
+  # レベルアップ時にタイトルを表示
+level_up:
+  show_title: true
+  play_sound: true
 
 # ================================
 # ホットリロード設定

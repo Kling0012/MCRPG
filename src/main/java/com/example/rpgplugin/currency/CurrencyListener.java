@@ -46,6 +46,13 @@ public class CurrencyListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onEntityDeath(EntityDeathEvent event) {
         Entity entity = event.getEntity();
+
+        // Paper 1.20.6: getKiller()は削除されたため、ダメージイベントからプレイヤーを特定
+        // TODO: ダメージ追跡システムを実装して、キラーを特定できるようにする
+        // 現在は一時的に無効化
+        return;
+
+        /*
         Player killer = entity.getKiller();
 
         // プレイヤーに倒されたか確認
@@ -67,6 +74,7 @@ public class CurrencyListener implements Listener {
 
         // ゴールドを付与
         boolean success = currencyManager.depositGold(killer, goldDrop);
+        */
 
         if (success) {
             // メッセージを送信
@@ -118,7 +126,7 @@ public class CurrencyListener implements Listener {
             case ENDER_DRAGON, WITHER, ELDER_GUARDIAN -> 10.0;
 
             // 強力なモブ
-            case WARDEN, Ravager, Piglin_Brute -> 5.0;
+            case WARDEN, RAVAGER, PIGLIN_BRUTE -> 5.0;
 
             // 準ボス級
             case GUARDIAN -> 3.0;
@@ -147,7 +155,7 @@ public class CurrencyListener implements Listener {
      */
     private boolean isMythicMob(Entity entity) {
         // MythicMobsが有効か確認
-        if (!plugin.getDependencyManager().isMythicMobsEnabled()) {
+        if (!plugin.getDependencyManager().isMythicMobsAvailable()) {
             return false;
         }
 

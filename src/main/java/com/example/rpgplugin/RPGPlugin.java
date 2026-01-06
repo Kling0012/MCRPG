@@ -4,6 +4,8 @@ import com.example.rpgplugin.core.config.ConfigWatcher;
 import com.example.rpgplugin.core.config.YamlConfigManager;
 import com.example.rpgplugin.core.dependency.DependencyManager;
 import com.example.rpgplugin.core.module.ModuleManager;
+import com.example.rpgplugin.gui.menu.StatMenuListener;
+import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.storage.StorageManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,6 +27,7 @@ public class RPGPlugin extends JavaPlugin {
     private ModuleManager moduleManager;
     private YamlConfigManager configManager;
     private ConfigWatcher configWatcher;
+    private StatManager statManager;
 
     @Override
     public void onEnable() {
@@ -51,6 +54,9 @@ public class RPGPlugin extends JavaPlugin {
 
             // ストレージシステムの初期化
             initializeStorage();
+
+            // ステータスシステムの初期化
+            initializeStatManager();
 
             // モジュールマネージャーの初期化
             setupModuleManager();
@@ -249,10 +255,19 @@ public class RPGPlugin extends JavaPlugin {
     private void registerListeners() {
         try {
             getServer().getPluginManager().registerEvents(new RPGListener(), this);
+            getServer().getPluginManager().registerEvents(new StatMenuListener(this), this);
             getLogger().info("Listeners registered.");
         } catch (Exception e) {
             getLogger().warning("Failed to register listeners: " + e.getMessage());
         }
+    }
+
+    /**
+     * ステータスマネージャーを初期化
+     */
+    private void initializeStatManager() {
+        statManager = new StatManager(this);
+        getLogger().info("StatManager initialized.");
     }
 
     /**
@@ -307,6 +322,15 @@ public class RPGPlugin extends JavaPlugin {
      */
     public ConfigWatcher getConfigWatcher() {
         return configWatcher;
+    }
+
+    /**
+     * ステータスマネージャーを取得します
+     *
+     * @return StatManagerインスタンス
+     */
+    public StatManager getStatManager() {
+        return statManager;
     }
 
     /**

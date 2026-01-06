@@ -5,6 +5,9 @@ import com.example.rpgplugin.core.config.YamlConfigManager;
 import com.example.rpgplugin.core.dependency.DependencyManager;
 import com.example.rpgplugin.core.module.ModuleManager;
 import com.example.rpgplugin.gui.menu.SkillMenuListener;
+import com.example.rpgplugin.mythicmobs.MythicMobsManager;
+import com.example.rpgplugin.mythicmobs.config.MobDropConfig;
+import com.example.rpgplugin.mythicmobs.listener.MythicDeathListener;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.VanillaExpHandler;
 import com.example.rpgplugin.skill.SkillManager;
@@ -13,6 +16,7 @@ import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
 import com.example.rpgplugin.skill.executor.PassiveSkillExecutor;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.storage.StorageManager;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -45,6 +49,8 @@ public class RPGPlugin extends JavaPlugin {
     private com.example.rpgplugin.currency.CurrencyManager currencyManager;
     private com.example.rpgplugin.currency.CurrencyListener currencyListener;
     private com.example.rpgplugin.trade.TradeManager tradeManager;
+    private MythicMobsManager mythicMobsManager;
+    private MythicDeathListener mythicDeathListener;
 
     // リスナー
     private VanillaExpHandler vanillaExpHandler;
@@ -95,6 +101,9 @@ public class RPGPlugin extends JavaPlugin {
 
             // トレードシステムの初期化
             initializeTradeSystem();
+
+            // MythicMobsシステムの初期化
+            initializeMythicMobsSystem();
 
             // モジュールマネージャーの初期化
             setupModuleManager();
@@ -149,6 +158,11 @@ public class RPGPlugin extends JavaPlugin {
             // トレードマネージャーのシャットダウン
             if (tradeManager != null) {
                 tradeManager.shutdown();
+            }
+
+            // MythicMobsマネージャーのクリーンアップ
+            if (mythicMobsManager != null) {
+                mythicMobsManager.cleanup();
             }
 
             // ストレージシステムのシャットダウン
@@ -365,6 +379,100 @@ public class RPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(tradeMenuListener, this);
 
         getLogger().info("TradeSystem initialized!");
+    }
+
+    /**
+     * ダメージシステムを初期化
+     */
+    private void initializeDamageManager() {
+        getLogger().info("Initializing DamageManager...");
+        damageManager = new com.example.rpgplugin.damage.DamageManager(this);
+        getServer().getPluginManager().registerEvents(damageManager, this);
+        getLogger().info("DamageManager initialized!");
+    }
+
+    /**
+     * MythicMobsシステムを初期化
+     */
+    private void initializeMythicMobsSystem() {
+        if (!dependencyManager.isMythicMobsAvailable()) {
+            getLogger().warning("MythicMobs not available. Skipping MythicMobs system initialization.");
+            return;
+        }
+
+        getLogger().info("Initializing MythicMobs System...");
+
+        // MythicMobsマネージャー
+        mythicMobsManager = new MythicMobsManager(
+                this,
+                dependencyManager.getMythicMobsHook(),
+                storageManager.getDatabaseManager().getConnectionPool()
+        );
+
+        // マネージャーを初期化
+        if (!mythicMobsManager.initialize()) {
+            getLogger().warning("Failed to initialize MythicMobsManager");
+            return;
+        }
+
+        // ドロップ設定を読み込み
+        loadMobDropConfigs();
+
+        // MythicMobsデスリスナー
+        mythicDeathListener = new MythicDeathListener(mythicMobsManager);
+        getServer().getPluginManager().registerEvents(mythicDeathListener, this);
+
+        // 期限切れドロップクリーニングタスクを開始
+        startDropCleanupTask();
+
+        getLogger().info("MythicMobs System initialized!");
+    }
+
+    /**
+     * モブドロップ設定を読み込み
+     */
+    private void loadMobDropConfigs() {
+        getLogger().info("Loading mob drop configurations...");
+
+        // mob_drops.ymlを保存（存在しない場合）
+        saveResource("mobs/mob_drops.yml", false);
+
+        // 設定ファイルを読み込み
+        FileConfiguration dropConfig = getConfigManager().getConfig("mob_drops");
+        if (dropConfig == null) {
+            // 手動で読み込み
+            try {
+                dropConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(
+                        new java.io.File(getDataFolder(), "mobs/mob_drops.yml")
+                );
+            } catch (Exception e) {
+                getLogger().warning("Failed to load mob_drops.yml: " + e.getMessage());
+                return;
+            }
+        }
+
+        // MobDropConfigで設定を解析
+        MobDropConfig configLoader = new MobDropConfig(getLogger());
+        var mobDrops = configLoader.loadFromConfig(dropConfig);
+
+        // マネージャーに設定をロード
+        mythicMobsManager.loadDropConfigs(mobDrops);
+
+        getLogger().info("Loaded " + mobDrops.size() + " mob drop configurations");
+    }
+
+    /**
+     * ドロップクリーニングタスクを開始
+     */
+    private void startDropCleanupTask() {
+        // 10分ごとに期限切れドロップをクリーニング
+        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            if (mythicMobsManager != null) {
+                mythicMobsManager.cleanupExpiredDrops();
+            }
+        }, 10L * 60L * 20L, 10L * 60L * 20L); // 10分 = 12000 ticks
+
+        getLogger().info("Drop cleanup task started (runs every 10 minutes)");
     }
 
     /**
@@ -657,6 +765,24 @@ public class RPGPlugin extends JavaPlugin {
      */
     public com.example.rpgplugin.trade.TradeManager getTradeManager() {
         return tradeManager;
+    }
+
+    /**
+     * MythicMobsマネージャーを取得します
+     *
+     * @return MythicMobsManagerインスタンス
+     */
+    public MythicMobsManager getMythicMobsManager() {
+        return mythicMobsManager;
+    }
+
+    /**
+     * MythicMobsデスリスナーを取得します
+     *
+     * @return MythicDeathListenerインスタンス
+     */
+    public MythicDeathListener getMythicDeathListener() {
+        return mythicDeathListener;
     }
 
     /**

@@ -1,0 +1,92 @@
+# MythicMobsドロップ設定
+#
+# このファイルはMythicMobsのモブドロップ設定を管理します。
+#
+# 設定形式:
+# mobs:
+#   <モブ内部名>:
+#     mob_id: "MythicMobsのモブID"
+#     drops:
+#       - item: <マテリアル名>
+#         amount: <数量>
+#         chance: <ドロップ率 0.0-1.0>
+#         exclusive: <独占ドロップかどうか true/false>
+#         expiration_minutes: <独占有効期限（分）>
+
+mobs:
+  # スケルトンキング
+  SkeletonKing:
+    mob_id: "SkeletonKing"
+    drops:
+      - item: DIAMOND_SWORD
+        amount: 1
+        chance: 0.3
+        exclusive: true
+        expiration_minutes: 2
+      - item: DIAMOND
+        amount: 5
+        chance: 0.5
+        exclusive: false
+
+  # ゾンビボス
+  ZombieBoss:
+    mob_id: "ZombieBoss"
+    drops:
+      - item: IRON_SWORD
+        amount: 1
+        chance: 0.4
+        exclusive: true
+        expiration_minutes: 2
+      - item: GOLDEN_APPLE
+        amount: 2
+        chance: 0.2
+        exclusive: true
+        expiration_minutes: 3
+      - item: BONE
+        amount: 10
+        chance: 0.8
+        exclusive: false
+
+  # ウィッチクイーン
+  WitchQueen:
+    mob_id: "WitchQueen"
+    drops:
+      - item: POTION
+        amount: 3
+        chance: 0.5
+        exclusive: true
+        expiration_minutes: 2
+      - item: GLASS_BOTTLE
+        amount: 5
+        chance: 0.6
+        exclusive: false
+
+  # ダークウィザード
+  DarkWizard:
+    mob_id: "DarkWizard"
+    drops:
+      - item: BLAZE_ROD
+        amount: 2
+        chance: 0.3
+        exclusive: true
+        expiration_minutes: 2
+      - item: ENCHANTED_BOOK
+        amount: 1
+        chance: 0.2
+        exclusive: true
+        expiration_minutes: 5
+
+  # ドラゴンスポーン時（サンプル）
+  EnderDragon:
+    mob_id: "EnderDragon"
+    drops:
+      - item: DRAGON_EGG
+        amount: 1
+        chance: 1.0
+        exclusive: true
+        expiration_minutes: 10
+      - item: END_CRYSTAL
+        amount: 5
+        chance: 0.5
+        exclusive: true
+        expiration_minutes: 3

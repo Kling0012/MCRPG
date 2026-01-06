@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  */
 public class SchemaManager {
 
-    private static final int CURRENT_SCHEMA_VERSION = 3;
+    private static final int CURRENT_SCHEMA_VERSION = 4;
 
     private final DatabaseManager dbManager;
     private final Logger logger;
@@ -123,6 +123,9 @@ public class SchemaManager {
                 break;
             case 3:
                 applyMigrationV3(stmt);
+                break;
+            case 4:
+                applyMigrationV4(stmt);
                 break;
             default:
                 throw new SQLException("Unknown migration version: " + version);
@@ -283,6 +286,36 @@ public class SchemaManager {
         stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_time ON trade_history(trade_time)");
 
         logger.info("Version 3 migration completed successfully");
+    }
+
+    /**
+     * バージョン4のマイグレーション: MythicMobsドロップ管理テーブルを追加
+     */
+    private void applyMigrationV4(Statement stmt) throws SQLException {
+        logger.info("Applying version 4 migration: adding mythic_drops table");
+
+        // mythic_drops テーブル
+        String mythicDropsSql = """
+            CREATE TABLE IF NOT EXISTS mythic_drops (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player_uuid TEXT NOT NULL,
+                mob_id TEXT NOT NULL,
+                item_data TEXT NOT NULL,
+                dropped_at INTEGER DEFAULT (strftime('%s', 'now')),
+                is_claimed BOOLEAN DEFAULT 0,
+                expires_at INTEGER,
+                FOREIGN KEY (player_uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
+            )
+        """;
+        stmt.execute(mythicDropsSql);
+
+        // インデックス作成
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_player ON mythic_drops(player_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_mob ON mythic_drops(mob_id)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_expires ON mythic_drops(expires_at)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_claimed ON mythic_drops(is_claimed)");
+
+        logger.info("Version 4 migration completed successfully");
     }
 
     /**

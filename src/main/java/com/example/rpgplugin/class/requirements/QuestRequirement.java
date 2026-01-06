@@ -86,7 +86,7 @@ public class QuestRequirement implements ClassRequirement {
     /**
      * Questsプラグインのチェック
      */
-    private boolean checkQuestsPlugin(Player) {
+    private boolean checkQuestsPlugin(Player player) {
         try {
             // QuestsプラグインのAPIを使用
             // 具体的な実装はプラグインのバージョンによる

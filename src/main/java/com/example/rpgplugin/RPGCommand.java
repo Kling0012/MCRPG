@@ -1,11 +1,8 @@
 package com.example.rpgplugin;
 
-import com.example.rpgplugin.class.ClassManager;
-import com.example.rpgplugin.class.ClassUpgrader;
 import com.example.rpgplugin.gui.menu.StatMenu;
 import com.example.rpgplugin.gui.menu.SkillMenu;
 import com.example.rpgplugin.gui.menu.SkillMenuListener;
-import com.example.rpgplugin.gui.menu.class.ClassMenu;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.Skill;
@@ -251,22 +248,6 @@ public class RPGCommand implements CommandExecutor {
     }
 
     /**
-     * ヘルプを表示します
-     *
-     * @param player プレイヤー
-     */
-    private void showHelp(Player player) {
-        player.sendMessage(ChatColor.YELLOW + "=== ヘルプ ===");
-        player.sendMessage(ChatColor.GRAY + "/rpg stats - ステータスGUIを表示");
-        player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
-        player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
-        player.sendMessage(ChatColor.GRAY + "/rpg help - ヘルプを表示");
-        if (player.hasPermission("rpg.admin")) {
-            player.sendMessage(ChatColor.GRAY + "/rpg reload - 設定をリロード");
-        }
-    }
-
-    /**
      * スキルコマンドを処理します
      *
      * <p>SkillMenu（GUI）を開きます。</p>
@@ -286,7 +267,7 @@ public class RPGCommand implements CommandExecutor {
             return;
         }
 
-        RPGPlayer rpgPlayer = playerManager.getPlayer(player);
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
         if (rpgPlayer == null) {
             player.sendMessage(ChatColor.RED + "プレイヤーデータがロードされていません");
             return;
@@ -367,7 +348,7 @@ public class RPGCommand implements CommandExecutor {
      * @param args 引数
      */
     private void handleClassCommand(Player player, String[] args) {
-        ClassManager classManager = RPGPlugin.getInstance().getClassManager();
+        com.example.rpgplugin.class.ClassManager classManager = RPGPlugin.getInstance().getClassManager();
         if (classManager == null) {
             player.sendMessage(ChatColor.RED + "クラスマネージャーが初期化されていません");
             return;
@@ -399,7 +380,7 @@ public class RPGCommand implements CommandExecutor {
      * @param player プレイヤー
      */
     private void openClassMenu(Player player) {
-        ClassManager classManager = RPGPlugin.getInstance().getClassManager();
+        com.example.rpgplugin.class.ClassManager classManager = RPGPlugin.getInstance().getClassManager();
         PlayerManager playerManager = RPGPlugin.getInstance().getPlayerManager();
 
         if (classManager == null || playerManager == null) {
@@ -408,14 +389,14 @@ public class RPGCommand implements CommandExecutor {
         }
 
         try {
-            ClassMenu menu = new ClassMenu(
+            com.example.rpgplugin.gui.menu.class.ClassMenu menu = new com.example.rpgplugin.gui.menu.class.ClassMenu(
                 player,
                 playerManager.getRPGPlayer(player.getUniqueId()),
                 classManager
             );
 
             // リスナーに登録
-            ClassMenuListener listener = RPGPlugin.getInstance().getClassMenuListener();
+            com.example.rpgplugin.gui.menu.class.ClassMenuListener listener = RPGPlugin.getInstance().getClassMenuListener();
             if (listener != null) {
                 listener.registerMenu(player, menu);
             }
@@ -433,7 +414,7 @@ public class RPGCommand implements CommandExecutor {
      * @param player プレイヤー
      * @param classManager クラスマネージャー
      */
-    private void handleClassListCommand(Player player, ClassManager classManager) {
+    private void handleClassListCommand(Player player, com.example.rpgplugin.class.ClassManager classManager) {
         player.sendMessage(ChatColor.YELLOW + "=== 利用可能なクラス ===");
 
         // 初期クラス（Rank1）
@@ -455,9 +436,9 @@ public class RPGCommand implements CommandExecutor {
      * @param classManager クラスマネージャー
      * @param classId クラスID
      */
-    private void handleClassSetCommand(Player player, ClassManager classManager, String classId) {
+    private void handleClassSetCommand(Player player, com.example.rpgplugin.class.ClassManager classManager, String classId) {
         // クラス存在確認
-        if (!classManager.hasClass(classId)) {
+        if (!classManager.getClass(classId).isPresent()) {
             player.sendMessage(ChatColor.RED + "クラスが見つかりません: " + classId);
             player.sendMessage(ChatColor.GRAY + "使用法: /rpg class list でクラス一覧を確認");
             return;

@@ -1,0 +1,42 @@
+# 大盾使いクラス設定
+id: shieldbearer
+name: 大盾使い
+display_name: "&9大盾使い"
+description:
+  - "&f重厚な盾で味方を守る防御特化クラス"
+  - "&fVITの成長が特に高い"
+rank: 1
+max_level: 50
+icon: SHIELD
+
+stat_growth:
+  auto:
+    vitality: 3
+    strength: 1
+  manual_points: 2
+
+next_rank:
+  class_id: shieldbearer_rank2
+  requirements:
+    - type: level
+      value: 20
+    - type: stat
+      stat: VITALITY
+      value: 60
+
+available_skills:
+  - fortify
+  - taunt
+  - shield_wall
+
+passive_bonuses:
+  - type: damage_reduction
+    value: 0.15
+  - type: health_bonus
+    value: 40
+  - type: knockback_resistance
+    value: 0.5
+
+exp_diminish:
+  start_level: 30
+  reduction_rate: 0.5

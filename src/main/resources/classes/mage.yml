@@ -1,52 +1,40 @@
-# メイジクラス定義
+# 魔法使いクラス設定
+id: mage
+name: 魔法使い
+display_name: "&b魔法使い"
+description:
+  - "&f強力な魔法で敵を攻撃する遠距離クラス"
+  - "&fINTとSPIが成長しやすい"
+rank: 1
+max_level: 50
+icon: BLAZE_ROD
 
-name: "mage"
-display_name: "§bメイジ"
-description: "魔法の専門家"
+stat_growth:
+  auto:
+    intelligence: 2
+    spirit: 2
+  manual_points: 3
 
-# ステータス基本値
-base_stats:
-  health: 80
-  mana: 150
-  strength: 5
-  defense: 6
-  agility: 8
-  intelligence: 18
-  luck: 8
+next_rank:
+  class_id: mage_rank2
+  requirements:
+    - type: level
+      value: 20
+    - type: stat
+      stat: INTELLIGENCE
+      value: 50
 
-# レベルアップ時のステータスボーナス
-level_bonus:
-  health: 2
-  mana: 8
-  strength: 0
-  defense: 0
-  agility: 0
-  intelligence: 2
-  luck: 0
+available_skills:
+  - fireball
+  - ice_spike
+  - mana_shield
 
-# 装備可能なアイテムタイプ
-allowed_equipment:
-  - "WOODEN_HOE"
-  - "STONE_HOE"
-  - "IRON_HOE"
-  - "DIAMOND_HOE"
-  - "LEATHER_HELMET"
-  - "LEATHER_CHESTPLATE"
-  - "LEATHER_LEGGINGS"
-  - "LEATHER_BOOTS"
+passive_bonuses:
+  - type: magic_damage_multiplier
+    value: 1.15
+  - type: mana_bonus
+    value: 30
 
-# 初期スキル
-starting_skills:
-  - "fireball"
-
-# アンロック条件
-unlock_requirements:
-  level: 1
-  cost: 0
-
-# パッシブ効果
-passive_effects:
-  - type: "MANA_BONUS"
-    value: 20
-  - type: "INTELLIGENCE_BONUS"
-    value: 5
+exp_diminish:
+  start_level: 30
+  reduction_rate: 0.5

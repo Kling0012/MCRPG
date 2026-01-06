@@ -9,8 +9,13 @@ import com.example.rpgplugin.core.config.ConfigWatcher;
 import com.example.rpgplugin.core.config.YamlConfigManager;
 import com.example.rpgplugin.core.dependency.DependencyManager;
 import com.example.rpgplugin.core.module.ModuleManager;
+import com.example.rpgplugin.gui.menu.SkillMenuListener;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.VanillaExpHandler;
+import com.example.rpgplugin.skill.SkillManager;
+import com.example.rpgplugin.skill.config.SkillConfig;
+import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
+import com.example.rpgplugin.skill.executor.PassiveSkillExecutor;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.storage.StorageManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,9 +40,17 @@ public class RPGPlugin extends JavaPlugin {
     private YamlConfigManager configManager;
     private ConfigWatcher configWatcher;
     private StatManager statManager;
+    private SkillManager skillManager;
+    private SkillConfig skillConfig;
+    private ActiveSkillExecutor activeSkillExecutor;
+    private PassiveSkillExecutor passiveSkillExecutor;
 
     // リスナー
     private VanillaExpHandler vanillaExpHandler;
+    private SkillMenuListener skillMenuListener;
+
+    // ダメージマネージャー
+    private com.example.rpgplugin.damage.DamageManager damageManager;
 
     @Override
     public void onEnable() {
@@ -70,6 +83,9 @@ public class RPGPlugin extends JavaPlugin {
 
             // ステータスシステムの初期化
             initializeStatManager();
+
+            // スキルシステムの初期化
+            initializeSkillSystem();
 
             // モジュールマネージャーの初期化
             setupModuleManager();
@@ -234,6 +250,33 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
+     * スキルシステムを初期化
+     */
+    private void initializeSkillSystem() {
+        getLogger().info("Initializing SkillSystem...");
+
+        // スキルマネージャー
+        skillManager = new SkillManager(this);
+
+        // スキル設定
+        skillConfig = new SkillConfig(this, skillManager);
+        int skillCount = skillConfig.loadSkills();
+        getLogger().info("Loaded " + skillCount + " skills");
+
+        // アクティブスキルエグゼキューター
+        activeSkillExecutor = new ActiveSkillExecutor(this, skillManager, playerManager);
+
+        // パッシブスキルエグゼキューター
+        passiveSkillExecutor = new PassiveSkillExecutor(this, skillManager, playerManager);
+
+        // スキルメニューリスナー
+        skillMenuListener = new SkillMenuListener(this);
+        getServer().getPluginManager().registerEvents(skillMenuListener, this);
+
+        getLogger().info("SkillSystem initialized!");
+    }
+
+    /**
      * バニラ経験値ハンドラーをセットアップします
      */
     private void setupVanillaExpHandler() {
@@ -242,6 +285,19 @@ public class RPGPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(vanillaExpHandler, this);
         getLogger().info("VanillaExpHandler initialized!");
     }
+
+    /**
+     * ダメージシステムを初期化
+     */
+    private void initializeDamageManager() {
+        getLogger().info("Initializing DamageManager...");
+        damageManager = new com.example.rpgplugin.damage.DamageManager(this);
+        getServer().getPluginManager().registerEvents(damageManager, this);
+        getLogger().info("DamageManager initialized!");
+    }
+
+            // ダメージシステムの初期化
+            initializeDamageManager();
 
     /**
      * ログレベルを設定します
@@ -385,6 +441,60 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
+     * ダメージマネージャーを取得します
+     *
+     * @return DamageManagerインスタンス
+     */
+    public com.example.rpgplugin.damage.DamageManager getDamageManager() {
+        return damageManager;
+    }
+
+    /**
+     * スキルマネージャーを取得します
+     *
+     * @return SkillManagerインスタンス
+     */
+    public SkillManager getSkillManager() {
+        return skillManager;
+    }
+
+    /**
+     * スキル設定を取得します
+     *
+     * @return SkillConfigインスタンス
+     */
+    public SkillConfig getSkillConfig() {
+        return skillConfig;
+    }
+
+    /**
+     * アクティブスキルエグゼキューターを取得します
+     *
+     * @return ActiveSkillExecutorインスタンス
+     */
+    public ActiveSkillExecutor getActiveSkillExecutor() {
+        return activeSkillExecutor;
+    }
+
+    /**
+     * パッシブスキルエグゼキューターを取得します
+     *
+     * @return PassiveSkillExecutorインスタンス
+     */
+    public PassiveSkillExecutor getPassiveSkillExecutor() {
+        return passiveSkillExecutor;
+    }
+
+    /**
+     * スキルメニューリスナーを取得します
+     *
+     * @return SkillMenuListenerインスタンス
+     */
+    public SkillMenuListener getSkillMenuListener() {
+        return skillMenuListener;
+    }
+
+    /**
      * プラグインをリロードします
      *
      * <p>実行中に設定を再読み込みする際に使用します。</p>
@@ -397,6 +507,12 @@ public class RPGPlugin extends JavaPlugin {
             if (configManager != null) {
                 int reloaded = configManager.reloadAll();
                 getLogger().info("Reloaded " + reloaded + " config files.");
+            }
+
+            // スキル設定のリロード
+            if (skillConfig != null) {
+                int reloadedSkills = skillConfig.reloadSkills();
+                getLogger().info("Reloaded " + reloadedSkills + " skills.");
             }
 
             // モジュールのリロード

@@ -1,0 +1,24 @@
+# マジックマスタリー - メイジの上級パッシブ
+id: magic_mastery
+name: マジックマスタリー
+display_name: "&dマジックマスタリー"
+type: passive
+description:
+  - "&d魔法攻撃力が大幅に増加する"
+  - "&eINTに依存して効果上昇"
+max_level: 3
+
+skill_tree:
+  parent: mp_regen
+  unlock_requirements:
+    - type: level
+      value: 12
+    - type: stat
+      stat: INTELLIGENCE
+      value: 35
+  cost: 3
+
+icon_material: ENCHANTED_BOOK
+available_classes:
+  - Mage
+  - Wizard

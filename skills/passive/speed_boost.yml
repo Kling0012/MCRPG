@@ -1,0 +1,24 @@
+# スピードブースト - アーチャーの基本パッシブ
+id: speed_boost
+name: スピードブースト
+display_name: "&aスピードブースト"
+type: passive
+description:
+  - "&a移動速度が増加する"
+  - "&eDEXに依存して効果上昇"
+max_level: 5
+
+skill_tree:
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 3
+    - type: stat
+      stat: DEXTERITY
+      value: 15
+  cost: 1
+
+icon_material: FEATHER
+available_classes:
+  - Archer
+  - Hunter

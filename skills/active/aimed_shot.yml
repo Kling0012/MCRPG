@@ -1,0 +1,33 @@
+# アイムドショット - アーチャーの基本攻撃スキル
+id: aimed_shot
+name: アイムドショット
+display_name: "&bアイムドショット"
+type: active
+description:
+  - "&b精密な一撃を放つ"
+  - "&eDEXに依存してダメージ増加"
+max_level: 5
+cooldown: 5.0
+mana_cost: 8
+
+damage:
+  base: 35.0
+  stat_multiplier:
+    stat: DEXTERITY
+    multiplier: 1.8
+  level_multiplier: 12.0
+
+skill_tree:
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 5
+    - type: stat
+      stat: DEXTERITY
+      value: 20
+  cost: 1
+
+icon_material: BOW
+available_classes:
+  - Archer
+  - Hunter

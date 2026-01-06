@@ -1,0 +1,24 @@
+# クリティカルアイ - アーチャーのクリティカルパッシブ
+id: critical_eye
+name: クリティカルアイ
+display_name: "&eクリティカルアイ"
+type: passive
+description:
+  - "&eクリティカル率が増加する"
+  - "&eDEXに依存して効果上昇"
+max_level: 3
+
+skill_tree:
+  parent: speed_boost
+  unlock_requirements:
+    - type: level
+      value: 8
+    - type: stat
+      stat: DEXTERITY
+      value: 25
+  cost: 2
+
+icon_material: GOLD_INGOT
+available_classes:
+  - Archer
+  - Hunter

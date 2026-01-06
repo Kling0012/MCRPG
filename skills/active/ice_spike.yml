@@ -1,0 +1,33 @@
+# アイススパイク - メイジの中級攻撃スキル
+id: ice_spike
+name: アイススパイク
+display_name: "&bアイススパイク"
+type: active
+description:
+  - "&b氷の矢を放つ"
+  - "&eINTに依存してダメージ増加"
+max_level: 5
+cooldown: 7.0
+mana_cost: 18
+
+damage:
+  base: 45.0
+  stat_multiplier:
+    stat: INTELLIGENCE
+    multiplier: 2.2
+  level_multiplier: 18.0
+
+skill_tree:
+  parent: fireball
+  unlock_requirements:
+    - type: level
+      value: 10
+    - type: stat
+      stat: INTELLIGENCE
+      value: 30
+  cost: 2
+
+icon_material: ICE_BLOCK
+available_classes:
+  - Mage
+  - Wizard

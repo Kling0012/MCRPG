@@ -1,0 +1,24 @@
+# ヘルスブースト - 戦士の基本パッシブ
+id: health_boost
+name: ヘルスブースト
+display_name: "&cヘルスブースト"
+type: passive
+description:
+  - "&c最大HPが増加する"
+  - "&eVITに依存して効果上昇"
+max_level: 5
+
+skill_tree:
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 3
+    - type: stat
+      stat: VITALITY
+      value: 15
+  cost: 1
+
+icon_material: REDSTONE
+available_classes:
+  - Warrior
+  - Knight

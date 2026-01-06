@@ -1,0 +1,24 @@
+# マナブースト - メイジの基本パッシブ
+id: mana_boost
+name: マナブースト
+display_name: "&bマナブースト"
+type: passive
+description:
+  - "&b最大MPが増加する"
+  - "&eINTに依存して効果上昇"
+max_level: 5
+
+skill_tree:
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 3
+    - type: stat
+      stat: INTELLIGENCE
+      value: 15
+  cost: 1
+
+icon_material: LAPIS_LAZULI
+available_classes:
+  - Mage
+  - Wizard

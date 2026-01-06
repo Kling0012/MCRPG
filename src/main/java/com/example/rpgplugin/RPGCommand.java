@@ -3,14 +3,14 @@ package com.example.rpgplugin;
 import com.example.rpgplugin.class.ClassManager;
 import com.example.rpgplugin.class.ClassUpgrader;
 import com.example.rpgplugin.gui.menu.StatMenu;
+import com.example.rpgplugin.gui.menu.SkillMenu;
+import com.example.rpgplugin.gui.menu.SkillMenuListener;
 import com.example.rpgplugin.gui.menu.class.ClassMenu;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillTree;
-import com.example.rpgplugin.gui.menu.SkillMenu;
-import com.example.rpgplugin.gui.menu.SkillMenuListener;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.stats.calculator.StatCalculator;
@@ -29,6 +29,8 @@ import org.bukkit.entity.Player;
  * <p>サブコマンド:</p>
  * <ul>
  *   <li>stats - ステータスGUIを表示</li>
+ *   <li>skill - スキルGUIを表示</li>
+ *   <li>cast - スキルを発動</li>
  *   <li>help - ヘルプを表示</li>
  *   <li>reload - 設定をリロード（管理者のみ）</li>
  * </ul>
@@ -76,6 +78,15 @@ public class RPGCommand implements CommandExecutor {
                 handleStatsCommand(player);
                 break;
 
+            case "skill":
+            case "skills":
+                handleSkillCommand(player);
+                break;
+
+            case "cast":
+                handleCastCommand(player, args);
+                break;
+
             case "help":
                 showHelp(player);
                 break;
@@ -97,6 +108,8 @@ public class RPGCommand implements CommandExecutor {
     private void showMainMenu(Player player) {
         player.sendMessage(ChatColor.YELLOW + "=== RPG Plugin ===");
         player.sendMessage(ChatColor.GRAY + "/rpg stats - ステータスGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
         player.sendMessage(ChatColor.GRAY + "/rpg help - ヘルプを表示");
         if (player.hasPermission("rpg.admin")) {
             player.sendMessage(ChatColor.GRAY + "/rpg reload - 設定をリロード");
@@ -239,9 +252,101 @@ public class RPGCommand implements CommandExecutor {
     private void showHelp(Player player) {
         player.sendMessage(ChatColor.YELLOW + "=== ヘルプ ===");
         player.sendMessage(ChatColor.GRAY + "/rpg stats - ステータスGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
         player.sendMessage(ChatColor.GRAY + "/rpg help - ヘルプを表示");
         if (player.hasPermission("rpg.admin")) {
             player.sendMessage(ChatColor.GRAY + "/rpg reload - 設定をリロード");
         }
+    }
+
+    /**
+     * スキルコマンドを処理します
+     *
+     * <p>SkillMenu（GUI）を開きます。</p>
+     *
+     * @param player プレイヤー
+     */
+    private void handleSkillCommand(Player player) {
+        SkillManager skillManager = RPGPlugin.getInstance().getSkillManager();
+        if (skillManager == null) {
+            player.sendMessage(ChatColor.RED + "スキルマネージャーが初期化されていません");
+            return;
+        }
+
+        PlayerManager playerManager = RPGPlugin.getInstance().getPlayerManager();
+        if (playerManager == null) {
+            player.sendMessage(ChatColor.RED + "プレイヤーマネージャーが初期化されていません");
+            return;
+        }
+
+        RPGPlayer rpgPlayer = playerManager.getPlayer(player);
+        if (rpgPlayer == null) {
+            player.sendMessage(ChatColor.RED + "プレイヤーデータがロードされていません");
+            return;
+        }
+
+        // スキルツリーを作成
+        // TODO: クラスごとのスキルツリー設定を読み込む
+        String classId = rpgPlayer.getClassId();
+        SkillTree skillTree = new SkillTree(classId);
+
+        // TODO: スキルツリーにノードを追加
+        // 現時点では空のツリーを作成
+
+        // SkillMenuを開く
+        SkillMenu menu = new SkillMenu(RPGPlugin.getInstance(), player, skillTree);
+
+        // リスナーに登録
+        SkillMenuListener listener = RPGPlugin.getInstance().getSkillMenuListener();
+        if (listener != null) {
+            listener.registerMenu(player, menu);
+        }
+
+        menu.open();
+    }
+
+    /**
+     * キャストコマンドを処理します
+     *
+     * <p>スキルを発動します。</p>
+     *
+     * @param player プレイヤー
+     * @param args 引数
+     */
+    private void handleCastCommand(Player player, String[] args) {
+        if (args.length < 2) {
+            player.sendMessage(ChatColor.RED + "使用法: /rpg cast <スキルID>");
+            return;
+        }
+
+        String skillId = args[1];
+        SkillManager skillManager = RPGPlugin.getInstance().getSkillManager();
+        if (skillManager == null) {
+            player.sendMessage(ChatColor.RED + "スキルマネージャーが初期化されていません");
+            return;
+        }
+
+        Skill skill = skillManager.getSkill(skillId);
+        if (skill == null) {
+            player.sendMessage(ChatColor.RED + "スキルが見つかりません: " + skillId);
+            return;
+        }
+
+        if (!skill.isActive()) {
+            player.sendMessage(ChatColor.RED + "このスキルは手動発動できません: " + skill.getColoredDisplayName());
+            return;
+        }
+
+        // 習得チェック
+        int level = skillManager.getSkillLevel(player, skillId);
+        if (level == 0) {
+            player.sendMessage(ChatColor.RED + "このスキルを習得していません: " + skill.getColoredDisplayName());
+            return;
+        }
+
+        // スキル発動
+        // TODO: ActiveSkillExecutorを使用した発動処理
+        player.sendMessage(ChatColor.YELLOW + "スキル発動処理を実装中: " + skill.getColoredDisplayName());
     }
 }

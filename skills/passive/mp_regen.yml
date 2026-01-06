@@ -1,0 +1,24 @@
+# MPリジェネ - メイジの回復パッシブ
+id: mp_regen
+name: MPリジェネ
+display_name: "&dMPリジェネ"
+type: passive
+description:
+  - "&dMP回復速度が増加する"
+  - "&eSPIに依存して効果上昇"
+max_level: 3
+
+skill_tree:
+  parent: mana_boost
+  unlock_requirements:
+    - type: level
+      value: 8
+    - type: stat
+      stat: SPIRIT
+      value: 25
+  cost: 2
+
+icon_material: GLISTERING_MELON_SLICE
+available_classes:
+  - Mage
+  - Wizard

@@ -1,0 +1,51 @@
+# 経験値減衰設定
+
+# 減衰テーブル
+diminish_table:
+  # レベル30-39
+  - level_range: "30-39"
+    reduction_rate: 0.5
+  # レベル40-49
+  - level_range: "40-49"
+    reduction_rate: 0.6
+  # レベル50-59
+  - level_range: "50-59"
+    reduction_rate: 0.7
+  # レベル60-69
+  - level_range: "60-69"
+    reduction_rate: 0.8
+  # レベル70+
+  - level_range: "70+"
+    reduction_rate: 0.9
+
+# モブごとの経験値テーブル
+mob_exp_table:
+  zombie:
+    base_exp: 20
+    max_level: 69
+  skeleton:
+    base_exp: 25
+    max_level: 69
+  spider:
+    base_exp: 22
+    max_level: 69
+  creeper:
+    base_exp: 30
+    max_level: 69
+  enderman:
+    base_exp: 50
+    max_level: 69
+
+# 減衰除外の条件
+exemptions:
+  # プレイヤーからのキル
+  player_kills: true
+
+  # ボスモブ
+  boss_mobs: true
+
+  # イベント報酬
+  event_rewards: true
+
+# 減衰計算式
+formula: "BASE_EXP * (1.0 - REDUCTION_RATE)"

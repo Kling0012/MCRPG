@@ -1,0 +1,55 @@
+# クリティカルマスタリー（パッシブスキル）
+
+name: "critical_mastery"
+display_name: "§eクリティカルマスタリー"
+type: "PASSIVE"
+description: "クリティカルヒット率とダメージが増加する"
+
+# スキルレベル
+max_level: 10
+
+# クリティカル率増加（%）
+crit_chance_bonus: 5
+
+# クリティカルダメージ増加（%）
+crit_damage_bonus: 25
+
+# レベルごとの効果
+levels:
+  1:
+    crit_chance: 5
+    crit_damage: 125
+  2:
+    crit_chance: 6
+    crit_damage: 130
+  3:
+    crit_chance: 7
+    crit_damage: 135
+  4:
+    crit_chance: 8
+    crit_damage: 140
+  5:
+    crit_chance: 10
+    crit_damage: 150
+  6:
+    crit_chance: 12
+    crit_damage: 160
+  7:
+    crit_chance: 14
+    crit_damage: 170
+  8:
+    crit_chance: 16
+    crit_damage: 180
+  9:
+    crit_chance: 18
+    crit_damage: 190
+  10:
+    crit_chance: 20
+    crit_damage: 200
+
+# 必要条件
+requirements:
+  level: 5
+
+# アンロックコスト
+unlock_cost: 100

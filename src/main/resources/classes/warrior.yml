@@ -1,0 +1,71 @@
+# ウォリアークラス定義
+
+name: "ウォリアー"
+display_name: "§cウォリアー"
+description: "近接戦闘の専門家"
+
+# ステータス基本値
+base_stats:
+  health: 120
+  mana: 50
+  strength: 15
+  defense: 12
+  agility: 8
+  intelligence: 5
+  luck: 7
+
+# レベルアップ時のステータスボーナス
+level_bonus:
+  health: 5
+  mana: 2
+  strength: 1
+  defense: 1
+  agility: 0
+  intelligence: 0
+  luck: 0
+
+# 装備可能なアイテムタイプ
+allowed_equipment:
+  - "WOODEN_SWORD"
+  - "STONE_SWORD"
+  - "IRON_SWORD"
+  - "DIAMOND_SWORD"
+  - "NETHERITE_SWORD"
+  - "WOODEN_AXE"
+  - "STONE_AXE"
+  - "IRON_AXE"
+  - "DIAMOND_AXE"
+  - "NETHERITE_AXE"
+  - "LEATHER_HELMET"
+  - "CHAINMAIL_HELMET"
+  - "IRON_HELMET"
+  - "DIAMOND_HELMET"
+  - "LEATHER_CHESTPLATE"
+  - "CHAINMAIL_CHESTPLATE"
+  - "IRON_CHESTPLATE"
+  - "DIAMOND_CHESTPLATE"
+  - "LEATHER_LEGGINGS"
+  - "CHAINMAIL_LEGGINGS"
+  - "IRON_LEGGINGS"
+  - "DIAMOND_LEGGINGS"
+  - "LEATHER_BOOTS"
+  - "CHAINMAIL_BOOTS"
+  - "IRON_BOOTS"
+  - "DIAMOND_BOOTS"
+  - "SHIELD"
+
+# 初期スキル
+starting_skills:
+  - "power_strike"
+
+# アンロック条件
+unlock_requirements:
+  level: 1
+  cost: 0
+
+# パッシブ効果
+passive_effects:
+  - type: "STRENGTH_BONUS"
+    value: 5
+  - type: "DEFENSE_BONUS"
+    value: 3

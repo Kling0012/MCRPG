@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  */
 public class SchemaManager {
 
-    private static final int CURRENT_SCHEMA_VERSION = 2;
+    private static final int CURRENT_SCHEMA_VERSION = 3;
 
     private final DatabaseManager dbManager;
     private final Logger logger;
@@ -121,6 +121,9 @@ public class SchemaManager {
             case 2:
                 applyMigrationV2(stmt);
                 break;
+            case 3:
+                applyMigrationV3(stmt);
+                break;
             default:
                 throw new SQLException("Unknown migration version: " + version);
         }
@@ -195,6 +198,37 @@ public class SchemaManager {
         }
 
         logger.info("Version 2 migration completed successfully");
+    }
+
+    /**
+     * バージョン3のマイグレーション: トレード履歴テーブルを追加
+     */
+    private void applyMigrationV3(Statement stmt) throws SQLException {
+        logger.info("Applying version 3 migration: adding trade_history table");
+
+        // trade_history テーブルを作成
+        String tradeHistorySql = """
+            CREATE TABLE IF NOT EXISTS trade_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player1_uuid TEXT NOT NULL,
+                player2_uuid TEXT NOT NULL,
+                player1_items TEXT,
+                player2_items TEXT,
+                gold_amount1 REAL DEFAULT 0.0,
+                gold_amount2 REAL DEFAULT 0.0,
+                trade_time INTEGER DEFAULT (strftime('%s', 'now')),
+                FOREIGN KEY (player1_uuid) REFERENCES player_data(uuid),
+                FOREIGN KEY (player2_uuid) REFERENCES player_data(uuid)
+            )
+        """;
+        stmt.execute(tradeHistorySql);
+
+        // インデックス作成
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player1 ON trade_history(player1_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player2 ON trade_history(player2_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_time ON trade_history(trade_time)");
+
+        logger.info("Version 3 migration completed successfully");
     }
 
     /**

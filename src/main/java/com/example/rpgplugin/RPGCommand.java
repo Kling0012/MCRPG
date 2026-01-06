@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
  *   <li>skill - スキルGUIを表示</li>
  *   <li>cast - スキルを発動</li>
  *   <li>class - クラス管理</li>
+ *   <li>trade - トレード管理</li>
  *   <li>help - ヘルプを表示</li>
  *   <li>reload - 設定をリロード（管理者のみ）</li>
  * </ul>
@@ -89,6 +90,10 @@ public class RPGCommand implements CommandExecutor {
                 handleClassCommand(player, args);
                 break;
 
+            case "trade":
+                handleTradeCommand(player, args);
+                break;
+
             case "help":
                 showHelp(player);
                 break;
@@ -112,6 +117,7 @@ public class RPGCommand implements CommandExecutor {
         player.sendMessage(ChatColor.GRAY + "/rpg stats - ステータスGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg class - クラスGUIを表示");
+        player.sendMessage(ChatColor.GRAY + "/rpg trade - トレードを管理");
         player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
         player.sendMessage(ChatColor.GRAY + "/rpg help - ヘルプを表示");
         if (player.hasPermission("rpg.admin")) {
@@ -463,6 +469,90 @@ public class RPGCommand implements CommandExecutor {
     }
 
     /**
+     * トレードコマンドを処理します
+     *
+     * <p>サブコマンド:</p>
+     * <ul>
+     *   <li>request &lt;player&gt; - トレード申請</li>
+     *   <li>accept - トレード承認</li>
+     *   <li>deny - トレード拒否</li>
+     * </ul>
+     *
+     * @param player プレイヤー
+     * @param args 引数
+     */
+    private void handleTradeCommand(Player player, String[] args) {
+        // TradeManagerの取得
+        com.example.rpgplugin.trade.TradeManager tradeManager = RPGPlugin.getInstance().getTradeManager();
+        if (tradeManager == null) {
+            player.sendMessage(ChatColor.RED + "トレードシステムが利用できません");
+            return;
+        }
+
+        // サブコマンドチェック
+        if (args.length < 2) {
+            showTradeHelp(player);
+            return;
+        }
+
+        String subCommand = args[1].toLowerCase();
+
+        switch (subCommand) {
+            case "request":
+                if (args.length < 3) {
+                    player.sendMessage(ChatColor.RED + "使用法: /rpg trade request <プレイヤー名>");
+                    return;
+                }
+                handleTradeRequest(player, args[2], tradeManager);
+                break;
+
+            case "accept":
+                tradeManager.acceptRequest(player);
+                break;
+
+            case "deny":
+                tradeManager.denyRequest(player);
+                break;
+
+            default:
+                player.sendMessage(ChatColor.RED + "不明なサブコマンドです: " + subCommand);
+                showTradeHelp(player);
+                break;
+        }
+    }
+
+    /**
+     * トレード申請を処理
+     *
+     * @param requester 申請者
+     * @param targetName 相手のプレイヤー名
+     * @param tradeManager トレードマネージャー
+     */
+    private void handleTradeRequest(Player requester, String targetName, com.example.rpgplugin.trade.TradeManager tradeManager) {
+        // 相手を検索
+        Player target = Bukkit.getPlayer(targetName);
+        if (target == null || !target.isOnline()) {
+            requester.sendMessage(ChatColor.RED + "プレイヤーが見つかりません: " + targetName);
+            return;
+        }
+
+        // トレード申請
+        tradeManager.sendRequest(requester, target);
+    }
+
+    /**
+     * トレードヘルプを表示
+     *
+     * @param player プレイヤー
+     */
+    private void showTradeHelp(Player player) {
+        player.sendMessage(ChatColor.YELLOW + "=== トレードコマンド ===");
+        player.sendMessage(ChatColor.GRAY + "/rpg trade request <プレイヤー名> - トレードを申請");
+        player.sendMessage(ChatColor.GRAY + "/rpg trade accept - トレードを承認");
+        player.sendMessage(ChatColor.GRAY + "/rpg trade deny - トレードを拒否");
+    }
+
+    /**
      * ヘルプを表示します
      *
      * @param player プレイヤー
@@ -476,6 +566,10 @@ public class RPGCommand implements CommandExecutor {
         player.sendMessage(ChatColor.GRAY + "/rpg class - クラスGUIを表示");
         player.sendMessage(ChatColor.GRAY + "/rpg class list - クラス一覧を表示");
         player.sendMessage(ChatColor.GRAY + "/rpg class <クラスID> - クラスを選択");
+        player.sendMessage(ChatColor.GOLD + "--- トレードコマンド ---");
+        player.sendMessage(ChatColor.GRAY + "/rpg trade request <プレイヤー名> - トレードを申請");
+        player.sendMessage(ChatColor.GRAY + "/rpg trade accept - トレードを承認");
+        player.sendMessage(ChatColor.GRAY + "/rpg trade deny - トレードを拒否");
         player.sendMessage(ChatColor.GOLD + "--- スキルコマンド ---");
         player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
         player.sendMessage(ChatColor.GOLD + "--- その他 ---");

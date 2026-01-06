@@ -1,5 +1,7 @@
 package com.example.rpgplugin;
 
+import com.example.rpgplugin.gui.menu.StatMenu;
+import com.example.rpgplugin.stats.StatManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -47,11 +49,14 @@ public class RPGCommand implements CommandExecutor {
 
         switch (args[0].toLowerCase()) {
             case "stats":
-                player.sendMessage("§6=== ステータス ===");
-                player.sendMessage("§7HP: §c100/100");
-                player.sendMessage("§7MP: §b50/50");
-                player.sendMessage("§7Level: §a1");
-                player.sendMessage("§7EXP: §e0/100");
+                // StatMenuを開く
+                StatManager statManager = RPGPlugin.getInstance().getStatManager();
+                if (statManager != null) {
+                    StatMenu menu = new StatMenu(player, statManager);
+                    menu.open();
+                } else {
+                    player.sendMessage("§cステータスシステムが有効ではありません");
+                }
                 break;
 
             case "help":

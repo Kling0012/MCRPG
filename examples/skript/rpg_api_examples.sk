@@ -1,0 +1,238 @@
+# ============================================
+# RPGPlugin API SKript サンプルスクリプト
+# ============================================
+#
+# このファイルはSKriptからRPGPluginのAPIを使用する方法を示しています。
+#
+# 前提条件:
+# - SKriptプラグインがインストールされていること
+# - RPGPluginがインストールされていること
+# - プレイヤーが rpgplugin.api 権限を持っていること
+#
+# ============================================
+
+# ============================================
+# 基本例: プレイヤー情報を表示
+# ============================================
+
+command /testrpg:
+    trigger:
+        # レベルを取得
+        execute player command "rpg api get_level %player%"
+        wait 1 tick
+
+        # クラスを取得
+        execute player command "rpg api get_class %player%"
+        wait 1 tick
+
+        # STRを取得
+        execute player command "rpg api get_stat %player% STR"
+        wait 1 tick
+
+        # ゴールドを取得
+        execute player command "rpg api get_gold %player%"
+
+# ============================================
+# 例1: レベル操作
+# ============================================
+
+command /setmylevel <integer>:
+    permission: rpgplugin.api
+    trigger:
+        # レベルを設定
+        execute player command "rpg api set_level %player% %{_integer}%"
+        send "&aレベルを %{_integer}% に設定しました！"
+
+# ============================================
+# 例2: ステータス操作
+# ============================================
+
+command /showmystats:
+    trigger:
+        send "&6===== &eあなたのステータス&6 ====="
+        send "&cSTR: %command output of \"rpg api get_stat %player% STR\"%"
+        send "&bINT: %command output of \"rpg api get_stat %player% INT\"%"
+        send "&dSPI: %command output of \"rpg api get_stat %player% SPI\"%"
+        send "&aVIT: %command output of \"rpg api get_stat %player% VIT\"%"
+        send "&7DEX: %command output of \"rpg api get_stat %player% DEX\"%"
+
+command /addstatpoints <integer>:
+    permission: rpgplugin.api
+    trigger:
+        # これはAPIを通じては直接できません
+        # ゲーム内のコマンドを使用してください
+        send "&cこの機能はゲーム内のステータスGUIを使用してください"
+
+# ============================================
+# 例3: クラス操作
+# ============================================
+
+command /myclass:
+    trigger:
+        # 現在のクラスを取得
+        execute player command "rpg api get_class %player%"
+
+command /changeclass <text>:
+    permission: rpgplugin.api
+    trigger:
+        # クラスを変更
+        execute player command "rpg api set_class %player% %{_text}%"
+        send "&aクラスを %{_text}% に変更しました！"
+
+command /upgradeclass:
+    permission: rpgplugin.api
+    trigger:
+        # クラスアップ
+        execute player command "rpg api upgrade_class %player%"
+
+# ============================================
+# 例4: スキル操作
+# ============================================
+
+command /hasskill <text>:
+    trigger:
+        # スキル習得確認
+        execute player command "rpg api has_skill %player% %{_text}%"
+
+command /unlockskill <text>:
+    permission: rpgplugin.api
+    trigger:
+        # スキルを習得
+        execute player command "rpg api unlock_skill %player% %{_text}%"
+
+command /castskill <text>:
+    trigger:
+        # スキルを使用
+        execute player command "rpg api cast_skill %player% %{_text}%"
+
+command /showmyskills:
+    trigger:
+        send "&6===== &e習得済みスキル&6 ====="
+        # これはAPIを通じては直接できません
+        # ゲーム内のスキルGUIを使用してください
+        send "&cスキル一覧はゲーム内のスキルGUIを使用してください"
+
+# ============================================
+# 例5: 経済操作
+# ============================================
+
+command /mygold:
+    trigger:
+        # ゴールド残高を取得
+        execute player command "rpg api get_gold %player%"
+
+command /givegold <player> <number>:
+    permission: rpgplugin.api
+    trigger:
+        # ゴールドを付与
+        execute player command "rpg api give_gold %{_player}% %{_number}%"
+        send "&a%{_player}% に %{_number}%G を付与しました！"
+
+command /takegold <player> <number>:
+    permission: rpgplugin.api
+    trigger:
+        # ゴールドを剥奪
+        execute player command "rpg api take_gold %{_player}% %{_number}%"
+        send "&a%{_player}% から %{_number}%G を剥奪しました！"
+
+command /transfergold <player> <number>:
+    trigger:
+        # ゴールドを転送
+        execute player command "rpg api transfer_gold %player% %{_player}% %{_number}%"
+
+# ============================================
+# 例6: ダメージ計算
+# ============================================
+
+command /testdamage <player>:
+    trigger:
+        # ダメージを計算
+        execute player command "rpg api calculate_damage %player% %{_player}%"
+
+# ============================================
+# 例7: クエスト完了報酬
+# ============================================
+
+command /questcomplete <text>:
+    permission: rpgplugin.api
+    trigger:
+        if {_text} is "tutorial":
+            # チュートリアル完了報酬
+            execute player command "rpg api give_gold %player% 100"
+            execute player command "rpg api unlock_skill %player% power_strike"
+            send "&aチュートリアル完了！100Gとスキルを獲得しました！"
+        else if {_text} is "boss_defeat":
+            # ボス撃破報酬
+            execute player command "rpg api give_gold %player% 500"
+            send "&aボス撃破！500Gを獲得しました！"
+
+# ============================================
+# 例8: イベント連携
+# ============================================
+
+on join:
+    # プレイヤー参加時に情報を表示
+    wait 2 seconds
+    send "&6===== &eRPGシステムへようこそ！&6 =====" to player
+    send "&7/testrpg - ステータスを確認" to player
+    send "&7/myclass - クラスを確認" to player
+    send "&7/mygold - 所持金を確認" to player
+
+on death of player:
+    # プレイヤー死亡時にペナルティ
+    execute player command "rpg api take_gold %player% 50"
+    send "&c死亡ペナルティ: 50Gを失いました" to player
+
+# ============================================
+# 例9: ショップシステム連携
+# ============================================
+
+command /shop:
+    trigger:
+        send "&6===== &eショップ&6 ====="
+        send "&a/shop buy hp - HP回復ポーション (50G)"
+        send "&a/shop buy stat - ステータスポイント (100G)"
+        send "&a/shop buy skill - スキル習得 (200G)"
+
+command /shop buy <text>:
+    trigger:
+        if {_text} is "hp":
+            # HPポーション購入
+            execute player command "rpg api has_gold %player% 50"
+            # ゴールドがあるか確認（実際にはもっと複雑な処理が必要）
+            execute player command "rpg api take_gold %player% 50"
+            heal player
+            send "&aHP回復ポーションを使用しました！( -50G)"
+        else if {_text} is "stat":
+            # ステータスポイント購入
+            execute player command "rpg api has_gold %player% 100"
+            execute player command "rpg api take_gold %player% 100"
+            # ここでステータスポイントを追加（別の手段が必要）
+            send "&aステータスポイントを購入しました！( -100G)"
+        else if {_text} is "skill":
+            # スキル習得購入
+            execute player command "rpg api has_gold %player% 200"
+            execute player command "rpg api take_gold %player% 200"
+            send "&aスキル習得権を購入しました！( -200G)"
+            send "&c/study skill <スキル名> でスキルを習得してください"
+
+# ============================================
+# 例10: レベルアップイベント
+# ============================================
+
+on level up:
+    # レベルアップ時にボーナス
+    send "&6===== &eレベルアップ！&6 =====" to player
+    send "&aおめでとうございます！" to player
+
+    # レベルに応じて報酬
+    if player's level is 10:
+        execute player command "rpg api give_gold %player% 100"
+        send "&7レベル10ボーナス: 100Gを獲得！" to player
+    else if player's level is 20:
+        execute player command "rpg api give_gold %player% 200"
+        execute player command "rpg api unlock_skill %player% power_strike"
+        send "&7レベル20ボーナス: 200Gとスキルを獲得！" to player
+    else if player's level is 30:
+        execute player command "rpg api give_gold %player% 500"
+        send "&7レベル30ボーナス: 500Gを獲得！" to player

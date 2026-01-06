@@ -1,0 +1,88 @@
+# 魔法クラス テンプレート
+#
+# 使用方法:
+# 1. このファイルをコピーして classes/ ディレクトリに配置
+# 2. id, name, display_name を編集
+# 3. stat_growth, available_skills をカスタマイズ
+# 4. 必要に応じて rank, next_rank を調整
+
+# クラスID（一意である必要があります）
+id: template_magic
+# クラス名
+name: テンプレート魔法クラス
+# 表示名（カラーコード使用可能）
+display_name: "&bテンプレート魔法クラス"
+# 説明（複数行可能）
+description:
+  - "&f魔法で攻撃・補助を行うクラス"
+  - "&fINTとSPIが成長しやすい"
+
+# クラスランク（1=初期クラス, 2=2次クラス, ...）
+rank: 1
+# 最大レベル
+max_level: 50
+# GUI用アイコン
+icon: BLAZE_ROD
+
+# ステータス成長
+stat_growth:
+  # 自動成長（レベルアップ時に自動付与）
+  auto:
+    strength: 0      # STR
+    vitality: 0      # VIT
+    dexterity: 0     # DEX
+    intelligence: 2  # INT
+    spirit: 1        # SPI
+  # 手動配分ポイント（レベルアップ時に付与）
+  manual_points: 3
+
+# 次のランククラス（省略可能）
+next_rank:
+  # 次のランクのクラスID
+  class_id: template_magic_rank2
+  # ランクアップ要件
+  requirements:
+    - type: level       # レベル要件
+      value: 20
+    - type: stat        # ステータス要件
+      stat: INTELLIGENCE
+      value: 50
+
+# 分岐ランク（省略可能、複数可能）
+alternative_ranks:
+  # 上位クラスID
+  wizard:
+    requirements:
+      - type: level
+        value: 30
+      - type: class_history
+        class_id: template_magic
+        min_rank: 1
+  healer:
+    requirements:
+      - type: level
+        value: 30
+      - type: class_history
+        class_id: template_magic
+        min_rank: 1
+
+# 使用可能なスキル（skills/ ディレクトリのskillIdを指定）
+available_skills:
+  - fireball
+  - heal
+
+# パッシブボーナス（省略可能）
+passive_bonuses:
+  - type: magic_damage_multiplier  # 魔法ダメージ倍率
+    value: 1.2                     # 20%増
+  - type: mp_bonus                 # MPボーナス
+    value: 50                      # +50MP
+  - type: mp_regen_bonus           # MP回復ボーナス
+    value: 0.1                     # +10%回復
+
+# 経験値減衰設定（省略可能）
+exp_diminish:
+  # 減衰開始レベル
+  start_level: 30
+  # 獲得経験値の減衰率（0.5 = 50%）
+  reduction_rate: 0.5

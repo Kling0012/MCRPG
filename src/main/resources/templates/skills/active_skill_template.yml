@@ -1,0 +1,80 @@
+# アクティブスキル テンプレート
+#
+# 使用方法:
+# 1. このファイルをコピーして skills/active/ ディレクトリに配置
+# 2. name, display_name, description を編集
+# 3. mana_cost, cooldown, damage_formula 等をカスタマイズ
+# 4. 必要に応じて levels, requirements を調整
+
+# スキルID（一意である必要があります）
+name: "template_active_skill"
+# 表示名（カラーコード使用可能、§または&）
+display_name: "&eテンプレートアクティブスキル"
+# スキルタイプ（ACTIVE または PASSIVE）
+type: "ACTIVE"
+# 説明
+description: "説明をここに記述"
+
+# 最大レベル
+max_level: 5
+
+# マナコスト
+mana_cost: 20
+
+# クールダウン（秒）
+cooldown: 10
+
+# キャスト時間（秒）
+cast_time: 1
+
+# ダメージ計算式（使用可能な変数: BASE_DAMAGE, LEVEL, STRENGTH, INTELLIGENCE, SPIRIT, VITALITY, DEXTERITY）
+damage_formula: "BASE_DAMAGE + (LEVEL * 5) + (STRENGTH * 1.5)"
+
+# 基本ダメージ
+base_damage: 20
+
+# レベルごとの効果
+levels:
+  1:
+    damage_multiplier: 1.0      # ダメージ倍率
+    range: 5                    # 範囲（ブロック）
+    effect_duration: 3          # 効果持続時間（秒）
+  2:
+    damage_multiplier: 1.2
+    range: 6
+    effect_duration: 4
+  3:
+    damage_multiplier: 1.5
+    range: 7
+    effect_duration: 5
+  4:
+    damage_multiplier: 1.8
+    range: 8
+    effect_duration: 6
+  5:
+    damage_multiplier: 2.2
+    range: 10
+    effect_duration: 8
+
+# 必要条件
+requirements:
+  level: 1                      # 必要プレイヤーレベル
+  class:                        # 使用可能なクラス（省略可能）
+    - "warrior"
+    - "knight"
+  # ステータス要件（省略可能）
+  # stat:
+  #   STRENGTH: 30
+
+# アンロックコスト（ゴールド）
+unlock_cost: 100
+
+# 使用可能なクラス（省略可能、requirements.classがある場合は不要）
+# available_classes:
+#   - "warrior"
+#   - "knight"
+
+# カスタムパラメータ（省略可能、スキル固有のパラメータを定義）
+custom_params:
+  param1: "value1"
+  param2: 123

@@ -3,8 +3,8 @@
 ## プロジェクト概要
 
 **対象サーバースケール**: 50-150人未満
-**Minecraftバージョン**: 1.20.X (Spigot 1.20.1)
-**Javaバージョン**: 17
+**Minecraftバージョン**: 1.20.6 (Paper 1.20.6)
+**Javaバージョン**: 21
 **外部連携**: MythicMobs最新版, Vault, PlaceholderAPI (オプション)
 
 ### 核心要件
@@ -1216,8 +1216,8 @@ public class ExpDiminisher {
 - [x] バニラ経験値（減衰設定、各クラスで上限）
 
 ### 技術要件
-- [x] Minecraft 1.20.X (Spigot 1.20.1)
-- [x] Java 17
+- [x] Minecraft 1.20.6 (Paper 1.20.6)
+- [x] Java 21
 - [x] MythicMobs最新版対応
 - [x] ホットリロード可能（YAML設定）
 - [x] 拡張性確保（モジュールシステム）

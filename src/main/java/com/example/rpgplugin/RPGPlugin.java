@@ -406,7 +406,7 @@ public class RPGPlugin extends JavaPlugin {
         mythicMobsManager = new MythicMobsManager(
                 this,
                 dependencyManager.getMythicMobsHook(),
-                storageManager.getDatabaseManager().getConnectionPool()
+                storageManager.getDatabaseManager()
         );
 
         // マネージャーを初期化
@@ -473,16 +473,6 @@ public class RPGPlugin extends JavaPlugin {
         }, 10L * 60L * 20L, 10L * 60L * 20L); // 10分 = 12000 ticks
 
         getLogger().info("Drop cleanup task started (runs every 10 minutes)");
-    }
-
-    /**
-     * ダメージシステムを初期化
-     */
-    private void initializeDamageManager() {
-        getLogger().info("Initializing DamageManager...");
-        damageManager = new com.example.rpgplugin.damage.DamageManager(this);
-        getServer().getPluginManager().registerEvents(damageManager, this);
-        getLogger().info("DamageManager initialized!");
     }
 
     /**

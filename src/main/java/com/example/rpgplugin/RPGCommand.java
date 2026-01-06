@@ -366,8 +366,8 @@ public class RPGCommand implements CommandExecutor {
      * @param args 引数
      */
     private void handleClassCommand(Player player, String[] args) {
-        com.example.rpgplugin.class.ClassManager classManager = RPGPlugin.getInstance().getClassManager();
-        if (classManager == null) {
+        com.example.rpgplugin.class.ClassManager clsManager = RPGPlugin.getInstance().getClassManager();
+        if (clsManager == null) {
             player.sendMessage(ChatColor.RED + "クラスマネージャーが初期化されていません");
             return;
         }
@@ -382,12 +382,12 @@ public class RPGCommand implements CommandExecutor {
 
         switch (subCommand) {
             case "list":
-                handleClassListCommand(player, classManager);
+                handleClassListCommand(player, clsManager);
                 break;
 
             default:
                 // クラスIDとして解釈
-                handleClassSetCommand(player, classManager, subCommand);
+                handleClassSetCommand(player, clsManager, subCommand);
                 break;
         }
     }
@@ -398,10 +398,10 @@ public class RPGCommand implements CommandExecutor {
      * @param player プレイヤー
      */
     private void openClassMenu(Player player) {
-        com.example.rpgplugin.class.ClassManager classManager = RPGPlugin.getInstance().getClassManager();
+        com.example.rpgplugin.class.ClassManager clsManager = RPGPlugin.getInstance().getClassManager();
         PlayerManager playerManager = RPGPlugin.getInstance().getPlayerManager();
 
-        if (classManager == null || playerManager == null) {
+        if (clsManager == null || playerManager == null) {
             player.sendMessage(ChatColor.RED + "クラスシステムが初期化されていません");
             return;
         }
@@ -410,7 +410,7 @@ public class RPGCommand implements CommandExecutor {
             com.example.rpgplugin.gui.menu.class.ClassMenu menu = new com.example.rpgplugin.gui.menu.class.ClassMenu(
                 player,
                 playerManager.getRPGPlayer(player.getUniqueId()),
-                classManager
+                clsManager
             );
 
             // リスナーに登録
@@ -430,13 +430,13 @@ public class RPGCommand implements CommandExecutor {
      * クラス一覧コマンドを処理します
      *
      * @param player プレイヤー
-     * @param classManager クラスマネージャー
+     * @param clsManager クラスマネージャー
      */
-    private void handleClassListCommand(Player player, com.example.rpgplugin.class.ClassManager classManager) {
+    private void handleClassListCommand(Player player, com.example.rpgplugin.class.ClassManager clsManager) {
         player.sendMessage(ChatColor.YELLOW + "=== 利用可能なクラス ===");
 
         // 初期クラス（Rank1）
-        for (com.example.rpgplugin.class.RPGClass rpgClass : classManager.getInitialClasses()) {
+        for (com.example.rpgplugin.class.RPGClass rpgClass : clsManager.getInitialClasses()) {
             player.sendMessage(String.format("%s%s§r - %s",
                 ChatColor.GOLD,
                 rpgClass.getDisplayName(),
@@ -451,28 +451,28 @@ public class RPGCommand implements CommandExecutor {
      * クラス設定コマンドを処理します
      *
      * @param player プレイヤー
-     * @param classManager クラスマネージャー
+     * @param clsManager クラスマネージャー
      * @param classId クラスID
      */
-    private void handleClassSetCommand(Player player, com.example.rpgplugin.class.ClassManager classManager, String classId) {
+    private void handleClassSetCommand(Player player, com.example.rpgplugin.class.ClassManager clsManager, String classId) {
         // クラス存在確認
-        if (!classManager.getClass(classId).isPresent()) {
+        if (!clsManager.getClass(classId).isPresent()) {
             player.sendMessage(ChatColor.RED + "クラスが見つかりません: " + classId);
             player.sendMessage(ChatColor.GRAY + "使用法: /rpg class list でクラス一覧を確認");
             return;
         }
 
         // 現在のクラスを確認
-        if (classManager.getPlayerClass(player).isPresent()) {
+        if (clsManager.getPlayerClass(player).isPresent()) {
             player.sendMessage(ChatColor.RED + "既にクラスを選択しています");
             player.sendMessage(ChatColor.GRAY + "クラスの変更は現在実装中です");
             return;
         }
 
         // クラス設定
-        boolean success = classManager.setPlayerClass(player, classId);
+        boolean success = clsManager.setPlayerClass(player, classId);
         if (success) {
-            com.example.rpgplugin.class.RPGClass rpgClass = classManager.getClass(classId).get();
+            com.example.rpgplugin.class.RPGClass rpgClass = clsManager.getClass(classId).get();
             player.sendMessage(ChatColor.GREEN + "クラスを設定しました: " + rpgClass.getDisplayName());
             player.sendMessage(ChatColor.GRAY + rpgClass.getDescription());
         } else {

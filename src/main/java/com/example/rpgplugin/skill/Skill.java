@@ -31,6 +31,10 @@ public class Skill {
     private final int maxLevel;
     private final double cooldown;
     private final int manaCost;
+    // レベル依存パラメータ（Phase11-2で追加）
+    private final LevelDependentParameter cooldownParameter;
+    private final LevelDependentParameter costParameter;
+    private final SkillCostType costType;
     private final DamageCalculation damage;
     private final SkillTreeConfig skillTree;
     private final String iconMaterial;
@@ -135,7 +139,48 @@ public class Skill {
     }
 
     /**
-     * コンストラクタ
+     * コンストラクタ（レベル依存パラメータ対応版）
+     *
+     * @param id スキルID
+     * @param name スキル名
+     * @param displayName 表示名（カラーコード対応）
+     * @param type スキルタイプ
+     * @param description 説明リスト
+     * @param maxLevel 最大レベル
+     * @param cooldown クールダウン（秒）、レベル依存パラメータ未使用時のフォールバック値
+     * @param manaCost 消費MP、レベル依存パラメータ未使用時のフォールバック値
+     * @param cooldownParameter レベル依存CDパラメータ（null可能）
+     * @param costParameter レベル依存コストパラメータ（null可能）
+     * @param costType コストタイプ（MANA/HP）
+     * @param damage ダメージ計算設定
+     * @param skillTree スキルツリー設定
+     * @param iconMaterial アイコン素材
+     * @param availableClasses 利用可能なクラスリスト
+     */
+    public Skill(String id, String name, String displayName, SkillType type, List<String> description,
+                 int maxLevel, double cooldown, int manaCost,
+                 LevelDependentParameter cooldownParameter, LevelDependentParameter costParameter,
+                 SkillCostType costType, DamageCalculation damage,
+                 SkillTreeConfig skillTree, String iconMaterial, List<String> availableClasses) {
+        this.id = id;
+        this.name = name;
+        this.displayName = displayName;
+        this.type = type;
+        this.description = description != null ? new ArrayList<>(description) : new ArrayList<>();
+        this.maxLevel = maxLevel;
+        this.cooldown = cooldown;
+        this.manaCost = manaCost;
+        this.cooldownParameter = cooldownParameter;
+        this.costParameter = costParameter;
+        this.costType = costType != null ? costType : SkillCostType.MANA;
+        this.damage = damage;
+        this.skillTree = skillTree;
+        this.iconMaterial = iconMaterial != null ? iconMaterial : "DIAMOND_SWORD";
+        this.availableClasses = availableClasses != null ? new ArrayList<>(availableClasses) : new ArrayList<>();
+    }
+
+    /**
+     * レガシーコンストラクタ（後方互換性維持）
      *
      * @param id スキルID
      * @param name スキル名
@@ -153,18 +198,8 @@ public class Skill {
     public Skill(String id, String name, String displayName, SkillType type, List<String> description,
                  int maxLevel, double cooldown, int manaCost, DamageCalculation damage,
                  SkillTreeConfig skillTree, String iconMaterial, List<String> availableClasses) {
-        this.id = id;
-        this.name = name;
-        this.displayName = displayName;
-        this.type = type;
-        this.description = description != null ? new ArrayList<>(description) : new ArrayList<>();
-        this.maxLevel = maxLevel;
-        this.cooldown = cooldown;
-        this.manaCost = manaCost;
-        this.damage = damage;
-        this.skillTree = skillTree;
-        this.iconMaterial = iconMaterial != null ? iconMaterial : "DIAMOND_SWORD";
-        this.availableClasses = availableClasses != null ? new ArrayList<>(availableClasses) : new ArrayList<>();
+        this(id, name, displayName, type, description, maxLevel, cooldown, manaCost,
+                null, null, SkillCostType.MANA, damage, skillTree, iconMaterial, availableClasses);
     }
 
     // Getters
@@ -201,8 +236,61 @@ public class Skill {
         return cooldown;
     }
 
+    /**
+     * 指定レベルでのクールダウンを取得します
+     *
+     * @param level スキルレベル
+     * @return クールダウン（秒）
+     */
+    public double getCooldown(int level) {
+        if (cooldownParameter != null) {
+            return cooldownParameter.getValue(level);
+        }
+        return cooldown;
+    }
+
     public int getManaCost() {
         return manaCost;
+    }
+
+    /**
+     * 指定レベルでのコストを取得します
+     *
+     * @param level スキルレベル
+     * @return コスト値
+     */
+    public int getCost(int level) {
+        if (costParameter != null) {
+            return costParameter.getIntValue(level);
+        }
+        return manaCost;
+    }
+
+    /**
+     * コストタイプを取得します
+     *
+     * @return コストタイプ（MANA/HP）
+     */
+    public SkillCostType getCostType() {
+        return costType;
+    }
+
+    /**
+     * レベル依存CDパラメータを取得します
+     *
+     * @return CDパラメータ、未設定の場合はnull
+     */
+    public LevelDependentParameter getCooldownParameter() {
+        return cooldownParameter;
+    }
+
+    /**
+     * レベル依存コストパラメータを取得します
+     *
+     * @return コストパラメータ、未設定の場合はnull
+     */
+    public LevelDependentParameter getCostParameter() {
+        return costParameter;
     }
 
     public DamageCalculation getDamage() {

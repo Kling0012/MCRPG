@@ -53,6 +53,7 @@ public class RPGPlugin extends JavaPlugin {
     private com.example.rpgplugin.trade.TradeManager tradeManager;
     private MythicMobsManager mythicMobsManager;
     private MythicDeathListener mythicDeathListener;
+    private com.example.rpgplugin.api.RPGPluginAPI api;
 
     // リスナー
     private VanillaExpHandler vanillaExpHandler;
@@ -115,6 +116,9 @@ public class RPGPlugin extends JavaPlugin {
 
             // オークションシステムの初期化
             initializeAuctionSystem();
+
+            // APIの初期化
+            initializeAPI();
 
             // バニラ経験値ハンドラーの登録
             setupVanillaExpHandler();
@@ -510,6 +514,15 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
+     * APIを初期化
+     */
+    private void initializeAPI() {
+        getLogger().info("Initializing API...");
+        api = new com.example.rpgplugin.api.RPGPluginAPIImpl(this);
+        getLogger().info("API initialized!");
+    }
+
+    /**
      * ログレベルを設定します
      *
      * @param level ログレベル文字列
@@ -774,6 +787,15 @@ public class RPGPlugin extends JavaPlugin {
      */
     public MythicDeathListener getMythicDeathListener() {
         return mythicDeathListener;
+    }
+
+    /**
+     * APIを取得します
+     *
+     * @return RPGPluginAPIインスタンス
+     */
+    public com.example.rpgplugin.api.RPGPluginAPI getAPI() {
+        return api;
     }
 
     /**

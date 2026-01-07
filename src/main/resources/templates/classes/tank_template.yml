@@ -1,0 +1,83 @@
+# タンククラス テンプレート
+#
+# 使用方法:
+# 1. このファイルをコピーして classes/ ディレクトリに配置
+# 2. id, name, display_name を編集
+# 3. stat_growth, available_skills をカスタマイズ
+# 4. 必要に応じて rank, next_rank を調整
+
+# クラスID（一意である必要があります）
+id: template_tank
+# クラス名
+name: テンプレートタンククラス
+# 表示名（カラーコード使用可能）
+display_name: "&eテンプレートタンククラス"
+# 説明（複数行可能）
+description:
+  - "&f高防御力で味方を守るクラス"
+  - "&fVITとSTRが成長しやすい"
+
+# クラスランク（1=初期クラス, 2=2次クラス, ...）
+rank: 1
+# 最大レベル
+max_level: 50
+# GUI用アイコン
+icon: SHIELD
+
+# ステータス成長
+stat_growth:
+  # 自動成長（レベルアップ時に自動付与）
+  auto:
+    strength: 1      # STR
+    vitality: 2      # VIT
+    dexterity: 0     # DEX
+    intelligence: 0  # INT
+    spirit: 0        # SPI
+  # 手動配分ポイント（レベルアップ時に付与）
+  manual_points: 3
+
+# 次のランククラス（省略可能）
+next_rank:
+  # 次のランクのクラスID
+  class_id: template_tank_rank2
+  # ランクアップ要件
+  requirements:
+    - type: level       # レベル要件
+      value: 20
+    - type: stat        # ステータス要件
+      stat: VITALITY
+      value: 50
+
+# 分岐ランク（省略可能、複数可能）
+alternative_ranks:
+  # 上位クラスID
+  guardian:
+    requirements:
+      - type: level
+        value: 30
+      - type: class_history
+        class_id: template_tank
+        min_rank: 1
+
+# 使用可能なスキル（skills/ ディレクトリのskillIdを指定）
+available_skills:
+  - taunt
+  - iron_defense
+
+# パッシブボーナス（省略可能）
+passive_bonuses:
+  - type: damage_reduction       # 被ダメージ軽減率
+    value: 0.15                  # 15%軽減
+  - type: health_bonus           # HPボーナス
+    value: 50                    # +50HP
+  - type: threat_multiplier      # 威脈値倍率
+    value: 1.5                   # 50%増
+  - type: block_bonus            # ブロックボーナス
+    value: 10                    # +10%ブロック率
+
+# 経験値減衰設定（省略可能）
+exp_diminish:
+  # 減衰開始レベル
+  start_level: 30
+  # 獲得経験値の減衰率（0.5 = 50%）
+  reduction_rate: 0.5

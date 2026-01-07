@@ -87,7 +87,7 @@ public class GameSystemManager {
         this.expManager = new ExpManager(plugin, playerManager, classManager);
 
         // 3. その他のマネージャー
-        this.skillManager = new SkillManager(plugin);
+        this.skillManager = new SkillManager(plugin, playerManager);
         this.skillConfig = new com.example.rpgplugin.skill.config.SkillConfig(plugin, skillManager);
         this.activeSkillExecutor = new com.example.rpgplugin.skill.executor.ActiveSkillExecutor(plugin, skillManager, playerManager);
         this.passiveSkillExecutor = new com.example.rpgplugin.skill.executor.PassiveSkillExecutor(plugin, skillManager, playerManager);

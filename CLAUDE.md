@@ -1,6 +1,6 @@
 # CLAUDE.md
 ### 重要!!!1つのメッセージで複数のタスク呼び出しを実行する!!!!
-
+1つのメッセージで複数のタスク呼び出しを実行する
 並列ワーカーを優先して利用する
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.

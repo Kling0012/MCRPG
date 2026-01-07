@@ -4,6 +4,10 @@ import com.example.rpgplugin.core.config.ConfigWatcher;
 import com.example.rpgplugin.core.config.YamlConfigManager;
 import com.example.rpgplugin.core.dependency.DependencyManager;
 import com.example.rpgplugin.core.module.ModuleManager;
+import com.example.rpgplugin.core.system.CoreSystemManager;
+import com.example.rpgplugin.core.system.GameSystemManager;
+import com.example.rpgplugin.core.system.GUIManager;
+import com.example.rpgplugin.core.system.ExternalSystemManager;
 import com.example.rpgplugin.gui.menu.SkillMenuListener;
 import com.example.rpgplugin.mythicmobs.MythicMobsManager;
 import com.example.rpgplugin.mythicmobs.config.MobDropConfig;
@@ -27,41 +31,20 @@ import java.util.Map;
  *
  * <p>モジュールシステムと依存性管理を統合し、プラグインのライフサイクルを管理します。</p>
  *
+ * <p>ファサードパターンを採用し、4つのシステムマネージャーで全機能を統合管理します。</p>
+ *
  * @author RPGPlugin Team
  * @version 1.0.0
  */
 public class RPGPlugin extends JavaPlugin {
 
     private static RPGPlugin instance;
-    private StorageManager storageManager;
 
-    // マネージャー
-    private DependencyManager dependencyManager;
-    private ModuleManager moduleManager;
-    private PlayerManager playerManager;
-    private YamlConfigManager configManager;
-    private ConfigWatcher configWatcher;
-    private StatManager statManager;
-    private SkillManager skillManager;
-    private com.example.rpgplugin.rpgclass.ClassManager classManager;
-    private com.example.rpgplugin.damage.DamageManager damageManager;
-    private com.example.rpgplugin.auction.AuctionManager auctionManager;
-    private SkillConfig skillConfig;
-    private ActiveSkillExecutor activeSkillExecutor;
-    private PassiveSkillExecutor passiveSkillExecutor;
-    private com.example.rpgplugin.currency.CurrencyManager currencyManager;
-    private com.example.rpgplugin.currency.CurrencyListener currencyListener;
-    private com.example.rpgplugin.trade.TradeManager tradeManager;
-    private MythicMobsManager mythicMobsManager;
-    private MythicDeathListener mythicDeathListener;
-    private com.example.rpgplugin.api.RPGPluginAPI api;
-
-    // リスナー
-    private ExpDiminisher expDiminisher;
-    private VanillaExpHandler vanillaExpHandler;
-    private SkillMenuListener skillMenuListener;
-    private com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener classMenuListener;
-    private com.example.rpgplugin.trade.TradeMenuListener tradeMenuListener;
+    // ファサードシステム（4個のフィールドのみ）
+    private CoreSystemManager coreSystem;
+    private GameSystemManager gameSystem;
+    private GUIManager guiSystem;
+    private ExternalSystemManager externalSystem;
 
     @Override
     public void onEnable() {
@@ -73,67 +56,44 @@ public class RPGPlugin extends JavaPlugin {
         getLogger().info("========================================");
 
         try {
-            // 設定マネージャーの初期化
-            setupConfigManager();
+            // 1. コアシステムの初期化
+            coreSystem = new CoreSystemManager(this);
+            coreSystem.initialize();
 
-            // ファイル監視の開始
+            // メイン設定ファイルを読み込み
+            setupMainConfig();
+
+            // ファイル監視の設定
             setupConfigWatcher();
-
-            // 依存関係のセットアップ
-            if (!setupDependencies()) {
-                getLogger().severe("Failed to setup dependencies. Plugin will be disabled.");
-                getServer().getPluginManager().disablePlugin(this);
-                return;
-            }
-
-            // ストレージシステムの初期化
-            initializeStorage();
-
-            // プレイヤーマネージャーの初期化
-            setupPlayerManager();
-
-            // ステータスシステムの初期化
-            initializeStatManager();
-
-            // クラスシステムの初期化
-            initializeClassManager();
-
-            // スキルシステムの初期化
-            initializeSkillSystem();
-
-            // 通貨システムの初期化
-            initializeCurrencySystem();
-
-            // トレードシステムの初期化
-            initializeTradeSystem();
-
-            // MythicMobsシステムの初期化
-            initializeMythicMobsSystem();
-
-            // モジュールマネージャーの初期化
-            setupModuleManager();
 
             // モジュールの有効化
             enableModules();
 
-            // オークションシステムの初期化
-            initializeAuctionSystem();
+            // 2. ゲームシステムの初期化
+            gameSystem = new GameSystemManager(this, coreSystem);
+            gameSystem.initialize();
 
-            // APIの初期化
-            initializeAPI();
+            // ゲームシステムの追加初期化
+            setupGameSystemExtensions();
 
-            // バニラ経験値ハンドラーの登録
-            setupVanillaExpHandler();
+            // 3. GUIシステムの初期化
+            guiSystem = new GUIManager(this, gameSystem);
+            guiSystem.initialize();
 
-            // コマンドハンドラーの登録
+            // 4. 外部システムの初期化
+            externalSystem = new ExternalSystemManager(this, coreSystem.getStorageManager().getDatabaseManager().getConnectionPool());
+            externalSystem.initialize();
+
+            // 外部システムの追加初期化
+            setupExternalSystemExtensions();
+
+            // 5. コマンド・リスナー登録
             registerCommands();
-
-            // リスナーの登録
             registerListeners();
 
             getLogger().info("========================================");
             getLogger().info(" RPGPlugin has been enabled successfully!");
-            getLogger().info(" Loaded modules: " + moduleManager.getModuleCount());
+            getLogger().info(" Loaded modules: " + coreSystem.getModuleManager().getModuleCount());
             getLogger().info("========================================");
 
         } catch (Exception e) {
@@ -145,50 +105,34 @@ public class RPGPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        getLogger().info("RPGPlugin is shutting down...");
+        getLogger().info("========================================");
+        getLogger().info(" RPGPlugin is shutting down...");
+        getLogger().info("========================================");
 
         try {
-            // ファイル監視の停止
-            if (configWatcher != null) {
-                configWatcher.stop();
+            // 外部システムのシャットダウン
+            if (externalSystem != null) {
+                externalSystem.shutdown();
             }
 
-            // モジュールの無効化
-            if (moduleManager != null) {
-                moduleManager.disableAll();
+            // GUIシステムのシャットダウン
+            if (guiSystem != null) {
+                guiSystem.shutdown();
             }
 
-            // プレイヤーマネージャーのシャットダウン
-            if (playerManager != null) {
-                playerManager.shutdown();
+            // ゲームシステムのシャットダウン
+            if (gameSystem != null) {
+                gameSystem.shutdown();
             }
 
-            // トレードマネージャーのシャットダウン
-            if (tradeManager != null) {
-                tradeManager.shutdown();
+            // コアシステムのシャットダウン
+            if (coreSystem != null) {
+                coreSystem.shutdown();
             }
 
-            // MythicMobsマネージャーのクリーンアップ
-            if (mythicMobsManager != null) {
-                mythicMobsManager.cleanup();
-            }
-
-            // ストレージシステムのシャットダウン
-            if (storageManager != null) {
-                storageManager.shutdown();
-            }
-
-            // 依存関係のクリーンアップ
-            if (dependencyManager != null) {
-                dependencyManager.cleanup();
-            }
-
-            // 設定のアンロード
-            if (configManager != null) {
-                configManager.unloadAll();
-            }
-
-            getLogger().info("RPGPlugin has been disabled successfully!");
+            getLogger().info("========================================");
+            getLogger().info(" RPGPlugin has been disabled successfully!");
+            getLogger().info("========================================");
 
         } catch (Exception e) {
             getLogger().severe("Error during plugin shutdown:");
@@ -196,17 +140,19 @@ public class RPGPlugin extends JavaPlugin {
         }
     }
 
+    // ====== 設定とヘルパーメソッド ======
+
     /**
-     * 設定マネージャーをセットアップします
+     * メイン設定ファイルをセットアップします
      */
-    private void setupConfigManager() {
-        configManager = new YamlConfigManager(this);
+    private void setupMainConfig() {
+        YamlConfigManager configManager = coreSystem.getConfigManager();
 
         // メイン設定ファイルを読み込み
         boolean loaded = configManager.loadConfig(
             "main",
             "config.yml",
-            null // デフォルトファイルはリソースからコピーされるためnull
+            null
         );
 
         if (loaded) {
@@ -224,15 +170,10 @@ public class RPGPlugin extends JavaPlugin {
      * ファイル監視をセットアップします
      */
     private void setupConfigWatcher() {
-        configWatcher = new ConfigWatcher(this, configManager);
-
-        // 監視を開始
-        if (!configWatcher.start()) {
-            getLogger().warning("Failed to start ConfigWatcher");
-            return;
-        }
+        ConfigWatcher configWatcher = coreSystem.getConfigWatcher();
 
         // ホットリロード設定を確認
+        YamlConfigManager configManager = coreSystem.getConfigManager();
         boolean hotReloadClasses = configManager.getBoolean("main", "hot_reload.classes", true);
         boolean hotReloadSkills = configManager.getBoolean("main", "hot_reload.skills", true);
         boolean hotReloadExp = configManager.getBoolean("main", "hot_reload.exp_diminish", false);
@@ -259,186 +200,64 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
-     * ストレージシステムを初期化
+     * 全モジュールを有効化します
      */
-    private void initializeStorage() throws Exception {
-        getLogger().info("Initializing storage system...");
-        storageManager = new StorageManager(this);
-        storageManager.initialize();
-        getLogger().info("Storage system initialized!");
+    private void enableModules() {
+        ModuleManager moduleManager = coreSystem.getModuleManager();
+        int enabled = moduleManager.enableAll();
+        getLogger().info("Enabled " + enabled + " modules.");
     }
 
     /**
-     * プレイヤーマネージャーをセットアップします
+     * ゲームシステムの追加初期化を行います
      */
-    private void setupPlayerManager() {
-        getLogger().info("Initializing PlayerManager...");
-        playerManager = new PlayerManager(this, storageManager.getPlayerDataRepository());
-        playerManager.initialize();
-        getServer().getPluginManager().registerEvents(playerManager, this);
-        getLogger().info("PlayerManager initialized!");
-    }
-
-    /**
-     * ステータスシステムを初期化
-     */
-    private void initializeStatManager() {
-        getLogger().info("Initializing StatManager...");
-        statManager = new StatManager();
-        getLogger().info("StatManager initialized!");
-    }
-
-    /**
-     * クラスシステムを初期化
-     */
-    private void initializeClassManager() {
-        getLogger().info("Initializing ClassManager...");
-        classManager = new com.example.rpgplugin.rpgclass.ClassManager(playerManager);
+    private void setupGameSystemExtensions() {
+        getLogger().info("Setting up game system extensions...");
 
         // クラス設定を読み込み
-        com.example.rpgplugin.rpgclass.ClassLoader clsLoader = new com.example.rpgplugin.rpgclass.ClassLoader(this, playerManager);
+        com.example.rpgplugin.rpgclass.ClassLoader clsLoader =
+            new com.example.rpgplugin.rpgclass.ClassLoader(this, gameSystem.getPlayerManager());
         Map<String, com.example.rpgplugin.rpgclass.RPGClass> classes = clsLoader.loadAllClasses();
         getLogger().info("Loaded " + classes.size() + " classes");
 
-        // クラスメニューリスナーはClassMenuごとに動的に作成されるため、
-        // ここではグローバルリスナーを登録しない
-
-        getLogger().info("ClassManager initialized!");
-    }
-
-    /**
-     * スキルシステムを初期化
-     */
-    private void initializeSkillSystem() {
-        getLogger().info("Initializing SkillSystem...");
-
-        // スキルマネージャー
-        skillManager = new SkillManager(this);
-
-        // スキル設定
-        skillConfig = new SkillConfig(this, skillManager);
+        // スキル設定を読み込み
+        SkillConfig skillConfig = new SkillConfig(this, gameSystem.getSkillManager());
         int skillCount = skillConfig.loadSkills();
         getLogger().info("Loaded " + skillCount + " skills");
 
-        // アクティブスキルエグゼキューター
-        activeSkillExecutor = new ActiveSkillExecutor(this, skillManager, playerManager);
+        // 経験値ハンドラーを登録
+        gameSystem.getExpManager().registerListeners();
 
-        // パッシブスキルエグゼキューター
-        passiveSkillExecutor = new PassiveSkillExecutor(this, skillManager, playerManager);
+        // ダメージマネージャーを登録
+        getServer().getPluginManager().registerEvents(gameSystem.getDamageManager(), this);
 
-        // スキルメニューリスナー
-        skillMenuListener = new SkillMenuListener(this);
-        getServer().getPluginManager().registerEvents(skillMenuListener, this);
+        // プレイヤーマネージャーを登録
+        getServer().getPluginManager().registerEvents(gameSystem.getPlayerManager(), this);
 
-        getLogger().info("SkillSystem initialized!");
+        // オークション期限切れチェックタスクを開始
+        startAuctionExpirationTask();
+
+        getLogger().info("Game system extensions setup complete!");
     }
 
     /**
-     * 通貨システムを初期化
+     * 外部システムの追加初期化を行います
      */
-    private void initializeCurrencySystem() {
-        getLogger().info("Initializing CurrencySystem...");
+    private void setupExternalSystemExtensions() {
+        getLogger().info("Setting up external system extensions...");
 
-        // 通貨マネージャー
-        currencyManager = new com.example.rpgplugin.currency.CurrencyManager(
-                storageManager.getPlayerCurrencyRepository(),
-                getLogger()
-        );
+        // MythicMobsが利用可能な場合のみ追加設定
+        if (coreSystem.getDependencyManager().isMythicMobsAvailable()) {
+            // ドロップ設定を読み込み
+            loadMobDropConfigs();
 
-        // 通貨リスナー
-        currencyListener = new com.example.rpgplugin.currency.CurrencyListener(this, currencyManager);
-        getServer().getPluginManager().registerEvents(currencyListener, this);
+            // 期限切れドロップクリーニングタスクを開始
+            startDropCleanupTask();
 
-        getLogger().info("CurrencySystem initialized!");
-    }
-
-    /**
-     * バニラ経験値ハンドラーをセットアップします
-     */
-    private void setupVanillaExpHandler() {
-        getLogger().info("Initializing VanillaExpHandler...");
-
-        // 経験値減衰マネージャーの初期化
-        expDiminisher = new ExpDiminisher(this, playerManager, classManager);
-
-        // バニラ経験値ハンドラーの初期化
-        vanillaExpHandler = new VanillaExpHandler(this, playerManager, expDiminisher);
-        getServer().getPluginManager().registerEvents(vanillaExpHandler, this);
-
-        getLogger().info("VanillaExpHandler initialized with ExpDiminisher!");
-    }
-
-    /**
-     * トレードシステムを初期化
-     */
-    private void initializeTradeSystem() {
-        getLogger().info("Initializing TradeSystem...");
-
-        // トレードマネージャー
-        tradeManager = new com.example.rpgplugin.trade.TradeManager(this);
-
-        // トレード履歴リポジトリ
-        com.example.rpgplugin.trade.repository.TradeHistoryRepository historyRepository =
-            new com.example.rpgplugin.trade.repository.TradeHistoryRepository(
-                storageManager.getDatabaseManager(),
-                getLogger()
-            );
-
-        // トレードマネージャーを初期化
-        tradeManager.initialize(historyRepository);
-
-        // トレードメニューリスナー
-        tradeMenuListener = new com.example.rpgplugin.trade.TradeMenuListener(tradeManager);
-        getServer().getPluginManager().registerEvents(tradeMenuListener, this);
-
-        getLogger().info("TradeSystem initialized!");
-    }
-
-    /**
-     * ダメージシステムを初期化
-     */
-    private void initializeDamageManager() {
-        getLogger().info("Initializing DamageManager...");
-        damageManager = new com.example.rpgplugin.damage.DamageManager(this);
-        getServer().getPluginManager().registerEvents(damageManager, this);
-        getLogger().info("DamageManager initialized!");
-    }
-
-    /**
-     * MythicMobsシステムを初期化
-     */
-    private void initializeMythicMobsSystem() {
-        if (!dependencyManager.isMythicMobsAvailable()) {
-            getLogger().warning("MythicMobs not available. Skipping MythicMobs system initialization.");
-            return;
+            getLogger().info("MythicMobs extensions setup complete!");
+        } else {
+            getLogger().info("MythicMobs not available, skipping extensions.");
         }
-
-        getLogger().info("Initializing MythicMobs System...");
-
-        // MythicMobsマネージャー
-        mythicMobsManager = new MythicMobsManager(
-                this,
-                dependencyManager.getMythicMobsHook(),
-                storageManager.getDatabaseManager().getConnectionPool()
-        );
-
-        // マネージャーを初期化
-        if (!mythicMobsManager.initialize()) {
-            getLogger().warning("Failed to initialize MythicMobsManager");
-            return;
-        }
-
-        // ドロップ設定を読み込み
-        loadMobDropConfigs();
-
-        // MythicMobsデスリスナー
-        mythicDeathListener = new MythicDeathListener(mythicMobsManager);
-        getServer().getPluginManager().registerEvents(mythicDeathListener, this);
-
-        // 期限切れドロップクリーニングタスクを開始
-        startDropCleanupTask();
-
-        getLogger().info("MythicMobs System initialized!");
     }
 
     /**
@@ -451,7 +270,7 @@ public class RPGPlugin extends JavaPlugin {
         saveResource("mobs/mob_drops.yml", false);
 
         // 設定ファイルを読み込み
-        FileConfiguration dropConfig = getConfigManager().getConfig("mob_drops");
+        FileConfiguration dropConfig = coreSystem.getConfigManager().getConfig("mob_drops");
         if (dropConfig == null) {
             // 手動で読み込み
             try {
@@ -469,7 +288,7 @@ public class RPGPlugin extends JavaPlugin {
         var mobDrops = configLoader.loadFromConfig(dropConfig);
 
         // マネージャーに設定をロード
-        mythicMobsManager.loadDropConfigs(mobDrops);
+        externalSystem.getMythicMobsManager().loadDropConfigs(mobDrops);
 
         getLogger().info("Loaded " + mobDrops.size() + " mob drop configurations");
     }
@@ -480,6 +299,7 @@ public class RPGPlugin extends JavaPlugin {
     private void startDropCleanupTask() {
         // 10分ごとに期限切れドロップをクリーニング
         getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+            MythicMobsManager mythicMobsManager = externalSystem.getMythicMobsManager();
             if (mythicMobsManager != null) {
                 mythicMobsManager.cleanupExpiredDrops();
             }
@@ -489,45 +309,18 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
-     * オークションシステムを初期化
-     */
-    private void initializeAuctionSystem() {
-        getLogger().info("Initializing AuctionManager...");
-        auctionManager = new com.example.rpgplugin.auction.AuctionManager(
-                getLogger(),
-                storageManager.getDatabaseManager()
-        );
-
-        // アクティブなオークションをロード
-        auctionManager.loadActiveAuctions();
-
-        // 入札延長タスクスケジューラーを開始
-        startAuctionExpirationTask();
-
-        getLogger().info("AuctionManager initialized!");
-    }
-
-    /**
      * 入札延長タスクスケジューラーを開始
      */
     private void startAuctionExpirationTask() {
         // 5秒ごとに期限切れオークションをチェック
         getServer().getScheduler().runTaskTimer(this, () -> {
+            com.example.rpgplugin.auction.AuctionManager auctionManager = gameSystem.getAuctionManager();
             if (auctionManager != null) {
                 auctionManager.checkExpiredAuctions();
             }
         }, 5L * 20L, 5L * 20L); // 5秒 = 100 ticks (20 ticks/sec)
 
         getLogger().info("Auction expiration checker started (runs every 5 seconds)");
-    }
-
-    /**
-     * APIを初期化
-     */
-    private void initializeAPI() {
-        getLogger().info("Initializing API...");
-        api = new com.example.rpgplugin.api.RPGPluginAPIImpl(this);
-        getLogger().info("API initialized!");
     }
 
     /**
@@ -542,37 +335,6 @@ public class RPGPlugin extends JavaPlugin {
         } catch (Exception e) {
             getLogger().warning("Invalid log level: " + level + ", using INFO");
         }
-    }
-
-    /**
-     * 依存関係をセットアップします
-     *
-     * @return セットアップに成功した場合はtrue
-     */
-    private boolean setupDependencies() {
-        dependencyManager = new DependencyManager(this);
-        return dependencyManager.setupDependencies();
-    }
-
-    /**
-     * モジュールマネージャーをセットアップします
-     */
-    private void setupModuleManager() {
-        moduleManager = new ModuleManager(this);
-        getLogger().info("ModuleManager initialized.");
-    }
-
-    /**
-     * 全モジュールを有効化します
-     */
-    private void enableModules() {
-        if (moduleManager == null) {
-            getLogger().warning("ModuleManager is not initialized!");
-            return;
-        }
-
-        int enabled = moduleManager.enableAll();
-        getLogger().info("Enabled " + enabled + " modules.");
     }
 
     /**
@@ -608,58 +370,15 @@ public class RPGPlugin extends JavaPlugin {
         return instance;
     }
 
+    // ====== コアシステム ======
+
     /**
-     * ストレージマネージャーを取得
+     * ストレージマネージャーを取得します
      *
      * @return ストレージマネージャー
      */
     public StorageManager getStorageManager() {
-        return storageManager;
-    }
-
-    /**
-     * プレイヤーマネージャーを取得
-     *
-     * @return プレイヤーマネージャー
-     */
-    public PlayerManager getPlayerManager() {
-        return playerManager;
-    }
-
-    /**
-     * ステータスマネージャーを取得
-     *
-     * @return ステータスマネージャー
-     */
-    public StatManager getStatManager() {
-        return statManager;
-    }
-
-    /**
-     * クラスマネージャーを取得
-     *
-     * @return クラスマネージャー
-     */
-    public com.example.rpgplugin.rpgclass.ClassManager getClassManager() {
-        return classManager;
-    }
-
-    /**
-     * スキルマネージャーを取得
-     *
-     * @return スキルマネージャー
-     */
-    public SkillManager getSkillManager() {
-        return skillManager;
-    }
-
-    /**
-     * オークションマネージャーを取得
-     *
-     * @return オークションマネージャー
-     */
-    public com.example.rpgplugin.auction.AuctionManager getAuctionManager() {
-        return auctionManager;
+        return coreSystem.getStorageManager();
     }
 
     /**
@@ -668,7 +387,7 @@ public class RPGPlugin extends JavaPlugin {
      * @return DependencyManagerインスタンス
      */
     public DependencyManager getDependencyManager() {
-        return dependencyManager;
+        return coreSystem.getDependencyManager();
     }
 
     /**
@@ -677,7 +396,7 @@ public class RPGPlugin extends JavaPlugin {
      * @return ModuleManagerインスタンス
      */
     public ModuleManager getModuleManager() {
-        return moduleManager;
+        return coreSystem.getModuleManager();
     }
 
     /**
@@ -686,7 +405,7 @@ public class RPGPlugin extends JavaPlugin {
      * @return YamlConfigManagerインスタンス
      */
     public YamlConfigManager getConfigManager() {
-        return configManager;
+        return coreSystem.getConfigManager();
     }
 
     /**
@@ -695,7 +414,45 @@ public class RPGPlugin extends JavaPlugin {
      * @return ConfigWatcherインスタンス
      */
     public ConfigWatcher getConfigWatcher() {
-        return configWatcher;
+        return coreSystem.getConfigWatcher();
+    }
+
+    // ====== ゲームシステム ======
+
+    /**
+     * プレイヤーマネージャーを取得します
+     *
+     * @return プレイヤーマネージャー
+     */
+    public PlayerManager getPlayerManager() {
+        return gameSystem.getPlayerManager();
+    }
+
+    /**
+     * ステータスマネージャーを取得します
+     *
+     * @return ステータスマネージャー
+     */
+    public StatManager getStatManager() {
+        return gameSystem.getStatManager();
+    }
+
+    /**
+     * クラスマネージャーを取得します
+     *
+     * @return クラスマネージャー
+     */
+    public com.example.rpgplugin.rpgclass.ClassManager getClassManager() {
+        return gameSystem.getClassManager();
+    }
+
+    /**
+     * スキルマネージャーを取得します
+     *
+     * @return スキルマネージャー
+     */
+    public SkillManager getSkillManager() {
+        return gameSystem.getSkillManager();
     }
 
     /**
@@ -704,52 +461,16 @@ public class RPGPlugin extends JavaPlugin {
      * @return DamageManagerインスタンス
      */
     public com.example.rpgplugin.damage.DamageManager getDamageManager() {
-        return damageManager;
+        return gameSystem.getDamageManager();
     }
 
     /**
-     * スキルメニューリスナーを取得します
+     * オークションマネージャーを取得します
      *
-     * @return SkillMenuListenerインスタンス
+     * @return オークションマネージャー
      */
-    public SkillMenuListener getSkillMenuListener() {
-        return skillMenuListener;
-    }
-
-    /**
-     * クラスメニューリスナーを取得します
-     *
-     * @return ClassMenuListenerインスタンス
-     */
-    public com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener getClassMenuListener() {
-        return classMenuListener;
-    }
-
-    /**
-     * スキル設定を取得します
-     *
-     * @return SkillConfigインスタンス
-     */
-    public SkillConfig getSkillConfig() {
-        return skillConfig;
-    }
-
-    /**
-     * アクティブスキルエグゼキューターを取得します
-     *
-     * @return ActiveSkillExecutorインスタンス
-     */
-    public ActiveSkillExecutor getActiveSkillExecutor() {
-        return activeSkillExecutor;
-    }
-
-    /**
-     * パッシブスキルエグゼキューターを取得します
-     *
-     * @return PassiveSkillExecutorインスタンス
-     */
-    public PassiveSkillExecutor getPassiveSkillExecutor() {
-        return passiveSkillExecutor;
+    public com.example.rpgplugin.auction.AuctionManager getAuctionManager() {
+        return gameSystem.getAuctionManager();
     }
 
     /**
@@ -758,16 +479,7 @@ public class RPGPlugin extends JavaPlugin {
      * @return CurrencyManagerインスタンス
      */
     public com.example.rpgplugin.currency.CurrencyManager getCurrencyManager() {
-        return currencyManager;
-    }
-
-    /**
-     * 通貨リスナーを取得します
-     *
-     * @return CurrencyListenerインスタンス
-     */
-    public com.example.rpgplugin.currency.CurrencyListener getCurrencyListener() {
-        return currencyListener;
+        return gameSystem.getCurrencyManager();
     }
 
     /**
@@ -776,34 +488,7 @@ public class RPGPlugin extends JavaPlugin {
      * @return TradeManagerインスタンス
      */
     public com.example.rpgplugin.trade.TradeManager getTradeManager() {
-        return tradeManager;
-    }
-
-    /**
-     * MythicMobsマネージャーを取得します
-     *
-     * @return MythicMobsManagerインスタンス
-     */
-    public MythicMobsManager getMythicMobsManager() {
-        return mythicMobsManager;
-    }
-
-    /**
-     * MythicMobsデスリスナーを取得します
-     *
-     * @return MythicDeathListenerインスタンス
-     */
-    public MythicDeathListener getMythicDeathListener() {
-        return mythicDeathListener;
-    }
-
-    /**
-     * APIを取得します
-     *
-     * @return RPGPluginAPIインスタンス
-     */
-    public com.example.rpgplugin.api.RPGPluginAPI getAPI() {
-        return api;
+        return gameSystem.getTradeManager();
     }
 
     /**
@@ -812,8 +497,115 @@ public class RPGPlugin extends JavaPlugin {
      * @return ExpDiminisherインスタンス
      */
     public ExpDiminisher getExpDiminisher() {
-        return expDiminisher;
+        return gameSystem.getExpManager().getExpDiminisher();
     }
+
+    /**
+     * バニラ経験値ハンドラーを取得します
+     *
+     * @return VanillaExpHandlerインスタンス
+     */
+    public VanillaExpHandler getVanillaExpHandler() {
+        return gameSystem.getExpManager().getVanillaExpHandler();
+    }
+
+    // ====== スキル関連（特別なアクセサ） ======
+
+    /**
+     * スキル設定を取得します
+     *
+     * @return SkillConfigインスタンス
+     */
+    public SkillConfig getSkillConfig() {
+        return gameSystem.getSkillConfig();
+    }
+
+    /**
+     * アクティブスキルエグゼキューターを取得します
+     *
+     * @return ActiveSkillExecutorインスタンス
+     */
+    public ActiveSkillExecutor getActiveSkillExecutor() {
+        return gameSystem.getActiveSkillExecutor();
+    }
+
+    /**
+     * パッシブスキルエグゼキューターを取得します
+     *
+     * @return PassiveSkillExecutorインスタンス
+     */
+    public PassiveSkillExecutor getPassiveSkillExecutor() {
+        return gameSystem.getPassiveSkillExecutor();
+    }
+
+    // ====== GUIシステム ======
+
+    /**
+     * スキルメニューリスナーを取得します
+     *
+     * @return SkillMenuListenerインスタンス
+     */
+    public SkillMenuListener getSkillMenuListener() {
+        return guiSystem.getSkillMenuListener();
+    }
+
+    /**
+     * クラスメニューリスナーを取得します
+     *
+     * @return ClassMenuListenerインスタンス
+     */
+    public com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener getClassMenuListener() {
+        return guiSystem.getClassMenuListener();
+    }
+
+    /**
+     * トレードメニューリスナーを取得します
+     *
+     * @return TradeMenuListenerインスタンス
+     */
+    public com.example.rpgplugin.trade.TradeMenuListener getTradeMenuListener() {
+        return guiSystem.getTradeMenuListener();
+    }
+
+    /**
+     * 通貨リスナーを取得します
+     *
+     * @return CurrencyListenerインスタンス
+     */
+    public com.example.rpgplugin.currency.CurrencyListener getCurrencyListener() {
+        return guiSystem.getCurrencyListener();
+    }
+
+    // ====== 外部システム ======
+
+    /**
+     * MythicMobsマネージャーを取得します
+     *
+     * @return MythicMobsManagerインスタンス
+     */
+    public MythicMobsManager getMythicMobsManager() {
+        return externalSystem.getMythicMobsManager();
+    }
+
+    /**
+     * MythicMobsデスリスナーを取得します
+     *
+     * @return MythicDeathListenerインスタンス
+     */
+    public MythicDeathListener getMythicDeathListener() {
+        return externalSystem.getMythicDeathListener();
+    }
+
+    /**
+     * APIを取得します
+     *
+     * @return RPGPluginAPIインスタンス
+     */
+    public com.example.rpgplugin.api.RPGPluginAPI getAPI() {
+        return externalSystem.getAPI();
+    }
+
+    // ====== その他 ======
 
     /**
      * プラグインをリロードします
@@ -825,26 +617,22 @@ public class RPGPlugin extends JavaPlugin {
 
         try {
             // 設定ファイルのリロード
-            if (configManager != null) {
-                int reloaded = configManager.reloadAll();
-                getLogger().info("Reloaded " + reloaded + " config files.");
-            }
+            YamlConfigManager configManager = coreSystem.getConfigManager();
+            int reloaded = configManager.reloadAll();
+            getLogger().info("Reloaded " + reloaded + " config files.");
 
             // スキル設定のリロード
-            if (skillConfig != null) {
-                int reloadedSkills = skillConfig.reloadSkills();
-                getLogger().info("Reloaded " + reloadedSkills + " skills.");
-            }
+            SkillConfig skillConfig = gameSystem.getSkillConfig();
+            int reloadedSkills = skillConfig.reloadSkills();
+            getLogger().info("Reloaded " + reloadedSkills + " skills.");
 
             // モジュールのリロード
-            if (moduleManager != null) {
-                moduleManager.reloadAll();
-            }
+            ModuleManager moduleManager = coreSystem.getModuleManager();
+            moduleManager.reloadAll();
 
             // 依存関係の状態をログ出力
-            if (dependencyManager != null) {
-                dependencyManager.logDependencyStatus();
-            }
+            DependencyManager dependencyManager = coreSystem.getDependencyManager();
+            dependencyManager.logDependencyStatus();
 
             getLogger().info("Plugin reloaded successfully!");
 

@@ -110,11 +110,39 @@ public class SkillLoader extends ConfigLoader {
             int maxLevel = config.getInt("max_level", 5);
             validateRange(maxLevel, 1, 100, "max_level", file.getName());
 
-            double cooldown = config.getDouble("cooldown", 0.0);
-            validateRange(cooldown, 0.0, 3600.0, "cooldown", file.getName());
+            // レベル依存パラメータのパース（Phase11-2で追加）
+            LevelDependentParameter cooldownParameter = null;
+            LevelDependentParameter costParameter = null;
+            SkillCostType costType = SkillCostType.MANA;
 
-            int manaCost = config.getInt("mana_cost", 0);
-            validateRange(manaCost, 0, 1000, "mana_cost", file.getName());
+            if (config.contains("cooldown")) {
+                Object cooldownObj = config.get("cooldown");
+                if (cooldownObj instanceof ConfigurationSection) {
+                    // cooldownセクション形式: { base: 5.0, per_level: -0.5, min: 1.0 }
+                    cooldownParameter = parseLevelDependentParameter(
+                            config.getConfigurationSection("cooldown"), file.getName(), "cooldown");
+                }
+                // 数値形式の場合はフォールバック値として後で取得
+            }
+
+            // コスト関連のパース
+            if (config.contains("cost")) {
+                // 新しいcostセクション形式
+                ConfigurationSection costSection = config.getConfigurationSection("cost");
+                if (costSection != null) {
+                    costParameter = parseLevelDependentParameter(costSection, file.getName(), "cost");
+                    String costTypeStr = costSection.getString("type", "mana");
+                    costType = SkillCostType.fromId(costTypeStr);
+                    if (costType == null) {
+                        getLogger().warning("無効なコストタイプ: " + costTypeStr + " (" + file.getName() + ")");
+                        costType = SkillCostType.MANA;
+                    }
+                }
+            } else if (config.contains("mana_cost")) {
+                // レガシーマナコスト形式（後方互換性）
+                int manaCost = config.getInt("mana_cost", 0);
+                validateRange(manaCost, 0, 1000, "mana_cost", file.getName());
+            }
 
             // ダメージ計算
             Skill.DamageCalculation damage = null;
@@ -134,7 +162,13 @@ public class SkillLoader extends ConfigLoader {
             // 利用可能なクラス
             List<String> availableClasses = config.getStringList("available_classes");
 
-            return new Skill(id, name, displayName, type, description, maxLevel, cooldown, manaCost,
+            // フォールバック値（レベル依存パラメータ未使用時）
+            double cooldownFallback = config.getDouble("cooldown", 0.0);
+            int manaCostFallback = config.getInt("mana_cost", 0);
+
+            return new Skill(id, name, displayName, type, description, maxLevel,
+                    cooldownFallback, manaCostFallback,
+                    cooldownParameter, costParameter, costType,
                     damage, skillTree, iconMaterial, availableClasses);
 
         } catch (Exception e) {
@@ -246,6 +280,51 @@ public class SkillLoader extends ConfigLoader {
         double value = section.getDouble("value", 0.0);
 
         return new Skill.UnlockRequirement(type, stat, value);
+    }
+
+    /**
+     * レベル依存パラメータをパースします
+     *
+     * <p>サポートされるYAML形式:</p>
+     * <pre>
+     * # 最小値制限付き
+     * cooldown:
+     *   base: 5.0
+     *   per_level: -0.5
+     *   min: 1.0
+     *
+     * # 最小値・最大値制限付き
+     * cost:
+     *   base: 10
+     *   per_level: 2
+     *   min: 5
+     *   max: 50
+     * </pre>
+     *
+     * @param section コンフィグセクション
+     * @param fileName ファイル名（エラー表示用）
+     * @param paramName パラメータ名（エラー表示用）
+     * @return レベル依存パラメータ
+     */
+    private LevelDependentParameter parseLevelDependentParameter(
+            ConfigurationSection section, String fileName, String paramName) {
+        if (section == null) {
+            return null;
+        }
+
+        double base = section.getDouble("base", 0.0);
+        double perLevel = section.getDouble("per_level", 0.0);
+
+        // オプションパラメータ
+        Double minValue = section.contains("min") ? section.getDouble("min") : null;
+        Double maxValue = section.contains("max") ? section.getDouble("max") : null;
+
+        // バリデーション
+        if (minValue != null && maxValue != null && minValue > maxValue) {
+            getLogger().warning(paramName + ".min が " + paramName + ".max より大きいです (" + fileName + ")");
+        }
+
+        return new LevelDependentParameter(base, perLevel, minValue, maxValue);
     }
 
     /**

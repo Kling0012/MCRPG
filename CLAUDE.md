@@ -2,6 +2,9 @@
 ### 重要!!!1つのメッセージで複数のタスク呼び出しを実行する!!!!
 1つのメッセージで複数のタスク呼び出しを実行する
 並列ワーカーを優先して利用する
+ファイル確認や現状確認，調査はSerenaMCPを積極的に利用する
+Skillで参照するべきものが無いか，確認してから作業を開始する
+
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 

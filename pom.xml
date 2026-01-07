@@ -42,6 +42,12 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- JUnit 5 プラグイン -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.2</version>
+            </plugin>
         </plugins>
         <resources>
             <resource>
@@ -142,15 +148,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <!-- JUnit 5 プラグイン -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.2</version>
-            </plugin>
-        </plugins>
-    </build>
 </project>

@@ -49,11 +49,26 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
 
     @Override
     public void saveAsync(PlayerData player) {
+        if (player == null) {
+            logger.warning("Attempted to save null player data");
+            return;
+        }
+
         dbManager.executeAsync(() -> {
             try {
                 save(player);
+                logger.fine("Player data saved asynchronously: " + player.getUuid());
             } catch (SQLException e) {
-                logger.severe("Failed to save player data asynchronously: " + e.getMessage());
+                logger.severe("Failed to save player data asynchronously: " + player.getUuid());
+                logger.severe("Error: " + e.getMessage());
+                e.printStackTrace();
+
+                // TODO: フォールバック処理の検討
+                // - 失敗したデータをキューに保存
+                // - 次回同期保存時にリトライ
+            } catch (Exception e) {
+                logger.severe("Unexpected error saving player data: " + player.getUuid());
+                logger.severe("Error: " + e.getMessage());
                 e.printStackTrace();
             }
         });

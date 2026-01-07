@@ -260,23 +260,52 @@ public class PlayerManager implements Listener {
      * 全プレイヤーデータを非同期に保存します
      *
      * <p>大量のプレイヤーデータを保存する場合に使用します。</p>
+     *
+     * <p>エラーハンドリング:</p>
+     * <ul>
+     *   <li>個々のプレイヤー保存失敗で処理を継続</li>
+     *   <li>失敗したプレイヤーはログに出力</li>
+     *   <li>最終的に成功/失敗数を集計してログ出力</li>
+     * </ul>
      */
     public void saveAllAsync() {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             int successCount = 0;
             int failCount = 0;
+            long startTime = System.currentTimeMillis();
+
+            logger.info("Starting async save for " + onlinePlayers.size() + " players...");
 
             for (RPGPlayer rpgPlayer : onlinePlayers.values()) {
                 try {
-                    playerDataRepository.save(rpgPlayer.getPlayerData());
-                    successCount++;
+                    if (rpgPlayer != null && rpgPlayer.getPlayerData() != null) {
+                        playerDataRepository.save(rpgPlayer.getPlayerData());
+                        successCount++;
+                    } else {
+                        logger.warning("Skipping null RPGPlayer or PlayerData");
+                        failCount++;
+                    }
                 } catch (Exception e) {
                     logger.warning("Failed to save player " + rpgPlayer.getUsername() + ": " + e.getMessage());
                     failCount++;
+
+                    // スタックトレース出力（デバッグ用）
+                    if (logger.isLoggable(java.util.logging.Level.FINE)) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
-            logger.info("Async save complete. Saved: " + successCount + ", Failed: " + failCount);
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info(String.format(
+                    "Async save complete: %d saved, %d failed, %dms",
+                    successCount, failCount, duration
+            ));
+
+            // 失敗がある場合は警告
+            if (failCount > 0) {
+                logger.warning("Some player data failed to save. Check logs for details.");
+            }
         });
     }
 

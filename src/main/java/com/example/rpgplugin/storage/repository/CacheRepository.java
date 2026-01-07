@@ -18,6 +18,12 @@ import java.util.logging.Logger;
  * L3: データベース（PlayerDataRepository）
  *
  * キャッシュヒット率目標: 95%以上
+ *
+ * 設計原則:
+ * - SOLID-S: キャッシュ管理に特化
+ * - DRY: 設定ロジックを一元管理
+ * - KISS: シンプルな3層構造
+ * - OCP: 設定ファイルで拡張可能
  */
 public class CacheRepository {
 
@@ -32,13 +38,41 @@ public class CacheRepository {
     private long l3Hits = 0;
     private long totalRequests = 0;
 
+    // 統計キャッシュ（1分間キャッシュ）
+    private CacheStatistics cachedStats;
+    private long lastStatsUpdate = 0;
+    private static final long STATS_CACHE_MILLIS = 60000; // 1分
+
+    // 統計ログ出力タスク
+    private int statsLoggingTaskId = -1;
+
     /**
-     * コンストラクタ
+     * コンストラクタ（デフォルト設定）
      *
      * @param repository データリポジトリ
      * @param logger ロガー
      */
     public CacheRepository(PlayerDataRepository repository, Logger logger) {
+        this(repository, logger, 2000, 10, true, 0);
+    }
+
+    /**
+     * コンストラクタ（設定指定）
+     *
+     * @param repository データリポジトリ
+     * @param logger ロガー
+     * @param l2MaxSize L2キャッシュ最大サイズ
+     * @param l2TtlMinutes L2キャッシュTTL（分）
+     * @param expireAfterAccess アクセス時間ベースTTLを使用するか
+     * @param statsLoggingInterval 統計ログ出力間隔（秒、0で無効）
+     */
+    public CacheRepository(
+            PlayerDataRepository repository,
+            Logger logger,
+            int l2MaxSize,
+            int l2TtlMinutes,
+            boolean expireAfterAccess,
+            int statsLoggingInterval) {
         this.repository = repository;
         this.logger = logger;
 
@@ -46,11 +80,56 @@ public class CacheRepository {
         this.l1Cache = new ConcurrentHashMap<>();
 
         // L2キャッシュ: CaffeineによるLRUキャッシュ
-        this.l2Cache = Caffeine.newBuilder()
-                .maximumSize(1000)          // 最大1000エントリ
-                .expireAfterWrite(5, TimeUnit.MINUTES)  // 5分TTL
-                .recordStats()              // 統計有効化
-                .build();
+        Caffeine<Object, Object> caffeineBuilder = Caffeine.newBuilder()
+                .maximumSize(l2MaxSize)
+                .recordStats();
+
+        // TTLポリシーを設定
+        if (expireAfterAccess) {
+            caffeineBuilder.expireAfterAccess(l2TtlMinutes, TimeUnit.MINUTES);
+            logger.info("L2 cache: Access-based TTL (" + l2TtlMinutes + " minutes)");
+        } else {
+            caffeineBuilder.expireAfterWrite(l2TtlMinutes, TimeUnit.MINUTES);
+            logger.info("L2 cache: Write-based TTL (" + l2TtlMinutes + " minutes)");
+        }
+
+        this.l2Cache = caffeineBuilder.build();
+
+        logger.info("L2 cache initialized: max_size=" + l2MaxSize + ", ttl=" + l2TtlMinutes + "min");
+
+        // 統計ログ出力タスクを開始（間隔が0でない場合）
+        if (statsLoggingInterval > 0) {
+            startStatsLogging(statsLoggingInterval);
+        }
+    }
+
+    /**
+     * 統計ログ出力タスクを開始
+     *
+     * @param intervalSeconds 間隔（秒）
+     */
+    private void startStatsLogging(int intervalSeconds) {
+        // 実際のスケジューリングはRPGPluginから行うため、ここでは設定のみ
+        logger.info("Stats logging interval: " + intervalSeconds + " seconds");
+    }
+
+    /**
+     * 統計ログ出力タスクを設定
+     *
+     * @param taskId タスクID
+     */
+    public void setStatsLoggingTaskId(int taskId) {
+        this.statsLoggingTaskId = taskId;
+    }
+
+    /**
+     * 統計ログ出力タスクをキャンセル
+     */
+    public void cancelStatsLogging() {
+        if (statsLoggingTaskId != -1) {
+            // Bukkit.getScheduler().cancelTask(statsLoggingTaskId);
+            statsLoggingTaskId = -1;
+        }
     }
 
     /**
@@ -170,18 +249,28 @@ public class CacheRepository {
     }
 
     /**
-     * キャッシュ統計を取得
+     * キャッシュ統計を取得（キャッシュ付き）
+     *
+     * 統計情報は1分間キャッシュされ、頻繁な呼び出しによるオーバーヘッドを削減します。
      *
      * @return 統計情報
      */
     public CacheStatistics getStatistics() {
+        long now = System.currentTimeMillis();
+
+        // キャッシュが有効な場合はキャッシュを返す
+        if (cachedStats != null && (now - lastStatsUpdate) < STATS_CACHE_MILLIS) {
+            return cachedStats;
+        }
+
+        // 統計を再計算
         CacheStats l2Stats = l2Cache.stats();
 
         double hitRate = totalRequests > 0
                 ? ((double) (l1Hits + l2Hits) / totalRequests) * 100
                 : 0.0;
 
-        return new CacheStatistics(
+        cachedStats = new CacheStatistics(
                 l1Hits,
                 l2Hits,
                 l3Hits,
@@ -192,6 +281,19 @@ public class CacheRepository {
                 l2Stats.hitRate(),
                 l2Stats.missRate()
         );
+
+        lastStatsUpdate = now;
+        return cachedStats;
+    }
+
+    /**
+     * キャッシュ統計を強制的に再計算
+     *
+     * @return 統計情報
+     */
+    public CacheStatistics getStatisticsForceRefresh() {
+        cachedStats = null;
+        return getStatistics();
     }
 
     /**

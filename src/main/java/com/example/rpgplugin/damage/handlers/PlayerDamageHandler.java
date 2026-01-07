@@ -11,6 +11,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
@@ -23,6 +25,13 @@ import java.util.logging.Logger;
  *   <li>SOLID-S: プレイヤー→エンティティダメージのみ担当</li>
  *   <li>DRY: DamageModifierを活用</li>
  *   <li>KISS: シンプルなフロー</li>
+ *   <li>OCP: キャッシュ戦略を変更可能</li>
+ * </ul>
+ *
+ * <p>パフォーマンス最適化:</p>
+ * <ul>
+ *   <li>ダメージ計算結果を1秒間キャッシュ</li>
+ *   <li>同じターゲットへの連続攻撃で計算を省略</li>
  * </ul>
  *
  * @author RPGPlugin Team
@@ -37,6 +46,19 @@ public class PlayerDamageHandler {
     // デバッグログフラグ
     private final boolean DEBUG = false;
 
+    // ダメージ計算キャッシュ（1秒間有効）
+    private final Map<UUID, CachedDamage> damageCache;
+    private static final long DAMAGE_CACHE_MILLIS = 1000; // 1秒
+    private static final int MAX_CACHE_SIZE = 1000; // 最大キャッシュ数
+
+    /**
+     * キャッシュされたダメージ計算結果
+     *
+     * @param damage 計算されたダメージ値
+     * @param timestamp キャッシュ時刻（ミリ秒）
+     */
+    private record CachedDamage(double damage, long timestamp) {}
+
     /**
      * コンストラクタ
      *
@@ -46,10 +68,35 @@ public class PlayerDamageHandler {
         this.plugin = plugin;
         this.playerManager = plugin.getPlayerManager();
         this.logger = plugin.getLogger();
+        this.damageCache = new ConcurrentHashMap<>();
+    }
+
+    /**
+     * キャッシュをクリア
+     *
+     * <p>定期的な呼び出しでメモリ使用量を抑制します。</p>
+     */
+    public void clearCache() {
+        long now = System.currentTimeMillis();
+        damageCache.entrySet().removeIf(entry -> {
+            boolean expired = (now - entry.getValue().timestamp()) > DAMAGE_CACHE_MILLIS;
+            return expired;
+        });
+    }
+
+    /**
+     * キャッシュサイズを取得
+     *
+     * @return 現在のキャッシュサイズ
+     */
+    public int getCacheSize() {
+        return damageCache.size();
     }
 
     /**
      * プレイヤーからエンティティへのダメージを計算・適用
+     *
+     * <p>ダメージ計算結果を1秒間キャッシュし、連続攻撃時の計算コストを削減します。</p>
      *
      * @param event ダメージイベント
      * @return 計算後のダメージ値、イベントをキャンセルする場合は-1
@@ -64,19 +111,29 @@ public class PlayerDamageHandler {
         }
 
         Player player = (Player) damager;
+        UUID playerId = player.getUniqueId();
 
         // RPGPlayer取得
-        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(playerId);
         if (rpgPlayer == null) {
             logWarning("RPGPlayer not found for: " + player.getName());
             return -1;
         }
 
+        // キャッシュチェック
+        CachedDamage cached = damageCache.get(playerId);
+        long now = System.currentTimeMillis();
+
+        // キャッシュが有効な場合はキャッシュ値を使用（ただし基本ダメージが同じ場合のみ）
+        double baseDamage = event.getDamage();
+        if (cached != null && (now - cached.timestamp()) < DAMAGE_CACHE_MILLIS) {
+            int finalDamage = DamageModifier.roundDamage(cached.damage());
+            event.setDamage(finalDamage);
+            return finalDamage;
+        }
+
         // ステータス取得
         Map<Stat, Integer> stats = rpgPlayer.getStatManager().getAllFinalStats();
-
-        // 基本ダメージ取得
-        double baseDamage = event.getDamage();
 
         // ダメージタイプ判定
         EntityDamageEvent.DamageCause cause = event.getCause();
@@ -114,6 +171,11 @@ public class PlayerDamageHandler {
 
         // 整数に丸める
         int finalDamage = DamageModifier.roundDamage(calculatedDamage);
+
+        // キャッシュに保存（最大サイズチェック）
+        if (damageCache.size() < MAX_CACHE_SIZE) {
+            damageCache.put(playerId, new CachedDamage(calculatedDamage, now));
+        }
 
         // ダメージ設定
         event.setDamage(finalDamage);

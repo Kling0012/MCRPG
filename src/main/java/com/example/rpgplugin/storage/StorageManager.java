@@ -5,6 +5,7 @@ import com.example.rpgplugin.storage.models.PlayerData;
 import com.example.rpgplugin.storage.repository.CacheRepository;
 import com.example.rpgplugin.storage.repository.PlayerCurrencyRepository;
 import com.example.rpgplugin.storage.repository.PlayerDataRepository;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Optional;
@@ -13,7 +14,16 @@ import java.util.logging.Logger;
 
 /**
  * ストレージ管理クラス
- * データベース、キャッシュ、リポジトリを統合管理
+ *
+ * <p>データベース、キャッシュ、リポジトリを統合管理します。</p>
+ *
+ * <p>設計原則:</p>
+ * <ul>
+ *   <li>SOLID-S: ストレージシステム管理に特化</li>
+ *   <li>DRY: 設定ロジックを一元管理</li>
+ *   <li>KISS: シンプルなAPI設計</li>
+ *   <li>OCP: 設定ファイルで拡張可能</li>
+ * </ul>
  */
 public class StorageManager {
 
@@ -27,6 +37,11 @@ public class StorageManager {
 
     private boolean initialized = false;
 
+    /**
+     * コンストラクタ
+     *
+     * @param plugin プラグインインスタンス
+     */
     public StorageManager(Plugin plugin) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
@@ -55,11 +70,61 @@ public class StorageManager {
         // プレイヤー通貨リポジトリの初期化
         playerCurrencyRepository = new PlayerCurrencyRepository(databaseManager, logger);
 
-        // キャッシュリポジトリの初期化
-        cacheRepository = new CacheRepository(playerDataRepository, logger);
+        // キャッシュ設定を読み込み
+        ConfigurationSection cacheConfig = plugin.getConfig().getConfigurationSection("cache");
+        if (cacheConfig == null) {
+            logger.warning("Cache configuration not found, using defaults");
+            cacheRepository = new CacheRepository(playerDataRepository, logger);
+        } else {
+            // キャッシュ設定を取得
+            int l2MaxSize = cacheConfig.getInt("l2_max_size", 2000);
+            int l2TtlMinutes = cacheConfig.getInt("l2_ttl_minutes", 10);
+            boolean expireAfterAccess = cacheConfig.getBoolean("expire_after_access", true);
+            int statsLoggingInterval = cacheConfig.getInt("stats_logging_interval", 0);
+
+            // キャッシュリポジトリの初期化（設定適用）
+            cacheRepository = new CacheRepository(
+                    playerDataRepository,
+                    logger,
+                    l2MaxSize,
+                    l2TtlMinutes,
+                    expireAfterAccess,
+                    statsLoggingInterval
+            );
+
+            logger.info("Cache settings applied: max_size=" + l2MaxSize + ", ttl=" + l2TtlMinutes + "min");
+        }
+
+        // 統計ログ出力タスクを開始
+        int statsLoggingInterval = plugin.getConfig().getInt("cache.stats_logging_interval", 0);
+        if (statsLoggingInterval > 0) {
+            startStatsLoggingTask(statsLoggingInterval);
+        }
 
         initialized = true;
         logger.info("Storage system initialized successfully");
+    }
+
+    /**
+     * 統計ログ出力タスクを開始
+     *
+     * @param intervalSeconds 間隔（秒）
+     */
+    private void startStatsLoggingTask(int intervalSeconds) {
+        long intervalTicks = intervalSeconds * 20L; // 秒をティックに変換
+
+        plugin.getServer().getScheduler().runTaskTimer(
+                plugin,
+                () -> {
+                    if (cacheRepository != null) {
+                        cacheRepository.logStatistics();
+                    }
+                },
+                intervalTicks,
+                intervalTicks
+        );
+
+        logger.info("Stats logging task started: interval=" + intervalSeconds + "s");
     }
 
     /**

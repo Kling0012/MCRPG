@@ -27,6 +27,12 @@ import java.util.logging.Logger;
  *
  * <p>優先度: HIGH（他プラグインより先にダメージ計算を完了させる）</p>
  *
+ * <p>パフォーマンス最適化:</p>
+ * <ul>
+ *   <li>ダメージ計算キャッシュの自動クリアタスク</li>
+ *   <li>5秒ごとに期限切れキャッシュを削除</li>
+ * </ul>
+ *
  * @author RPGPlugin Team
  * @version 1.0.0
  */
@@ -40,6 +46,9 @@ public class DamageManager implements Listener {
     // 有効フラグ
     private boolean enabled;
 
+    // キャッシュクリアタスクID
+    private int cacheClearTaskId = -1;
+
     /**
      * コンストラクタ
      *
@@ -51,6 +60,52 @@ public class DamageManager implements Listener {
         this.playerDamageHandler = new PlayerDamageHandler(plugin);
         this.entityDamageHandler = new EntityDamageHandler(plugin);
         this.enabled = true;
+    }
+
+    /**
+     * ダメージマネージャーを初期化
+     *
+     * <p>キャッシュクリアタスクを開始します。</p>
+     */
+    public void initialize() {
+        startCacheClearTask();
+        logger.info("DamageManager initialized with cache optimization");
+    }
+
+    /**
+     * キャッシュクリアタスクを開始
+     *
+     * <p>5秒ごとに期限切れのダメージ計算キャッシュをクリアします。</p>
+     */
+    private void startCacheClearTask() {
+        long intervalTicks = 5 * 20L; // 5秒
+
+        cacheClearTaskId = plugin.getServer().getScheduler().runTaskTimer(
+                plugin,
+                () -> {
+                    playerDamageHandler.clearCache();
+                    if (logger.isLoggable(java.util.logging.Level.FINE)) {
+                        logger.fine("Damage cache cleared. Size: " + playerDamageHandler.getCacheSize());
+                    }
+                },
+                intervalTicks,
+                intervalTicks
+        ).getTaskId();
+
+        logger.info("Cache clear task started: interval=5s");
+    }
+
+    /**
+     * ダメージマネージャーをシャットダウン
+     *
+     * <p>キャッシュクリアタスクを停止します。</p>
+     */
+    public void shutdown() {
+        if (cacheClearTaskId != -1) {
+            plugin.getServer().getScheduler().cancelTask(cacheClearTaskId);
+            cacheClearTaskId = -1;
+            logger.info("Cache clear task stopped");
+        }
     }
 
     /**

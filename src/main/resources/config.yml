@@ -22,13 +22,28 @@ database:
 # ================================
 cache:
   # L2キャッシュの最大サイズ
-  l2_max_size: 1000
+  # 推奨値: 50人サーバー: 500-1000, 150人サーバー: 1500-2250
+  l2_max_size: 2000
 
   # L2キャッシュのTTL（分）
-  l2_ttl_minutes: 5
+  # アクセス時間ベースの場合は expire_after_access を使用
+  l2_ttl_minutes: 10
 
-  # キャッシュヒットログ出力
+  # アクセス時間ベースのTTLを使用するか（推奨: true）
+  # true: 最後のアクセスからTTL経過で期限切れ
+  # false: 書き込みからTTL経過で期限切れ
+  expire_after_access: true
+
+  # キャッシュ統計のログ出力間隔（秒）
+  # 0で無効、300(5分)推奨
+  stats_logging_interval: 300
+
+  # キャッシュヒットログ出力（デバッグ用）
   hit_logging: false
+
+  # プレイヤーデータのバッチ保存サイズ
+  # 非同期保存時のバッチサイズ
+  batch_save_size: 50
 
 # ================================
 # MythicMobs連携

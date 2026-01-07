@@ -55,6 +55,9 @@ public class RPGClass {
     /** パッシブボーナス */
     private final List<PassiveBonus> passiveBonuses;
 
+    /** MP回復量/秒 */
+    private final double manaRegen;
+
     /** 経験値減衰設定 */
     private final ExpDiminish expDiminish;
 
@@ -76,6 +79,7 @@ public class RPGClass {
         this.availableSkills = new ArrayList<>(builder.availableSkills);
         this.passiveBonuses = new ArrayList<>(builder.passiveBonuses);
         this.expDiminish = builder.expDiminish;
+        this.manaRegen = builder.manaRegen;
     }
 
     // ========== Getters ==========
@@ -134,6 +138,15 @@ public class RPGClass {
 
     public ExpDiminish getExpDiminish() {
         return expDiminish;
+    }
+
+    /**
+     * MP回復量/秒を取得します
+     *
+     * @return MP回復量/秒
+     */
+    public double getManaRegen() {
+        return manaRegen;
     }
 
     // ========== Public Methods ==========
@@ -259,6 +272,7 @@ public class RPGClass {
         private List<String> availableSkills = new ArrayList<>();
         private List<PassiveBonus> passiveBonuses = new ArrayList<>();
         private ExpDiminish expDiminish = new ExpDiminish(30, 0.5);
+        private double manaRegen = 1.0; // デフォルトMP回復量/秒
 
         public Builder(String id) {
             this.id = id;
@@ -328,6 +342,17 @@ public class RPGClass {
 
         public Builder setExpDiminish(ExpDiminish expDiminish) {
             this.expDiminish = expDiminish;
+            return this;
+        }
+
+        /**
+         * MP回復量/秒を設定します
+         *
+         * @param manaRegen MP回復量/秒
+         * @return this
+         */
+        public Builder setManaRegen(double manaRegen) {
+            this.manaRegen = Math.max(0, manaRegen);
             return this;
         }
 

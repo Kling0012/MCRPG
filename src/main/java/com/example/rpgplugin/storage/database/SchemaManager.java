@@ -12,7 +12,7 @@ import java.util.logging.Logger;
  */
 public class SchemaManager {
 
-    private static final int CURRENT_SCHEMA_VERSION = 4;
+    private static final int CURRENT_SCHEMA_VERSION = 5;
 
     private final DatabaseManager dbManager;
     private final Logger logger;
@@ -126,6 +126,9 @@ public class SchemaManager {
                 break;
             case 4:
                 applyMigrationV4(stmt);
+                break;
+            case 5:
+                applyMigrationV5(stmt);
                 break;
             default:
                 throw new SQLException("Unknown migration version: " + version);
@@ -316,6 +319,21 @@ public class SchemaManager {
         stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_claimed ON mythic_drops(is_claimed)");
 
         logger.info("Version 4 migration completed successfully");
+    }
+
+    /**
+     * バージョン5のマイグレーション: MP/HP関連フィールドを追加
+     */
+    private void applyMigrationV5(Statement stmt) throws SQLException {
+        logger.info("Applying version 5 migration: adding MP/HP fields to player_data");
+
+        // player_data テーブルにカラム追加
+        stmt.execute("ALTER TABLE player_data ADD COLUMN max_health INTEGER DEFAULT 20");
+        stmt.execute("ALTER TABLE player_data ADD COLUMN max_mana INTEGER DEFAULT 100");
+        stmt.execute("ALTER TABLE player_data ADD COLUMN current_mana INTEGER DEFAULT 100");
+        stmt.execute("ALTER TABLE player_data ADD COLUMN cost_type TEXT DEFAULT 'mana'");
+
+        logger.info("Version 5 migration completed successfully");
     }
 
     /**

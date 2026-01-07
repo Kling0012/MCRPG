@@ -281,6 +281,228 @@ public class RPGPlayer {
         return statManager.resetAllocation();
     }
 
+
+    // ==================== MP/HP関連委譲 ====================
+
+    /**
+     * 最大HP修飾子を取得します
+     *
+     * @return 最大HP修飾子
+     */
+    public int getMaxHealthModifier() {
+        return playerData.getMaxHealth();
+    }
+
+    /**
+     * 最大HP修飾子を設定します
+     *
+     * @param modifier 最大HP修飾子
+     */
+    public void setMaxHealthModifier(int modifier) {
+        playerData.setMaxHealth(modifier);
+        // オンラインの場合はBukkitのHPも更新
+        if (isOnline()) {
+            Player player = getBukkitPlayer();
+            if (player != null) {
+                // 最大HPの再計算と適用
+                double baseMaxHealth = 20.0; // バニラの最大HP
+                double newMaxHealth = baseMaxHealth + modifier;
+                player.setMaxHealth(newMaxHealth);
+            }
+        }
+    }
+
+    /**
+     * 最大MPを取得します
+     *
+     * @return 最大MP
+     */
+    public int getMaxMana() {
+        return playerData.getMaxMana();
+    }
+
+    /**
+     * 最大MPを設定します
+     *
+     * @param maxMana 最大MP
+     */
+    public void setMaxMana(int maxMana) {
+        playerData.setMaxMana(maxMana);
+    }
+
+    /**
+     * 現在MPを取得します
+     *
+     * @return 現在MP
+     */
+    public int getCurrentMana() {
+        return playerData.getCurrentMana();
+    }
+
+    /**
+     * 現在MPを設定します
+     *
+     * @param currentMana 現在MP
+     */
+    public void setCurrentMana(int currentMana) {
+        playerData.setCurrentMana(currentMana);
+    }
+
+    /**
+     * MPを追加します
+     *
+     * @param amount 追加するMP量
+     * @return 実際に追加されたMP量
+     */
+    public int addMana(int amount) {
+        return playerData.addMana(amount);
+    }
+
+    /**
+     * MPを消費します
+     *
+     * @param amount 消費するMP量
+     * @return 消費に成功した場合はtrue、MP不足の場合はfalse
+     */
+    public boolean consumeMana(int amount) {
+        return playerData.consumeMana(amount);
+    }
+
+    /**
+     * MPが足りているか確認します
+     *
+     * @param amount 必要なMP量
+     * @return MPが足りている場合はtrue
+     */
+    public boolean hasMana(int amount) {
+        return getCurrentMana() >= amount;
+    }
+
+    /**
+     * MPが満タンか確認します
+     *
+     * @return 満タンの場合はtrue
+     */
+    public boolean isFullMana() {
+        return getCurrentMana() >= getMaxMana();
+    }
+
+    /**
+     * MPが空か確認します
+     *
+     * @return 空の場合はtrue
+     */
+    public boolean isEmptyMana() {
+        return getCurrentMana() <= 0;
+    }
+
+    /**
+     * MPの割合を取得します
+     *
+     * @return MPの割合（0.0～1.0）
+     */
+    public double getManaRatio() {
+        int max = getMaxMana();
+        if (max == 0) {
+            return 0.0;
+        }
+        return (double) getCurrentMana() / max;
+    }
+
+    /**
+     * MPを回復します
+     *
+     * <p>精神値（SPI）に基づいて回復量を計算します。</p>
+     *
+     * @param baseRegene 基礎回復量
+     * @return 実際に回復したMP量
+     */
+    public int regenerateMana(double baseRegene) {
+        // SPIに基づく回復量ボーナス
+        int spiritValue = getFinalStat(Stat.SPIRIT);
+        double regenAmount = baseRegene + (spiritValue * 0.1);
+        return addMana((int) Math.floor(regenAmount));
+    }
+
+    /**
+     * コストタイプを取得します
+     *
+     * @return コストタイプ（"mana" or "hp"）
+     */
+    public String getCostType() {
+        return playerData.getCostType();
+    }
+
+    /**
+     * コストタイプを設定します
+     *
+     * @param costType コストタイプ（"mana" or "hp"）
+     */
+    public void setCostType(String costType) {
+        playerData.setCostType(costType);
+    }
+
+    /**
+     * コストタイプがMPか確認します
+     *
+     * @return MP消費モードの場合はtrue
+     */
+    public boolean isManaCostType() {
+        return playerData.isManaCostType();
+    }
+
+    /**
+     * コストタイプを切り替えます
+     *
+     * @return 新しいコストタイプ
+     */
+    public String toggleCostType() {
+        playerData.toggleCostType();
+        return getCostType();
+    }
+
+    /**
+     * スキル発動時のコストを消費します
+     *
+     * <p>現在のコストタイプに応じてMPまたはHPを消費します。</p>
+     *
+     * @param amount コスト量
+     * @return 消費に成功した場合はtrue、リソース不足の場合はfalse
+     */
+    public boolean consumeSkillCost(int amount) {
+        if (isManaCostType()) {
+            return consumeMana(amount);
+        } else {
+            // HP消費モード
+            if (isOnline()) {
+                Player player = getBukkitPlayer();
+                if (player != null) {
+                    double currentHp = player.getHealth();
+                    if (currentHp <= amount) {
+                        return false;
+                    }
+                    player.setHealth(currentHp - amount);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * MP情報をフォーマットして返します
+     *
+     * @return フォーマットされたMP情報
+     */
+    public String formatManaInfo() {
+        String costTypeDisplay = isManaCostType() ? "§bMP" : "§cHP";
+        return String.format("§bMP: %d§7/§b%d §7(%s§7)",
+            getCurrentMana(),
+            getMaxMana(),
+            costTypeDisplay
+        );
+    }
+
     // ==================== ユーティリティ ====================
 
     /**

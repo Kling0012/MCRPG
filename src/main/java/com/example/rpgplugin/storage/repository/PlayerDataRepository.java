@@ -27,8 +27,9 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
     @Override
     public void save(PlayerData player) throws SQLException {
         String sql = """
-            INSERT OR REPLACE INTO player_data (uuid, username, class_id, class_rank, class_history, first_join, last_login)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO player_data 
+            (uuid, username, class_id, class_rank, class_history, first_join, last_login, max_health, max_mana, current_mana, cost_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = dbManager.getConnection();
@@ -41,6 +42,10 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
             stmt.setString(5, player.getClassHistory());
             stmt.setLong(6, player.getFirstJoin());
             stmt.setLong(7, player.getLastLogin());
+            stmt.setInt(8, player.getMaxHealth());
+            stmt.setInt(9, player.getMaxMana());
+            stmt.setInt(10, player.getCurrentMana());
+            stmt.setString(11, player.getCostType());
 
             stmt.executeUpdate();
             logger.fine("Player data saved: " + player.getUuid());
@@ -259,6 +264,32 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
         long firstJoin = rs.getLong("first_join");
         long lastLogin = rs.getLong("last_login");
 
-        return new PlayerData(uuid, username, classId, classRank, classHistory, firstJoin, lastLogin);
+        // MP/HP関連フィールドの取得（カラムが存在しない場合はデフォルト値を使用）
+        int maxHealth = 0;
+        int maxMana = 0;
+        int currentMana = 0;
+        String costType = "mana";
+
+        try {
+            maxHealth = rs.getInt("max_health");
+            maxMana = rs.getInt("max_mana");
+            currentMana = rs.getInt("current_mana");
+            costType = rs.getString("cost_type");
+        } catch (SQLException e) {
+            // カラムが存在しない場合（旧データベース）はデフォルト値を使用
+            logger.fine("MP/HP columns not found, using default values");
+            maxHealth = 20;
+            maxMana = 100;
+            currentMana = 100;
+            costType = "mana";
+        }
+
+        // nullチェック
+        if (costType == null) {
+            costType = "mana";
+        }
+
+        return new PlayerData(uuid, username, classId, classRank, classHistory,
+                             firstJoin, lastLogin, maxHealth, maxMana, currentMana, costType);
     }
 }

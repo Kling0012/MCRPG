@@ -144,8 +144,8 @@ class DamageModifierTest {
         // When: 整数に丸め
         int result = DamageModifier.roundDamage(damage);
 
-        // Then: 四捨五入されて11になる
-        assertThat(result).isEqualTo(11);
+        // Then: 小数点以下切り捨てで10になる
+        assertThat(result).isEqualTo(10);
     }
 
     @Test

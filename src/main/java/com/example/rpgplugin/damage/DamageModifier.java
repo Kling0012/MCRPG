@@ -57,7 +57,7 @@ public class DamageModifier {
     /**
      * 魔法ダメージを計算
      *
-     * <p>計算式: 基本ダメージ × (1 + INT/100) × クラス倍率</p>
+     * <p>計算式: 基本ダメージ + INT * 0.15 * クラス倍率</p>
      *
      * @param baseDamage      基本ダメージ
      * @param intelligence    INT値
@@ -69,11 +69,11 @@ public class DamageModifier {
             int intelligence,
             double classMultiplier) {
 
-        // INTによるダメージボーナス
-        double intMultiplier = 1.0 + (intelligence / 100.0);
+        // INTによるダメージボーナス（加算式）
+        double intBonus = intelligence * 0.15 * classMultiplier;
 
         // 基本計算
-        return baseDamage * intMultiplier * classMultiplier;
+        return baseDamage + intBonus;
     }
 
     /**
@@ -134,14 +134,14 @@ public class DamageModifier {
     /**
      * クリティカル倍率を計算
      *
-     * <p>計算式: 1.5 + DEX/200</p>
+     * <p>計算式: 1.5 + DEX * 0.002</p>
      *
      * @param dexterity DEX値
      * @return クリティカル倍率
      */
     public static double calculateCriticalMultiplier(int dexterity) {
         double baseMultiplier = 1.5;
-        double dexBonus = dexterity / 200.0;
+        double dexBonus = dexterity * 0.002;
 
         return baseMultiplier + dexBonus;
     }
@@ -173,11 +173,19 @@ public class DamageModifier {
      * ダメージを整数に丸める
      *
      * @param damage ダメージ値
-     * @return 整数に丸められたダメージ（最低1）
+     * @return 整数に丸められたダメージ（負の値は0、最低1）
      */
     public static int roundDamage(double damage) {
-        int rounded = (int) Math.round(damage);
-        return Math.max(1, rounded); // 最低ダメージは1
+        // 負の値は0に
+        if (damage < 0) {
+            return 0;
+        }
+
+        // 小数点以下を切り捨て（Math.floorではなくintキャスト）
+        int rounded = (int) damage;
+
+        // 最低ダメージは1
+        return Math.max(1, rounded);
     }
 
     /**

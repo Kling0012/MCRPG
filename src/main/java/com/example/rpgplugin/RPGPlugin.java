@@ -9,6 +9,7 @@ import com.example.rpgplugin.mythicmobs.MythicMobsManager;
 import com.example.rpgplugin.mythicmobs.config.MobDropConfig;
 import com.example.rpgplugin.mythicmobs.listener.MythicDeathListener;
 import com.example.rpgplugin.player.PlayerManager;
+import com.example.rpgplugin.player.ExpDiminisher;
 import com.example.rpgplugin.player.VanillaExpHandler;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.config.SkillConfig;
@@ -56,6 +57,7 @@ public class RPGPlugin extends JavaPlugin {
     private com.example.rpgplugin.api.RPGPluginAPI api;
 
     // リスナー
+    private ExpDiminisher expDiminisher;
     private VanillaExpHandler vanillaExpHandler;
     private SkillMenuListener skillMenuListener;
     private com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener classMenuListener;
@@ -355,9 +357,15 @@ public class RPGPlugin extends JavaPlugin {
      */
     private void setupVanillaExpHandler() {
         getLogger().info("Initializing VanillaExpHandler...");
-        vanillaExpHandler = new VanillaExpHandler(this, playerManager);
+
+        // 経験値減衰マネージャーの初期化
+        expDiminisher = new ExpDiminisher(this, playerManager, classManager);
+
+        // バニラ経験値ハンドラーの初期化
+        vanillaExpHandler = new VanillaExpHandler(this, playerManager, expDiminisher);
         getServer().getPluginManager().registerEvents(vanillaExpHandler, this);
-        getLogger().info("VanillaExpHandler initialized!");
+
+        getLogger().info("VanillaExpHandler initialized with ExpDiminisher!");
     }
 
     /**
@@ -796,6 +804,15 @@ public class RPGPlugin extends JavaPlugin {
      */
     public com.example.rpgplugin.api.RPGPluginAPI getAPI() {
         return api;
+    }
+
+    /**
+     * 経験値減衰マネージャーを取得します
+     *
+     * @return ExpDiminisherインスタンス
+     */
+    public ExpDiminisher getExpDiminisher() {
+        return expDiminisher;
     }
 
     /**

@@ -12,7 +12,7 @@ import org.bukkit.event.player.PlayerLevelChangeEvent;
  * バニラ経験値ハンドラー
  *
  * <p>バニラのレベルアップシステムと統合し、レベルアップ時に自動ステータス配分と
- * 手動配分ポイントの付与を行います。</p>
+ * 手動配分ポイントの付与を行います。また、経験値減衰システムも担当します。</p>
  *
  * <p>設計パターン:</p>
  * <ul>
@@ -41,6 +41,7 @@ public class VanillaExpHandler implements Listener {
 
     private final RPGPlugin plugin;
     private final PlayerManager playerManager;
+    private final ExpDiminisher expDiminisher;
 
     /**
      * 自動配分ポイント（デフォルト: 各ステータス+2）
@@ -55,12 +56,14 @@ public class VanillaExpHandler implements Listener {
     /**
      * コンストラクタ
      *
-     * @param plugin プラグインインスタンス
+     * @param plugin        プラグインインスタンス
      * @param playerManager プレイヤーマネージャー
+     * @param expDiminisher 経験値減衰マネージャー
      */
-    public VanillaExpHandler(RPGPlugin plugin, PlayerManager playerManager) {
+    public VanillaExpHandler(RPGPlugin plugin, PlayerManager playerManager, ExpDiminisher expDiminisher) {
         this.plugin = plugin;
         this.playerManager = playerManager;
+        this.expDiminisher = expDiminisher;
     }
 
     /**
@@ -99,15 +102,22 @@ public class VanillaExpHandler implements Listener {
     /**
      * 経験値変更イベント
      *
-     * <p>経験値の変化を監視し、必要に応じて処理を行います。
-     * 現在はログ出力のみ。</p>
+     * <p>経験値の変化を監視し、減衰システムを適用します。</p>
+     *
+     * <p>処理フロー:</p>
+     * <ol>
+     *   <li>ExpDiminisherによる減衰計算と適用</li>
+     *   <li>デバッグログ出力（設定時）</li>
+     * </ol>
      *
      * @param event 経験値変更イベント
      */
     @EventHandler
     public void onPlayerExpChange(PlayerExpChangeEvent event) {
-        // 将来的に経験値減衰などを実装する場合はここで処理
-        // 現在はログ出力のみ（デバッグ用）
+        // 経験値減衰を適用
+        expDiminisher.applyDiminishment(event);
+
+        // デバッグログ出力
         if (plugin.getConfigManager().getBoolean("main", "debug.log_exp_changes", false)) {
             Player player = event.getPlayer();
             int amount = event.getAmount();

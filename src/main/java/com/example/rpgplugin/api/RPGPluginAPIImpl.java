@@ -273,8 +273,11 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
             return false;
         }
 
+        // スキルレベルを取得
+        int level = skillManager.getSkillLevel(player, skillId);
+
         // スキル実行
-        return activeSkillExecutor.executeSkill(player, skill);
+        return activeSkillExecutor.execute(player, skill, level);
     }
 
     @Override
@@ -371,8 +374,8 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
 
         // 基本ダメージをステータスに基づいて計算
         double baseDamage = 1.0;
-        double physicalDamage = DamageModifier.calculatePhysicalDamage(baseDamage, strength, intelligence, false, 1.0);
-        double magicDamage = DamageModifier.calculateMagicDamage(baseDamage, intelligence, false, 1.0);
+        double physicalDamage = DamageModifier.calculatePhysicalDamage(baseDamage, strength, 1.0, false, 1.5);
+        double magicDamage = DamageModifier.calculateMagicDamage(baseDamage, intelligence, 1.0);
 
         // 物理と魔法の高い方を使用
         return Math.max(physicalDamage, magicDamage);
@@ -395,9 +398,9 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
         // ステータスに基づいてダメージを補正
         switch (stat) {
             case STRENGTH:
-                return DamageModifier.calculatePhysicalDamage(baseDamage, statValue, 0, false, 1.0);
+                return DamageModifier.calculatePhysicalDamage(baseDamage, statValue, 1.0, false, 1.5);
             case INTELLIGENCE:
-                return DamageModifier.calculateMagicDamage(baseDamage, statValue, false, 1.0);
+                return DamageModifier.calculateMagicDamage(baseDamage, statValue, 1.0);
             default:
                 return baseDamage;
         }

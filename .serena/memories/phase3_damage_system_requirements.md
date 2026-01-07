@@ -77,5 +77,15 @@ damage/
     └── EntityDamageHandler.java
 ```
 
+### 実装状況
+- ✅ DamageManager.java - 実装済み
+- ✅ DamageModifier.java - 実装済み・テスト完了
+- ✅ PlayerDamageHandler.java - 実装済み
+- ✅ EntityDamageHandler.java - 実装済み
+- ❌ DamageCalculator.java - **削除済み**（2026-01-07）
+  - 理由: DamageModifier と機能重複、未使用
+  - 統合先: DamageModifier
+
 ## 優先度: 高
 ## 見積時間: 1週間
+## 完了日: 2026-01-07

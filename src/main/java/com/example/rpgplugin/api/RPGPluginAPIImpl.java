@@ -7,12 +7,14 @@ import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.skill.Skill;
+import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
 import com.example.rpgplugin.stats.Stat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -404,5 +406,152 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
             default:
                 return baseDamage;
         }
+    }
+
+    // ==================== ターゲット管理 ====================
+
+    @Override
+    public Optional<Entity> getLastTargetedEntity(Player player) {
+        if (player == null) {
+            return Optional.empty();
+        }
+
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer == null) {
+            return Optional.empty();
+        }
+
+        return rpgPlayer.getLastTargetedEntity();
+    }
+
+    @Override
+    public void setTargetedEntity(Player player, Entity entity) {
+        if (player == null) {
+            return;
+        }
+
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer == null) {
+            return;
+        }
+
+        rpgPlayer.setTargetedEntity(entity);
+    }
+
+    // ==================== スキルトリガー ====================
+
+    @Override
+    public boolean castSkillAt(Player player, String skillId, Entity target) {
+        if (player == null || skillId == null || skillId.isEmpty() || target == null) {
+            return false;
+        }
+
+        // スキル習得チェック
+        if (!hasSkill(player, skillId)) {
+            player.sendMessage("§cスキルを習得していません: " + skillId);
+            return false;
+        }
+
+        // スキル取得
+        Skill skill = skillManager.getSkill(skillId);
+        if (skill == null) {
+            player.sendMessage("§cスキルが見つかりません: " + skillId);
+            return false;
+        }
+
+        // アクティブスキルのみ実行可能
+        if (skill.getType() != com.example.rpgplugin.skill.SkillType.ACTIVE) {
+            player.sendMessage("§cこのスキルはアクティブスキルではありません: " + skillId);
+            return false;
+        }
+
+        // ターゲットを設定
+        setTargetedEntity(player, target);
+
+        // クールダウンチェック
+        if (!skillManager.checkCooldown(player, skillId)) {
+            return false;
+        }
+
+        // スキルレベルを取得
+        int level = skillManager.getSkillLevel(player, skillId);
+
+        // スキル実行（ターゲット指定）
+        return activeSkillExecutor.executeAt(player, skill, level, target);
+    }
+
+    @Override
+    public boolean castSkillWithCostType(Player player, String skillId, SkillCostType costType) {
+        if (player == null || skillId == null || skillId.isEmpty() || costType == null) {
+            return false;
+        }
+
+        // スキル習得チェック
+        if (!hasSkill(player, skillId)) {
+            player.sendMessage("§cスキルを習得していません: " + skillId);
+            return false;
+        }
+
+        // スキル取得
+        Skill skill = skillManager.getSkill(skillId);
+        if (skill == null) {
+            player.sendMessage("§cスキルが見つかりません: " + skillId);
+            return false;
+        }
+
+        // アクティブスキルのみ実行可能
+        if (skill.getType() != com.example.rpgplugin.skill.SkillType.ACTIVE) {
+            player.sendMessage("§cこのスキルはアクティブスキルではありません: " + skillId);
+            return false;
+        }
+
+        // クールダウンチェック
+        if (!skillManager.checkCooldown(player, skillId)) {
+            return false;
+        }
+
+        // スキルレベルを取得
+        int level = skillManager.getSkillLevel(player, skillId);
+
+        // スキル実行（コストタイプ指定）
+        return activeSkillExecutor.executeWithCostType(player, skill, level, costType);
+    }
+
+    @Override
+    public Collection<Entity> getEntitiesInArea(Player player, String shape, double... params) {
+        if (player == null || shape == null || params == null || params.length == 0) {
+            return new java.util.ArrayList<>();
+        }
+
+        double radius = params[0];
+        switch (shape.toLowerCase()) {
+            case "circle":
+            case "sphere":
+                // 球形範囲
+                return player.getWorld().getNearbyEntities(
+                        player.getLocation(), radius, radius, radius);
+
+            case "cube":
+                if (params.length >= 3) {
+                    // 直方体範囲
+                    double dx = params[0];
+                    double dy = params[1];
+                    double dz = params[2];
+                    return player.getWorld().getNearbyEntities(
+                            player.getLocation(), dx, dy, dz);
+                }
+                break;
+
+            case "horizontal":
+                // 水平方向のみの円形範囲
+                return player.getWorld().getNearbyEntities(
+                        player.getLocation(), radius, 0, radius);
+
+            default:
+                plugin.getLogger().warning("Unknown shape type: " + shape);
+                return new java.util.ArrayList<>();
+        }
+
+        return new java.util.ArrayList<>();
     }
 }

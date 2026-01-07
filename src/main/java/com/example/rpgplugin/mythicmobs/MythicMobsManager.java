@@ -58,8 +58,8 @@ public class MythicMobsManager {
     public MythicMobsManager(JavaPlugin plugin, MythicMobsHook mythicMobsHook, ConnectionPool connectionPool) {
         this.plugin = plugin;
         this.mythicMobsHook = mythicMobsHook;
-        this.dropHandler = new DropHandler(connectionPool, logger);
         this.logger = plugin.getLogger();
+        this.dropHandler = new DropHandler(connectionPool, logger);
         this.dropConfigs = new HashMap<>();
     }
 

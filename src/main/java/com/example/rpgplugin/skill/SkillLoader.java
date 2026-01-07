@@ -3,6 +3,7 @@ package com.example.rpgplugin.skill;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.core.config.ConfigLoader;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -54,8 +55,8 @@ public class SkillLoader extends ConfigLoader {
             return skills;
         }
 
-        File[] yamlFiles = getYamlFiles(skillsDir);
-        if (yamlFiles == null || yamlFiles.length == 0) {
+        List<File> yamlFiles = getYamlFiles("skills", false);
+        if (yamlFiles.isEmpty()) {
             plugin.getLogger().warning("スキルファイルが見つかりません: " + skillsDir.getPath());
             return skills;
         }
@@ -82,16 +83,14 @@ public class SkillLoader extends ConfigLoader {
      * @return パースされたスキル、失敗した場合はnull
      */
     public Skill loadSkill(File file) {
-        YamlConfiguration config = loadYaml(file);
+        FileConfiguration config = loadYaml(file);
         if (config == null) {
             return null;
         }
 
         try {
             // 必須フィールドのバリデーション
-            validateRequired(config, "id");
-            validateRequired(config, "name");
-            validateRequired(config, "type");
+            validateRequired(config, List.of("id", "name", "type"));
 
             String id = config.getString("id");
             String name = config.getString("name");

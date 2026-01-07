@@ -403,16 +403,11 @@ public class RPGPlugin extends JavaPlugin {
 
         getLogger().info("Initializing MythicMobs System...");
 
-        // TODO: MythicMobsManager初期化 - ConnectionPoolとDatabaseManagerの統合が必要
-        // 現在、MythicMobsシステムは一時的に無効化されています
-        getLogger().warning("MythicMobs system is temporarily disabled pending ConnectionPool integration");
-
-        /*
         // MythicMobsマネージャー
         mythicMobsManager = new MythicMobsManager(
                 this,
                 dependencyManager.getMythicMobsHook(),
-                storageManager.getDatabaseManager()
+                storageManager.getDatabaseManager().getConnectionPool()
         );
 
         // マネージャーを初期化
@@ -423,16 +418,13 @@ public class RPGPlugin extends JavaPlugin {
 
         // ドロップ設定を読み込み
         loadMobDropConfigs();
-        */
 
-        /*
         // MythicMobsデスリスナー
         mythicDeathListener = new MythicDeathListener(mythicMobsManager);
         getServer().getPluginManager().registerEvents(mythicDeathListener, this);
-        */
 
         // 期限切れドロップクリーニングタスクを開始
-        // startDropCleanupTask();
+        startDropCleanupTask();
 
         getLogger().info("MythicMobs System initialized!");
     }

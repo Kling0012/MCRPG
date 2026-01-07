@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * MythicMobs連携クラス
@@ -61,13 +62,6 @@ public class MythicMobsHook {
             mythicBukkit = MythicBukkit.inst();
             if (mythicBukkit == null) {
                 plugin.getLogger().warning("Failed to get MythicBukkit instance.");
-                return false;
-            }
-
-            // MythicPluginインスタンスの取得
-            mythicPlugin = mythicBukkit.getMythicPlugin();
-            if (mythicPlugin == null) {
-                plugin.getLogger().warning("Failed to get MythicPlugin instance.");
                 return false;
             }
 
@@ -157,8 +151,9 @@ public class MythicMobsHook {
         }
 
         try {
-            return mythicBukkit.getMobManager()
-                    .getActiveMob(BukkitAdapter.adapt(entity));
+            // MythicMobs 5.6+でAPIが変更されたため、UUIDを直接取得
+            UUID uuid = entity.getUniqueId();
+            return mythicBukkit.getMobManager().getActiveMob(uuid);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to get ActiveMob: " + e.getMessage());
             return Optional.empty();
@@ -173,7 +168,7 @@ public class MythicMobsHook {
      */
     public String getMobTypeId(Entity entity) {
         Optional<ActiveMob> activeMob = getActiveMob(entity);
-        return activeMob.map(mob -> mob.getMobType().getInternalName()).orElse(null);
+        return activeMob.map(mob -> mob.getMobType().toString()).orElse(null);
     }
 
     /**
@@ -184,7 +179,7 @@ public class MythicMobsHook {
      */
     public String getMobDisplayName(Entity entity) {
         Optional<ActiveMob> activeMob = getActiveMob(entity);
-        return activeMob.map(mob -> mob.getMobType().getDisplayName()).orElse(null);
+        return activeMob.map(mob -> mob.getMobType().toString()).orElse(null);
     }
 
     /**
@@ -242,8 +237,8 @@ public class MythicMobsHook {
                 return Optional.empty();
             }
 
-            return mythicMob.get()
-                    .spawn(BukkitAdapter.adapt(location), level);
+            ActiveMob spawnedMob = mythicMob.get().spawn(BukkitAdapter.adapt(location), level);
+            return Optional.ofNullable(spawnedMob);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to spawn MythicMob: " + e.getMessage());
             return Optional.empty();
@@ -254,15 +249,14 @@ public class MythicMobsHook {
      * モブのドロップを有効化/無効化します
      *
      * <p>倒した人のみドロップさせる機能の実装に使用します。</p>
+     * <p>※ MythicMobs 5.6+でAPIが変更されたため、現在は未実装です</p>
      *
      * @param entity エンティティ
      * @param enabled trueで有効、falseで無効
      */
     public void setDropsEnabled(Entity entity, boolean enabled) {
-        Optional<ActiveMob> activeMob = getActiveMob(entity);
-        activeMob.ifPresent(mob -> {
-            mob.setDropsEnabled(enabled);
-        });
+        // TODO: MythicMobs 5.6+でAPIを調査して実装
+        plugin.getLogger().fine("setDropsEnabled is not yet implemented for MythicMobs 5.6+");
     }
 
     /**

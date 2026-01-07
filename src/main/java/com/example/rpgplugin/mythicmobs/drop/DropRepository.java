@@ -1,9 +1,10 @@
 package com.example.rpgplugin.mythicmobs.drop;
 
 import com.example.rpgplugin.storage.database.ConnectionPool;
-import com.example.rpgplugin.storage.repository.IRepository;
+// import com.example.rpgplugin.storage.repository.IRepository; // Phase8で実装予定
 
 import java.sql.Connection;
+import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,10 +26,12 @@ import java.util.logging.Logger;
  *   <li>単一責任: ドロップデータの永続化のみ担当</li>
  * </ul>
  *
+ * <p>※ Phase8でIRepositoryを実装予定</p>
+ *
  * @author RPGPlugin Team
  * @version 1.0.0
  */
-public class DropRepository implements IRepository<DropData, Integer> {
+public class DropRepository { // implements IRepository<DropData, Integer> { // Phase8で実装
 
     private final ConnectionPool connectionPool;
     private final Logger logger;
@@ -50,7 +53,6 @@ public class DropRepository implements IRepository<DropData, Integer> {
      * @param drop 保存するドロップデータ
      * @throws SQLException 保存失敗時
      */
-    @Override
     public void save(DropData drop) throws SQLException {
         String sql = """
             INSERT INTO mythic_drops (player_uuid, mob_id, item_data, dropped_at, is_claimed, expires_at)
@@ -92,7 +94,6 @@ public class DropRepository implements IRepository<DropData, Integer> {
      * @return ドロップデータのOptional
      * @throws SQLException 取得失敗時
      */
-    @Override
     public Optional<DropData> findById(int id) throws SQLException {
         String sql = "SELECT * FROM mythic_drops WHERE id = ?";
 
@@ -195,7 +196,6 @@ public class DropRepository implements IRepository<DropData, Integer> {
      * @param drop 更新するドロップデータ
      * @throws SQLException 更新失敗時
      */
-    @Override
     public void update(DropData drop) throws SQLException {
         String sql = """
             UPDATE mythic_drops
@@ -226,7 +226,6 @@ public class DropRepository implements IRepository<DropData, Integer> {
      * @param drop 削除するドロップデータ
      * @throws SQLException 削除失敗時
      */
-    @Override
     public void delete(DropData drop) throws SQLException {
         String sql = "DELETE FROM mythic_drops WHERE id = ?";
 

@@ -160,7 +160,7 @@ public class ClassLoader {
         skills.forEach(builder::addAvailableSkill);
 
         // パッシブボーナス
-        List<Map<String, Object>> passiveList = config.getMapList("passive_bonuses");
+        List<Map<String, Object>> passiveList = (List<Map<String, Object>>) (Object) config.getMapList("passive_bonuses");
         for (Map<String, Object> passiveMap : passiveList) {
             ConfigurationSection passiveSection = createSectionFromMap(passiveMap);
             builder.addPassiveBonus(RPGClass.PassiveBonus.parse(passiveSection));
@@ -189,7 +189,7 @@ public class ClassLoader {
             return requirements;
         }
 
-        List<Map<String, Object>> requirementList = section.getMapList("requirements");
+        List<Map<String, Object>> requirementList = (List<Map<String, Object>>) (Object) section.getMapList("requirements");
         if (requirementList.isEmpty()) {
             // 単一の要件として処理
             for (String key : section.getKeys(false)) {

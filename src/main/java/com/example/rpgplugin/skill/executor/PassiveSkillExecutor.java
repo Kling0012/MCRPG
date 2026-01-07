@@ -117,7 +117,7 @@ public class PassiveSkillExecutor implements SkillExecutor {
         if (skill.getDamage() != null && skill.getDamage().getStatMultiplier() != null) {
             Stat stat = skill.getDamage().getStatMultiplier();
             double bonus = skill.getDamage().calculateDamage(0, level);
-            modifier = new StatModifier(skill.getId(), StatModifier.Operation.ADD, bonus);
+            modifier = new StatModifier(skill.getId(), StatModifier.Type.FLAT, bonus);
         }
 
         // ポーション効果を作成（必要に応じて）
@@ -129,9 +129,12 @@ public class PassiveSkillExecutor implements SkillExecutor {
 
         // ステータス補正を適用
         if (modifier != null) {
-            RPGPlayer rpgPlayer = playerManager.getPlayer(player);
+            RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
             if (rpgPlayer != null) {
-                // TODO: StatModifierの適用処理
+                // 全ステータスに修正値を適用
+                for (Stat stat : Stat.values()) {
+                    rpgPlayer.getStatManager().addModifier(stat, modifier);
+                }
             }
         }
 
@@ -162,9 +165,12 @@ public class PassiveSkillExecutor implements SkillExecutor {
 
         // ステータス補正を削除
         if (effect.getModifier() != null) {
-            RPGPlayer rpgPlayer = playerManager.getPlayer(player);
+            RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
             if (rpgPlayer != null) {
-                // TODO: StatModifierの削除処理
+                // 全ステータスの修正値を削除
+                for (Stat stat : Stat.values()) {
+                    rpgPlayer.getStatManager().removeModifiersBySource(stat, effect.getSkill().getId());
+                }
             }
         }
 

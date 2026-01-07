@@ -375,6 +375,48 @@ public class ConfigLoader {
     }
 
     /**
+     * 範囲検証を行い、範囲外の場合に警告ログを出力します
+     *
+     * @param value 値
+     * @param min 最小値
+     * @param max 最大値
+     * @param fieldName フィールド名（エラーメッセージ用）
+     * @param fileName ファイル名（エラーメッセージ用）
+     * @return 範囲内の場合はtrue
+     */
+    public boolean validateRange(double value, double min, double max, String fieldName, String fileName) {
+        boolean inRange = value >= min && value <= max;
+        if (!inRange) {
+            logger.warning(String.format(
+                "[Config] %s in %s: %.2f is out of range [%.2f, %.2f]",
+                fieldName, fileName, value, min, max
+            ));
+        }
+        return inRange;
+    }
+
+    /**
+     * 範囲検証を行い、範囲外の場合に警告ログを出力します
+     *
+     * @param value 値
+     * @param min 最小値
+     * @param max 最大値
+     * @param fieldName フィールド名（エラーメッセージ用）
+     * @param fileName ファイル名（エラーメッセージ用）
+     * @return 範囲内の場合はtrue
+     */
+    public boolean validateRange(int value, int min, int max, String fieldName, String fileName) {
+        boolean inRange = value >= min && value <= max;
+        if (!inRange) {
+            logger.warning(String.format(
+                "[Config] %s in %s: %d is out of range [%d, %d]",
+                fieldName, fileName, value, min, max
+            ));
+        }
+        return inRange;
+    }
+
+    /**
      * ロガーを取得します
      *
      * @return ロガー

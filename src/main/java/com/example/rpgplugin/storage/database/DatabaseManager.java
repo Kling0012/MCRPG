@@ -111,6 +111,15 @@ public class DatabaseManager {
     }
 
     /**
+     * コネクションプールを取得
+     *
+     * @return コネクションプール
+     */
+    public ConnectionPool getConnectionPool() {
+        return connectionPool;
+    }
+
+    /**
      * データベースファイルを削除（テスト用）
      *
      * @return 削除成功時true

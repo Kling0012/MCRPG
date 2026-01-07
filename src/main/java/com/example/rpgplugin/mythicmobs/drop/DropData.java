@@ -236,4 +236,46 @@ public class DropData implements Serializable {
                 ", expired=" + isExpired() +
                 '}';
     }
+
+    @Override
+    public String serialize() {
+        // JSON形式でシリアライズ
+        return String.format(
+            "{\"id\":%d,\"playerUuid\":\"%s\",\"mobId\":\"%s\",\"itemData\":\"%s\",\"droppedAt\":%d,\"claimed\":%b,\"expiresAt\":%s}",
+            id, playerUuid, mobId, itemData, droppedAt, claimed,
+            expiresAt != null ? expiresAt : "null"
+        );
+    }
+
+    @Override
+    public void deserialize(String data) {
+        // JSON形式からデシリアライズ（簡易実装）
+        if (data == null || data.isEmpty()) {
+            return;
+        }
+        // TODO: 完全なJSONパースの実装
+        // 暫定的に、各フィールドを抽出
+        String[] parts = data.split(",");
+        for (String part : parts) {
+            String[] keyValue = part.split(":");
+            if (keyValue.length != 2) continue;
+
+            String key = keyValue[0].replaceAll("[\"{}]", "").trim();
+            String value = keyValue[1].replaceAll("[\"{}]", "").trim();
+
+            switch (key) {
+                case "id" -> id = Integer.parseInt(value);
+                case "playerUuid" -> playerUuid = UUID.fromString(value);
+                case "mobId" -> mobId = value;
+                case "itemData" -> itemData = value;
+                case "droppedAt" -> droppedAt = Long.parseLong(value);
+                case "claimed" -> claimed = Boolean.parseBoolean(value);
+                case "expiresAt" -> {
+                    if (!value.equals("null")) {
+                        expiresAt = Long.parseLong(value);
+                    }
+                }
+            }
+        }
+    }
 }

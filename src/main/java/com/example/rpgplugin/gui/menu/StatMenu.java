@@ -2,7 +2,6 @@ package com.example.rpgplugin.gui.menu;
 
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
-import com.example.rpgplugin.stats.PlayerStats;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
 import org.bukkit.Bukkit;
@@ -41,7 +40,6 @@ public class StatMenu implements InventoryHolder {
     private final StatManager statManager;
     private final PlayerManager playerManager;
     private final RPGPlayer rpgPlayer;
-    private final PlayerStats stats;
 
     // GUI定数
     private static final int INVENTORY_SIZE = 54;
@@ -61,7 +59,6 @@ public class StatMenu implements InventoryHolder {
         this.statManager = statManager;
         this.playerManager = playerManager;
         this.rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
-        this.stats = rpgPlayer != null ? rpgPlayer.getStats() : new PlayerStats();
         this.inventory = Bukkit.createInventory(this, INVENTORY_SIZE, INVENTORY_TITLE);
 
         initializeItems();
@@ -170,15 +167,15 @@ public class StatMenu implements InventoryHolder {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
 
-        int baseValue = stats.getBaseStat(stat);
-        int autoValue = stats.getAutoStat(stat);
-        int totalValue = stats.getTotalStat(stat);
+        int baseValue = statManager.getBaseStat(stat);
+        int finalValue = statManager.getFinalStat(stat);
+        int autoValue = finalValue - baseValue;
 
         meta.setDisplayName(String.format("§c§l%s §f- §e%s",
             stat.getShortName(), stat.getDisplayName()));
 
         List<String> lore = new ArrayList<>();
-        lore.add("§7合計: §f" + totalValue);
+        lore.add("§7合計: §f" + finalValue);
         lore.add("§7手動配分: §a" + baseValue);
         lore.add("§7自動配分: §b+" + autoValue);
         lore.add("");
@@ -233,7 +230,7 @@ public class StatMenu implements InventoryHolder {
      * 残りポイント表示アイテムを作成
      */
     private ItemStack createPointsDisplayItem() {
-        int available = stats.getAvailablePoints();
+        int available = statManager.getAvailablePoints();
         Material material = available > 0 ? Material.GOLD_INGOT : Material.BARRIER;
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
@@ -333,16 +330,18 @@ public class StatMenu implements InventoryHolder {
      * ステータスにポイントを追加
      */
     private void addPoints(Stat stat, int amount) {
-        if (stats.getAvailablePoints() <= 0) {
+        if (statManager.getAvailablePoints() <= 0) {
             player.sendMessage("§c配分ポイントがありません！");
             return;
         }
 
-        int allocated = stats.allocatePoint(stat, amount);
-        if (allocated > 0) {
+        boolean success = statManager.allocatePoint(stat, amount);
+        if (success) {
             refreshGUI();
             player.sendMessage(String.format("§a%sに+%dポイント (残り: %d)",
-                stat.getColoredShortName(), allocated, stats.getAvailablePoints()));
+                stat.getColoredShortName(), amount, statManager.getAvailablePoints()));
+        } else {
+            player.sendMessage("§cポイントを配分できませんでした！");
         }
     }
 
@@ -350,14 +349,19 @@ public class StatMenu implements InventoryHolder {
      * ステータスからポイントを削除
      */
     private void removePoints(Stat stat, int amount) {
-        int deallocated = stats.deallocatePoint(stat, amount);
-        if (deallocated > 0) {
-            refreshGUI();
-            player.sendMessage(String.format("§c%sから-%dポイント (残り: %d)",
-                stat.getColoredShortName(), deallocated, stats.getAvailablePoints()));
-        } else {
+        int currentBase = statManager.getBaseStat(stat);
+        if (currentBase <= 0) {
             player.sendMessage("§c削除できるポイントがありません！");
+            return;
         }
+
+        int toRemove = Math.min(amount, currentBase);
+        statManager.setBaseStat(stat, currentBase - toRemove);
+        statManager.setAvailablePoints(statManager.getAvailablePoints() + toRemove);
+
+        refreshGUI();
+        player.sendMessage(String.format("§c%sから-%dポイント (残り: %d)",
+            stat.getColoredShortName(), toRemove, statManager.getAvailablePoints()));
     }
 
     /**

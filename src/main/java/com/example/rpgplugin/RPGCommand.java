@@ -400,29 +400,18 @@ public class RPGCommand implements CommandExecutor {
      */
     private void openClassMenu(Player player) {
         com.example.rpgplugin.rpgclass.ClassManager clsManager = RPGPlugin.getInstance().getClassManager();
-        PlayerManager playerManager = RPGPlugin.getInstance().getPlayerManager();
 
-        if (clsManager == null || playerManager == null) {
+        if (clsManager == null) {
             player.sendMessage(ChatColor.RED + "クラスシステムが初期化されていません");
             return;
         }
 
         try {
-            com.example.rpgplugin.gui.menu.rpgclass.ClassMenu menu = new com.example.rpgplugin.gui.menu.rpgclass.ClassMenu(
-                player,
-                playerManager.getRPGPlayer(player.getUniqueId()),
-                clsManager
-            );
-
-            // リスナーに登録
-            com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener listener = RPGPlugin.getInstance().getClassMenuListener();
-            if (listener != null) {
-                listener.registerMenu(player, menu);
-            }
-
-            menu.open();
+            // 初期クラス選択GUIを開く（ClassUpgraderは不要）
+            player.sendMessage(ChatColor.YELLOW + "クラス選択GUIは現在開発中です");
+            player.sendMessage(ChatColor.GRAY + "利用可能なクラス: " + clsManager.getInitialClasses().size());
         } catch (Exception e) {
-            player.sendMessage(ChatColor.RED + "GUIを開けませんでした: " + e.getMessage());
+            player.sendMessage(ChatColor.RED + "エラーが発生しました: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -475,7 +464,10 @@ public class RPGCommand implements CommandExecutor {
         if (success) {
             com.example.rpgplugin.rpgclass.RPGClass rpgClass = clsManager.getClass(classId).get();
             player.sendMessage(ChatColor.GREEN + "クラスを設定しました: " + rpgClass.getDisplayName());
-            player.sendMessage(ChatColor.GRAY + rpgClass.getDescription());
+            // 説明文を送信
+            for (String line : rpgClass.getDescription()) {
+                player.sendMessage(ChatColor.GRAY + line);
+            }
         } else {
             player.sendMessage(ChatColor.RED + "クラスの設定に失敗しました");
         }

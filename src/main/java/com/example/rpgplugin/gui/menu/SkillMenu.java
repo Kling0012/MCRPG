@@ -50,6 +50,10 @@ public class SkillMenu {
     private static final int BACK_SLOT = 45;
     private static final int CLOSE_SLOT = 53;
 
+    /** スロットとスキルのマッピング（クリック時のスキル特定に使用） */
+    private final java.util.Map<Integer, Skill> slotToSkillMap = new java.util.HashMap<>();
+
+import com.example.rpgplugin.stats.StatManager;
     /**
      * コンストラクタ
      *
@@ -175,33 +179,38 @@ public class SkillMenu {
     }
 
     /**
-     * スキルノードを表示します
-     *
-     * @param node スキルノード
-     * @param slot スロット位置
-     */
-    private void displaySkillNode(SkillNode node, int slot) {
-        if (slot >= INVENTORY_SIZE || slot < 0) {
-            return;
-        }
-
-        Skill skill = node.getSkill();
-        SkillManager.PlayerSkillData data = skillManager.getPlayerSkillData(player);
-        int level = data.getSkillLevel(skill.getId());
-
-        boolean isAcquired = level > 0;
-        boolean canAcquire = skillManager.hasSkill(player, skill.getId()) || checkCanAcquire(skill);
-
-        ItemStack item = createSkillItem(skill, level, isAcquired, canAcquire);
-        inventory.setItem(slot, item);
-
-        // 子ノードを表示
-        int childSlot = slot + 9;
-        for (SkillNode child : node.getChildren()) {
-            displaySkillNode(child, childSlot);
-            childSlot++;
-        }
+ * スキルノードを表示します
+ *
+ * <p>スロットとスキルのマッピングを維持し、クリック時の識別を可能にします。</p>
+ *
+ * @param node スキルノード
+ * @param slot スロット位置
+ */
+private void displaySkillNode(SkillNode node, int slot) {
+    if (slot >= INVENTORY_SIZE || slot < 0) {
+        return;
     }
+
+    Skill skill = node.getSkill();
+    SkillManager.PlayerSkillData data = skillManager.getPlayerSkillData(player);
+    int level = data.getSkillLevel(skill.getId());
+
+    boolean isAcquired = level > 0;
+    boolean canAcquire = skillManager.hasSkill(player, skill.getId()) || checkCanAcquire(skill);
+
+    ItemStack item = createSkillItem(skill, level, isAcquired, canAcquire);
+    inventory.setItem(slot, item);
+
+    // スロットとスキルのマッピングを保存
+    slotToSkillMap.put(slot, skill);
+
+    // 子ノードを表示
+    int childSlot = slot + 9;
+    for (SkillNode child : node.getChildren()) {
+        displaySkillNode(child, childSlot);
+        childSlot++;
+    }
+}
 
     /**
      * スキルアイテムを作成します
@@ -304,64 +313,183 @@ public class SkillMenu {
     }
 
     /**
-     * 習得可能かチェックします
-     *
-     * @param skill スキル
-     * @return 習得可能な場合はtrue
-     */
-    private boolean checkCanAcquire(Skill skill) {
-        // TODO: 習得条件チェックを実装
-        return true;
-    }
-
-    /**
-     * クリックイベントを処理します
-     *
-     * @param slot クリックされたスロット
-     * @return 処理した場合はtrue
-     */
-    public boolean handleClick(int slot) {
-        // 閉じるボタン
-        if (slot == CLOSE_SLOT) {
-            player.closeInventory();
-            return true;
-        }
-
-        // 戻るボタン
-        if (slot == BACK_SLOT) {
-            // メインメニューを開く
-            // TODO: メインメニューとの連携
-            player.closeInventory();
-            return true;
-        }
-
-        // スキルスロット
-        ItemStack clickedItem = inventory.getItem(slot);
-        if (clickedItem != null && clickedItem.hasItemMeta() && clickedItem.getItemMeta().hasDisplayName()) {
-            String displayName = clickedItem.getItemMeta().getDisplayName();
-
-            // スキルアイテムかチェック
-            if (displayName.contains("[習得済み]") || displayName.contains("[習得可能]")) {
-                return handleSkillClick(slot, clickedItem);
-            }
-        }
-
+ * 習得可能かチェックします
+ *
+ * <p>以下の条件をチェックします:</p>
+ * <ul>
+ *   <li>スキルポイントが十分にあるか</li>
+ *   <li>前提スキルを習得しているか</li>
+ *   <li>レベル要件を満たしているか</li>
+ *   <li>クラス要件を満たしているか</li>
+ * </ul>
+ *
+ * @param skill スキル
+ * @return 習得可能な場合はtrue
+ */
+private boolean checkCanAcquire(Skill skill) {
+    SkillManager.PlayerSkillData data = skillManager.getPlayerSkillData(player);
+    
+    // 1. スキルポイントチェック
+    int cost = skillTree.getCost(skill.getId());
+    if (data.getSkillPoints() < cost) {
         return false;
     }
+    
+    // 2. 前提スキルチェック
+    Skill.SkillTreeConfig treeConfig = skill.getSkillTree();
+    if (treeConfig != null) {
+        String parentSkillId = treeConfig.getParent();
+        if (parentSkillId != null && !"none".equalsIgnoreCase(parentSkillId)) {
+            // 親スキルが習得されているかチェック
+            if (!data.hasSkill(parentSkillId)) {
+                return false;
+            }
+        }
+        
+        // 3. レベル要件・ステータス要件チェック
+        int playerLevel = rpgPlayer.getLevel();
+        java.util.Map<com.example.rpgplugin.stats.Stat, Double> stats = new java.util.HashMap<>();
+        
+        // 全ステータス値を取得
+        for (com.example.rpgplugin.stats.Stat stat : com.example.rpgplugin.stats.Stat.values()) {
+            stats.put(stat, (double) rpgPlayer.getFinalStat(stat));
+        }
+        
+        // SkillTreeの習得要件チェック
+        if (!skillTree.canAcquire(player, skill.getId(), playerLevel, stats)) {
+            return false;
+        }
+    }
+    
+    // 4. クラス要件チェック
+    List<String> availableClasses = skill.getAvailableClasses();
+    if (!availableClasses.isEmpty() && !availableClasses.contains(rpgPlayer.getClassId())) {
+        return false;
+    }
+    
+    return true;
+}
 
     /**
-     * スキルクリックを処理します
-     *
-     * @param slot スロット
-     * @param item アイテム
-     * @return 処理した場合はtrue
-     */
-    private boolean handleSkillClick(int slot, ItemStack item) {
-        // スロットからスキルを特定
-        // TODO: スロットとスキルのマッピングを実装
-
-        player.sendMessage(ChatColor.YELLOW + "スキルクリック処理を実装中");
+ * クリックイベントを処理します
+ *
+ * @param slot クリックされたスロット
+ * @return 処理した場合はtrue
+ */
+public boolean handleClick(int slot) {
+    // 閉じるボタン
+    if (slot == CLOSE_SLOT) {
+        player.closeInventory();
         return true;
+    }
+
+    // 戻るボタン
+    if (slot == BACK_SLOT) {
+        // ステータスメニューを開く
+        StatManager statManager = plugin.getStatManager();
+        PlayerManager playerManager = plugin.getPlayerManager();
+        
+        if (statManager != null && playerManager != null) {
+            StatMenu statMenu = new StatMenu(player, statManager, playerManager);
+            statMenu.open();
+        }
+        
+        player.closeInventory();
+        return true;
+    }
+
+    // スキルスロット
+    ItemStack clickedItem = inventory.getItem(slot);
+    if (clickedItem != null && clickedItem.hasItemMeta() && clickedItem.getItemMeta().hasDisplayName()) {
+        String displayName = clickedItem.getItemMeta().getDisplayName();
+
+        // スキルアイテムかチェック
+        if (displayName.contains("[習得済み]") || displayName.contains("[習得可能]")) {
+            return handleSkillClick(slot, clickedItem);
+        }
+    }
+
+    return false;
+}
+
+    /**
+ * スキルクリックを処理します
+ *
+ * <p>習得済みスキルの場合は強化、未習得スキルの場合は習得を試みます。</p>
+ *
+ * @param slot スロット
+ * @param item アイテム
+ * @return 処理した場合はtrue
+ */
+private boolean handleSkillClick(int slot, ItemStack item) {
+    Skill skill = slotToSkillMap.get(slot);
+    if (skill == null) {
+        return false;
+    }
+    
+    SkillManager.PlayerSkillData data = skillManager.getPlayerSkillData(player);
+    int level = data.getSkillLevel(skill.getId());
+    
+    if (level > 0) {
+        // 強化処理
+        return upgradeSkill(skill);
+    } else {
+        // 習得処理
+        return acquireSkill(skill);
+    }
+}
+
+    /**
+     * スキルを習得します
+     *
+     * @param skill 習得するスキル
+     * @return 成功した場合はtrue
+     */
+    private boolean acquireSkill(Skill skill) {
+        // 習得条件を再チェック
+        if (!checkCanAcquire(skill)) {
+            player.sendMessage(ChatColor.RED + "習得条件を満たしていません: " + skill.getColoredDisplayName());
+            return true;
+        }
+        
+        SkillManager.PlayerSkillData data = skillManager.getPlayerSkillData(player);
+        int cost = skillTree.getCost(skill.getId());
+        
+        // スキルポイントを消費
+        if (!data.useSkillPoint()) {
+            player.sendMessage(ChatColor.RED + "スキルポイントが不足しています");
+            return true;
+        }
+        
+        // スキルを習得
+        boolean success = skillManager.acquireSkill(player, skill.getId(), 1);
+        if (success) {
+            player.sendMessage(ChatColor.GREEN + "スキルを習得しました: " + skill.getColoredDisplayName() + ChatColor.GREEN + " (コスト: " + cost + "ポイント)");
+        }
+        
+        return success;
+    }
+
+    /**
+     * スキルを強化します
+     *
+     * @param skill 強化するスキル
+     * @return 成功した場合はtrue
+     */
+    private boolean upgradeSkill(Skill skill) {
+        SkillManager.PlayerSkillData data = skillManager.getPlayerSkillData(player);
+        int currentLevel = data.getSkillLevel(skill.getId());
+        
+        // 最大レベルチェック
+        if (currentLevel >= skill.getMaxLevel()) {
+            player.sendMessage(ChatColor.RED + "既に最大レベルに達しています: " + skill.getColoredDisplayName());
+            return true;
+        }
+        
+        // 強化を実行
+        boolean success = skillManager.upgradeSkill(player, skill.getId());
+        
+        return success;
     }
 
     /**

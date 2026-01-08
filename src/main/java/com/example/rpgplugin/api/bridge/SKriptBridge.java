@@ -3,10 +3,12 @@ package com.example.rpgplugin.api.bridge;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.api.RPGPluginAPI;
 import com.example.rpgplugin.player.RPGPlayer;
+import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.stats.Stat;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.Optional;
@@ -78,6 +80,11 @@ public class SKriptBridge {
      *   <li>has_gold &lt;player&gt; &lt;amount&gt; - ゴールド所持確認</li>
      *   <li>transfer_gold &lt;from&gt; &lt;to&gt; &lt;amount&gt; - ゴールド転送</li>
      *   <li>calculate_damage &lt;attacker&gt; &lt;target&gt; - ダメージ計算</li>
+     *   <li>get_target &lt;player&gt; - 最後のターゲット取得</li>
+     *   <li>set_target &lt;player&gt; &lt;entityId&gt; - ターゲット設定</li>
+     *   <li>cast_at &lt;player&gt; &lt;skillId&gt; &lt;targetPlayer&gt; - 指定ターゲットでスキル発動</li>
+     *   <li>cast_with_cost &lt;player&gt; &lt;skillId&gt; &lt;costType&gt; - コストタイプ指定で発動</li>
+     *   <li>get_entities_in_area &lt;player&gt; &lt;shape&gt; &lt;params...&gt; - 範囲内エンティティ取得</li>
      * </ul>
      *
      * @param sender コマンド送信者
@@ -374,6 +381,128 @@ public class SKriptBridge {
                 sender.sendMessage(ChatColor.GREEN + "計算ダメージ: " + String.format("%.2f", damage));
                 return true;
 
+            // ==================== ターゲット管理 ====================
+            case "get_target":
+                if (targetPlayer == null) {
+                    sender.sendMessage(ChatColor.RED + "プレイヤーが指定されていません");
+                    return false;
+                }
+                Optional<Entity> lastTarget = api.getLastTargetedEntity(targetPlayer);
+                if (lastTarget.isPresent()) {
+                    Entity entity = lastTarget.get();
+                    String targetInfo = entity.getType().name();
+                    if (entity instanceof Player) {
+                        targetInfo = "Player:" + ((Player) entity).getName();
+                    }
+                    sender.sendMessage(ChatColor.GREEN + "ターゲット: " + targetInfo);
+                } else {
+                    sender.sendMessage(ChatColor.YELLOW + "ターゲットは設定されていません");
+                }
+                return true;
+
+            case "set_target":
+                if (targetPlayer == null || args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "使用法: rpg api set_target <player> <entityId>");
+                    return false;
+                }
+                try {
+                    int entityId = Integer.parseInt(args[1]);
+                    Entity targetEntity = null;
+                    for (Entity e : targetPlayer.getWorld().getEntities()) {
+                        if (e.getEntityId() == entityId) {
+                            targetEntity = e;
+                            break;
+                        }
+                    }
+                    if (targetEntity != null) {
+                        api.setTargetedEntity(targetPlayer, targetEntity);
+                        sender.sendMessage(ChatColor.GREEN + "ターゲットを設定しました: " + targetEntity.getType().name());
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "エンティティが見つかりません: ID=" + args[1]);
+                        return false;
+                    }
+                } catch (NumberFormatException e) {
+                    // プレイヤー名での指定も試みる
+                    Player targetEntityByName = Bukkit.getPlayer(args[1]);
+                    if (targetEntityByName != null) {
+                        api.setTargetedEntity(targetPlayer, targetEntityByName);
+                        sender.sendMessage(ChatColor.GREEN + "ターゲットを設定しました: " + targetEntityByName.getName());
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "エンティティが見つかりません: " + args[1]);
+                        return false;
+                    }
+                }
+                return true;
+
+            // ==================== スキルトリガー ====================
+            case "cast_at":
+                if (targetPlayer == null || args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "使用法: rpg api cast_at <player> <skillId> [targetPlayer]");
+                    return false;
+                }
+                String skillIdToCast = args[1];
+                Entity castTarget = targetPlayer; // デフォルトは自分
+
+                if (args.length >= 3) {
+                    Player targetEntity = Bukkit.getPlayer(args[2]);
+                    if (targetEntity != null) {
+                        castTarget = targetEntity;
+                    }
+                }
+
+                boolean castAtSuccess = api.castSkillAt(targetPlayer, skillIdToCast, castTarget);
+                if (castAtSuccess) {
+                    sender.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skillIdToCast);
+                } else {
+                    sender.sendMessage(ChatColor.RED + "スキルの発動に失敗しました");
+                }
+                return castAtSuccess;
+
+            case "cast_with_cost":
+                if (targetPlayer == null || args.length < 3) {
+                    sender.sendMessage(ChatColor.RED + "使用法: rpg api cast_with_cost <player> <skillId> <costType>");
+                    return false;
+                }
+                String skillIdWithCost = args[1];
+                SkillCostType costType = SkillCostType.fromId(args[2]);
+                if (costType == null) {
+                    sender.sendMessage(ChatColor.RED + "無効なコストタイプ: " + args[2] + " (mana/hp)");
+                    return false;
+                }
+                boolean castWithCostSuccess = api.castSkillWithCostType(targetPlayer, skillIdWithCost, costType);
+                if (castWithCostSuccess) {
+                    sender.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skillIdWithCost);
+                } else {
+                    sender.sendMessage(ChatColor.RED + "スキルの発動に失敗しました");
+                }
+                return castWithCostSuccess;
+
+            case "get_entities_in_area":
+                if (targetPlayer == null || args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "使用法: rpg api get_entities_in_area <player> <shape> <params...>");
+                    return false;
+                }
+                String shape = args[1];
+                double[] params = new double[args.length - 2];
+                try {
+                    for (int i = 0; i < params.length; i++) {
+                        params[i] = Double.parseDouble(args[i + 2]);
+                    }
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "パラメータは数値で指定してください");
+                    return false;
+                }
+                var entities = api.getEntitiesInArea(targetPlayer, shape, params);
+                sender.sendMessage(ChatColor.GREEN + "範囲内のエンティティ: " + entities.size() + "件");
+                for (Entity e : entities) {
+                    String info = e.getType().name();
+                    if (e instanceof Player) {
+                        info = "Player:" + ((Player) e).getName();
+                    }
+                    sender.sendMessage(ChatColor.WHITE + "  - " + info);
+                }
+                return true;
+
             default:
                 sender.sendMessage(ChatColor.RED + "不明なアクション: " + action);
                 sendHelp(sender);
@@ -425,6 +554,9 @@ public class SKriptBridge {
         sender.sendMessage(ChatColor.WHITE + "  ステータス: get_stat, set_stat");
         sender.sendMessage(ChatColor.WHITE + "  クラス: get_class, set_class, upgrade_class, can_upgrade_class");
         sender.sendMessage(ChatColor.WHITE + "  スキル: has_skill, unlock_skill, cast_skill, get_skill_level");
+        sender.sendMessage(ChatColor.WHITE + "  スキル拡張: cast_at, cast_with_cost");
+        sender.sendMessage(ChatColor.WHITE + "  ターゲット: get_target, set_target");
+        sender.sendMessage(ChatColor.WHITE + "  範囲: get_entities_in_area");
         sender.sendMessage(ChatColor.WHITE + "  経済: get_gold, give_gold, take_gold, has_gold, transfer_gold");
         sender.sendMessage(ChatColor.WHITE + "  ダメージ: calculate_damage");
         sender.sendMessage(ChatColor.GOLD + "================================");

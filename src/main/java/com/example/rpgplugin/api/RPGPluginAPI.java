@@ -2,10 +2,12 @@ package com.example.rpgplugin.api;
 
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.Skill;
+import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.stats.Stat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -257,4 +259,54 @@ public interface RPGPluginAPI {
      * @return 修正後のダメージ
      */
     double applyStatModifiers(Player player, double baseDamage, Stat stat);
+
+    // ==================== ターゲット管理 ====================
+
+    /**
+     * 最後にターゲットしたエンティティを取得します
+     *
+     * @param player プレイヤー
+     * @return ターゲットエンティティ、存在しない場合はempty
+     */
+    Optional<Entity> getLastTargetedEntity(Player player);
+
+    /**
+     * ターゲットエンティティを設定します
+     *
+     * @param player プレイヤー
+     * @param entity ターゲットとするエンティティ（nullでクリア）
+     */
+    void setTargetedEntity(Player player, Entity entity);
+
+    // ==================== スキルトリガー ====================
+
+    /**
+     * 指定ターゲットでスキルを発動します
+     *
+     * @param player プレイヤー
+     * @param skillId スキルID
+     * @param target ターゲットエンティティ
+     * @return 成功した場合はtrue
+     */
+    boolean castSkillAt(Player player, String skillId, Entity target);
+
+    /**
+     * 指定コストタイプでスキルを発動します
+     *
+     * @param player プレイヤー
+     * @param skillId スキルID
+     * @param costType コストタイプ（MP/HP）
+     * @return 成功した場合はtrue
+     */
+    boolean castSkillWithCostType(Player player, String skillId, SkillCostType costType);
+
+    /**
+     * 範囲内のエンティティを取得します
+     *
+     * @param player プレイヤー（中心位置）
+     * @param shape 形状（"circle", "sphere", "cube"）
+     * @param params パラメータ（半径など）
+     * @return 範囲内のエンティティコレクション
+     */
+    Collection<Entity> getEntitiesInArea(Player player, String shape, double... params);
 }

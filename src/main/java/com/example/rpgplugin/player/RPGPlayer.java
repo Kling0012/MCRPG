@@ -5,8 +5,10 @@ import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.storage.models.PlayerData;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -46,6 +48,10 @@ public class RPGPlayer {
     private final StatManager statManager;
     private final ManaManager manaManager;
     private boolean isOnline;
+
+    // ==================== ターゲット管理 ====================
+    /** 最後にターゲットしたエンティティ */
+    private Entity lastTargetedEntity;
 
     /**
      * コンストラクタ
@@ -604,5 +610,36 @@ public class RPGPlayer {
                 ", classRank=" + getClassRank() +
                 ", isOnline=" + isOnline() +
                 '}';
+    }
+
+    // ==================== ターゲット管理 ====================
+
+    /**
+     * 最後にターゲットしたエンティティを取得します
+     *
+     * @return ターゲットエンティティ、存在しない場合はempty
+     */
+    public Optional<Entity> getLastTargetedEntity() {
+        // エンティティが有効かチェック
+        if (lastTargetedEntity != null && !lastTargetedEntity.isValid()) {
+            lastTargetedEntity = null;
+        }
+        return Optional.ofNullable(lastTargetedEntity);
+    }
+
+    /**
+     * ターゲットエンティティを設定します
+     *
+     * @param entity ターゲットとするエンティティ（nullでクリア）
+     */
+    public void setTargetedEntity(Entity entity) {
+        this.lastTargetedEntity = entity;
+    }
+
+    /**
+     * ターゲットをクリアします
+     */
+    public void clearTarget() {
+        this.lastTargetedEntity = null;
     }
 }

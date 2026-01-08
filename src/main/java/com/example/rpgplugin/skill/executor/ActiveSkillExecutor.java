@@ -4,6 +4,7 @@ import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.skill.Skill;
+import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.stats.Stat;
 import org.bukkit.ChatColor;
@@ -182,5 +183,134 @@ public class ActiveSkillExecutor implements SkillExecutor {
      */
     public PlayerManager getPlayerManager() {
         return playerManager;
+    }
+
+    // ==================== ターゲット指定発動 ====================
+
+    /**
+     * 指定ターゲットでスキルを発動します
+     *
+     * @param player プレイヤー
+     * @param skill スキル
+     * @param level スキルレベル
+     * @param target ターゲットエンティティ
+     * @return 成功した場合はtrue
+     */
+    public boolean executeAt(Player player, Skill skill, int level, Entity target) {
+        if (player == null || skill == null || target == null) {
+            return false;
+        }
+
+        // ターゲットが有効かチェック
+        if (!target.isValid()) {
+            player.sendMessage(ChatColor.RED + "ターゲットが無効です");
+            return false;
+        }
+
+        // クールダウンチェック
+        if (!skillManager.checkCooldown(player, skill.getId())) {
+            return false;
+        }
+
+        // ダメージ計算と適用
+        if (skill.getDamage() != null && target instanceof LivingEntity) {
+            double damage = calculateDamage(player, skill, level);
+            LivingEntity livingTarget = (LivingEntity) target;
+
+            // 敵対的かチェック
+            if (isEnemy(livingTarget)) {
+                livingTarget.damage(damage, player);
+                player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level);
+            } else {
+                player.sendMessage(ChatColor.RED + "ターゲットは敵対的ではありません");
+                return false;
+            }
+        } else {
+            // ダメージなしのスキル（バフ等）
+            player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level);
+        }
+
+        // クールダウン設定
+        SkillManager.PlayerSkillData data = skillManager.getPlayerSkillData(player);
+        data.setLastCastTime(skill.getId(), System.currentTimeMillis());
+
+        return true;
+    }
+
+    /**
+     * 指定コストタイプでスキルを発動します
+     *
+     * @param player プレイヤー
+     * @param skill スキル
+     * @param level スキルレベル
+     * @param costType コストタイプ
+     * @return 成功した場合はtrue
+     */
+    public boolean executeWithCostType(Player player, Skill skill, int level, SkillCostType costType) {
+        if (player == null || skill == null || costType == null) {
+            return false;
+        }
+
+        // クールダウンチェック
+        if (!skillManager.checkCooldown(player, skill.getId())) {
+            return false;
+        }
+
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer == null) {
+            return false;
+        }
+
+        // コスト消費チェック（指定されたコストタイプを使用）
+        double cost = skill.getCost(level);
+        if (cost > 0) {
+            boolean canAfford = false;
+            switch (costType) {
+                case MANA:
+                    // TODO: マナシステム実装後に有効化
+                    canAfford = true; // 暫定：常にtrue
+                    break;
+                case HP:
+                    canAfford = rpgPlayer.getBukkitPlayer() != null
+                            && rpgPlayer.getBukkitPlayer().getHealth() > cost;
+                    break;
+            }
+
+            if (!canAfford) {
+                player.sendMessage(ChatColor.RED + costType.getDisplayName() + "が足りません");
+                return false;
+            }
+        }
+
+        // ダメージ計算
+        if (skill.getDamage() != null) {
+            double damage = calculateDamage(player, skill, level);
+            applyDamage(player, damage);
+        }
+
+        // 指定コストタイプで消費
+        if (cost > 0) {
+            switch (costType) {
+                case MANA:
+                    // TODO: マナシステム実装後に有効化
+                    break;
+                case HP:
+                    if (rpgPlayer.getBukkitPlayer() != null) {
+                        rpgPlayer.getBukkitPlayer().setHealth(
+                                rpgPlayer.getBukkitPlayer().getHealth() - cost);
+                    }
+                    break;
+            }
+        }
+
+        // クールダウン設定
+        SkillManager.PlayerSkillData data = skillManager.getPlayerSkillData(player);
+        data.setLastCastTime(skill.getId(), System.currentTimeMillis());
+
+        // メッセージ送信
+        player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level
+                + ChatColor.GRAY + " (" + costType.getDisplayName() + "消費)");
+
+        return true;
     }
 }

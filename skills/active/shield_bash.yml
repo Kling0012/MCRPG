@@ -1,4 +1,5 @@
 # シールドバッシュ - 戦士の防御スキル
+# Phase11-12: 新フォーマットに移行完了
 id: shield_bash
 name: シールドバッシュ
 display_name: "&7シールドバッシュ"
@@ -7,15 +8,33 @@ description:
   - "&7盾で敵を殴りつける"
   - "&eVITに依存してダメージ増加"
 max_level: 3
-cooldown: 12.0
-mana_cost: 15
 
+# カスタム変数（Phase11-12移行）
+variables:
+  vit_mod: 1.2
+  base_damage: 30.0
+  level_scale: 8.0
+
+# コスト（Phase11-12移行）
+cost:
+  type: mana
+  base: 15
+  per_level: 0
+  min: 0
+
+# クールダウン（Phase11-12移行）
+cooldown:
+  base: 12.0
+  per_level: 0.0
+  min: 6.0
+
+# ダメージ（Phase11-12: 数式形式に移行）
 damage:
-  base: 30.0
-  stat_multiplier:
-    stat: VITALITY
-    multiplier: 1.2
-  level_multiplier: 8.0
+  formula: "VIT * vit_mod + Lv * level_scale + base_damage"
+
+# ターゲット設定（Phase11-12移行）
+targeting:
+  type: single
 
 skill_tree:
   parent: power_strike

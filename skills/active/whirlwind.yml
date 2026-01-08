@@ -1,4 +1,5 @@
 # ワールウィンド - 戦士の範囲攻撃スキル
+# Phase11-12: 新フォーマットに移行完了
 id: whirlwind
 name: ワールウィンド
 display_name: "&6ワールウィンド"
@@ -7,15 +8,36 @@ description:
   - "&6周囲の敵を攻撃する"
   - "&eSTRに依存してダメージ増加"
 max_level: 3
-cooldown: 15.0
-mana_cost: 25
 
+# カスタム変数（Phase11-12移行）
+variables:
+  str_mod: 1.8
+  base_damage: 60.0
+  level_scale: 15.0
+
+# コスト（Phase11-12移行）
+cost:
+  type: mana
+  base: 25
+  per_level: 0
+  min: 0
+
+# クールダウン（Phase11-12移行）
+cooldown:
+  base: 15.0
+  per_level: 0.0
+  min: 7.5
+
+# ダメージ（Phase11-12: 数式形式に移行）
 damage:
-  base: 60.0
-  stat_multiplier:
-    stat: STRENGTH
-    multiplier: 1.8
-  level_multiplier: 15.0
+  formula: "STR * str_mod + Lv * level_scale + base_damage"
+
+# ターゲット設定（Phase11-12移行: 扇形範囲攻撃）
+targeting:
+  type: sector
+  sector:
+    angle: 360
+    range: 5.0
 
 skill_tree:
   parent: shield_bash

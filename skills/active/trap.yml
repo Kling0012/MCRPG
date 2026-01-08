@@ -1,4 +1,5 @@
 # トラップ - アーチャーの設置スキル
+# Phase11-12: 新フォーマットに移行完了
 id: trap
 name: トラップ
 display_name: "&7トラップ"
@@ -7,15 +8,33 @@ description:
   - "&7足元に罠を設置する"
   - "&eDEXに依存してダメージ増加"
 max_level: 3
-cooldown: 25.0
-mana_cost: 20
 
+# カスタム変数（Phase11-12移行）
+variables:
+  dex_mod: 1.3
+  base_damage: 40.0
+  level_scale: 12.0
+
+# コスト（Phase11-12移行）
+cost:
+  type: mana
+  base: 20
+  per_level: 0
+  min: 0
+
+# クールダウン（Phase11-12移行）
+cooldown:
+  base: 25.0
+  per_level: 0.0
+  min: 12.5
+
+# ダメージ（Phase11-12: 数式形式に移行）
 damage:
-  base: 40.0
-  stat_multiplier:
-    stat: DEXTERITY
-    multiplier: 1.3
-  level_multiplier: 12.0
+  formula: "DEX * dex_mod + Lv * level_scale + base_damage"
+
+# ターゲット設定（Phase11-12移行: 設置型）
+targeting:
+  type: location
 
 skill_tree:
   parent: multishot

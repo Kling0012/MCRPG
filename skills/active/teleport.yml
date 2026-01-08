@@ -1,4 +1,5 @@
 # テレポート - メイジの移動スキル
+# Phase11-12: 新フォーマットに移行完了
 id: teleport
 name: テレポート
 display_name: "&dテレポート"
@@ -7,8 +8,29 @@ description:
   - "&d短距離を瞬間移動する"
   - "&eINTに依存して距離増加"
 max_level: 3
-cooldown: 20.0
-mana_cost: 30
+
+# カスタム変数（Phase11-12移行）
+variables:
+  int_mod: 0.1
+  base_distance: 5.0
+  level_scale: 1.0
+
+# コスト（Phase11-12移行）
+cost:
+  type: mana
+  base: 30
+  per_level: 0
+  min: 0
+
+# クールダウン（Phase11-12移行）
+cooldown:
+  base: 20.0
+  per_level: 0.0
+  min: 10.0
+
+# ターゲット設定（Phase11-12移行: 自己対象）
+targeting:
+  type: self
 
 skill_tree:
   parent: ice_spike

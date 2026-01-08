@@ -1,4 +1,5 @@
 # ファイアボール - メイジの基本攻撃スキル
+# Phase11-12: 新フォーマットに移行完了
 id: fireball
 name: ファイアボール
 display_name: "&cファイアボール"
@@ -7,15 +8,35 @@ description:
   - "&c炎の玉を発射する"
   - "&eINTに依存してダメージ増加"
 max_level: 5
-cooldown: 6.0
-mana_cost: 15
 
+# カスタム変数（Phase11-12移行）
+variables:
+  int_mod: 2.0
+  base_damage: 40.0
+  level_scale: 15.0
+
+# コスト（Phase11-12移行）
+cost:
+  type: mana
+  base: 15
+  per_level: 0
+  min: 0
+
+# クールダウン（Phase11-12移行）
+cooldown:
+  base: 6.0
+  per_level: 0.0
+  min: 3.0
+
+# ダメージ（Phase11-12: 数式形式に移行）
 damage:
-  base: 40.0
-  stat_multiplier:
-    stat: INTELLIGENCE
-    multiplier: 2.0
-  level_multiplier: 15.0
+  formula: "INT * int_mod + Lv * level_scale + base_damage"
+
+# ターゲット設定（Phase11-12移行: 球形範囲攻撃）
+targeting:
+  type: sphere
+  sphere:
+    radius: 3.0
 
 skill_tree:
   parent: none

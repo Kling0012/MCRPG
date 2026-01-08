@@ -1,4 +1,5 @@
 # アイススパイク - メイジの中級攻撃スキル
+# Phase11-12: 新フォーマットに移行完了
 id: ice_spike
 name: アイススパイク
 display_name: "&bアイススパイク"
@@ -7,15 +8,33 @@ description:
   - "&b氷の矢を放つ"
   - "&eINTに依存してダメージ増加"
 max_level: 5
-cooldown: 7.0
-mana_cost: 18
 
+# カスタム変数（Phase11-12移行）
+variables:
+  int_mod: 2.2
+  base_damage: 45.0
+  level_scale: 18.0
+
+# コスト（Phase11-12移行）
+cost:
+  type: mana
+  base: 18
+  per_level: 0
+  min: 0
+
+# クールダウン（Phase11-12移行）
+cooldown:
+  base: 7.0
+  per_level: 0.0
+  min: 3.5
+
+# ダメージ（Phase11-12: 数式形式に移行）
 damage:
-  base: 45.0
-  stat_multiplier:
-    stat: INTELLIGENCE
-    multiplier: 2.2
-  level_multiplier: 18.0
+  formula: "INT * int_mod + Lv * level_scale + base_damage"
+
+# ターゲット設定（Phase11-12移行）
+targeting:
+  type: single
 
 skill_tree:
   parent: fireball

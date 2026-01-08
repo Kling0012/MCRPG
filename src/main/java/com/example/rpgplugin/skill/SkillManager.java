@@ -815,14 +815,14 @@ public boolean registerSkill(Skill skill) {
      * @return 有効なターゲットの場合はtrue
      */
     private boolean isValidTarget(LivingEntity entity, Player caster) {
-        // プレイヤーはターゲットにしない（PvP設定による）
+        // プレイヤーはターゲットにしない（PvE環境のためPvPは未サポート）
         if (entity instanceof Player) {
-            // TODO: PvP設定に基づいた判定
             return false;
         }
 
         // その他のMobはターゲットとする
-        // TODO: MythicMobs等との連携で詳細な判定を行う
+        // MythicMobs連携はドロップ管理機能のみ実装済み
+        // スキルターゲット判定ではMythicMobsとバニラMOBを区別しない
         return true;
     }
 

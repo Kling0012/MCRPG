@@ -255,8 +255,9 @@ public class MythicMobsHook {
      * @param enabled trueで有効、falseで無効
      */
     public void setDropsEnabled(Entity entity, boolean enabled) {
-        // TODO: MythicMobs 5.6+でAPIを調査して実装
-        plugin.getLogger().fine("setDropsEnabled is not yet implemented for MythicMobs 5.6+");
+        // MythicMobs 5.6+でドロップ制御APIが変更されたため未実装
+        // ドロップ制御はMythicDeathListener側で実装済み
+        plugin.getLogger().fine("setDropsEnabled is not implemented. Drop control is handled by MythicDeathListener.");
     }
 
     /**

@@ -160,7 +160,8 @@ public class ActiveSkillExecutor implements SkillExecutor {
         }
 
         // その他のMobは敵対的とみなす
-        // TODO: MythicMobs等との連携で詳細な判定を行う
+        // MythicMobs連携はドロップ管理機能のみ実装済み
+        // 敵対判定ではMythicMobsとバニラMOBを区別しない
         return true;
     }
 

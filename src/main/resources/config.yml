@@ -132,6 +132,23 @@ skills:
   # スキルのマナコストを有効化
   mana_cost: true
 
+  # スキル発動メッセージ
+  messages:
+    # スキル発動成功メッセージを表示
+    show_cast_success: true
+
+    # MP消費メッセージを表示
+    show_mana_consume: true
+
+    # HP消費メッセージを表示
+    show_hp_consume: true
+
+    # MP不足メッセージを表示
+    show_mana_insufficient: true
+
+    # HP不足メッセージを表示
+    show_hp_insufficient: true
+
 # ================================
 # デバッグ設定
 # ================================

@@ -56,8 +56,23 @@ public class ActiveSkillExecutor implements SkillExecutor {
             return false;
         }
 
-        // MP消費チェック（実装必要）
-        // TODO: MPシステム実装後に有効化
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer == null) {
+            return false;
+        }
+
+        // コスト消費チェック
+        double cost = skill.getCost(level);
+        if (cost > 0) {
+            if (!rpgPlayer.consumeSkillCost((int) cost)) {
+                if (isShowMessage("show_mana_insufficient") && rpgPlayer.isManaCostType()) {
+                    player.sendMessage(ChatColor.RED + "MPが足りません");
+                } else if (isShowMessage("show_hp_insufficient") && !rpgPlayer.isManaCostType()) {
+                    player.sendMessage(ChatColor.RED + "HPが足りません");
+                }
+                return false;
+            }
+        }
 
         // ダメージ計算
         if (skill.getDamage() != null) {
@@ -70,7 +85,11 @@ public class ActiveSkillExecutor implements SkillExecutor {
         data.setLastCastTime(skill.getId(), System.currentTimeMillis());
 
         // メッセージ送信
-        player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level);
+        if (isShowMessage("show_cast_success")) {
+            String costType = rpgPlayer.isManaCostType() ? "MP" : "HP";
+            player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level
+                    + ChatColor.GRAY + " (" + costType + "消費)");
+        }
 
         return true;
     }
@@ -267,8 +286,7 @@ public class ActiveSkillExecutor implements SkillExecutor {
             boolean canAfford = false;
             switch (costType) {
                 case MANA:
-                    // TODO: マナシステム実装後に有効化
-                    canAfford = true; // 暫定：常にtrue
+                    canAfford = rpgPlayer.hasMana((int) cost);
                     break;
                 case HP:
                     canAfford = rpgPlayer.getBukkitPlayer() != null
@@ -277,7 +295,10 @@ public class ActiveSkillExecutor implements SkillExecutor {
             }
 
             if (!canAfford) {
-                player.sendMessage(ChatColor.RED + costType.getDisplayName() + "が足りません");
+                String messageKey = (costType == SkillCostType.MANA) ? "show_mana_insufficient" : "show_hp_insufficient";
+                if (isShowMessage(messageKey)) {
+                    player.sendMessage(ChatColor.RED + costType.getDisplayName() + "が足りません");
+                }
                 return false;
             }
         }
@@ -290,16 +311,29 @@ public class ActiveSkillExecutor implements SkillExecutor {
 
         // 指定コストタイプで消費
         if (cost > 0) {
+            boolean consumed = false;
             switch (costType) {
                 case MANA:
-                    // TODO: マナシステム実装後に有効化
+                    consumed = rpgPlayer.consumeMana((int) cost);
+                    if (consumed && isShowMessage("show_mana_consume")) {
+                        player.sendMessage(ChatColor.BLUE + "MPを" + (int) cost + "消費しました");
+                    }
                     break;
                 case HP:
                     if (rpgPlayer.getBukkitPlayer() != null) {
                         rpgPlayer.getBukkitPlayer().setHealth(
                                 rpgPlayer.getBukkitPlayer().getHealth() - cost);
+                        consumed = true;
+                        if (isShowMessage("show_hp_consume")) {
+                            player.sendMessage(ChatColor.RED + "HPを" + (int) cost + "消費しました");
+                        }
                     }
                     break;
+            }
+
+            // 消費失敗時は処理を中断
+            if (!consumed && costType == SkillCostType.MANA) {
+                return false;
             }
         }
 
@@ -308,9 +342,21 @@ public class ActiveSkillExecutor implements SkillExecutor {
         data.setLastCastTime(skill.getId(), System.currentTimeMillis());
 
         // メッセージ送信
-        player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level
-                + ChatColor.GRAY + " (" + costType.getDisplayName() + "消費)");
+        if (isShowMessage("show_cast_success")) {
+            player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level
+                    + ChatColor.GRAY + " (" + costType.getDisplayName() + "消費)");
+        }
 
         return true;
+    }
+
+    /**
+     * メッセージ表示設定を取得します
+     *
+     * @param key 設定キー
+     * @return 表示する場合はtrue
+     */
+    private boolean isShowMessage(String key) {
+        return plugin.getConfigManager().getBoolean("main", "skills.messages." + key, true);
     }
 }

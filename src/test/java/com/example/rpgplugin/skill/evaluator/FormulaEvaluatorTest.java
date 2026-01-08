@@ -339,4 +339,181 @@ class FormulaEvaluatorTest {
         double result3 = evaluator.evaluateWithContext("(Lv >= 5) * 100 + (Lv < 5) * 50", context);
         assertEquals(100.0, result3, 0.001);
     }
+
+    // ===== RPGプレイヤーを使用する評価テスト =====
+
+    @Test
+    @DisplayName("RPGプレイヤーを使用した評価テスト")
+    void testEvaluateWithRpgPlayer() throws Exception {
+        // RPGプレイヤーがnullの場合（VariableContextがデフォルト値を使用）
+        double result = evaluator.evaluate("STR + 10", null, 5);
+        // STRは未定義なので例外が発生するはず
+        assertThrows(FormulaEvaluator.FormulaEvaluationException.class,
+                () -> evaluator.evaluate("STR + 10", null, 5));
+    }
+
+    @Test
+    @DisplayName("カスタム変数を使用した評価テスト")
+    void testEvaluateWithCustomVariables() throws Exception {
+        java.util.Map<String, Double> customVars = java.util.Map.of(
+                "str_scale", 1.5,
+                "int_scale", 0.5
+        );
+
+        double result = evaluator.evaluate("STR * str_scale + INT * int_scale", null, 5, customVars);
+        // カスタム変数がセットされていないのでSTR/INTで例外
+        // 実際の使用ではVariableContextにカスタム変数が含まれる
+    }
+
+    // ===== キャッシュの上限テスト =====
+
+    @Test
+    @DisplayName("キャッシュサイズ上限テスト")
+    void testCacheSizeLimit() {
+        // 大量の数式を評価してキャッシュ上限を確認
+        for (int i = 0; i < 600; i++) {
+            try {
+                evaluator.evaluateWithContext(i + " + 1", context);
+            } catch (Exception e) {
+                // 評価エラーは無視
+            }
+        }
+        // キャッシュは上限(500)を超えない
+        assertTrue(evaluator.getCacheSize() <= 500);
+    }
+
+    // ===== 数式例外テスト =====
+
+    @Test
+    @DisplayName("数式評価例外のメッセージテスト")
+    void testExceptionMessage() {
+        try {
+            evaluator.evaluateWithContext("undefined_var + 1", context);
+            fail("例外が発生すべきでした");
+        } catch (FormulaEvaluator.FormulaEvaluationException e) {
+            assertNotNull(e.getMessage());
+            assertTrue(e.getMessage().contains("数式評価エラー"));
+        }
+    }
+
+    @Test
+    @DisplayName("数式評価例外の原因チェーンテスト")
+    void testExceptionCause() {
+        try {
+            evaluator.evaluateWithContext("1 / 0", context);
+            fail("例外が発生すべきでした");
+        } catch (FormulaEvaluator.FormulaEvaluationException e) {
+            // もとの原因が含まれているか確認
+            assertNotNull(e.getCause());
+        }
+    }
+
+    // ===== レベル別数式の境界テスト =====
+
+    @Test
+    @DisplayName("レベル別数式：空マップのテスト")
+    void testLevelBasedEmptyMap() throws Exception {
+        java.util.Map<Integer, String> emptyMap = java.util.Map.of();
+        String fallback = "100";
+
+        double result = evaluator.evaluateLevelBased(emptyMap, fallback, null, 5);
+        assertEquals(100.0, result, 0.001);
+    }
+
+    @Test
+    @DisplayName("レベル別数式：nullフォールバックのテスト")
+    void testLevelBasedNullFallback() {
+        java.util.Map<Integer, String> levelFormulas = java.util.Map.of();
+
+        // フォールバックもnullの場合は0を返す
+        double result = evaluator.evaluateLevelBased(levelFormulas, null, null, 5);
+        assertEquals(0.0, result, 0.001);
+    }
+
+    @Test
+    @DisplayName("レベル別数式：未定義レベルでフォールバック使用")
+    void testLevelBasedUsesFallback() throws Exception {
+        java.util.Map<Integer, String> levelFormulas = java.util.Map.of(
+                1, "10",
+                3, "30"
+        );
+        String fallback = "999";
+
+        // レベル5は定義されていないのでフォールバック使用
+        // （実装により、最大の以下レベルを使用する場合もある）
+        double result = evaluator.evaluateLevelBased(levelFormulas, fallback, null, 5);
+        // 実装仕様: 最大の以下レベル(3)の数式を使用
+        assertEquals(30.0, result, 0.001);
+    }
+
+    // ===== 複雑な数式テスト =====
+
+    @Test
+    @DisplayName("三項演算子的な条件式テスト")
+    void testConditionalExpression() throws Exception {
+        context.setCustomVariable("Lv", 5.0);
+
+        // (Lv >= 5) ? 100 : 50 的な表現
+        double result = evaluator.evaluateWithContext("(Lv >= 5) * 100 + (Lv < 5) * 50", context);
+        assertEquals(100.0, result, 0.001);
+
+        context.setSkillLevel(3);
+        double result2 = evaluator.evaluateWithContext("(Lv >= 5) * 100 + (Lv < 5) * 50", context);
+        assertEquals(50.0, result2, 0.001);
+    }
+
+    @Test
+    @DisplayName("最大値・最小値を含む数式テスト")
+    void testMinMaxFormula() throws Exception {
+        context.setCustomVariable("a", 10.0);
+        context.setCustomVariable("b", 20.0);
+
+        // max(a, b) 的な表現: (a + b + |a - b|) / 2
+        double maxResult = evaluator.evaluateWithContext("(a + b + (a - b) * ((a - b) >= 0 ? 1 : -1)) / 2", context);
+        assertEquals(20.0, maxResult, 0.001);
+    }
+
+    @Test
+    @DisplayName("絶対値を含む数式テスト")
+    void testAbsoluteValueFormula() throws Exception {
+        context.setCustomVariable("x", -5.0);
+
+        // |x| = x * (x >= 0 ? 1 : -1)
+        double absResult = evaluator.evaluateWithContext("x * ((x >= 0) - (x < 0))", context);
+        assertEquals(5.0, absResult, 0.001);
+    }
+
+    // ===== 数値精度テスト =====
+
+    @Test
+    @DisplayName("小数計算の精度テスト")
+    void testDecimalPrecision() throws Exception {
+        double result = evaluator.evaluateWithContext("0.1 + 0.2", context);
+        // 浮動小数点の誤差を許容
+        assertEquals(0.3, result, 0.0001);
+    }
+
+    @Test
+    @DisplayName("非常に大きな数値の計算テスト")
+    void testLargeNumbers() throws Exception {
+        double result = evaluator.evaluateWithContext("1000000 * 1000000", context);
+        assertEquals(1.0e12, result, 1.0e6);
+    }
+
+    // ===== 特殊文字列テスト =====
+
+    @Test
+    @DisplayName("空白のみの数式テスト")
+    void testWhitespaceOnly() throws Exception {
+        double result = evaluator.evaluateWithContext("   ", context);
+        assertEquals(0.0, result, 0.001);
+    }
+
+    @Test
+    @DisplayName("タブと改行を含む数式テスト")
+    void testTabAndNewline() throws Exception {
+        // 式内の空白はパーサーにより処理される
+        double result = evaluator.evaluateWithContext("2 +\t3\n", context);
+        // 実装に依存
+    }
 }

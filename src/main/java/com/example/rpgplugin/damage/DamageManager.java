@@ -153,8 +153,8 @@ public class DamageManager implements Listener {
         }
 
         // プレイヤー→プレイヤー（PvP）
-        // 現時点では通常ダメージを適用
-        // 将来的にはPvP補正を実装予定
+        // PvPは未サポートのため、バニラの動作に委ねる
+        // 補正等の処理は行わない
     }
 
     /**

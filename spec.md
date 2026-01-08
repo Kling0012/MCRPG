@@ -1443,6 +1443,18 @@ execute player command "rpg api cast_with_cost blood_weapon hp"
 
 ---
 
+## スコープ外の機能
+
+### PvP（Player vs Player）
+- **状態**: 未サポート
+- **理由**: 本プラグインはPvE（Player vs Environment）に特化
+- **仕様**:
+  - スキルはプレイヤーをターゲットにできない
+  - プレイヤー間の攻撃はバニラの動作に委ねる
+  - 将来的なPvP対応は別途検討
+
+---
+
 ## 最終チェックリスト
 
 ### 必須要件

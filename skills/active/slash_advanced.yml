@@ -1,0 +1,155 @@
+# 斬撃（上級）- 単体攻撃スキルの完全版サンプル
+# Phase11-11: 新スキルシステム V2 リファレンス実装
+#
+# このファイルは、新スキルシステムの全機能を網羅した単体攻撃スキルの例です。
+#
+# 機能一覧:
+# - カスタム変数定義
+# - レベル依存コスト/クールダウン
+# - 数式ベースダメージ計算
+# - レベル別数式
+# - コーン型範囲ターゲティング
+# - スキルツリー連携
+
+id: slash_advanced
+name: 斬撃（上級）
+display_name: "&e&l斬撃・改"
+type: active
+description:
+  - "&c鋭い斬撃を放つ近接攻撃スキル"
+  - "&eSTRに依存してダメージ増加"
+  - "&eスキルレベルで範囲と威力が上昇"
+  - "&7※コーン状の範囲内の敵全てにダメージ"
+max_level: 10
+
+# ========================================
+# カスタム変数定義（Phase11-6）
+# ========================================
+# 数式内で使用する独自の変数を定義できます。
+# これにより、バランス調整が容易になります。
+variables:
+  # STRに対するダメージ倍率
+  str_scale: 1.8
+  # レベルごとのダメージ増加量
+  level_bonus: 5.0
+  # 基本ダメージ係数
+  base_mod: 1.0
+  # クリティカル倍率
+  crit_mult: 1.5
+  # クリティカル率（DEX依存）
+  crit_rate: 0.1
+
+# ========================================
+# コスト設定（Phase11-6: レベル依存）
+# ========================================
+# type: 消費リソースタイプ（mana/hp/stamina）
+# base: 基本コスト
+# per_level: レベルごとの増減量
+# min: 最小コスト（負の値で無制限）
+# max: 最大コスト（省略可）
+cost:
+  type: mana
+  base: 15
+  per_level: -1  # レベルが上がるごとに1ずつ減少
+  min: 5         # 最低でも5消費
+
+# ========================================
+# クールダウン設定（Phase11-6: レベル依存）
+# ========================================
+# base: 基本クールダウン（秒）
+# per_level: レベルごとの増減量
+# min: 最短クールダウン
+cooldown:
+  base: 8.0
+  per_level: -0.5  # レベルが上がるごとに0.5秒短縮
+  min: 2.0         # 最短2秒
+
+# ========================================
+# ダメージ計算（Phase11-6: 数式形式）
+# ========================================
+# formula: 基本ダメージ数式（レベル別定義がない場合に使用）
+# levels: 特定レベルでの数式オーバーライド
+#
+# 使用可能な変数:
+# - STR, INT, SPI, VIT, DEX: プレイヤーのステータス値
+# - Lv: スキルレベル
+# - variablesセクションで定義したカスタム変数
+# - 基本演算: +, -, *, /, %, ^(累乗)
+# - 関数: floor(), ceil(), round(), abs(), min(), max()
+damage:
+  # 基本数式: STR * str_scale + (Lv * level_bonus) + base_mod * 10
+  # 例: STR=50, Lv=1 の場合 -> 50*1.8 + 1*5 + 10 = 105
+  formula: "STR * str_scale + (Lv * level_bonus) + base_mod * 10"
+
+  # レベル別数式オーバーライド
+  # 特定のレベルで計算式を変更できます
+  levels:
+    # Lv5: クリティカル補正を追加
+    5: "STR * str_scale + (Lv * level_bonus) + base_mod * 10 + (DEX * crit_rate * crit_mult)"
+
+    # Lv10: 最終奥義。大幅なダメージ増加
+    10: "(STR * str_scale * 1.5) + (Lv * level_bonus * 2) + base_mod * 20 + (DEX * crit_rate * crit_mult * 2)"
+
+# ========================================
+# ターゲット設定（Phase11-6）
+# ========================================
+# type: ターゲットタイプ
+#   - single: 単体ターゲット
+#   - cone: コーン状範囲
+#   - sphere: 球形範囲
+#   - sector: 扇形範囲
+#   - area: 指定座標を中心とした範囲
+targeting:
+  type: cone
+  cone:
+    angle: 90      # コーンの角度（度数法）
+    range: 6.0     # 範囲（ブロック単位）
+
+# ========================================
+# エフェクト設定（オプション）
+# ========================================
+# スキル発動時の視覚・聴覚効果
+effects:
+  cast:
+    - type: sound
+      sound: ENTITY_PLAYER_ATTACK_SWEEP
+      volume: 1.0
+      pitch: 1.0
+    - type: particle
+      particle: SWEEP_ATTACK
+      count: 10
+
+  hit:
+    - type: sound
+      sound: ENTITY_PLAYER_ATTACK_CRIT
+      volume: 0.5
+      pitch: 0.8
+    - type: particle
+      particle: CRIT
+      count: 5
+
+# ========================================
+# スキルツリー設定
+# ========================================
+skill_tree:
+  parent: slash_basic  # 親スキルID（基本斬撃を習得済みが必要）
+  unlock_requirements:
+    - type: level
+      value: 10        # プレイヤーレベル10以上
+    - type: stat
+      stat: STRENGTH
+      value: 30        # STRが30以上
+    - type: skill
+      skill_id: slash_basic
+      level: 5         # 基本斬撃をLv5以上習得
+  cost: 3              # 習得コスト（スキルポイント）
+
+# ========================================
+# GUI設定
+# ========================================
+icon_material: DIAMOND_SWORD
+available_classes:
+  - Warrior
+  - Knight
+  - Samurai
+  - Paladin

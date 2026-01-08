@@ -1,0 +1,152 @@
+# ウィンドスラッシュ - 扇形範囲攻撃スキルのサンプル
+# Phase11-11: 新スキルシステム V2 リファレンス実装
+#
+# このファイルは、扇形（sector）範囲攻撃スキルの例です。
+#
+# 機能一覧:
+# - DEX依存の敏捷性攻撃
+# - 扇形範囲ターゲティング
+# - 複雑な数式例
+# - クリティカル計算
+
+id: wind_slash
+name: ウィンドスラッシュ
+display_name: "&b&l真空波"
+type: active
+description:
+  - "&b風圧で敵を切り裂く"
+  - "&eDEXに依存してダメージ・範囲増加"
+  - "&e移動速度が高いほどダメージ増加"
+  - "&7※前方扇状範囲内の敵全てにダメージ"
+max_level: 8
+
+# ========================================
+# カスタム変数定義
+# ========================================
+variables:
+  # DEX倍率
+  dex_scale: 1.6
+  # 基本ダメージ
+  base_wind: 35.0
+  # クリティカル倍率
+  crit_mult: 2.0
+  # クリティカル率基本値
+  base_crit: 0.15
+  # DEXのクリティカル係数
+  dex_crit: 0.005  # DEX1ごとに+0.5%
+
+# ========================================
+# コスト設定
+# ========================================
+cost:
+  type: mana
+  base: 18
+  per_level: 1
+  max: 40
+
+# ========================================
+# クールダウン設定
+# ========================================
+cooldown:
+  base: 6.0
+  per_level: -0.4
+  min: 2.5
+
+# ========================================
+# ダメージ計算（複雑な数式例）
+# ========================================
+damage:
+  # 複雑な数式: クリティカル計算を含む
+  # min()関数でクリティカル率を100%に制限
+  # floor()関数で小数点以下を切り捨て
+  formula: "floor(DEX * dex_scale + base_wind) * (1 + min(base_crit + DEX * dex_crit, 1.0) * crit_mult)"
+
+  # レベル別数式
+  levels:
+    # Lv3: クリティカル率向上
+    3: "floor(DEX * (dex_scale + 0.3) + base_wind) * (1 + min(base_crit + DEX * (dex_crit + 0.002), 1.0) * crit_mult)"
+
+    # Lv5: ダメージ底上げ
+    5: "floor(DEX * (dex_scale + 0.5) + base_wind * 1.5) * (1 + min(base_crit + DEX * (dex_crit + 0.003), 1.0) * crit_mult)"
+
+    # Lv8: 最終奥義
+    8: "floor(DEX * (dex_scale + 1.0) + base_wind * 2.0) * (1 + min(base_crit + DEX * (dex_crit + 0.005), 1.0) * crit_mult * 1.5)"
+
+# ========================================
+# ターゲット設定（扇形）
+# ========================================
+targeting:
+  type: sector
+  sector:
+    angle: 120        # 扇形の角度（度数法）
+    radius: 8.0       # 範囲（ブロック単位）
+    max_targets: 15   # 最大ターゲット数
+
+# ========================================
+# エフェクト設定
+# ========================================
+effects:
+  cast:
+    - type: sound
+      sound: ENTITY_EVOKER_FANGS_ATTACK
+      volume: 0.8
+      pitch: 1.5
+    - type: particle
+      particle: CLOUD
+      count: 15
+      offset: 0.3
+
+  hit:
+    - type: sound
+      sound: ENTITY_PLAYER_ATTACK_SWEEP
+      volume: 1.2
+      pitch: 1.3
+    - type: particle
+      particle: SWEEP_ATTACK
+      count: 8
+
+  # クリティカルヒット時の特別エフェクト
+  critical:
+    - type: sound
+      sound: ENTITY_LIGHTNING_BOLT_THUNDER
+      volume: 0.5
+      pitch: 2.0
+    - type: particle
+      particle: TOTEM
+      count: 3
+
+# ========================================
+# 追加効果
+# ========================================
+# ノックバック効果
+additional_effects:
+  - type: knockback
+    strength: 1.5    # ノックバック強度
+    vertical: 0.3    # 垂直方向のノックバック
+
+  - type: slow
+    duration: 2      # 2秒間減速
+    slow_percent: 0.2
+
+# ========================================
+# スキルツリー設定
+# ========================================
+skill_tree:
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 12
+    - type: stat
+      stat: DEXTERITY
+      value: 35
+  cost: 3
+
+# ========================================
+# GUI設定
+# ========================================
+icon_material: FEATHER
+available_classes:
+  - Assassin
+  - Ranger
+  - Ninja
+  - Samurai

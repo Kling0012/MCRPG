@@ -28,7 +28,14 @@ ignore_all_files_in_gitignore: true
 # same syntax as gitignore, so you can use * and **
 # Was previously called `ignored_dirs`, please update your config if you are using that.
 # Added (renamed) on 2025-04-07
-ignored_paths: []
+ignored_paths:
+  - target/
+  - venv/
+  - .vscode/
+  - .idea/
+  - .git/
+  - .serena/cache/
+  - examples/
 
 # whether the project is in read-only mode
 # If set to true, all editing tools will be disabled and attempts to use them will result in an error
@@ -78,7 +85,14 @@ excluded_tools: []
 
 # initial prompt for the project. It will always be given to the LLM upon activating the project
 # (contrary to the memories, which are loaded on demand).
-initial_prompt: ""
+initial_prompt: |
+  これはMinecraft Java用RPGプラグインプロジェクトです。
+  - Java 21を使用
+  - Mavenビルドシステム
+  - パッケージ: com.example.rpgplugin
+  - 主要機能: スキルシステム、RPGクラス、ステータス、ダメージ計算、MythicMobs連携
+  - コーディング規約: 日本語コメント、SPD4タブ幅
+  - 重要: MemoryMCPに情報を保存し、積極的に参照すること
 
 project_name: "Minecraft-Java-Plaugin-forRPG"
 included_optional_tools: []

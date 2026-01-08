@@ -70,7 +70,7 @@ public class ManaManager {
         }
 
         regenerationTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (RPGPlayer rpgPlayer : playerManager.getOnlinePlayers()) {
+            for (RPGPlayer rpgPlayer : playerManager.getOnlinePlayers().values()) {
                 try {
                     regenerateMana(rpgPlayer);
                 } catch (Exception e) {

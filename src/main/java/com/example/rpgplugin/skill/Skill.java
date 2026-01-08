@@ -730,14 +730,16 @@ public class Skill {
      * <p>このメソッドはFormulaDamageCalculatorと連携して動作します。</p>
      *
      * @param calculator 数式ダメージ計算機
+     * @param rpgPlayer RPGプレイヤー
      * @param skillLevel スキルレベル
      * @return 計算されたダメージ、エラー時は0.0
      */
-    public double calculateFormulaDamage(com.example.rpgplugin.skill.evaluator.FormulaDamageCalculator calculator, int skillLevel) {
+    public double calculateFormulaDamage(com.example.rpgplugin.skill.evaluator.FormulaDamageCalculator calculator,
+                                         com.example.rpgplugin.player.RPGPlayer rpgPlayer, int skillLevel) {
         if (formulaDamage == null || calculator == null) {
             return 0.0;
         }
-        
+
         // カスタム変数を設定
         if (hasVariables()) {
             java.util.Map<String, Double> varMap = new java.util.HashMap<>();
@@ -746,9 +748,9 @@ public class Skill {
             }
             calculator.setCustomVariables(varMap);
         }
-        
+
         try {
-            return calculator.calculateDamage(skillLevel);
+            return calculator.calculateDamage(rpgPlayer, skillLevel);
         } catch (Exception e) {
             return 0.0;
         }

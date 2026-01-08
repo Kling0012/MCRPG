@@ -1,0 +1,103 @@
+package com.example.rpgplugin.skill.target;
+
+/**
+ * スキルのターゲット選択方式を表す列挙型
+ *
+ * <p>設計原則:</p>
+ * <ul>
+ *   <li>SOLID-S: ターゲット選択方式の定義に専念</li>
+ *   <li>YAGNI: 必要な選択方式のみ定義</li>
+ * </ul>
+ *
+ * @author RPGPlugin Team
+ * @version 1.0.0
+ */
+public enum TargetType {
+
+    /**
+     * 自分自身（Player）
+     */
+    SELF("self", "自分自身"),
+
+    /**
+     * 最も近い敵対MOB
+     */
+    NEAREST_HOSTILE("nearest_hostile", "最も近い敵対MOB"),
+
+    /**
+     * 最も近いエンティティ（プレイヤー含む）
+     */
+    NEAREST_ENTITY("nearest_entity", "最も近いエンティティ"),
+
+    /**
+     * 範囲内の全エンティティ
+     */
+    AREA("area", "範囲内全て"),
+
+    /**
+     * 外部から指定されたターゲット
+     */
+    EXTERNAL("external", "外部指定");
+
+    private final String id;
+    private final String displayName;
+
+    TargetType(String id, String displayName) {
+        this.id = id;
+        this.displayName = displayName;
+    }
+
+    /**
+     * IDから対応するTargetTypeを取得します
+     *
+     * @param id ターゲットタイプID
+     * @return 対応するTargetType、見つからない場合はnull
+     */
+    public static TargetType fromId(String id) {
+        if (id == null) {
+            return null;
+        }
+        for (TargetType type : values()) {
+            if (type.id.equalsIgnoreCase(id)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * ターゲットタイプIDを取得します
+     *
+     * @return ターゲットタイプID
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * 表示名を取得します
+     *
+     * @return 表示名
+     */
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    /**
+     * 範囲系ターゲットタイプか判定します
+     *
+     * @return 範囲系の場合はtrue
+     */
+    public boolean isAreaType() {
+        return this == AREA;
+    }
+
+    /**
+     * 単体ターゲットタイプか判定します
+     *
+     * @return 単体ターゲットの場合はtrue
+     */
+    public boolean isSingleType() {
+        return this == SELF || this == NEAREST_HOSTILE || this == NEAREST_ENTITY;
+    }
+}

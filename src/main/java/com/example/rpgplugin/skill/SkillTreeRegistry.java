@@ -1,0 +1,310 @@
+package com.example.rpgplugin.skill;
+
+import org.bukkit.entity.Player;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * スキルツリーレジストリ
+ *
+ * <p>クラスごとのスキルツリーを管理し、動的な更新を可能にします。</p>
+ *
+ * <p>設計原則:</p>
+ * <ul>
+ *   <li>SOLID-S: スキルツリーのキャッシュと管理に専念</li>
+ *   <li>Observer: スキル追加時に登録済みリスナーに通知</li>
+ *   <li>Singleton: クラスIDごとに単一のツリーを管理</li>
+ * </ul>
+ *
+ * <p>機能:</p>
+ * <ul>
+ *   <li>クラスごとのスキルツリー構築・キャッシュ</li>
+ *   <li>スキル追加時の自動ツリー更新</li>
+ *   <li>GUIリフレッシュ通知機能</li>
+ * </ul>
+ *
+ * @author RPGPlugin Team
+ * @version 1.0.0
+ */
+public class SkillTreeRegistry {
+
+    /** クラスIDごとのスキルツリーキャッシュ */
+    private final Map<String, SkillTree> treeCache = new ConcurrentHashMap<>();
+
+    /** スキルIDから所属クラスのマッピング */
+    private final Map<String, String> skillToClassMap = new ConcurrentHashMap<>();
+
+    /** 登録済みスキル（全スキル） */
+    private final Map<String, Skill> registeredSkills = new ConcurrentHashMap<>();
+
+    /** GUI更新リスナー */
+    private final List<TreeUpdateListener> listeners = new ArrayList<>();
+
+    /**
+     * ツリー更新リスナー
+     */
+    @FunctionalInterface
+    public interface TreeUpdateListener {
+        /**
+         * ツリーが更新されたときに呼び出されます
+         *
+         * @param classId 更新されたクラスID
+         */
+        void onTreeUpdated(String classId);
+    }
+
+    /**
+     * スキルツリーを取得します
+     *
+     * <p>キャッシュに存在しない場合は自動的に構築します。</p>
+     *
+     * @param classId クラスID
+     * @return スキルツリー、存在しない場合は空のツリー
+     */
+    public SkillTree getTree(String classId) {
+        return treeCache.computeIfAbsent(classId, this::buildTreeForClass);
+    }
+
+    /**
+     * スキルを登録し、ツリーを更新します
+     *
+     * @param skill 登録するスキル
+     * @return 成功した場合はtrue
+     */
+    public boolean registerSkill(Skill skill) {
+        String skillId = skill.getId();
+
+        // 既存スキルの場合は更新
+        if (registeredSkills.containsKey(skillId)) {
+            registeredSkills.put(skillId, skill);
+            // 所属クラスのツリーを再構築
+            rebuildTreeForSkill(skillId);
+            return true;
+        }
+
+        // 新規スキルの登録
+        registeredSkills.put(skillId, skill);
+
+        // 利用可能なクラスを判定
+        List<String> availableClasses = skill.getAvailableClasses();
+        Set<String> targetClasses;
+
+        if (availableClasses.isEmpty()) {
+            // 全クラスで利用可能な場合、すべてのキャッシュをクリア
+            targetClasses = new HashSet<>(treeCache.keySet());
+        } else {
+            // 特定クラスのみ利用可能
+            targetClasses = new HashSet<>(availableClasses);
+        }
+
+        // 各クラスのスキルとしてマッピング
+        for (String classId : targetClasses) {
+            skillToClassMap.put(skillId, classId);
+            invalidateTree(classId);
+        }
+
+        return true;
+    }
+
+    /**
+     * スキルが登録されているかチェックします
+     *
+     * @param skillId スキルID
+     * @return 登録されている場合はtrue
+     */
+    public boolean isSkillRegistered(String skillId) {
+        return registeredSkills.containsKey(skillId);
+    }
+
+    /**
+     * 登録済みスキルを取得します
+     *
+     * @param skillId スキルID
+     * @return スキル、未登録の場合はnull
+     */
+    public Skill getRegisteredSkill(String skillId) {
+        return registeredSkills.get(skillId);
+    }
+
+    /**
+     * 登録済みスキルをクラスでフィルタリングして取得します
+     *
+     * @param classId クラスID
+     * @return スキルのリスト
+     */
+    public List<Skill> getSkillsForClass(String classId) {
+        List<Skill> result = new ArrayList<>();
+        for (Skill skill : registeredSkills.values()) {
+            List<String> availableClasses = skill.getAvailableClasses();
+            if (availableClasses.isEmpty() || availableClasses.contains(classId)) {
+                result.add(skill);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 全スキルを取得します
+     *
+     * @return 全スキルのマップ（コピー）
+     */
+    public Map<String, Skill> getAllSkills() {
+        return new HashMap<>(registeredSkills);
+    }
+
+    /**
+     * 登録済みスキル数を取得します
+     *
+     * @return スキル数
+     */
+    public int getSkillCount() {
+        return registeredSkills.size();
+    }
+
+    /**
+     * GUI更新リスナーを登録します
+     *
+     * @param listener リスナー
+     */
+    public void addListener(TreeUpdateListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * GUI更新リスナーを削除します
+     *
+     * @param listener リスナー
+     */
+    public void removeListener(TreeUpdateListener listener) {
+        listeners.remove(listener);
+    }
+
+    /**
+     * リスナーをクリアします
+     */
+    public void clearListeners() {
+        listeners.clear();
+    }
+
+    /**
+     * キャッシュをクリアします
+     */
+    public void clearCache() {
+        treeCache.clear();
+        skillToClassMap.clear();
+    }
+
+    /**
+     * 特定クラスのキャッシュを無効化します
+     *
+     * @param classId クラスID
+     */
+    public void invalidateTree(String classId) {
+        treeCache.remove(classId);
+        notifyListeners(classId);
+    }
+
+    /**
+     * 全キャッシュを無効化します
+     */
+    public void invalidateAll() {
+        Set<String> classIds = new HashSet<>(treeCache.keySet());
+        treeCache.clear();
+        for (String classId : classIds) {
+            notifyListeners(classId);
+        }
+    }
+
+    /**
+     * スキルの所属クラスのツリーを再構築します
+     *
+     * @param skillId スキルID
+     */
+    private void rebuildTreeForSkill(String skillId) {
+        String classId = skillToClassMap.get(skillId);
+        if (classId != null) {
+            invalidateTree(classId);
+        }
+    }
+
+    /**
+     * リスナーに通知します
+     *
+     * @param classId 更新されたクラスID
+     */
+    private void notifyListeners(String classId) {
+        for (TreeUpdateListener listener : listeners) {
+            try {
+                listener.onTreeUpdated(classId);
+            } catch (Exception e) {
+                // リスナーの例外は無視して続行
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * クラスのスキルツリーを構築します
+     *
+     * @param classId クラスID
+     * @return 構築されたスキルツリー
+     */
+    private SkillTree buildTreeForClass(String classId) {
+        SkillTree tree = new SkillTree(classId);
+
+        // クラスで利用可能なスキルを取得
+        List<Skill> classSkills = getSkillsForClass(classId);
+
+        // スキルノードを作成
+        Map<String, SkillNode> nodeMap = new HashMap<>();
+        for (Skill skill : classSkills) {
+            SkillNode node = new SkillNode(skill, null, 0, 0);
+            nodeMap.put(skill.getId(), node);
+        }
+
+        // 親子関係を構築
+        for (Skill skill : classSkills) {
+            SkillNode node = nodeMap.get(skill.getId());
+            if (node == null) {
+                continue;
+            }
+
+            Skill.SkillTreeConfig treeConfig = skill.getSkillTree();
+            if (treeConfig != null) {
+                String parentId = treeConfig.getParent();
+                if (parentId != null && !"none".equalsIgnoreCase(parentId)) {
+                    SkillNode parentNode = nodeMap.get(parentId);
+                    if (parentNode != null) {
+                        // 親ノードに追加（SkillTree.addNode側で処理されるため、ここでは直接関係を設定）
+                        // ノードをツリーに追加
+                        tree.addNode(node);
+                    } else {
+                        // 親が見つからない場合はルートとして扱う
+                        tree.addNode(node);
+                    }
+                } else {
+                    // ルートノード
+                    tree.addNode(node);
+                }
+            } else {
+                // ツリー設定がない場合はルート
+                tree.addNode(node);
+            }
+        }
+
+        return tree;
+    }
+
+    /**
+     * プレイヤーの現在開いているGUIをリフレッシュする必要があるかチェックします
+     *
+     * @param player プレイヤー
+     * @param classId クラスID
+     * @return リフレッシュが必要な場合はtrue
+     */
+    public boolean needsRefresh(Player player, String classId) {
+        // 常に最新のツリーを使用するため、キャッシュが存在しない場合は再構築が必要
+        return !treeCache.containsKey(classId);
+    }
+}

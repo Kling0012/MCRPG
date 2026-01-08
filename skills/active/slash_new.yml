@@ -1,0 +1,57 @@
+# 斬撃 - 新YAML形式サンプル
+# Phase11-6: 新スキル定義フォーマットの検証用
+
+id: slash
+name: 斬撃
+display_name: "&e斬撃"
+type: active
+description:
+  - "&c鋭い斬撃を放つ"
+  - "&eSTRに依存してダメージ増加"
+max_level: 5
+
+# カスタム変数定義（Phase11-6）
+variables:
+  base_mod: 1.0
+  str_scale: 1.5
+
+# コスト（レベルで変化）
+cost:
+  type: mana  # or hp
+  base: 10
+  per_level: -1
+  min: 0
+
+# クールダウン（レベルで短縮）
+cooldown:
+  base: 5.0
+  per_level: -0.5
+  min: 1.0
+
+# ダメージ（数式形式 - Phase11-6）
+damage:
+  formula: "STR * str_scale + (Lv * 5) + base_mod * 10"
+
+# ターゲット設定（Phase11-6）
+targeting:
+  type: cone
+  cone:
+    angle: 90
+    range: 5.0
+
+# スキルツリー
+skill_tree:
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 1
+  cost: 1
+
+# アイコン
+icon_material: IRON_SWORD
+
+# 利用可能クラス
+available_classes:
+  - Warrior
+  - Knight
+  - Samurai

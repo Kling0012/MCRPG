@@ -1,0 +1,63 @@
+# ファイアボール - 新YAML形式サンプル（レベル別数式）
+# Phase11-6: レベル別ダメージ数式の検証用
+
+id: fireball_new
+name: ファイアボール（改）
+display_name: "&cファイアボール"
+type: active
+description:
+  - "&c炎の玉を発射する"
+  - "&eINTに依存してダメージ増加"
+  - "&eレベルで威力が変化"
+max_level: 10
+
+# カスタム変数
+variables:
+  int_mod: 2.0
+  base_fire: 30.0
+
+# コスト（レベルで上昇）
+cost:
+  type: mana
+  base: 15
+  per_level: 2
+  max: 50
+
+# クールダウン（固定）
+cooldown:
+  base: 6.0
+  per_level: 0.0
+  min: 3.0
+
+# ダメージ（レベル別数式 - Phase11-6）
+damage:
+  formula: "INT * int_mod + base_fire"
+  levels:
+    1: "INT * 2.0 + 30"
+    5: "INT * 2.5 + 50"
+    10: "INT * 3.0 + 100"
+
+# ターゲット設定（球形範囲）
+targeting:
+  type: sphere
+  sphere:
+    radius: 3.0
+
+# スキルツリー
+skill_tree:
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 5
+    - type: stat
+      stat: INTELLIGENCE
+      value: 20
+  cost: 2
+
+# アイコン
+icon_material: BLAZE_POWDER
+
+# 利用可能クラス
+available_classes:
+  - Mage
+  - Wizard

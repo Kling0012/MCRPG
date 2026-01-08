@@ -5,15 +5,19 @@ import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.skill.evaluator.FormulaDamageCalculator;
 import com.example.rpgplugin.skill.evaluator.FormulaEvaluator;
+import com.example.rpgplugin.skill.target.ShapeCalculator;
+import com.example.rpgplugin.skill.target.TargetSelector;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * スキル管理クラス
@@ -639,12 +643,20 @@ public class SkillManager {
     /**
      * ターゲットを選択します
      *
+     * <p>Phase11-4統合: SkillTargetが設定されている場合はTargetSelectorを使用します。</p>
+     *
      * @param player 発動者
      * @param skill スキル
      * @param config 実行設定
      * @return ターゲットリスト
      */
     public List<LivingEntity> selectTargets(Player player, Skill skill, SkillExecutionConfig config) {
+        // Phase11-4: SkillTargetが設定されている場合は、TargetSelectorを使用
+        if (skill.hasSkillTarget()) {
+            return selectTargetsWithSkillTarget(player, skill, config);
+        }
+
+        // レガシー/Phase11-6: 従来のターゲット選択ロジック
         List<LivingEntity> targets = new ArrayList<>();
 
         // 単体ターゲット指定
@@ -689,6 +701,78 @@ public class SkillManager {
         }
 
         return targets;
+    }
+
+    /**
+     * Phase11-4: SkillTargetを使用してターゲットを選択します
+     *
+     * @param player 発動者
+     * @param skill スキル
+     * @param config 実行設定
+     * @return ターゲットリスト
+     */
+    private List<LivingEntity> selectTargetsWithSkillTarget(Player player, Skill skill,
+                                                            SkillExecutionConfig config) {
+        com.example.rpgplugin.skill.target.SkillTarget skillTarget = skill.getSkillTarget();
+        if (skillTarget == null) {
+            return new ArrayList<>();
+        }
+
+        Location origin = player.getLocation();
+        Vector direction = player.getLocation().getDirection();
+
+        // 候補エンティティを収集
+        List<Entity> candidates = getCandidateEntities(player, skillTarget);
+
+        // TargetSelectorでターゲットを選択
+        List<Entity> selectedEntities = TargetSelector.selectTargets(
+                player, skillTarget, candidates,
+                config.getTargetEntity());
+
+        // LivingEntityのみを抽出して返す
+        return selectedEntities.stream()
+                .filter(e -> e instanceof LivingEntity)
+                .map(e -> (LivingEntity) e)
+                .filter(e -> isValidTarget((LivingEntity) e, player))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Phase11-4: 候補エンティティを収集します
+     *
+     * @param player 発動者
+     * @param skillTarget スキルターゲット設定
+     * @return 候補エンティティリスト
+     */
+    private List<Entity> getCandidateEntities(Player player,
+                                             com.example.rpgplugin.skill.target.SkillTarget skillTarget) {
+        Location origin = player.getLocation();
+
+        // 範囲設定に基づいて検索半径を決定
+        double searchRadius = getSearchRadius(skillTarget);
+
+        return new ArrayList<>(TargetSelector.getNearbyEntities(origin, searchRadius));
+    }
+
+    /**
+     * Phase11-4: スキルターゲット設定から検索半径を取得します
+     *
+     * @param skillTarget スキルターゲット設定
+     * @return 検索半径
+     */
+    private double getSearchRadius(com.example.rpgplugin.skill.target.SkillTarget skillTarget) {
+        // 範囲設定から最大値を取得
+        if (skillTarget.getCircle() != null) {
+            return skillTarget.getCircle().getRadius();
+        }
+        if (skillTarget.getCone() != null) {
+            return skillTarget.getCone().getRange();
+        }
+        if (skillTarget.getRect() != null) {
+            return Math.max(skillTarget.getRect().getWidth(), skillTarget.getRect().getDepth());
+        }
+        // デフォルト検索範囲
+        return 10.0;
     }
 
     /**

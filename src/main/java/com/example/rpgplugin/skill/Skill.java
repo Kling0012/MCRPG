@@ -45,6 +45,9 @@ public class Skill {
     private final FormulaDamageConfig formulaDamage;
     private final TargetingConfig targeting;
 
+    // Phase11-4: スキルエフェクト範囲システム（targetパッケージ統合）
+    private final com.example.rpgplugin.skill.target.SkillTarget skillTarget;
+
     /**
      * ダメージ計算設定
      */
@@ -431,11 +434,11 @@ public class Skill {
                  SkillTreeConfig skillTree, String iconMaterial, List<String> availableClasses) {
         this(id, name, displayName, type, description, maxLevel, cooldown, manaCost,
                 cooldownParameter, costParameter, costType, damage, skillTree, iconMaterial,
-                availableClasses, null, null, null);
+                availableClasses, null, null, null, null);
     }
 
     /**
-     * コンストラクタ（Phase11-6: 新YAMLフォーマット完全対応版）
+     * コンストラクタ（Phase11-6+11-4統合: 新YAMLフォーマット完全対応版）
      *
      * @param id スキルID
      * @param name スキル名
@@ -454,7 +457,8 @@ public class Skill {
      * @param availableClasses 利用可能なクラスリスト
      * @param variables カスタム変数定義リスト（Phase11-6）
      * @param formulaDamage 数式ダメージ設定（Phase11-6）
-     * @param targeting ターゲット設定（Phase11-6）
+     * @param targeting ターゲット設定（Phase11-6 TargetingConfig）
+     * @param skillTarget スキルターゲット設定（Phase11-4 SkillTarget）
      */
     public Skill(String id, String name, String displayName, SkillType type, List<String> description,
                  int maxLevel, double cooldown, int manaCost,
@@ -462,7 +466,8 @@ public class Skill {
                  SkillCostType costType, DamageCalculation damage,
                  SkillTreeConfig skillTree, String iconMaterial, List<String> availableClasses,
                  java.util.List<VariableDefinition> variables, FormulaDamageConfig formulaDamage,
-                 TargetingConfig targeting) {
+                 TargetingConfig targeting,
+                 com.example.rpgplugin.skill.target.SkillTarget skillTarget) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
@@ -482,6 +487,8 @@ public class Skill {
         this.variables = variables != null ? new ArrayList<>(variables) : new ArrayList<>();
         this.formulaDamage = formulaDamage;
         this.targeting = targeting;
+        // Phase11-4: スキルターゲット設定の初期化
+        this.skillTarget = skillTarget;
     }
 
     /**
@@ -697,6 +704,24 @@ public class Skill {
      */
     public boolean hasVariables() {
         return variables != null && !variables.isEmpty();
+    }
+
+    /**
+     * スキルターゲット設定を取得します（Phase11-4）
+     *
+     * @return スキルターゲット設定、未設定の場合はnull
+     */
+    public com.example.rpgplugin.skill.target.SkillTarget getSkillTarget() {
+        return skillTarget;
+    }
+
+    /**
+     * スキルターゲット設定が存在するかチェックします（Phase11-4）
+     *
+     * @return スキルターゲット設定がある場合はtrue
+     */
+    public boolean hasSkillTarget() {
+        return skillTarget != null;
     }
 
     /**

@@ -166,6 +166,9 @@ public class SkillLoader extends ConfigLoader {
             // Phase11-6: ターゲット設定のパース
             Skill.TargetingConfig targeting = parseTargeting(config, file.getName());
 
+            // Phase11-4: スキルターゲット設定のパース（targetパッケージ統合）
+            com.example.rpgplugin.skill.target.SkillTarget skillTarget = parseSkillTarget(config, file.getName());
+
             // スキルツリー
             Skill.SkillTreeConfig skillTree = null;
             if (config.contains("skill_tree")) {
@@ -182,12 +185,12 @@ public class SkillLoader extends ConfigLoader {
             double cooldownFallback = config.getDouble("cooldown", 0.0);
             int manaCostFallback = config.getInt("mana_cost", 0);
 
-            // Phase11-6: 新コンストラクタを使用して全設定を渡す
+            // Phase11-6+11-4統合: 新コンストラクタを使用して全設定を渡す
             return new Skill(id, name, displayName, type, description, maxLevel,
                     cooldownFallback, manaCostFallback,
                     cooldownParameter, costParameter, costType,
                     damage, skillTree, iconMaterial, availableClasses,
-                    variables, formulaDamage, targeting);
+                    variables, formulaDamage, targeting, skillTarget);
 
         } catch (Exception e) {
             getLogger().log(Level.WARNING, "スキルのパースに失敗しました: " + file.getName(), e);
@@ -579,6 +582,114 @@ public class SkillLoader extends ConfigLoader {
         }
         
         return true;
+    }
+
+    /**
+     * スキルターゲット設定をパースします（Phase11-4統合）
+     *
+     * <p>YAML例:</p>
+     * <pre>
+     * target:
+     *   type: nearest_hostile  # self, nearest_hostile, nearest_entity, area
+     *   area_shape: cone       # single, cone, rect, circle
+     *   single:
+     *     select_nearest: true
+     *     target_self: false
+     *   cone:
+     *     angle: 90
+     *     range: 5.0
+     *   rect:
+     *     width: 3.0
+     *     depth: 10.0
+     *   circle:
+     *     radius: 5.0
+     * </pre>
+     *
+     * @param config コンフィグ
+     * @param fileName ファイル名（エラー表示用）
+     * @return スキルターゲット設定、未設定の場合はnull
+     */
+    private com.example.rpgplugin.skill.target.SkillTarget parseSkillTarget(
+            ConfigurationSection config, String fileName) {
+
+        if (!config.contains("target")) {
+            return null;
+        }
+
+        ConfigurationSection targetSection = config.getConfigurationSection("target");
+        if (targetSection == null) {
+            return null;
+        }
+
+        // ターゲットタイプのパース
+        String typeStr = targetSection.getString("type", "nearest_hostile");
+        com.example.rpgplugin.skill.target.TargetType type =
+                com.example.rpgplugin.skill.target.TargetType.fromId(typeStr);
+        if (type == null) {
+            getLogger().warning("無効なtarget.type: " + typeStr + " (" + fileName + ")");
+            type = com.example.rpgplugin.skill.target.TargetType.NEAREST_HOSTILE;
+        }
+
+        // 範囲形状のパース
+        String shapeStr = targetSection.getString("area_shape", "single");
+        com.example.rpgplugin.skill.target.AreaShape areaShape =
+                com.example.rpgplugin.skill.target.AreaShape.fromId(shapeStr);
+        if (areaShape == null) {
+            getLogger().warning("無効なtarget.area_shape: " + shapeStr + " (" + fileName + ")");
+            areaShape = com.example.rpgplugin.skill.target.AreaShape.SINGLE;
+        }
+
+        // 単体ターゲット設定
+        com.example.rpgplugin.skill.target.SkillTarget.SingleTargetConfig singleTarget = null;
+        if (targetSection.contains("single")) {
+            ConfigurationSection singleSection = targetSection.getConfigurationSection("single");
+            if (singleSection != null) {
+                boolean selectNearest = singleSection.getBoolean("select_nearest", true);
+                boolean targetSelf = singleSection.getBoolean("target_self", false);
+                singleTarget = new com.example.rpgplugin.skill.target.SkillTarget.SingleTargetConfig(
+                        selectNearest, targetSelf);
+            }
+        }
+
+        // 扇状設定
+        com.example.rpgplugin.skill.target.SkillTarget.ConeConfig cone = null;
+        if (targetSection.contains("cone")) {
+            ConfigurationSection coneSection = targetSection.getConfigurationSection("cone");
+            if (coneSection != null) {
+                double angle = coneSection.getDouble("angle", 90.0);
+                double range = coneSection.getDouble("range", 5.0);
+                validateRange(angle, 1.0, 360.0, "target.cone.angle", fileName);
+                validateRange(range, 0.1, 100.0, "target.cone.range", fileName);
+                cone = new com.example.rpgplugin.skill.target.SkillTarget.ConeConfig(angle, range);
+            }
+        }
+
+        // 四角形設定
+        com.example.rpgplugin.skill.target.SkillTarget.RectConfig rect = null;
+        if (targetSection.contains("rect")) {
+            ConfigurationSection rectSection = targetSection.getConfigurationSection("rect");
+            if (rectSection != null) {
+                double width = rectSection.getDouble("width", 3.0);
+                double depth = rectSection.getDouble("depth", 10.0);
+                validateRange(width, 0.1, 100.0, "target.rect.width", fileName);
+                validateRange(depth, 0.1, 100.0, "target.rect.depth", fileName);
+                rect = new com.example.rpgplugin.skill.target.SkillTarget.RectConfig(width, depth);
+            }
+        }
+
+        // 円形設定
+        com.example.rpgplugin.skill.target.SkillTarget.CircleConfig circle = null;
+        if (targetSection.contains("circle")) {
+            ConfigurationSection circleSection = targetSection.getConfigurationSection("circle");
+            if (circleSection != null) {
+                double radius = circleSection.getDouble("radius", 5.0);
+                validateRange(radius, 0.1, 100.0, "target.circle.radius", fileName);
+                circle = new com.example.rpgplugin.skill.target.SkillTarget.CircleConfig(radius);
+            }
+        }
+
+        return new com.example.rpgplugin.skill.target.SkillTarget(
+                type, areaShape, singleTarget, cone, rect, circle);
     }
 
     /**

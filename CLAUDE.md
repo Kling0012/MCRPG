@@ -4,7 +4,8 @@
 並列ワーカーを優先して利用する
 ファイル確認や現状確認，調査はSerenaMCPを積極的に利用する
 Skillで参照するべきものが無いか，確認してから作業を開始する
-
+必要と判断した事項，重要情報，は必ずMemoryMCPで保存する
+積極的にMemoryMCPを参照する
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 

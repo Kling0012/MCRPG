@@ -1,0 +1,170 @@
+# ヘイスト - バフスキルのサンプル
+# Phase11-11: 新スキルシステム V2 リファレンス実装
+#
+# このファイルは、自己バフスキルの例です。
+#
+# 機能一覧:
+# - ダメージなしのバフ効果
+# - レベル依存の効果時間
+# - 複数ステータスへの同時強化
+
+id: haste
+name: ヘイスト
+display_name: "&d&l加速"
+type: active
+description:
+  - "&d一時的に身体能力を高める"
+  - "&e移動速度・攻撃速度・DEXが上昇"
+  - "&eスキルレベルで効果時間が延長"
+  - "&7※味方全体にも効果あり（Lv5以上）"
+max_level: 10
+
+# ========================================
+# カスタム変数定義
+# ========================================
+variables:
+  # 基本効果時間（秒）
+  base_duration: 30
+  # レベルごとの効果時間増加（秒）
+  level_duration: 5
+  # 移動速度上昇量（%）
+  speed_boost: 20
+  # 攻撃速度上昇量（%）
+  attack_boost: 15
+  # DEX上昇量
+  dex_boost: 10
+
+# ========================================
+# コスト設定
+# ========================================
+cost:
+  type: mana
+  base: 25
+  per_level: 2
+  max: 50
+
+# ========================================
+# クールダウン設定
+# ========================================
+cooldown:
+  base: 60.0
+  per_level: -2.0
+  min: 30.0
+
+# ========================================
+# ダメージ設定（なし）
+# ========================================
+# バフスキルのためダメージ計算なし
+
+# ========================================
+# バフ効果（Phase11-11: 新機能）
+# ========================================
+# スキルによるステータス強化を定義
+buff_effects:
+  # 効果時間（レベル依存）
+  duration:
+    formula: "base_duration + Lv * level_duration"  # Lv1:35秒, Lv10:80秒
+
+  # 効果一覧
+  effects:
+    - type: movement_speed
+      value: 0.2        # 20%上昇
+      stack_type: add   # 加算
+
+    - type: attack_speed
+      value: 0.15       # 15%上昇
+      stack_type: add
+
+    - type: stat_boost
+      stat: DEXTERITY
+      value: 10         # DEX+10
+      stack_type: add
+
+    - type: stat_boost
+      stat: STRENGTH
+      value: 5          # STR+5
+      stack_type: add
+
+  # レベル別効果オーバーライド
+  level_effects:
+    5:
+      - type: attack_speed
+        value: 0.25     # Lv5で攻撃速度強化
+        stack_type: add
+
+    8:
+      - type: movement_speed
+        value: 0.3      # Lv8で移動速度強化
+        stack_type: add
+      - type: stat_boost
+        stat: DEXTERITY
+        value: 20       # DEX+20
+        stack_type: add
+
+    10:
+      - type: movement_speed
+        value: 0.4      # Lv10で大幅強化
+        stack_type: add
+      - type: attack_speed
+        value: 0.3
+        stack_type: add
+      - type: stat_boost
+        stat: DEXTERITY
+        value: 30
+        stack_type: add
+
+# ========================================
+# ターゲット設定
+# ========================================
+targeting:
+  type: self    # 自分自身が対象
+  # Lv5以上で味方全体に拡張
+  aoe_extension:
+    level: 5
+    type: sphere
+    radius: 10.0  # 10ブロック範囲内の味方
+
+# ========================================
+# エフェクト設定
+# ========================================
+effects:
+  cast:
+    - type: sound
+      sound: ENTITY_EXPERIENCE_ORB_PICKUP
+      volume: 1.0
+      pitch: 1.5
+    - type: particle
+      particle: TOTEM
+      count: 5
+
+  active:
+    - type: particle
+      particle: CLOUD
+      count: 2
+      interval: 20     # 1秒ごとにパーティクル表示
+
+  fade:
+    - type: sound
+      sound: ENTITY_EXPERIENCE_ORB_PICKUP
+      volume: 0.5
+      pitch: 0.8
+
+# ========================================
+# スキルツリー設定
+# ========================================
+skill_tree:
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 8
+    - type: stat
+      stat: DEXTERITY
+      value: 25
+  cost: 2
+
+# ========================================
+# GUI設定
+# ========================================
+icon_material: SUGAR
+available_classes:
+  - All    # 全クラスで使用可能

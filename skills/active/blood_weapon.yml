@@ -1,0 +1,158 @@
+# ブラッドウェポン - HP消費スキルのサンプル
+# Phase11-11: 新スキルシステム V2 リファレンス実装
+#
+# このファイルは、HPを消費するハイリスク・ハイリターンスキルの例です。
+#
+# 機能一覧:
+# - HP消費タイプのコスト
+# - 高ダメージ攻撃
+# - リスクに応じたダメージ増加
+# - HPが低いほど威力上昇
+
+id: blood_weapon
+name: ブラッドウェポン
+display_name: "&4&l血渇みの刃"
+type: active
+description:
+  - "&4自らの生命力を代償に強力な一撃を放つ"
+  - "&eHPが低いほどダメージ増加"
+  - "&e消費HP比例でダメージ上昇"
+  - "&c※HPが尽きると使用できません"
+max_level: 5
+
+# ========================================
+# カスタム変数定義
+# ========================================
+variables:
+  # STR倍率
+  str_scale: 3.0
+  # 基本ダメージ
+  base_blood: 80.0
+  # HP消費係数（消費HPに対するダメージ倍率）
+  hp_cost_scale: 5.0
+  # 低HPボーナス係数（現在HPが低いほどダメージ増加）
+  low_hp_bonus: 2.0
+
+# ========================================
+# コスト設定（HP消費タイプ）
+# ========================================
+# type: hp を指定するとHPを消費します
+cost:
+  type: hp
+  base: 30         # 基本消費HP
+  per_level: 10    # レベルごとに10消費増加
+  # maxなし（レベル制限まで上昇）
+  # 計算: Lv1=30HP, Lv2=40HP, Lv3=50HP, Lv4=60HP, Lv5=70HP
+
+# ========================================
+# クールダウン設定
+# ========================================
+cooldown:
+  base: 15.0
+  per_level: -1.0
+  min: 10.0
+
+# ========================================
+# ダメージ計算（HP消費スキル特有の数式）
+# ========================================
+damage:
+  # 基本数式: STR倍率 + 消費HPによるダメージ上昇
+  # HPコストはcostセクションの値を使用
+  # 例: STR=50, Lv1 -> 50*3.0 + 80 + 30*5.0 = 410
+  formula: "STR * str_scale + base_blood + (30 + Lv * 10) * hp_cost_scale"
+
+  # レベル別数式（HPボーナス付き）
+  levels:
+    # Lv2: 低HPボーナス追加（現在HPが最大HPの50%以下でダメージ2倍）
+    2: "(STR * str_scale + base_blood + (30 + Lv * 10) * hp_cost_scale) * (HP_ratio < 0.5 ? low_hp_bonus : 1.0)"
+
+    # Lv3: 低HPボーナス強化
+    3: "(STR * str_scale + base_blood + (30 + Lv * 10) * hp_cost_scale) * (HP_ratio < 0.5 ? (low_hp_bonus + 0.5) : 1.0)"
+
+    # Lv5: 究極犠牲（HPが1以下なら3倍ダメージ、ただし使用可能かは別途チェック）
+    5: "(STR * str_scale + base_blood + (30 + Lv * 10) * hp_cost_scale) * (HP_ratio < 0.25 ? 3.0 : (HP_ratio < 0.5 ? low_hp_bonus + 1.0 : 1.0))"
+
+# ========================================
+# 使用条件
+# ========================================
+# スキル使用に必要な条件を定義
+usage_requirements:
+  # HPが一定以上必要
+  - type: min_hp_percent
+    value: 10        # HPが10%以上必要
+
+  - type: min_hp_value
+    value: 20        # HPが20以上必要
+
+# ========================================
+# ターゲット設定
+# ========================================
+targeting:
+  type: single   # 単体ターゲット
+  range: 5.0     # 近接範囲
+
+# ========================================
+# 追加効果
+# ========================================
+additional_effects:
+  # 命中時にHP回復（与ダメージの一部を吸収）
+  - type: lifesteal
+    percent: 0.2   # 与ダメージの20%を吸収
+
+  # 命中時にデバフ付与
+  - type: debuff
+    debuff_type: bleeding
+    duration: 5    # 5秒間出血
+    damage_per_sec: 10
+
+# ========================================
+# エフェクト設定
+# ========================================
+effects:
+  cast:
+    - type: sound
+      sound: ENTITY_GENERIC_HURT
+      volume: 1.0
+      pitch: 0.5
+    - type: particle
+      particle: REDSTONE
+      count: 20
+      color:
+        red: 255
+        green: 0
+        blue: 0
+
+  hit:
+    - type: sound
+      sound: ENTITY_PLAYER_ATTACK_CRIT
+      volume: 1.5
+      pitch: 0.7
+    - type: particle
+      particle: BLOCK_CRACK
+      material: REDSTONE_BLOCK
+      count: 10
+
+# ========================================
+# スキルツリー設定
+# ========================================
+skill_tree:
+  parent: power_strike
+  unlock_requirements:
+    - type: level
+      value: 20
+    - type: stat
+      stat: STRENGTH
+      value: 50
+    - type: stat
+      stat: VITALITY
+      value: 40    # VITも高くないと習得不可（HP確保のため）
+  cost: 5
+
+# ========================================
+# GUI設定
+# ========================================
+icon_material: REDSTONE_SWORD
+available_classes:
+  - Warrior
+  - Berserker
+  - DarkKnight

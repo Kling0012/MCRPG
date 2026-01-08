@@ -1,0 +1,167 @@
+# ファイアボール（上級）- 範囲攻撃魔法スキルの完全版サンプル
+# Phase11-11: 新スキルシステム V2 リファレンス実装
+#
+# このファイルは、魔法系範囲攻撃スキルの完全な例です。
+#
+# 機能一覧:
+# - INT/SPI依存のダメージ計算
+# - 球形範囲ダメージ
+# - レベル別効果の変化
+# - 複数条件のアンロック要件
+
+id: fireball_advanced
+name: ファイアボール（上級）
+display_name: "&c&l爆裂火球"
+type: active
+description:
+  - "&c圧縮された炎の玉を放つ"
+  - "&e着弾地点で爆発し、範囲内の敵にダメージ"
+  - "&eINTとSPIに依存して威力増加"
+  - "&7※爆発範囲内の敵全てにダメージ"
+max_level: 10
+
+# ========================================
+# カスタム変数定義
+# ========================================
+variables:
+  # INTに対するダメージ倍率
+  int_scale: 2.5
+  # SPIに対するダメージ倍率
+  spi_scale: 1.5
+  # 基本ダメージ
+  base_fire: 50.0
+  # 爆発範囲係数
+  explosion_scale: 1.2
+
+# ========================================
+# コスト設定
+# ========================================
+# レベルが上がるごとに消費MPが増加（高威力のため）
+cost:
+  type: mana
+  base: 20
+  per_level: 3   # レベルごとに3増加
+  max: 80        # 最大80まで
+
+# ========================================
+# クールダウン設定
+# ========================================
+cooldown:
+  base: 10.0
+  per_level: -0.3  # レベルが上がるごとに0.3秒短縮
+  min: 4.0
+
+# ========================================
+# ダメージ計算
+# ========================================
+damage:
+  # 基本数式: INTとSPIの両方を参照
+  # 例: INT=40, SPI=30, Lv=1 -> 40*2.5 + 30*1.5 + 50 = 195
+  formula: "INT * int_scale + SPI * spi_scale + base_fire"
+
+  # レベル別数式
+  levels:
+    # Lv3: 中級ダメージ
+    3: "INT * (int_scale + 0.5) + SPI * (spi_scale + 0.3) + base_fire * 1.5"
+
+    # Lv5: 上級ダメージ、爆発範囲拡大
+    5: "INT * (int_scale + 1.0) + SPI * (spi_scale + 0.5) + base_fire * explosion_scale"
+
+    # Lv7: 最上級ダメージ
+    7: "INT * (int_scale + 1.5) + SPI * (spi_scale + 0.8) + base_fire * explosion_scale * 1.5"
+
+    # Lv10: 究極魔法
+    10: "(INT + SPI) * 3.0 + base_fire * explosion_scale * 2.0 + Lv * 20"
+
+# ========================================
+# ターゲット設定
+# ========================================
+# 着弾地点を中心とした球形範囲
+targeting:
+  type: sphere
+  sphere:
+    radius: 4.0      # 爆発半径（ブロック単位）
+    max_targets: 10  # 最大ターゲット数（nullで無制限）
+
+# ========================================
+# エフェクト設定
+# ========================================
+effects:
+  # 詠唱エフェクト
+  cast:
+    - type: sound
+      sound: ENTITY_BLAZE_SHOOT
+      volume: 1.0
+      pitch: 0.8
+    - type: particle
+      particle: FLAME
+      count: 20
+      offset: 0.5
+
+  # 着弾エフェクト
+  impact:
+    - type: sound
+      sound: ENTITY_GENERIC_EXPLODE
+      volume: 2.0
+      pitch: 1.0
+    - type: particle
+      particle: EXPLOSION_LARGE
+      count: 1
+    - type: particle
+      particle: LAVA
+      count: 10
+      offset: 1.0
+
+  # 持続エフェクト（燃焼）
+  duration:
+    ticks: 60        # 3秒間（60tick）
+    interval: 10     # 0.5秒ごと
+    effects:
+      - type: damage
+        damage: 5.0  # タイマーごとのダメージ
+      - type: particle
+        particle: SMOKE_LARGE
+
+# ========================================
+# 付与効果（オプション）
+# ========================================
+# ヒットした敵に追加で付与するデバフ
+debuffs:
+  - type: burn
+    duration: 5      # 5秒間燃焼
+    damage_per_sec: 8  # 秒間ダメージ
+
+  - type: slow
+    duration: 3      # 3秒間減速
+    slow_percent: 0.3  # 30%減速
+
+# ========================================
+# スキルツリー設定
+# ========================================
+skill_tree:
+  parent: fireball_basic
+  unlock_requirements:
+    - type: level
+      value: 15
+    - type: stat
+      stat: INTELLIGENCE
+      value: 40
+    - type: stat
+      stat: SPIRIT
+      value: 30
+    - type: class    # 特定クラスのみ習得可能
+      classes:
+        - Mage
+        - Wizard
+        - Sorcerer
+  cost: 5
+
+# ========================================
+# GUI設定
+# ========================================
+icon_material: FIRE_CHARGE
+available_classes:
+  - Mage
+  - Wizard
+  - Sorcerer
+  - Necromancer

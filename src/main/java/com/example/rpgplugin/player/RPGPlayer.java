@@ -579,6 +579,17 @@ public class RPGPlayer {
     }
 
     /**
+     * プレイヤーのレベルを取得します
+     *
+     * <p>getVanillaLevel()のエイリアスです。スキルシステム等で使用されます。</p>
+     *
+     * @return レベル、オフラインの場合は0
+     */
+    public int getLevel() {
+        return getVanillaLevel();
+    }
+
+    /**
      * ステータス情報をフォーマットして返します
      *
      * @return フォーマットされたステータス情報
@@ -641,5 +652,102 @@ public class RPGPlayer {
      */
     public void clearTarget() {
         this.lastTargetedEntity = null;
+    }
+
+    // ==================== スキル関連 ====================
+
+    /**
+     * スキルマネージャーへの参照（オプション）
+     *
+     * <p>スキル関連メソッドを使用するために設定されます。</p>
+     */
+    private volatile com.example.rpgplugin.skill.SkillManager skillManager;
+
+    /**
+     * スキルマネージャーを設定します
+     *
+     * @param skillManager スキルマネージャー
+     */
+    public void setSkillManager(com.example.rpgplugin.skill.SkillManager skillManager) {
+        this.skillManager = skillManager;
+    }
+
+    /**
+     * スキルを習得しているか確認します
+     *
+     * @param skillId スキルID
+     * @return 習得している場合はtrue
+     */
+    public boolean hasSkill(String skillId) {
+        if (skillManager == null) {
+            return false;
+        }
+        org.bukkit.entity.Player player = getBukkitPlayer();
+        if (player == null) {
+            return false;
+        }
+        return skillManager.hasSkill(player, skillId);
+    }
+
+    /**
+     * スキルレベルを取得します
+     *
+     * @param skillId スキルID
+     * @return スキルレベル、習得していない場合は0
+     */
+    public int getSkillLevel(String skillId) {
+        if (skillManager == null) {
+            return 0;
+        }
+        org.bukkit.entity.Player player = getBukkitPlayer();
+        if (player == null) {
+            return 0;
+        }
+        return skillManager.getSkillLevel(player, skillId);
+    }
+
+    /**
+     * スキルを習得します
+     *
+     * @param skillId スキルID
+     * @return 習得に成功した場合はtrue
+     */
+    public boolean acquireSkill(String skillId) {
+        return acquireSkill(skillId, 1);
+    }
+
+    /**
+     * スキルを習得します
+     *
+     * @param skillId スキルID
+     * @param level 習得するレベル
+     * @return 習得に成功した場合はtrue
+     */
+    public boolean acquireSkill(String skillId, int level) {
+        if (skillManager == null) {
+            return false;
+        }
+        org.bukkit.entity.Player player = getBukkitPlayer();
+        if (player == null) {
+            return false;
+        }
+        return skillManager.acquireSkill(player, skillId, level);
+    }
+
+    /**
+     * スキルをレベルアップします
+     *
+     * @param skillId スキルID
+     * @return レベルアップに成功した場合はtrue
+     */
+    public boolean upgradeSkill(String skillId) {
+        if (skillManager == null) {
+            return false;
+        }
+        org.bukkit.entity.Player player = getBukkitPlayer();
+        if (player == null) {
+            return false;
+        }
+        return skillManager.upgradeSkill(player, skillId);
     }
 }

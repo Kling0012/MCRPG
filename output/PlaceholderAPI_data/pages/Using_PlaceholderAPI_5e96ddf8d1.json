@@ -1,0 +1,77 @@
+{
+  "url": "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+  "title": "Using PlaceholderAPI¶",
+  "content": "This page is about using PlaceholderAPI in your own plugin, to either let other plugins use your plugin, or just use placeholders from other plugins in your own.\n\nPlease note, that the examples in this page are only available for PlaceholderAPI 2.10.0 or higher!\n\nBefore you can actually make use of PlaceholderAPI, you first have to import it into your project. Use the below code example matching your dependency manager.\n\nUsing Javascript, {version} is replaced with the latest available API version of PlaceholderAPI. Should you see the placeholder as-is does it mean that you either block Javascript, or that the version couldn't be obtained in time during page load.\n\nYou can always find the latest version matching the API version on the releases tab of the GitHub Repository.\n\nNext step is to go to your plugin.yml or paper-plugin.yml and add PlaceholderAPI as a depend or softdepend, depending (no pun intended) on if it is optional or not.\n\nTab the icons in the code block below for additional information.\n\nTab the icons in the code block below for additional information.\n\nTab the icons in the code block below for additional information.\n\nTab the icons in the code block below for additional information.\n\nA full guide on how to create expansions can be found on the Creating a PlaceholderExpansion page.\n\nPlaceholderAPI offers the ability, to automatically parse placeholders from other plugins within your own plugin, giving the ability for your plugin to support thousands of other placeholders without depending on each plugin individually. To use placeholders from other plugins in our own plugin, we simply have to (soft)depend on PlaceholderAPI and use the setPlaceholders method.\n\nIt is also important to point out, that any required plugin/dependency for an expansion has to be on the server and enabled, or the setPlaceholders method will just return the placeholder itself (do nothing).\n\nLet's assume we want to send a custom join message that shows the primary group a player has. To achieve this, we can do the following:\n\nThe below example assumes a soft dependency on PlaceholderAPI to handle PlaceholderAPI not being present more decently.\n\nTab the icons in the code block below for additional information.\n\nUsing PlaceholderAPI.setPlaceholders(Player, String) we can parse %placeholder% text in the provided String, should they have a matching expansion and said expansion return a non-null String. In our example are we providing a text containing %player_name% and %vault_rank% to be parsed, which require the Player and Vault expansion respectively.\n\nExample output: Notch joined the server! They are rank Admin",
+  "headings": [
+    {
+      "level": "h1",
+      "text": "Using PlaceholderAPI¶",
+      "id": "using-placeholderapi"
+    },
+    {
+      "level": "h2",
+      "text": "First steps¶",
+      "id": "first-steps"
+    },
+    {
+      "level": "h3",
+      "text": "Set PlaceholderAPI as (soft)depend¶",
+      "id": "set-placeholderapi-as-softdepend"
+    },
+    {
+      "level": "h2",
+      "text": "Adding placeholders to PlaceholderAPI¶",
+      "id": "adding-placeholders-to-placeholderapi"
+    },
+    {
+      "level": "h2",
+      "text": "Setting placeholders in your plugin¶",
+      "id": "setting-placeholders-in-your-plugin"
+    }
+  ],
+  "code_samples": [
+    {
+      "code": "<repositories>\n        <repository>\n            <id>placeholderapi</id>\n            <url>https://repo.extendedclip.com/releases/</url>\n        </repository>\n    </repositories>\n    <dependencies>\n        <dependency>\n         <groupId>me.clip</groupId>\n          <artifactId>placeholderapi</artifactId>\n          <version>{version}</version>\n         <scope>provided</scope>\n        </dependency>\n    </dependencies>",
+      "language": "typescript"
+    },
+    {
+      "code": "repositories {\n    maven {\n        url = 'https://repo.extendedclip.com/releases/'\n    }\n}\n\ndependencies {\n    compileOnly 'me.clip:placeholderapi:{version}'\n}",
+      "language": "json"
+    },
+    {
+      "code": "name: ExamplePlugin\nversion: 1.0\nauthor: author\nmain: your.main.path.Here\n\nsoftdepend: [\"PlaceholderAPI\"] # (1)",
+      "language": "yaml"
+    },
+    {
+      "code": "name: ExamplePlugin\nversion: 1.0\nauthor: author\nmain: your.main.path.Here\n\ndepend: [\"PlaceholderAPI\"] # (1)",
+      "language": "yaml"
+    },
+    {
+      "code": "name: ExamplePlugin\nversion: 1.0\nauthor: author\nmain: your.main.path.Here\n\ndependencies:\n  server:\n    PlaceholderAPI:\n      load: BEFORE # (1) \n      required: false",
+      "language": "yaml"
+    },
+    {
+      "code": "name: ExamplePlugin\nversion: 1.0\nauthor: author\nmain: your.main.path.Here\n\ndependencies:\n  server:\n    PlaceholderAPI:\n      load: BEFORE # (1)\n      required: true",
+      "language": "yaml"
+    },
+    {
+      "code": "package at.helpch.placeholderapi;\n\nimport me.clip.placeholderapi.PlaceholderAPI;\n\nimport org.bukkit.Bukkit;\nimport org.bukkit.event.EventHandler;\nimport org.bukkit.event.EventPriority;\nimport org.bukkit.event.Listener;\nimport org.bukkit.event.player.PlayerJoinEvent;\nimport org.bukkit.plugin.java.JavaPlugin;\nimport me.clip.placeholderapi.PlaceholderAPI;\n\npublic class JoinExample extends JavaPlugin implements Listener {\n\n    @Override\n    public void onEnable() {\n\n        if (Bukkit.getPluginManager().isPluginEnabled(\"PlaceholderAPI\")) {\n            Bukkit.getPluginManager().registerEvents(this, this); // (1)\n        } else {\n            getLogger().warn(\"Could not find PlaceholderAPI! This plugin is required.\"); // (2)\n            Bukkit.getPluginManager().disablePlugin(this);\n        }\n    }\n\n    @EventHandler(priority = EventPriority.HIGHEST)\n    public void onJoin(PlayerJoinEvent event) {\n        String joinText = \"%player_name% joined the server! They are rank %vault_rank%\";\n\n        joinText = PlaceholderAPI.setPlaceholders(event.getPlayer(), joinText); // (3)\n\n        event.setJoinMessage(joinText);\n    }\n}",
+      "language": "java"
+    }
+  ],
+  "patterns": [],
+  "links": [
+    "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+    "https://wiki.placeholderapi.com/",
+    "https://wiki.placeholderapi.com/users/",
+    "https://wiki.placeholderapi.com/developers/",
+    "https://wiki.placeholderapi.com/common-issues/",
+    "https://wiki.placeholderapi.com/faq/",
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://wiki.placeholderapi.com/users/using-placeholders/",
+    "https://wiki.placeholderapi.com/users/placeholder-list/",
+    "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+    "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+  ]
+}

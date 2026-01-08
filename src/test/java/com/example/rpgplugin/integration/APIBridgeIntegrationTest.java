@@ -3,6 +3,7 @@ package com.example.rpgplugin.integration;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.api.RPGPluginAPI;
 import com.example.rpgplugin.api.bridge.SKriptBridge;
+import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillCostType;
@@ -13,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +22,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -56,6 +60,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@Execution(ExecutionMode.SAME_THREAD)
 @DisplayName("外部API連携結合テスト")
 class APIBridgeIntegrationTest {
 
@@ -78,6 +83,9 @@ class APIBridgeIntegrationTest {
     private RPGPlayer mockRpgPlayer;
 
     @Mock
+    private PlayerManager mockPlayerManager;
+
+    @Mock
     private RPGPluginAPI mockAPI;
 
     private MockedStatic<Bukkit> mockedBukkit;
@@ -90,6 +98,15 @@ class APIBridgeIntegrationTest {
      */
     @BeforeEach
     void setUp() {
+        // 前のモックが残っている場合はクローズする
+        if (mockedBukkit != null) {
+            try {
+                mockedBukkit.close();
+            } catch (Exception e) {
+                // クローズ時の例外は無視
+            }
+        }
+
         // Bukkit静的メソッドのモック化
         mockedBukkit = mockStatic(Bukkit.class);
 
@@ -98,10 +115,10 @@ class APIBridgeIntegrationTest {
         when(mockPlugin.getAPI()).thenReturn(mockAPI);
 
         // CommandSenderのモック設定
-        when(mockSender.sendMessage(anyString())).thenAnswer(invocation -> {
+        doAnswer(invocation -> {
             System.out.println("[Sender] " + invocation.getArgument(0));
             return null;
-        });
+        }).when(mockSender).sendMessage(anyString());
 
         // プレイヤーのモック設定
         UUID playerUuid = UUID.randomUUID();
@@ -111,10 +128,16 @@ class APIBridgeIntegrationTest {
         UUID targetUuid = UUID.randomUUID();
         when(mockTargetPlayer.getUniqueId()).thenReturn(targetUuid);
         when(mockTargetPlayer.getName()).thenReturn("TargetPlayer");
+        when(mockTargetPlayer.getType()).thenReturn(EntityType.PLAYER);
 
         // RPGPlayerのモック設定
         when(mockRpgPlayer.getBukkitPlayer()).thenReturn(mockPlayer);
+        when(mockRpgPlayer.getUuid()).thenReturn(playerUuid);
+        when(mockRpgPlayer.getUsername()).thenReturn("TestPlayer");
         when(mockRpgPlayer.getLevel()).thenReturn(10);
+
+        // PlayerManagerのモック設定
+        when(mockPlayerManager.getRPGPlayer(playerUuid)).thenReturn(mockRpgPlayer);
 
         // Bukkit.getPlayerのモック設定
         mockedBukkit.when(() -> Bukkit.getPlayer("TestPlayer")).thenReturn(mockPlayer);
@@ -122,7 +145,7 @@ class APIBridgeIntegrationTest {
 
         // SKriptBridgeとSkillManagerの初期化
         skriptBridge = new SKriptBridge(mockPlugin);
-        skillManager = new SkillManager(mockPlugin);
+        skillManager = new SkillManager(mockPlugin, mockPlayerManager);
 
         // APIのデフォルト振る舞い設定
         setupDefaultAPIBehavior();
@@ -145,44 +168,44 @@ class APIBridgeIntegrationTest {
      */
     private void setupDefaultAPIBehavior() {
         // レベル関連
-        when(mockAPI.getLevel(mockPlayer)).thenReturn(10);
-        doNothing().when(mockAPI).setLevel(mockPlayer, anyInt());
+        lenient().when(mockAPI.getLevel(any(Player.class))).thenReturn(10);
+        lenient().doNothing().when(mockAPI).setLevel(any(Player.class), anyInt());
 
         // ステータス関連
-        when(mockAPI.getStat(mockPlayer, any())).thenReturn(50);
-        doNothing().when(mockAPI).setStat(mockPlayer, any(Stat.class), anyInt());
+        lenient().when(mockAPI.getStat(any(Player.class), any())).thenReturn(50);
+        lenient().doNothing().when(mockAPI).setStat(any(Player.class), any(Stat.class), anyInt());
 
         // クラス関連
-        when(mockAPI.getClassId(mockPlayer)).thenReturn("Warrior");
-        when(mockAPI.setClass(mockPlayer, anyString())).thenReturn(true);
-        when(mockAPI.upgradeClassRank(mockPlayer)).thenReturn(true);
-        when(mockAPI.canUpgradeClass(mockPlayer)).thenReturn(true);
+        lenient().when(mockAPI.getClassId(any(Player.class))).thenReturn("Warrior");
+        lenient().when(mockAPI.setClass(any(Player.class), anyString())).thenReturn(true);
+        lenient().when(mockAPI.upgradeClassRank(any(Player.class))).thenReturn(true);
+        lenient().when(mockAPI.canUpgradeClass(any(Player.class))).thenReturn(true);
 
         // スキル関連
-        when(mockAPI.hasSkill(mockPlayer, anyString())).thenReturn(true);
-        when(mockAPI.unlockSkill(mockPlayer, anyString())).thenReturn(true);
-        when(mockAPI.castSkill(mockPlayer, anyString())).thenReturn(true);
-        when(mockAPI.getSkillLevel(mockPlayer, anyString())).thenReturn(1);
+        lenient().when(mockAPI.hasSkill(any(Player.class), anyString())).thenReturn(true);
+        lenient().when(mockAPI.unlockSkill(any(Player.class), anyString())).thenReturn(true);
+        lenient().when(mockAPI.castSkill(any(Player.class), anyString())).thenReturn(true);
+        lenient().when(mockAPI.getSkillLevel(any(Player.class), anyString())).thenReturn(1);
 
         // ゴールド関連
-        when(mockAPI.getGoldBalance(mockPlayer)).thenReturn(1000.0);
-        when(mockAPI.depositGold(mockPlayer, anyDouble())).thenReturn(true);
-        when(mockAPI.withdrawGold(mockPlayer, anyDouble())).thenReturn(true);
-        when(mockAPI.hasEnoughGold(mockPlayer, anyDouble())).thenReturn(true);
+        lenient().when(mockAPI.getGoldBalance(any(Player.class))).thenReturn(1000.0);
+        lenient().when(mockAPI.depositGold(any(Player.class), anyDouble())).thenReturn(true);
+        lenient().when(mockAPI.withdrawGold(any(Player.class), anyDouble())).thenReturn(true);
+        lenient().when(mockAPI.hasEnoughGold(any(Player.class), anyDouble())).thenReturn(true);
 
         // ダメージ計算
-        when(mockAPI.calculateDamage(any(), any())).thenReturn(100.0);
+        lenient().when(mockAPI.calculateDamage(any(), any())).thenReturn(100.0);
 
         // ターゲット関連
-        when(mockAPI.getLastTargetedEntity(mockPlayer)).thenReturn(java.util.Optional.empty());
-        doNothing().when(mockAPI).setTargetedEntity(mockPlayer, any());
+        lenient().when(mockAPI.getLastTargetedEntity(any(Player.class))).thenReturn(java.util.Optional.empty());
+        lenient().doNothing().when(mockAPI).setTargetedEntity(any(Player.class), any());
 
         // スキルトリガー
-        when(mockAPI.castSkillAt(mockPlayer, anyString(), any())).thenReturn(true);
-        when(mockAPI.castSkillWithCostType(mockPlayer, anyString(), any())).thenReturn(true);
+        lenient().when(mockAPI.castSkillAt(any(Player.class), anyString(), any())).thenReturn(true);
+        lenient().when(mockAPI.castSkillWithCostType(any(Player.class), anyString(), any())).thenReturn(true);
 
         // 範囲エンティティ
-        when(mockAPI.getEntitiesInArea(mockPlayer, anyString(), any(double[].class)))
+        lenient().when(mockAPI.getEntitiesInArea(any(Player.class), anyString(), any(double[].class)))
                 .thenReturn(java.util.List.of());
     }
 
@@ -355,7 +378,8 @@ class APIBridgeIntegrationTest {
         @DisplayName("シナリオ3-3: get_targetコマンドがターゲットを返す")
         void test3_3_GetTargetCommand() {
             // Given: 最後のターゲットが存在
-            when(mockAPI.getLastTargetedEntity(mockPlayer))
+            // デフォルトのOptional.empty()を上書き
+            when(mockAPI.getLastTargetedEntity(any(Player.class)))
                     .thenReturn(java.util.Optional.of(mockTargetPlayer));
 
             // When: get_targetコマンドを実行

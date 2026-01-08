@@ -1,0 +1,43 @@
+{
+  "url": "https://wiki.placeholderapi.com/developers/",
+  "title": "Dev Guides¶",
+  "content": "The pages listed under this section are meant for developers of plugins who want to either create PlaceholderExpansions or want to otherwise work with PlaceholderAPI (i.e. supporting external placeholders through it).\n\nGuide on how to use PlaceholderAPI in your own plugin.\n\nComprehensive guide on how to create a PlaceholderExpansion for other plugins to use through PlaceholderAPI.\n\nInformation about PlaceholderAPI's expansion cloud, including how to submit your own expansion or update it.",
+  "headings": [
+    {
+      "level": "h1",
+      "text": "Dev Guides¶",
+      "id": "dev-guides"
+    },
+    {
+      "level": "h3",
+      "text": "Using PlaceholderAPI¶",
+      "id": "using-placeholderapi"
+    },
+    {
+      "level": "h3",
+      "text": "Creating a PlaceholderExpansion¶",
+      "id": "creating-a-placeholderexpansion"
+    },
+    {
+      "level": "h3",
+      "text": "eCloud¶",
+      "id": "ecloud"
+    }
+  ],
+  "code_samples": [],
+  "patterns": [],
+  "links": [
+    "https://wiki.placeholderapi.com/developers/",
+    "https://wiki.placeholderapi.com/",
+    "https://wiki.placeholderapi.com/users/",
+    "https://wiki.placeholderapi.com/common-issues/",
+    "https://wiki.placeholderapi.com/faq/",
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://wiki.placeholderapi.com/users/using-placeholders/",
+    "https://wiki.placeholderapi.com/users/placeholder-list/",
+    "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+    "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+  ]
+}

@@ -1,5 +1,6 @@
 package com.example.rpgplugin.core.dependency;
 
+import com.example.rpgplugin.RPGPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,6 +33,7 @@ public class DependencyManager {
     // 依存プラグインのフック
     private VaultHook vaultHook;
     private MythicMobsHook mythicMobsHook;
+    private PlaceholderHook placeholderHook;
 
     // 依存状態
     private boolean vaultAvailable = false;
@@ -163,7 +165,7 @@ public class DependencyManager {
     }
 
     /**
-     * PlaceholderAPIプラグインをチェックします
+     * PlaceholderAPIプラグインをチェックしてPlaceholderExpansionを登録します
      *
      * @return 利用可能な場合はtrue
      */
@@ -174,12 +176,29 @@ public class DependencyManager {
             return false;
         }
 
+        // RPGPluginにキャストできるか確認
+        if (!(plugin instanceof RPGPlugin rpgPlugin)) {
+            logger.warning("PlaceholderAPI hook requires RPGPlugin instance, skipping.");
+            return false;
+        }
+
         try {
-            // PlaceholderAPIの存在確認のみ（実際のフックは必要時に実装）
-            logger.info("PlaceholderAPI version: " + papiPlugin.getDescription().getVersion());
-            return true;
+            // PlaceholderExpansionを登録
+            placeholderHook = new PlaceholderHook(rpgPlugin);
+            boolean registered = placeholderHook.register();
+
+            if (registered) {
+                logger.info("PlaceholderAPI hooked successfully:");
+                logger.info("  Version: " + papiPlugin.getDescription().getVersion());
+                logger.info("  Expansion: RPGPlugin v" + placeholderHook.getVersion());
+                logger.info("  Identifier: %" + placeholderHook.getIdentifier() + "_<param>%");
+                return true;
+            } else {
+                logger.warning("Failed to register PlaceholderExpansion");
+                return false;
+            }
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Failed to check PlaceholderAPI", e);
+            logger.log(Level.WARNING, "Failed to hook PlaceholderAPI", e);
         }
 
         return false;
@@ -257,6 +276,11 @@ public class DependencyManager {
         if (mythicMobsHook != null) {
             mythicMobsHook.cleanup();
             mythicMobsHook = null;
+        }
+
+        if (placeholderHook != null) {
+            placeholderHook.unregister();
+            placeholderHook = null;
         }
 
         vaultAvailable = false;

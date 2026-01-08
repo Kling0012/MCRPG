@@ -92,7 +92,7 @@ public final class ShapeCalculator {
         }
 
         double distance = entityLoc.distance(origin);
-        if (distance > config.getRange()) {
+        if (distance > config.getRange() || distance < 0.001) {
             return false;
         }
 

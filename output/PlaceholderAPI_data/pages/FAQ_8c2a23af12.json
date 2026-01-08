@@ -1,0 +1,83 @@
+{
+  "url": "https://wiki.placeholderapi.com/faq/",
+  "title": "FAQ¶",
+  "content": "Here are frequently asked questions about stuff related to PlaceholderAPI.\n\nAn expansion (or PlaceholderExpansion) refers to either a jar file or part of a plugin that provides placeholders to use through PlaceholderAPI itself. Whether said expansion is a separate jar file or part of a plugin depends on the expansion itself and its main purpose.\n\nExpansions that are separate jar files can be found on the eCloud and are downloadable through /papi ecloud download <expansion> if the expansion is verified.\n\nWhen a plugin or /papi parse me %placeholder% only returns the placeholder itself and no value should you check for the following things:\n\nSome expansions may not be integrated into a plugin or don't even have a plugin to depend on, meaning that they may be their own separate jar file that you have to download. Such expansions can usually be found on the eCloud of PlaceholderAPI and be downloaded using the /papi ecloud download <expansion> command.\n\nWhether an expansion is available on the eCloud or not can be found out in the Placeholder List with any expansion displaying a papi command being downlodable.\n\nIt can happen that the plugin you use to display the placeholder in doesn't support PlaceholderAPI. In such a case check, if the parse command returns the actual value of a placeholder. If that is the case while the plugin is still displaying the placeholder, can this be an indicator of the plugin not supporting PlaceholderAPI.\n\nYou can find a list of plugins supporting PlaceholderAPI here. Just make sure that \"Supports placeholders\" has a check mark in front of it.\n\nDouble-check that the placeholder you set doesn't contain a typo. You can use /papi ecloud placeholders <expansion> (replace <expansion> with the name of the expansion) to get a list of all the placeholders the expansion may have. Keep in mind that this only works for separate expansions on the eCloud and not for those that are loaded by plugins.\n\nAdditionally can the placeholder list from the eCloud be outdated. It is recommended to check the Placeholder List or see if there is any documentation for the placeholders you want to use.\n\nIf an expansion depends on a plugin, make sure you have the plugin installed and that it is enabled (Shows green in /pl).\n\nMake the following checks:\n\nIf the above checks are all fine and you still can't get the expansion through the download command, consider downloading it manually. To do that, head to the expansion's page on the ecloud, download the jar file and put it into /plugins/PlaceholderAPI/expansions/ before using /papi reload.\n\nSee the Using PlaceholderAPI page.\n\nYou sure can! We welcome contributions to our wiki by everyone. If you found a typo or want to improve this wiki in another way, head over to the Wiki's readme file to find out about how you can contribute towards this wiki.\n\nIf you receive the above error, try to do the following steps:\n\nIf the issue persists after you've done those checks, report it to the author of the expansion. In most cases is the issue that either a dependency is missing or that the expansion tries to use outdated methods from PlaceholderAPI.",
+  "headings": [
+    {
+      "level": "h1",
+      "text": "FAQ¶",
+      "id": "faq"
+    },
+    {
+      "level": "h2",
+      "text": "What is an Expansion?¶",
+      "id": "what-is-an-expansion"
+    },
+    {
+      "level": "h2",
+      "text": "It only shows %placeholder% and not the variable¶",
+      "id": "it-only-shows-placeholder-and-not-the-variable"
+    },
+    {
+      "level": "h3",
+      "text": "The expansion is actually installed.¶",
+      "id": "the-expansion-is-actually-installed"
+    },
+    {
+      "level": "h3",
+      "text": "Plugin actually supports PlaceholderAPI¶",
+      "id": "plugin-actually-supports-placeholderapi"
+    },
+    {
+      "level": "h3",
+      "text": "No typo in the placeholder¶",
+      "id": "no-typo-in-the-placeholder"
+    },
+    {
+      "level": "h3",
+      "text": "Plugin is enabled¶",
+      "id": "plugin-is-enabled"
+    },
+    {
+      "level": "h2",
+      "text": "I can't download the expansion¶",
+      "id": "i-cant-download-the-expansion"
+    },
+    {
+      "level": "h2",
+      "text": "How can other plugins use my placeholders with PlaceholderAPI?¶",
+      "id": "how-can-other-plugins-use-my-placeholders-with-placeholderapi"
+    },
+    {
+      "level": "h2",
+      "text": "Can I help on this wiki?¶",
+      "id": "can-i-help-on-this-wiki"
+    },
+    {
+      "level": "h2",
+      "text": "PlaceholderAPI is posting an error about an outdated expansion?¶",
+      "id": "placeholderapi-is-posting-an-error-about-an-outdated-expansion"
+    }
+  ],
+  "code_samples": [
+    {
+      "code": "[00:00:01 ERROR]: [PlaceholderAPI] Failed to load Expansion class <expansion> (Is a dependency missing?)\n[00:00:01 ERROR]: [PlaceholderAPI] Cause: NoClassDefFoundError <path>",
+      "language": "json"
+    }
+  ],
+  "patterns": [],
+  "links": [
+    "https://wiki.placeholderapi.com/faq/",
+    "https://wiki.placeholderapi.com/",
+    "https://wiki.placeholderapi.com/users/",
+    "https://wiki.placeholderapi.com/developers/",
+    "https://wiki.placeholderapi.com/common-issues/",
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://wiki.placeholderapi.com/users/using-placeholders/",
+    "https://wiki.placeholderapi.com/users/placeholder-list/",
+    "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+    "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+  ]
+}

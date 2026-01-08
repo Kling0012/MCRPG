@@ -595,8 +595,11 @@ public class SkillManager {
 
         switch (costType) {
             case MANA:
-                // MP消費（TODO: MPシステム実装後に対応）
-                // 現時点では固定値を消費するものとして処理
+                // MP消費
+                if (!rpgPlayer.hasMana(cost)) {
+                    return new CostConsumptionResult(false, "MPが不足しています", 0);
+                }
+                rpgPlayer.consumeMana(cost);
                 return new CostConsumptionResult(true, null, cost);
 
             case HP:

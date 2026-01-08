@@ -1,0 +1,98 @@
+{
+  "url": "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+  "title": "Creating a PlaceholderExpansion¶",
+  "content": "This page will cover how you can create your own PlaceholderExpansion which you can either integrate into your own plugin (Recommended) or upload to the eCloud.\n\nIt's worth noting that PlaceholderAPI relies on expansions being installed. PlaceholderAPI only acts as the core replacing utility while the expansions allow other plugins to use any installed placeholder in their own messages. You can download expansions either directly from the eCloud yourself, or download them through the download command of PlaceholderAPI.\n\nFor starters, you need to decide what type of PlaceholderExpansion you want to create. There are various ways to create an expansion. This page will cover the most common ones.\n\nAll shown examples will share the same common parts that belong the the PlaceholderExpansion class. In order to not repeat the same basic info for each method throughout this page, and to greatly reduce the overall length, we will cover the most basic/necessary ones here.\n\nTab the icons in the code block below for additional information.\n\nThis method allows you to set the name of the expansion's author. May not be null.\n\nThe identifier is the part in the placeholder that is between the first % (or { for bracket placeholders) and the first _. The identifier may not be null nor contain %, {, } or _.\n\nIf you still want to use them in your expansion name, override the getName() method.\n\nThis method returns the version of the expansion. May not be null. Due to it being a string are you not limited to numbers alone, but it is recommended to stick with a number pattern.\n\nPlaceholderAPI uses this String to compare with the latest version on the eCloud (if uploaded to it) to see if a new version is available. If your expansion is included in a plugin, this does not matter.\n\nCalled by PlaceholderAPI to have placeholder values parsed. When not overriden will call onPlaceholderRequest(Player, String), converting the OfflinePlayer to a Player if possible or else providing null.\n\nUsing this method is recommended for the usage of the OfflinePlayer, allowing to use data from a player without their presence being required.\n\nCalled by PlaceholderAPI through onRequest(OfflinePlayer, String) to have placeholder values parsed. When not overriden will return null, which PlaceholderAPI will understand as an invalid Placeholder.\n\nOverriding onRequest(OfflinePlayer, String) or onPlaceholderRequest(Player, String) is not required if you create relational placeholders.\n\nInternal PlaceholderExpansions are classes directly integrated in the plugin they depend on. This method of creating a PlaceholderExpansion is recommended as it has the following benefits:\n\nInternal PlaceholderExpansions are not automatically registered by PlaceholderAPI, due to them not being a separate jar file located in the expansion folder. Please see the Regsister your Expansion section for more details.\n\nYou are also required to override and set persist() to true. This tells PlaceholderAPI to not unload your expansion during plugin reload, as it would otherwise unregister your expansion, making it no longer work.\n\nPlease see the Basic PlaceholderExpansion Structure section for an explanation of all common methods in this example.\n\nTab the icons in the code block below for additional information.\n\nMockup plugin used to showcase the use of dependency injection to access specific plugin related data.\n\nWe can use the authors set in the plugin's plugin.yml file as the authors of this expansion.\n\nSince our expansion is internal can this version be the same as the one defined in the plugin's plugin.yml file.\n\nThis needs to be set, or else will PlaceholderAPI unregister our expansion during a plugin reload.\n\nExample of accessing data of the plugin's config.yml file.\n\nExample of accessing data of the plugin's config.yml file.\n\nReaching this means that an invalid params String was given, so we return null to tell PlaceholderAPI that the placeholder was invalid.\n\nDue to the PlaceholderExpansion being internal, PlaceholderAPI does not load it automatically, we'll need to do it manually. This is being done by creating a new instance of your PlaceholderExpansion class and calling the register() method of it.\n\nHere is a quick example:\n\nWe check that PlaceholderAPI is present and enabled on the server, or else we would get Exceptions. Also, make sure you set PlaceholderAPI as depend or softdepend in your plugin's plugin.yml file!\n\nThis registers our expansion in PlaceholderAPI. It also gives the Plugin class as dependency injection to the Expansion class, so that we can use it.\n\nExternal Expansions are separate Jar files located inside PlaceholderAPI's expansions folder, that contain the PlaceholderExpansion extending class. It is recommended to only make external Expansions for the following situations.\n\nShould the above cases not match your situation, meaning your expansion is for a plugin you maintain, is the creation of an internal Expansion recommended.\n\nSome benefits of an external expansion include automatic (re)loading of your expansion by PlaceholderAPI and having the option to upload it to the eCloud allowing the download of it through the /papi ecloud download command. Downsides include a more tedious setup in terms of checking for a required plugin being present.\n\nPlease see the Basic PlaceholderExpansion Structure section for an explanation of all common methods in this example.\n\nTab the icons in the code block below for additional information.\n\nThis is an example expansion without any plugin dependency.\n\nPlease see the Basic PlaceholderExpansion Structure section for an explanation of all common methods in this example.\n\nTab the icons in the code block below for additional information.\n\nThis is an example expansion with a plugin dependency.\n\nWe set the value of this instance in the canRegister() method, which means that it can't be set to be final.\n\nThe name of the plugin this expansion depends on. It is recommended to set this, as it would result in PlaceholderAPI reporting any missing plugin for your expansion.\n\nThis does two things:\n\nExample of accessing data of the plugin's config.yml file.\n\nExample of accessing data of the plugin's config.yml file.\n\nReaching this means that an invalid params String was given, so we return null to tell PlaceholderAPI that the placeholder was invalid.\n\nRelational Placeholders always start with rel_ to properly identify them. This means that if you make a relational placeholder called friends_is_friend would the full placeholder be %rel_friends_is_friend%.\n\nRelational PlaceholderExpansions are special in that they take two players as input, allowing you to give outputs based on their relation to each other.\n\nTo create a relational expansion you will need to implement the Relational interface into your expansion. You also still need to extend the PlaceholderExpansion class. Implementing this interface will add the onPlaceholderRequest(Player, Player, String) with the first two arguments being the first and second player to use and the third argument being the content after the second _ and before the final % (Or } if bracket placeholders are used) in the placeholder.\n\nPlease see the Basic PlaceholderExpansion Structure section for an explanation of all common methods in this example.\n\nTab the icons in the code block below for additional information.\n\nThis is a complete example of using relational placeholders. For the sake of simplicity are we using the internal Expansion setup here and assume that SomePlugin offers a areFriends(Player, Player) method that returns true or false based on if the players are friends or not.\n\nMockup plugin used to showcase the use of dependency injection to access specific plugin related data.\n\nWe can use the authors set in the plugin's plugin.yml file as the authors of this expansion.\n\nSince our expansion is internal can this version be the same as the one defined in the plugin's plugin.yml file.\n\nThis needs to be set, or else will PlaceholderAPI unregister our expansion during a plugin reload.\n\nOur placeholder requires both players to be present, so if either one is not will this return null.\n\nIn case the identifier matches (Meaning the placeholder is %rel_example_friends% or {rel_example_friends}) will we check if Player one and two are friends through our plugin's areFriends(Player, Player) method. Should they be friends, return green text saying they are and else return red text saying they aren't.\n\nReaching this means that an invalid params String was given, so we return null to tell PlaceholderAPI that the placeholder was invalid.\n\nDon't forget to register your expansion.",
+  "headings": [
+    {
+      "level": "h1",
+      "text": "Creating a PlaceholderExpansion¶",
+      "id": "creating-a-placeholderexpansion"
+    },
+    {
+      "level": "h2",
+      "text": "Table of contents¶",
+      "id": "table-of-contents"
+    },
+    {
+      "level": "h2",
+      "text": "Getting started¶",
+      "id": "getting-started"
+    },
+    {
+      "level": "h3",
+      "text": "Common Expansion Parts¶",
+      "id": "common-expansion-parts"
+    },
+    {
+      "level": "h4",
+      "text": "Basic PlaceholderExpansion Structure¶",
+      "id": "basic-placeholderexpansion-structure"
+    },
+    {
+      "level": "h2",
+      "text": "Making an Internal Expansion¶",
+      "id": "making-an-internal-expansion"
+    },
+    {
+      "level": "h3",
+      "text": "Register your Expansion¶",
+      "id": "register-your-expansion"
+    },
+    {
+      "level": "h2",
+      "text": "Making an External Expansion¶",
+      "id": "making-an-external-expansion"
+    },
+    {
+      "level": "h2",
+      "text": "Making a relational Expansion¶",
+      "id": "making-a-relational-expansion"
+    }
+  ],
+  "code_samples": [
+    {
+      "code": "package at.helpch.placeholderapi.example.expansion;\n\nimport me.clip.placeholderapi.expansion.PlaceholderExpansion;\n\npublic class SomeExpansion extends PlaceholderExpansion {\n\n    @Override\n    @NotNull\n    public String getAuthor() {\n        return \"Author\"; // (1)\n    }\n\n    @Override\n    @NotNull\n    public String getIdentifier() {\n        return \"example\"; // (2)\n    }\n\n    @Override\n    @NotNull\n    public String getVersion() {\n        return \"1.0.0\"; // (3)\n    }\n\n    // These methods aren't overriden by default.\n    // You have to override one of them.\n\n    @Override\n    public String onRequest(OfflinePlayer player, @NotNull String params) {\n        // (4)\n    }\n\n    @Override\n    public String onPlaceholderRequest(Player player, @NotNull String params) {\n        // (5)\n    }\n}",
+      "language": "java"
+    },
+    {
+      "code": "package at.helpch.placeholderapi.example.expansion;\n\nimport at.helpch.placeholderapi.example.SomePlugin;\nimport me.clip.placeholderapi.expansion.PlaceholderExpansion;\nimport org.bukkit.OfflinePlayer;\nimport org.jetbrains.annotations.NotNull;\n\npublic class SomeExpansion extends PlaceholderExpansion {\n\n    private final SomePlugin plugin; // (1)\n\n    public SomeExpansion(SomePlugin plugin) {\n        this.plugin = plugin;\n    }\n\n    @Override\n    @NotNull\n    public String getAuthor() {\n        return String.join(\", \", plugin.getDescription().getAuthors()); // (2)\n    }\n\n    @Override\n    @NotNull\n    public String getIdentifier() {\n        return \"example\";\n    }\n\n    @Override\n    @NotNull\n    public String getVersion() {\n        return plugin.getDescription().getVersion(); // (3)\n    }\n\n    @Override\n    public boolean persist() {\n        return true; // (4)\n    }\n\n    @Override\n    public String onRequest(OfflinePlayer player, @NotNull String params) {\n        if (params.equalsIgnoreCase(\"placeholder1\")) {\n            return plugin.getConfig().getString(\"placeholders.placeholder1\", \"default1\"); // (5)\n        }\n\n        if (params.equalsIgnoreCase(\"placeholder2\")) {\n            return plugin.getConfig().getString(\"placeholders.placeholder1\", \"default1\"); // (6)\n        }\n\n        return null; // (7)\n    }\n}",
+      "language": "java"
+    },
+    {
+      "code": "package at.helpch.placeholderapi.example;\n\nimport at.helpch.placeholderapi.example.expansion.SomeExpansion;\nimport org.bukkit.Bukkit;\nimport org.bukkit.plugin.java.JavaPlugin;\n\npublic class SomePlugin extends JavaPlugin {\n\n    @Override\n    public void onEnable() {\n        if (Bukkit.getPluginManager().isPluginEnabled(\"PlaceholderAPI\")) { // (1)\n            new SomeExpansion(this).register(); // (2)\n        }\n    }\n}",
+      "language": "java"
+    },
+    {
+      "code": "package at.helpch.placeholderapi.example.expansion;\n\nimport me.clip.placeholderapi.expansion.PlaceholderExpansion;\nimport org.bukkit.OfflinePlayer;\nimport org.jetbrains.annotations.NotNull;\n\npublic class SomeExpansion extends PlaceholderExpansion {\n\n    @Override\n    @NotNull\n    public String getAuthor() {\n        return \"Author\";\n    }\n\n    @Override\n    @NotNull\n    public String getIdentifier() {\n        return \"example\";\n    }\n\n    @Override\n    @NotNull\n    public String getVersion() {\n        return \"1.0.0\";\n    }\n\n    @Override\n    public String onRequest(OfflinePlayer player, @NotNull String params) {\n        if (params.equalsIgnoreCase(\"placeholder1\")) {\n            return \"text1\";\n        }\n\n        if (params.equalsIgnoreCase(\"placeholder2\")) {\n            return \"text2\";\n        }\n\n        return null; // (1)\n    }\n}",
+      "language": "java"
+    },
+    {
+      "code": "package at.helpch.placeholderapi.example.expansion;\n\nimport at.helpch.placeholderapi.example.SomePlugin;\nimport me.clip.placeholderapi.expansion.PlaceholderExpansion;\nimport org.bukkit.Bukkit;\nimport org.bukkit.OfflinePlayer;\nimport org.jetbrains.annotations.NotNull;\n\npublic class SomeExpansion extends PlaceholderExpansion {\n\n    private SomePlugin plugin; // (1)\n\n    @Override\n    @NotNull\n    public String getAuthor() {\n        return \"Author\";\n    }\n\n    @Override\n    @NotNull\n    public String getIdentifier() {\n        return \"example\";\n    }\n\n    @Override\n    @NotNull\n    public String getVersion() {\n        return \"1.0.0\"\n    }\n\n    @Override\n    public String getRequiredPlugin() {\n        return \"SomePlugin\"; // (2)\n    }\n\n    @Override\n    public boolean canRegister() { // (3)\n        return (plugin = (SomePlugin) Bukkit.getPluginManager().getPlugin(getRequiredPlugin())) != null;\n    }\n\n    @Override\n    public String onRequest(OfflinePlayer player, @NotNull String params) {\n        if (params.equalsIgnoreCase(\"placeholder1\")) {\n            return plugin.getConfig().getString(\"placeholders.placeholder1\", \"default1\"); // (4)\n        }\n\n        if (params.equalsIgnoreCase(\"placeholder2\")) {\n            return plugin.getConfig().getString(\"placeholders.placeholder1\", \"default1\"); // (5)\n        }\n\n        return null; // (6)\n    }\n}",
+      "language": "java"
+    },
+    {
+      "code": "package at.helpch.placeholderapi.example.expansion;\n\nimport at.helpch.placeholderapi.example.SomePlugin;\nimport me.clip.placeholderapi.expansion.PlaceholderExpansion;\nimport me.clip.placeholderapi.expansion.Relational\nimport org.bukkit.ChatColor;\nimport org.bukkit.Player;\nimport org.jetbrains.annotations.NotNull;\n\npublic class SomeExpansion extends PlaceholderExpansion implements Relational {\n\n    private final SomePlugin plugin; // (1)\n\n    public SomeExpansion(SomePlugin plugin) {\n        this.plugin = plugin;\n    }\n\n    @Override\n    @NotNull\n    public String getAuthor() {\n        return String.join(\", \", plugin.getDescription().getAuthors()); // (2)\n    }\n\n    @Override\n    @NotNull\n    public String getIdentifier() {\n        return \"example\";\n    }\n\n    @Override\n    @NotNull\n    public String getVersion() {\n        return plugin.getDescription().getVersion(); // (3)\n    }\n\n    @Override\n    public boolean persist() {\n        return true; // (4)\n    }\n\n    @Override\n    public String onPlaceholderRequest(Player one, Player two, String identifier) {\n        if (one == null || two == null) {\n            return null; // (5)\n        }\n\n        if (identifier.equalsIgnoreCase(\"friends\")) { // (6)\n            if (plugin.areFriends(one, two)) {\n                return ChatColor.GREEN + one.getName() + \" and \" + two.getName() + \" are friends!\";\n            } else {\n                return ChatColor.RED + one.getName() + \" and \" + two.getName() + \" are not friends!\";\n            }\n        }\n\n        return null; // (7)\n    }\n}",
+      "language": "java"
+    }
+  ],
+  "patterns": [
+    {
+      "description": "Here is a quick example:",
+      "code": "package at.helpch.placeholderapi.example;\n\nimport at.helpch.placeholderapi.example.expansion.SomeExpansion;\nimport org.bukkit.Bukkit;\nimport org.bukkit.plugin.java.JavaPlugin;\n\npublic class SomePlugin extends JavaPlugin {\n\n    @Override\n    public void onEnable() {\n        if (Bukkit.getPluginManager().isPluginEnabled(\"PlaceholderAPI\")) { // (1)\n            new SomeExpansion(this).register(); // (2)\n        }\n    }\n}"
+    }
+  ],
+  "links": [
+    "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+    "https://wiki.placeholderapi.com/",
+    "https://wiki.placeholderapi.com/users/",
+    "https://wiki.placeholderapi.com/developers/",
+    "https://wiki.placeholderapi.com/common-issues/",
+    "https://wiki.placeholderapi.com/faq/",
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://wiki.placeholderapi.com/users/using-placeholders/",
+    "https://wiki.placeholderapi.com/users/placeholder-list/",
+    "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+  ]
+}

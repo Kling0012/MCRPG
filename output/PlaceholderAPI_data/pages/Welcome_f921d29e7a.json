@@ -1,0 +1,53 @@
+{
+  "url": "https://wiki.placeholderapi.com/",
+  "title": "Welcome¶",
+  "content": "This wiki gives you information on how to create placeholders in your plugin that can be used in other plugins, how to use other placeholders inside your plugin, or how to make an expansion. It also has a community-curated list of all available Placeholder expansions and their placeholders.\n\nPages aimed at server owners who want to utilize PlaceholderAPI.\n\nPages aimed at plugin developers who want to use PlaceholderAPI in their own plugin or want to make their own PlaceholderExpansion.\n\nCommon problems you may face while using PlaceholderAPI, and how to solve them.\n\nFrequently Asked Questions and their answers.",
+  "headings": [
+    {
+      "level": "h1",
+      "text": "Welcome¶",
+      "id": "welcome"
+    },
+    {
+      "level": "h2",
+      "text": "Navigation¶",
+      "id": "navigation"
+    },
+    {
+      "level": "h3",
+      "text": "User Guides¶",
+      "id": "user-guides"
+    },
+    {
+      "level": "h3",
+      "text": "Dev Guides¶",
+      "id": "dev-guides"
+    },
+    {
+      "level": "h3",
+      "text": "Common Issues¶",
+      "id": "common-issues"
+    },
+    {
+      "level": "h3",
+      "text": "FAQ¶",
+      "id": "faq"
+    }
+  ],
+  "code_samples": [],
+  "patterns": [],
+  "links": [
+    "https://wiki.placeholderapi.com/",
+    "https://wiki.placeholderapi.com/users/",
+    "https://wiki.placeholderapi.com/developers/",
+    "https://wiki.placeholderapi.com/common-issues/",
+    "https://wiki.placeholderapi.com/faq/",
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://wiki.placeholderapi.com/users/using-placeholders/",
+    "https://wiki.placeholderapi.com/users/placeholder-list/",
+    "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+    "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+  ]
+}

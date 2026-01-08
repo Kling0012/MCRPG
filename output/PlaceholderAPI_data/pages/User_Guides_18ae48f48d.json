@@ -1,0 +1,48 @@
+{
+  "url": "https://wiki.placeholderapi.com/users/",
+  "title": "User Guides¶",
+  "content": "The pages listed under this section are meant for server owners who want to use PlaceholderAPI.\n\nList of all available commands in PlaceholderAPI.\n\nUser Guide on how to use placeholders in a plugin.\n\nCommunity-curated list of available PlaceholderExpansions and their placeholders.\n\nList of Plugins that support PlaceholderAPI and/or provide their own placeholders to use.",
+  "headings": [
+    {
+      "level": "h1",
+      "text": "User Guides¶",
+      "id": "user-guides"
+    },
+    {
+      "level": "h3",
+      "text": "Commands¶",
+      "id": "commands"
+    },
+    {
+      "level": "h3",
+      "text": "Using Placeholders¶",
+      "id": "using-placeholders"
+    },
+    {
+      "level": "h3",
+      "text": "Placeholder List¶",
+      "id": "placeholder-list"
+    },
+    {
+      "level": "h3",
+      "text": "Plugins using PlaceholderAPI¶",
+      "id": "plugins-using-placeholderapi"
+    }
+  ],
+  "code_samples": [],
+  "patterns": [],
+  "links": [
+    "https://wiki.placeholderapi.com/users/",
+    "https://wiki.placeholderapi.com/",
+    "https://wiki.placeholderapi.com/developers/",
+    "https://wiki.placeholderapi.com/common-issues/",
+    "https://wiki.placeholderapi.com/faq/",
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://wiki.placeholderapi.com/users/using-placeholders/",
+    "https://wiki.placeholderapi.com/users/placeholder-list/",
+    "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+    "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+  ]
+}

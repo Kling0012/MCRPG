@@ -1,5 +1,6 @@
 package com.example.rpgplugin.integration;
 
+import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.core.config.YamlConfigManager;
 import com.example.rpgplugin.core.dependency.DependencyManager;
 import com.example.rpgplugin.core.module.IModule;
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,6 +54,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@Execution(ExecutionMode.SAME_THREAD)
 @DisplayName("システム統合テスト")
 class SystemIntegrationTest {
 
@@ -81,6 +85,15 @@ class SystemIntegrationTest {
      */
     @BeforeEach
     void setUp() {
+        // 前のモックが残っている場合はクローズする
+        if (mockedBukkit != null) {
+            try {
+                mockedBukkit.close();
+            } catch (Exception e) {
+                // クローズ時の例外は無視
+            }
+        }
+
         // Bukkit静的メソッドのモック化
         mockedBukkit = mockStatic(Bukkit.class);
 

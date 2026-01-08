@@ -1,0 +1,163 @@
+{
+  "url": "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+  "title": "Plugins using PlaceholderAPI¶",
+  "content": "This here is a list of all plugins supporting PlaceholderAPI by either having their own placeholders added, or just allowing other placeholders to be used. If your plugin isn't shown here and you want it to be added, read the Wiki README on how you can submit your changes.",
+  "headings": [
+    {
+      "level": "h1",
+      "text": "Plugins using PlaceholderAPI¶",
+      "id": "plugins-using-placeholderapi"
+    },
+    {
+      "level": "h2",
+      "text": "Plugins¶",
+      "id": "plugins"
+    },
+    {
+      "level": "h2",
+      "text": "A¶",
+      "id": "a"
+    },
+    {
+      "level": "h2",
+      "text": "B¶",
+      "id": "b"
+    },
+    {
+      "level": "h2",
+      "text": "C¶",
+      "id": "c"
+    },
+    {
+      "level": "h2",
+      "text": "D¶",
+      "id": "d"
+    },
+    {
+      "level": "h2",
+      "text": "E¶",
+      "id": "e"
+    },
+    {
+      "level": "h2",
+      "text": "F¶",
+      "id": "f"
+    },
+    {
+      "level": "h2",
+      "text": "G¶",
+      "id": "g"
+    },
+    {
+      "level": "h2",
+      "text": "H¶",
+      "id": "h"
+    },
+    {
+      "level": "h2",
+      "text": "I¶",
+      "id": "i"
+    },
+    {
+      "level": "h2",
+      "text": "J¶",
+      "id": "j"
+    },
+    {
+      "level": "h2",
+      "text": "K¶",
+      "id": "k"
+    },
+    {
+      "level": "h2",
+      "text": "L¶",
+      "id": "l"
+    },
+    {
+      "level": "h2",
+      "text": "M¶",
+      "id": "m"
+    },
+    {
+      "level": "h2",
+      "text": "N¶",
+      "id": "n"
+    },
+    {
+      "level": "h2",
+      "text": "O¶",
+      "id": "o"
+    },
+    {
+      "level": "h2",
+      "text": "P¶",
+      "id": "p"
+    },
+    {
+      "level": "h2",
+      "text": "Q¶",
+      "id": "q"
+    },
+    {
+      "level": "h2",
+      "text": "R¶",
+      "id": "r"
+    },
+    {
+      "level": "h2",
+      "text": "S¶",
+      "id": "s"
+    },
+    {
+      "level": "h2",
+      "text": "T¶",
+      "id": "t"
+    },
+    {
+      "level": "h2",
+      "text": "U¶",
+      "id": "u"
+    },
+    {
+      "level": "h2",
+      "text": "V¶",
+      "id": "v"
+    },
+    {
+      "level": "h2",
+      "text": "W¶",
+      "id": "w"
+    },
+    {
+      "level": "h2",
+      "text": "X¶",
+      "id": "x"
+    },
+    {
+      "level": "h2",
+      "text": "Y¶",
+      "id": "y"
+    },
+    {
+      "level": "h2",
+      "text": "Z¶",
+      "id": "z"
+    }
+  ],
+  "code_samples": [],
+  "patterns": [],
+  "links": [
+    "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+    "https://wiki.placeholderapi.com/",
+    "https://wiki.placeholderapi.com/users/",
+    "https://wiki.placeholderapi.com/developers/",
+    "https://wiki.placeholderapi.com/common-issues/",
+    "https://wiki.placeholderapi.com/faq/",
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://wiki.placeholderapi.com/users/using-placeholders/",
+    "https://wiki.placeholderapi.com/users/placeholder-list/",
+    "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+    "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+  ]
+}

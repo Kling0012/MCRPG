@@ -1,0 +1,224 @@
+{
+  "url": "https://wiki.placeholderapi.com/users/commands/",
+  "title": "Commands¶",
+  "content": "This page shows all commands, including with a detailed description of what every command does.\n\nThese commands are used to parse placeholders into their respective values. Useful for debugging.\n\nDescription: Parses placeholders of a String and broadcasts the result to all players.\n\nExample: /papi bcparse funnycube My name is %player_name%!\n\nDescription: Parses placeholders of a String and executes it as a command.\n\nExample: /papi cmdparse funnycube say My name is %player_name%!\n\nDescription: Parses the placeholders in a given text and shows the result.\n\nExample: /papi parse funnycube My group is %vault_group%\n\nDescription: Parses a relational placeholder.\n\nExample: /papi parserel funnycube extended_clip %placeholder%\n\nThese commands all start with /papi ecloud and are used for things related about the Expansion Cloud. Only executing /papi ecloud without any arguments will list all commands available for it.\n\nDescription: Clears the cache for the eCloud.\n\nDescription: Disables the connection to the eCloud.\n\nDescription: Allows you to download an expansion from the eCloud\n\nExample: /papi ecloud download Vault /papi ecloud download Vault 1.5.2\n\nDescription: Enables the connection to the eCloud\n\nDescription: Gives information about a specific Expansion.\n\nExample: /papi ecloud info Vault\n\nDescription: Lists either all Expansions on the eCloud, only those by a specific author or only those that you have installed. Installed Expansions show as green in the list and Expansions that are installed and have an update available show as gold.\n\nExample: /papi ecloud list all /papi ecloud list clip /papi ecloud list installed\n\nDescription: List all placeholders of an Expansion.\n\nExample: /papi ecloud placeholders Vault\n\nDescription: Refresh the cached data from the eCloud.\n\nDescription: Displays the actual Status of the eCloud.\n\nThese commands can be used to manage the expansions that you have currently installed.\n\nDescription: Gives you information about the specified Expansion.\n\nExample: /papi info Vault\n\nDescription: Lists all active/registered expansions. This is different to /papi ecloud list installed in the fact, that it also includes expansions that were installed through a plugin (That aren't a separate jar-file) and it also doesn't show which one have updates available.\n\nDescription: Registers an expansion from a specified filename. This is useful in cases, where you downloaded the expansion manually and don't want to restart the server. The file needs to be inside /plugins/PlaceholderAPI/expansions.\n\nExample: /papi register MyExpansion.jar\n\nDescription: Unregisters the specified expansion.\n\nExample: /papi unregister MyExpansion.jar\n\nThese are other commands of PlaceholderAPI that don't fit any of the above categories.\n\nDescription: Pastes useful information from PlaceholderAPI such as plugin version, server version and installed expansions to https://paste.helpch.at for simple sharing and support.\n\nDescription: Displays all the commands PlaceholderAPI currently offers.\n\nDescription: Reloads the config settings. You need to use this command after downloading Expansions from the eCloud or they won't be properly registered.\n\nDescription: Shows the current version and authors of PlaceholderAPI.",
+  "headings": [
+    {
+      "level": "h1",
+      "text": "Commands¶",
+      "id": "commands"
+    },
+    {
+      "level": "h2",
+      "text": "Overview¶",
+      "id": "overview"
+    },
+    {
+      "level": "h3",
+      "text": "Parse Commands¶",
+      "id": "parse-commands"
+    },
+    {
+      "level": "h4",
+      "text": "/papi bcparse¶",
+      "id": "papi-bcparse"
+    },
+    {
+      "level": "h4",
+      "text": "/papi cmdparse¶",
+      "id": "papi-cmdparse"
+    },
+    {
+      "level": "h4",
+      "text": "/papi parse¶",
+      "id": "papi-parse"
+    },
+    {
+      "level": "h4",
+      "text": "/papi parserel¶",
+      "id": "papi-parserel"
+    },
+    {
+      "level": "h3",
+      "text": "eCloud Commands¶",
+      "id": "ecloud-commands"
+    },
+    {
+      "level": "h4",
+      "text": "/papi ecloud clear¶",
+      "id": "papi-ecloud-clear"
+    },
+    {
+      "level": "h4",
+      "text": "/papi ecloud disable¶",
+      "id": "papi-ecloud-disable"
+    },
+    {
+      "level": "h4",
+      "text": "/papi ecloud download¶",
+      "id": "papi-ecloud-download"
+    },
+    {
+      "level": "h4",
+      "text": "/papi ecloud enable¶",
+      "id": "papi-ecloud-enable"
+    },
+    {
+      "level": "h4",
+      "text": "/papi ecloud info¶",
+      "id": "papi-ecloud-info"
+    },
+    {
+      "level": "h4",
+      "text": "/papi ecloud list¶",
+      "id": "papi-ecloud-list"
+    },
+    {
+      "level": "h4",
+      "text": "/papi ecloud placeholders¶",
+      "id": "papi-ecloud-placeholders"
+    },
+    {
+      "level": "h4",
+      "text": "/papi ecloud refresh¶",
+      "id": "papi-ecloud-refresh"
+    },
+    {
+      "level": "h4",
+      "text": "/papi ecloud status¶",
+      "id": "papi-ecloud-status"
+    },
+    {
+      "level": "h3",
+      "text": "Expansion Commands¶",
+      "id": "expansion-commands"
+    },
+    {
+      "level": "h4",
+      "text": "/papi info¶",
+      "id": "papi-info"
+    },
+    {
+      "level": "h4",
+      "text": "/papi list¶",
+      "id": "papi-list"
+    },
+    {
+      "level": "h4",
+      "text": "/papi register¶",
+      "id": "papi-register"
+    },
+    {
+      "level": "h4",
+      "text": "/papi unregister¶",
+      "id": "papi-unregister"
+    },
+    {
+      "level": "h3",
+      "text": "Other Commands¶",
+      "id": "other-commands"
+    },
+    {
+      "level": "h4",
+      "text": "/papi dump¶",
+      "id": "papi-dump"
+    },
+    {
+      "level": "h4",
+      "text": "/papi help¶",
+      "id": "papi-help"
+    },
+    {
+      "level": "h4",
+      "text": "/papi reload¶",
+      "id": "papi-reload"
+    },
+    {
+      "level": "h4",
+      "text": "/papi version¶",
+      "id": "papi-version"
+    }
+  ],
+  "code_samples": [
+    {
+      "code": "/papi bcparse funnycube My name is %player_name%!",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi cmdparse funnycube say My name is %player_name%!",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi parse funnycube My group is %vault_group%",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi parserel funnycube extended_clip %placeholder%",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi ecloud download Vault\n/papi ecloud download Vault 1.5.2",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi ecloud info Vault",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi ecloud list all\n/papi ecloud list clip\n/papi ecloud list installed",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi ecloud placeholders Vault",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi info Vault",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi register MyExpansion.jar",
+      "language": "unknown"
+    },
+    {
+      "code": "/papi unregister MyExpansion.jar",
+      "language": "unknown"
+    }
+  ],
+  "patterns": [
+    {
+      "description": "Description: Parses placeholders of a String and broadcasts the result to all players. Arguments: <player|me|--null> - The Player to parse values of the placeholder (Use me for yourself and --null to force a null player (Useful for consoles)). <text> - Text with placeholders to parse. Example: /papi bcparse funnycube My name is %player_name%!",
+      "code": "<player|me|--null>"
+    },
+    {
+      "description": "Example: /papi bcparse funnycube My name is %player_name%!",
+      "code": "/papi bcparse funnycube My name is %player_name%!"
+    },
+    {
+      "description": "Description: Parses placeholders of a String and executes it as a command. Arguments: <player|me|--null> - The Player to parse values of the placeholder (Use me for yourself and --null to force a null player (Useful for consoles)). <text> - Text with placeholders to parse and execute as command (Don't include the / for the command). Example: /papi cmdparse funnycube say My name is %player_name%!",
+      "code": "<player|me|--null>"
+    },
+    {
+      "description": "Example: /papi cmdparse funnycube say My name is %player_name%!",
+      "code": "/papi cmdparse funnycube say My name is %player_name%!"
+    },
+    {
+      "description": "Description: Parses the placeholders in a given text and shows the result. Arguments: <player|me|--null> - The Player to parse values of the placeholder (Use me for yourself and --null to force a null player (Useful for consoles)). <text> - Text with placeholders to parse. Example: /papi parse funnycube My group is %vault_group%",
+      "code": "<player|me|--null>"
+    }
+  ],
+  "links": [
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://wiki.placeholderapi.com/",
+    "https://wiki.placeholderapi.com/users/",
+    "https://wiki.placeholderapi.com/developers/",
+    "https://wiki.placeholderapi.com/common-issues/",
+    "https://wiki.placeholderapi.com/faq/",
+    "https://wiki.placeholderapi.com/users/using-placeholders/",
+    "https://wiki.placeholderapi.com/users/placeholder-list/",
+    "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+    "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+  ]
+}

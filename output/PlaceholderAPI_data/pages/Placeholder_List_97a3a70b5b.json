@@ -1,0 +1,3033 @@
+{
+  "url": "https://wiki.placeholderapi.com/users/placeholder-list/",
+  "title": "Placeholder List¶",
+  "content": "This is a list of all available placeholders.\n\nA download-command may be found in the infobox located below the title of the Expansion. Should Built into Plugin be displayed is the Expansion included in the Plugin it depends on. Should a URL be shown does it mean you have to download it manually and add it to the expansions folder yourself.\n\nThis placeholder list is provided \"as-is\" without any guarantee of being accurate and/or up-to-date.\n\nPage is only updated on request. We recommend contributing to this list by making a Pull request. Further details on how to contribute to this list or the wiki as a whole can be found on the README file of the Wiki.\n\nExpansions listed here don't need any plugin or extra library to function properly, unless mentioned otherwise. A majority of these Expansions are maintained by the PlaceholderAPI team and can be considered official.\n\npapi ecloud download Advancements\n\nMore info about this expansion can be found on the GitHub-Repository.\n\npapi ecloud download Animations\n\nPlease note: When using placeholders within the animation text, you must use the bracket variant. Use {player_name} instead of %player_name% within the <tag> </tag> tags.\n\nPlease visit the dedicated wiki for all available tags.\n\npapi ecloud download Armor\n\nGives you info about your armor\n\npapi ecloud download ASCII\n\nReturns the ASCII Value based on input\n\nEx: %ascii_37% returns %\n\npapi ecloud download Attribute\n\nAdds placeholders to access Attributes. (Minecraft wiki) The expansion can be used only on 1.9+\n\npapi ecloud download Bungee\n\nAllows you to show, how many players are online on the entire network, or just on a specific server.\n\nhttps://github.com/broken1arrow/CalculateNumbers/releases\n\nThe idea with this expansion is that you should be able to charge dynamically, for example in the deluxe menu. For tools, weapons and armor when players need to repair their belongings. Has also added optional so you can also combine it with rank plugin if you have one.\n\nUse decimal,to get two decimal digits.\n\npapi ecloud download changeoutput\n\nAllows you to change the output based on what other placeholders return.\n\nMore information can be found on the GitHub Repository\n\nAll arguments can be replaced with other placeholders, wrapped in {}\n\npapi ecloud download CheckItem\n\nAllows you to check the inventory of a player for a certain item.\n\nNotes: - mainhand and offhand work in getinfo:<slot> - give and remove placeholders are DISABLED by default for security purposes. See PlaceholderAPI config.yml file to enable.\n\nModifiers You can combine different modifiers to check for different values. Available modifiers are:\n\nFor nbt data you can use compounds by putting .. inside your string Example (%checkitem_nbtstrings:PublicBukkitValues..executableitems:ei-id=Free_Money%) ^\n\npapi ecloud download CooldownBar\n\nMore info about this expansion can be found on the GitHub-Repository.\n\npapi ecloud download Distance\n\nThis expansion provides placeholders to calculate the distance between two locations.\n\nSupports placeholder inside placeholder, use {} instead of % for inner placeholders.\n\nMore info about this expansion can be found on the GitHub-Repository.\n\nhttps://github.com/TeamVK/PAPI-Enchantment/releases\n\nMore info about this expansion can be found on the GitHub-Repository.\n\npapi ecloud download Formatter\n\nMore info about this expansion can be found on the Codeberg-Repository.\n\n[] is optional and <> is required. Use {{u}} for underscores and {{prc}} for percent symbols.\n\npapi ecloud download GraalJS\n\nMore info about this expansion can be found on the GitHub-Repository.\n\nDue to potential security issues is this expansion currently unverified. Use at your own risk.\n\nGives you a way, to use javascript, to give a different output, depending on conditions.\n\npapi ecloud download ListPlayers\n\nLists players with a certain permission or in a certain world... 'nuf said.\n\npapi ecloud download LocalTime\n\nPlease read the SimpleDateFormat Javadoc page about possible formats and this post about available time zone IDs for <TimeZoneID>.\n\npapi ecloud download Math\n\nAllows simple and advanced mathematical equations. Any placeholder that returns a number is supported (Use {placeholder} instead of %placeholder%)\n\nSupports all calculations you can do with EvalEx. Note that the % can't be used within the placeholder and that you have to use [prc] instead.\n\nMore info on Codeberg\n\npapi ecloud download MVdW\n\nLets you use placeholders from MVdWPlaceholderAPI. MVdWPlaceholderAPI and one of Maxims plugins, that use it, are required! A list of his placeholders can be found here\n\nDue to possible security concerns is this expansion currently unverified. Use at your own risk.\n\n<key> is a set query that can be found in the config.yml under plugins/PlaceholderAPI/expansion/MySQL.\n\nhttps://github.com/TeamVK/PAPI-NumberFormatter/releases\n\nMore info about this expansion can be found on the PAPI-NumberFormatter.\n\nif %tokenenchant_token_long% returns 43535709321, %nf_4X_tokenenchant_token_long% will return 43B, %nf_###E0X_tokenenchant_token_long% will return 43.5B, %nf_#,##0.#tokenenchant_token_long% will return 43,535,709,321 %nf#,##0.0#:IT_tokenenchant_token_long% will return 43.535.709.321.0\n\n[] is optional and <> is required.\n\npapi ecloud download OtherPlayer\n\nLets you get placeholders for other players. (Not the one that triggers the action)\n\npapi ecloud download ParseNear\n\nLets you parse any placeholder for the closest player. Will return blank if no player is found.\n\npapi ecloud download ParseOther\n\nLets you parse any placeholder for another player. You must use the unsafe placeholder to parse placeholders for username or uuid. Make sure to include the {} brackets, as it won't work without them.\n\npapi ecloud download Pinger\n\nLets you ping a server through an IP or domain (with port), to check the online-status and to receive some information. The placeholders have a \"warmup\" time of around one or two minutes after installing the expansion.\n\nNote: These placeholders have a separate update-delay in the config.yml of PlaceholderAPI\n\nReplace testplugins.com:25565 with your own server/IP. %pinger_gameversion_testplugins.com:25565% %pinger_version_testplugins.com:25565% %pinger_online_testplugins.com:25565% %pinger_isonline_testplugins.com:25565% %pinger_max_testplugins.com:25565% %pinger_players_testplugins.com:25565% %pinger_motd_testplugins.com:25565% %pinger_pingversion_testplugins.com:25565% %pinger_online_testplugins.com:25565% and %pinger_isonline_testplugins.com:25565% do the exact same thing.\n\npapi ecloud download Player\n\nGives you various placeholders for the player, that triggers the action.\n\npapi ecloud download playerlist\n\nMore info about this expansion can be found on the GitHub-Repository.\n\nCreate a list in PAPI's config and retrieve it through placeholders! %playerlist_<listName>_<list|amount|#>%\n\npapi ecloud download Plugin\n\nReturns information about the specified plugin.\n\npapi ecloud download progress\n\nMore info about this expansion can be found on the GitHub-Repository.\n\nhttps://github.com/JasperLorelai/Expansion-PronounDB/releases\n\nShows the pronouns of a Minecraft player with a linked account on https://pronoundb.org/\n\npapi ecloud download RainbowColor\n\nMore info about the expansion can be found on the GitHub-Repository.\n\npapi ecloud download RandomColor\n\nMore info about the expansion can be found on the GitHub-Repository.\n\nhttps://github.com/TeamVK/PAPI-RandomNumber/releases\n\nMore info about the expansion can be found on the GitHub-Repository.\n\nIt returns an auto-scaled random number. If you did not specify the scale, the scale will be automatically computed. If both min and max are integer numbers, the returned random number will also be an integer.\n\npapi ecloud download RedisBungee\n\nSame like the BungeeCord-placeholders, but for RedisBungee\n\npapi ecloud download RelCon\n\nMore info about the expansion can be found on the GitHub-Repository.\n\npapi ecloud download RNG\n\nMore info about the expansion can be found on the GitHub-Repository.\n\npapi ecloud download reparser\n\nParses a provided input twice.\n\npapi ecloud download ScoreboardObjectives\n\nGet info from a scoreboard objective.\n\nMore info about the expansion can be found on the Spigot Page\n\npapi ecloud download Server\n\nLets you get information about the server.\n\n<time> is the date and time for the countdown. It needs to match the <SimpleDateTime>\n\nPlease read the SimpleDateFormat Javadoc page about possible formats.\n\npapi ecloud download Shortcut\n\nAllows to parse large amounts of text, including placeholders from PlaceholderAPI. Please visit the GitHub Repository for details and usage.\n\npapi ecloud download Sound\n\nPlays a sound, when parsed.\n\npapi ecloud download SpeedPerSec\n\nNote: Clicking is supported in left click only\n\npapi ecloud download Statistic\n\nSupports all statistics in SpigotAPI. %statistic_<StatisticType>%\n\nFor specific blocks, items, entities, ... # Blocks, items, entities, ... %statistic_mine_block:<material>% %statistic_use_item:<Item Material>% %statistic_break_item:<Item Material>% %statistic_craft_item:<Item Material>% %statistic_kill_entity:<MobType>% %statistic_entity_killed_by:<MobType>% # Other statistics %statistic_mob_kills% %statistic_mine_block% %statistic_use_item% %statistic_break_item% %statistic_craft_item% %statistic_ticks_played% %statistic_seconds_played% %statistic_minutes_played% %statistic_hours_played% %statistic_days_played% %statistic_time_played% %statistic_time_played:seconds% %statistic_time_played:minutes% %statistic_time_played:hours% %statistic_time_played:days% %statistic_animals_bred% %statistic_armor_cleaned% %statistic_banner_cleaned% %statistic_beacon_interacted% %statistic_boat_one_cm% %statistic_brewingstand_interaction% %statistic_cake_slices_eaten% %statistic_cauldron_filled% %statistic_cauldron_used% %statistic_chest_opened% %statistic_climb_one_cm% %statistic_crafting_table_interaction% %statistic_crouch_one_cm% %statistic_damage_dealt% %statistic_damage_taken% %statistic_deaths% %statistic_dispenser_inspected% %statistic_dive_one_cm% %statistic_drop% %statistic_dropper_inspected% %statistic_enderchest_opened% %statistic_fall_one_cm% %statistic_fish_caught% %statistic_flower_potted% %statistic_fly_one_cm% %statistic_furnace_interaction% %statistic_hopper_inspected% %statistic_horse_one_cm% %statistic_item_enchanted% %statistic_jump% %statistic_junk_fished% %statistic_leave_game% %statistic_minecart_one_cm% %statistic_noteblock_played% %statistic_noteblock_tuned% %statistic_pig_one_cm% %statistic_player_kills% %statistic_record_played% %statistic_sprint_one_cm% %statistic_swim_one_cm% %statistic_talked_to_villager% %statistic_time_since_death% %statistic_ticks_since_death% %statistic_seconds_since_death% %statistic_minutes_since_death% %statistic_hours_since_death% %statistic_days_since_death% %statistic_traded_with_villager% %statistic_trapped_chest_triggered% %statistic_walk_one_cm% %statistic_sleep_in_bed% %statistic_sneak_time% %statistic_aviate_one_cm%\n\npapi ecloud download String\n\nMore info about the expansion can be found on the GitHub-Repository.\n\nSupports placeholders using brackets: {placeholder}\n\nhttps://www.spigotmc.org/resources/74959/\n\npapi ecloud download teams\n\npapi ecloud download unicode\n\nExample: %unicode_1000% would show က\n\nhttps://api.extendedclip.com/expansions/unixtime/\n\nExample: %unixtime_1750277249389_dd.MM.yyyy-HH:mm:ss% would show 18.06.2025 20:07:29\n\npapi ecloud download world\n\nFor the totalbalance placeholder, you must have a service provider plugin (eg. EssentialsX) to work.\n\nExpansions listed here require the linked resource (plugin) to work properly.\n\nMost of the listed Expansions are NOT made and maintained by the PlaceholderAPI team. Please see #510 for a list of all expansions officially maintained by the PlaceholderAPI team.\n\nAvailable <check> values:\n\nAll information about these placeholders can be found here.\n\npapi ecloud download AcidIsland\n\nGlobal achievement placeholders: %aach_achievements% - Return the total unlocked achievements (number) %aach_achievements_percentage% - Return the total unlocked achievements (%) %aach_total_achievements% - Return the total achievements (number) Normal achievement placeholders for individual player statistics: %aach_connections% %aach_deaths% %aach_arrows% %aach_snowballs% %aach_eggs% %aach_fish% %aach_treasures% %aach_itembreaks% %aach_eatenitems% %aach_shear% %aach_milk% %aach_lavabuckets% %aach_waterbuckets% %aach_trades% %aach_anvilsused% %aach_enchantments% %aach_beds% %aach_maxlevel% %aach_consumedpotions% %aach_playedtime% %aach_itemdrops% %aach_itempickups% %aach_hoeplowings% %aach_fertilising% %aach_taming% %aach_brewing% %aach_fireworks% %aach_musicdiscs% %aach_enderpearls% %aach_smelting% %aach_petmastergive% %aach_petmasterreceive% %aach_distancefoot% %aach_distancepig% %aach_distancehorse% %aach_distanceminecart% %aach_distanceboat% %aach_distancegliding% %aach_distancellama% %aach_distancesneaking% %aach_raidswon% %aach_riptides% %aach_advancementscompleted% Multiple Achievement Placeholders for individual player statistics: %aach_places_[blockname]% - example: %aach_places_dirt% %aach_breaks_[blockname]% - example: %aach_breaks_stone% %aach_kills_[entityname]% - example: %aach_kills_zombie% %aach_targetsshot_[targetname]% - example: %aach_targetsshot_zombie% %aach_crafts_[itemname]% - example: %aach_crafts_bread% %aach_breeding_[entityname]% - example: %aach_breeding_pig% %aach_playercommands_[command]% - example: %aach_playercommands_aach list% %aach_custom_[customname]% - example: %aach_custom_votes% %aach_jobsreborn_[job]% - example: %aach_jobsreborn_hunter% Placeholders for total category achievements: %aach_total_connections% %aach_total_deaths% %aach_total_arrows% %aach_total_snowballs% %aach_total_eggs% %aach_total_fish% %aach_total_treasures% %aach_total_itembreaks% %aach_total_eatenitems% %aach_total_shear% %aach_total_milk% %aach_total_lavabuckets% %aach_total_waterbuckets% %aach_total_trades% %aach_total_anvilsused% %aach_total_enchantments% %aach_total_beds% %aach_total_maxlevel% %aach_total_consumedpotions% %aach_total_playedtime% %aach_total_itemdrops% %aach_total_itempickups% %aach_total_hoeplowings% %aach_total_fertilising% %aach_total_taming% %aach_total_brewing% %aach_total_fireworks% %aach_total_musicdiscs% %aach_total_enderpearls% %aach_total_smelting% %aach_total_petmastergive% %aach_total_petmasterreceive% %aach_total_distancefoot% %aach_total_distancepig% %aach_total_distancehorse% %aach_total_distanceminecart% %aach_total_distanceboat% %aach_total_distancegliding% %aach_total_distancellama% %aach_total_distancesneaking% %aach_total_raidswon% %aach_total_riptides% %aach_total_advancementscompleted% %aach_total_places% %aach_total_breaks% %aach_total_kills% %aach_total_targetsshot% %aach_total_crafts% %aach_total_breeding% %aach_total_playercommands% %aach_total_custom% %aach_total_commands% %aach_total_jobsreborn%\n\nFor more info, visit the wiki of the plugin.\n\nDescription of placeholders\n\nDescription of placeholders\n\nExamples: %animatedmenu_status_testplugins.com_&aOnline_&cOffline% %animatedmenu_status_testplugins.com_25565_&aOnline_&cOffline%\n\npapi ecloud download AParkour\n\npapi ecloud download ASkyBlock\n\npapi ecloud download AutoRank\n\npapi ecloud download AutoSell\n\nFind examples of how the placeholders can be used on signs and scoreboards.\n\nFind an up-to-date list on the SpigotMC page.\n\nCheck out BentoBox placeholders docs for more placeholders.\n\nReplace [gamemode] with one of the following options:\n\nPlease refer to the official documentation for more info.\n\nPlease check the wiki for more info.\n\npapi ecloud download BlockParty\n\npapi ecloud download BuildBattlePro\n\nhttps://www.spigotmc.org/resources/82261/\n\npapi ecloud download ChatReaction\n\npapi ecloud download CheckNameHistory\n\npapi ecloud download CraftConomy\n\npapi ecloud download DeluxeChat\n\npapi ecloud download DeluxePM\n\nPlaceholders information can be found on Github\n\nYou can find an up-to-date list of placeholders on the DiscordSRV Wiki.\n\npapi ecloud download Disease\n\nReplace <n> with a number from 1 to whatever.\n\npapi ecloud download Enjin\n\npapi ecloud download Envoys\n\npapi ecloud download Essentials\n\nThis expansion works with both Essentials and EssentialsX (Second one is recommended).\n\npapi ecloud download EZBlocks\n\npapi ecloud download EZPrestige\n\npapi ecloud download EZRanksPro\n\npapi ecloud download Factions\n\nYou can find an up-to-date list of placeholders on the FactionsUUID Wiki.\n\nThese placeholders work with FactionsUUID and MCore all you need is downloading the expansion of the plugin you're using. if you're using these placeholders in DeluxeChat you need to enable this option \"relation_placeholders_enabled: true\" you can find that in the config.\n\npapi ecloud download GemsEconomy\n\npapi ecloud download GriefPrevention\n\npapi ecloud download Heroes\n\nGet information about your players from Honeypot. Please refer to the Wiki for more detailed information.\n\nYou can find an up-to-date list of placeholders in the HyacinthHello wiki.\n\nSupports ASkyBlock, BentoBox, uSkyBlock and AcidIsland.\n\npapi ecloud download Karma\n\npapi ecloud download KillStats\n\nYou can find an up-to-date list of placeholders on the KingdomsX wiki.\n\nA Description of the placeholders can be found on the Lands Wiki.\n\nMore info about these placeholders can be found here.\n\npapi ecloud download lemonmobcoins\n\npapi ecloud download LuckPerms\n\nYou can find an up-to-date list of placeholders on the LuckPerms wiki.\n\nAll placeholders generally support async access as well. You may also find an official list on the MBedwars Wiki.\n\nThese are available for each arena, with <arena> being the name of it: %mbedwars_arena-<arena>-displayname% %mbedwars_arena-<arena>-authors% %mbedwars_arena-<arena>-players% %mbedwars_arena-<arena>-maxplayers% %mbedwars_arena-<arena>-minplayers% %mbedwars_arena-<arena>-status% %mbedwars_arena-<arena>-teams% %mbedwars_arena-<arena>-teamsize%\n\nThese depend on the arena in which the player is currently playing within: %mbedwars_playerarena-name% %mbedwars_playerarena-displayname% %mbedwars_playerarena-authors% %mbedwars_playerarena-players% %mbedwars_playerarena-maxplayers% %mbedwars_playerarena-status% %mbedwars_playerarena-teams% %mbedwars_playerarena-teamsize% %mbedwars_playerarena-current-team% %mbedwars_playerarena-current-team-color% %mbedwars_playerarena-current-team-initials% %mbedwars_playerarena-team-<team>-size% %mbedwars_playerarena-team-<team>-status%\n\nThese are the total stats of the player. APIs are able to add their own ones, with their general format being %mbedwars_stats-<id>%. The ones that MBedwars provides are the following: %mbedwars_stats-rank% %mbedwars_stats-wins% %mbedwars_stats-loses% %mbedwars_stats-win_streak% %mbedwars_stats-top_win_streak% %mbedwars_stats-rounds_played% %mbedwars_stats-wl% %mbedwars_stats-kills% %mbedwars_stats-final_kills% %mbedwars_stats-deaths% %mbedwars_stats-final_deaths% %mbedwars_stats-kd% %mbedwars_stats-beds_destroyed% %mbedwars_stats-beds_lost% %mbedwars_stats-play_time%\n\nThese are the stats of the current match of which the player is a part of. APIs are able to add their own ones, with their general format being %mbedwars_gamestats-<id>%. The ones that MBedwars provides are the following: %mbedwars_gamestats-kills% %mbedwars_gamestats-final_kills% %mbedwars_gamestats-deaths% %mbedwars_gamestats-kd% %mbedwars_gamestats-beds_destroyed% %mbedwars_gamestats-play_time%\n\nThese display the amount of players per mode. You may add own modes using the players-in-mode-placeholders config: %mbedwars_players-in-mode-all% %mbedwars_players-in-mode-solos% %mbedwars_players-in-mode-doubles% %mbedwars_players-in-mode-trios% %mbedwars_players-in-mode-quads%\n\nMiscellaneous placeholders: %mbedwars_achievements-earned-count%\n\npapi ecloud download marriage\n\npapi ecloud download MineCrates\n\nThe below Placeholders are only for Multiverse-Core v5!\n\nAll placeholders allow a _<world> to be added with <world> being the name of a Multiverse-loaded World. Example: %multiverse-core_alias_myworld%\n\npapi ecloud download multiverse\n\nYou can find more information on the Wiki.\n\npapi ecloud download Nicknamer\n\npapi ecloud download Nicky\n\npapi ecloud download OnTime\n\nDescription and usage for placeholders\n\nYou can find an up-to-date list of placeholders on the OreAnnouncer Wiki.\n\nReplace <map_name> with name of the map you wish to get time for. Replace <player_name> with name of the player you wish to display time for. Replace <position> with number that coresponds to the position you want to display.\n\nReplace <AttractionID> with the ID of your attraction. Replace <Position> with the ridecount position. Replace [Type] with the top type. Supported values: DAILY, WEEKLY, MONTHLY, YEARLY, TOTAL\n\nThe plugin provides placeholders for statistics stored in the plugin for players and the server.\n\nCheck Plan Wiki for the placeholders list.\n\npapi ecloud download playerstats\n\nFor more information and usage examples, see the PlayerStatsExpansion GitHub.\n\nFor a detailed explanation of how to use PlayTimeManager's placeholders, you can take a look at the PlayTimeManager Wiki.\n\n<server> is the name of the server it should show the player count of.\n\nEach placeholder has a shorter alias, which follows the primary placeholder below.\n\nPrison uses PlaceholderAPI to support any plugin placeholders within the GUI Ranks Lore and the GUI Mine Lore.\n\nPrison Placeholder Attributes:\n\nPrison supports Placeholder Attributes which allows an infinite way to customize most placeholders, such as numeric formatting, hex colors, and reductions. Can customize any bar-graph for character codes, colors, and size.\n\nSimple examples using placeholder attributes with the results following each example. Colors are not shown.\n\nPLAYER placeholders are used directly with a player, such as with player chat prefixes and scoreboards.\n\nRank related placeholders apply to all ranks that a player may have, and may return more than one value. Use the LADDER placeholders to control the order that is displayed. Rank based placeholder can return zero, one, or more rank related values depending upon how many ladders the player is on.\n\nMust be used directly with a player, and returns the information related to their active rank on the specified ladder.\n\nUse the ladder name, all lowercase, in place of <laddername>, and it will return zero or one rank related values.\n\nRANKS placeholders deal directly with specific rank information.\n\nUse the rank name in place of <rankname>, and may return zero or one value.\n\nRANKPLAYERS placeholders are used with players and shows what their adjusted costs are for the specified rank. These placeholders are ideal for showing a player how much each rank will cost using their personal rank cost multipliers.\n\nUse the rank name in place of <rankname>, and may return zero or one value.\n\nMINES placeholder provides stats for the given mine.\n\nUse the mine name in place of <minename>, and may return zero or one value.\n\nNote: The placeholders %prison_top_mine_block_line_header_<minename>% and %prison_top_mine_block_line_totals_<minename>% are used with the STATSMINES placeholders and provide the headers and total details for the given mines.\n\nMINEPLAYERS placeholders are tied to a player and dynamically shows the details of the mine the player is in, or blanks when not in a mine. These are ideal for use in scoreboards or chat prefixes.\n\nMust be used with a player.\n\nPLAYERBLOCKS placeholders are tied to a player, but through the mines modules. The placeholders that are supported are one for each block type that is defined in all mines.\n\nMust be used with a player. The use of <blockname> is the name of the block as provided with the command /mines block search help, but all lowercase and any \":\" should use \"-\" instead. These placeholders will return a value of 0 or more. If the block name is invalid it will return a blank.\n\nExamples: prison_player_total_blocks__cobblestone prison_player_total_blocks__customitems-compressedcobblestone\n\nThe STATSMINES placeholders represents the blocks that in the specified mine. The value nnn should be replaced with a number starting with a 1, or 001 and refers to one block. The \"line placeholder is composed of the other placeholders and can simplify the use of these placeholders. See the headers and footer totals within the MINES placeholders.\n\nUse the mine name in place of <minename>, and may return zero or one value. Invalid values for _nnn_ will return blanks.\n\nThe STATSRANKS placeholders represents the top-n players for a given rank. The value nnn should be replaced with a number starting with a 1, or 001 and refers to a given player.\n\nUse the mine name in place of <rankname>, and may return zero or one value. Invalid values for _nnn_ will return blanks.\n\npapi ecloud download PrisonMines\n\nYou can find an up-to-date list of placeholders in the ProtectionStones Wiki.\n\nFor a description of the placeholders please read the PvPManager Wiki\n\npapi ecloud download Quests\n\npapi ecloud download QuickSell\n\n%treasuresrecentfind_find_number_<number>% %treasuresrecentfind_from_first_<number>% 1 is most recent, 2 is second most, 3 third most, etc.\n\n<name> is the name you configured in the config.yml of this plugin. Read More\n\npapi ecloud download rogueparkour-temporary\n\nYou can find an up-to-date list of placeholders with detailed information and examples in the ScreamingBedWars Documentation.\n\nReplace [world] with the name of a loaded world. Placeholders ending in a [world] will retrieve information from the specified world instead of the player's current world.\n\nReplace [variable name] with the name of the signlink variable.\n\nYou can find an up-to-date list of placeholders in the SimpleClans Wiki.\n\npapi ecloud download SimplePrefix\n\npapi ecloud download SkillAPI\n\nThe following placeholders are the same as above but instead of specifying the skillName, you can specify a number from 1 to pretty much infinity (amount of skills a player has) which will show the information related to the players 1st, 2nd, 3rd skill and so on... %skillapi_player_skill_points_<#>% %skillapi_player_skill_level_<#>% %skillapi_player_skill_levelreq_<#>% %skillapi_player_skill_name_<#>% %skillapi_player_skill_message_<#>% %skillapi_player_skill_req_<#>% %skillapi_player_skill_type_<#>% %skillapi_player_skill_can_autolevel_<#>% %skillapi_player_skill_can_cast_<#>%\n\npapi ecloud download SkinsRestorer\n\nhttps://api.extendedclip.com/expansions/skippi/\n\npapi ecloud download spark\n\npapi ecloud download StaffFacilities\n\npapi ecloud download staffplusplus\n\nAll placeholders are listed here: https://wiki.staffplusplus.org/integrations/papi-expansion\n\npapi ecloud download Statz\n\npapi ecloud download SuperbVote\n\npapi ecloud download ThemePark\n\nReplace <AttractionID> with the ID of your attraction. Replace <Position> with the ridecount position. Replace [Type] with the top type. Supported values: DAILY, WEEKLY, MONTHLY, YEARLY, TOTAL\n\npapi ecloud download Thirst\n\nIf you add _long to the cost related placeholder, it will returne a number without comma/decimal point.\n\nYou can find an up-to-date list of placeholders in the Towny wiki.\n\npapi ecloud download TownyChat\n\nDetailed explanation and example outputs of placeholders are listed on modrinth.\n\npapi ecloud download uSkyBlock\n\n*Add rel_ before placeholder and tag to support relational placeholder\n\npapi ecloud download UltimateVotes\n\nYou can find an up-to-date list of placeholders in the Ultra Economy Wiki.\n\nYou can find an up-to-date list of placeholders in the Ultra Motd Wiki.\n\nYou can find an up-to-date list of placeholders in the Ultra Permissions Wiki.\n\nYou can find an up-to-date list of placeholders in the Ultra Punishments Wiki.\n\nYou can find an up-to-date list of placeholders in the Ultra Regions Wiki.\n\npapi ecloud download UnityGen\n\npapi ecloud download Vault\n\npapi ecloud download ViaVersion\n\nYou can find an up-to-date list of placeholders on the VoteParty wiki.\n\npapi ecloud download VoteRoulette\n\npapi ecloud download VotingPlugin\n\npapi ecloud download WorldBorder\n\npapi ecloud download WorldGuard\n\npapi ecloud download XLTournaments",
+  "headings": [
+    {
+      "level": "h1",
+      "text": "Placeholder List¶",
+      "id": "placeholder-list"
+    },
+    {
+      "level": "h2",
+      "text": "Standalone¶",
+      "id": "standalone"
+    },
+    {
+      "level": "h3",
+      "text": "Advancements¶",
+      "id": "advancements"
+    },
+    {
+      "level": "h3",
+      "text": "Animations¶",
+      "id": "animations"
+    },
+    {
+      "level": "h3",
+      "text": "Armor¶",
+      "id": "armor"
+    },
+    {
+      "level": "h3",
+      "text": "ASCII¶",
+      "id": "ascii"
+    },
+    {
+      "level": "h3",
+      "text": "Attribute¶",
+      "id": "attribute"
+    },
+    {
+      "level": "h3",
+      "text": "BungeeCord¶",
+      "id": "bungeecord"
+    },
+    {
+      "level": "h3",
+      "text": "CalculateNumbers¶",
+      "id": "calculatenumbers"
+    },
+    {
+      "level": "h3",
+      "text": "ChangeOutput¶",
+      "id": "changeoutput"
+    },
+    {
+      "level": "h3",
+      "text": "CheckItem¶",
+      "id": "checkitem"
+    },
+    {
+      "level": "h3",
+      "text": "CooldownBar¶",
+      "id": "cooldownbar"
+    },
+    {
+      "level": "h3",
+      "text": "Distance¶",
+      "id": "distance"
+    },
+    {
+      "level": "h3",
+      "text": "Enchantment¶",
+      "id": "enchantment"
+    },
+    {
+      "level": "h3",
+      "text": "Formatter¶",
+      "id": "formatter"
+    },
+    {
+      "level": "h3",
+      "text": "GraalJS¶",
+      "id": "graaljs"
+    },
+    {
+      "level": "h3",
+      "text": "Javascript¶",
+      "id": "javascript"
+    },
+    {
+      "level": "h3",
+      "text": "ListPlayers¶",
+      "id": "listplayers"
+    },
+    {
+      "level": "h3",
+      "text": "LocalTime¶",
+      "id": "localtime"
+    },
+    {
+      "level": "h3",
+      "text": "Math¶",
+      "id": "math"
+    },
+    {
+      "level": "h3",
+      "text": "MVdW Placeholders¶",
+      "id": "mvdw-placeholders"
+    },
+    {
+      "level": "h3",
+      "text": "MySQL¶",
+      "id": "mysql"
+    },
+    {
+      "level": "h3",
+      "text": "MySQLTokens¶",
+      "id": "mysqltokens"
+    },
+    {
+      "level": "h3",
+      "text": "NumberFormatter¶",
+      "id": "numberformatter"
+    },
+    {
+      "level": "h3",
+      "text": "OtherPlayer¶",
+      "id": "otherplayer"
+    },
+    {
+      "level": "h3",
+      "text": "ParseNear¶",
+      "id": "parsenear"
+    },
+    {
+      "level": "h3",
+      "text": "ParseOther¶",
+      "id": "parseother"
+    },
+    {
+      "level": "h3",
+      "text": "Pinger¶",
+      "id": "pinger"
+    },
+    {
+      "level": "h3",
+      "text": "Player¶",
+      "id": "player"
+    },
+    {
+      "level": "h3",
+      "text": "PlayerList¶",
+      "id": "playerlist"
+    },
+    {
+      "level": "h3",
+      "text": "Plugin¶",
+      "id": "plugin"
+    },
+    {
+      "level": "h3",
+      "text": "Progress¶",
+      "id": "progress"
+    },
+    {
+      "level": "h3",
+      "text": "PronounDB¶",
+      "id": "pronoundb"
+    },
+    {
+      "level": "h3",
+      "text": "RainbowColor¶",
+      "id": "rainbowcolor"
+    },
+    {
+      "level": "h3",
+      "text": "RandomColor¶",
+      "id": "randomcolor"
+    },
+    {
+      "level": "h3",
+      "text": "RandomNumber¶",
+      "id": "randomnumber"
+    },
+    {
+      "level": "h3",
+      "text": "RedisBungee¶",
+      "id": "redisbungee"
+    },
+    {
+      "level": "h3",
+      "text": "RelCon¶",
+      "id": "relcon"
+    },
+    {
+      "level": "h3",
+      "text": "RNG¶",
+      "id": "rng"
+    },
+    {
+      "level": "h3",
+      "text": "Reparser¶",
+      "id": "reparser"
+    },
+    {
+      "level": "h3",
+      "text": "ScoreboardObjectives¶",
+      "id": "scoreboardobjectives"
+    },
+    {
+      "level": "h3",
+      "text": "Server¶",
+      "id": "server"
+    },
+    {
+      "level": "h3",
+      "text": "Shortcut¶",
+      "id": "shortcut"
+    },
+    {
+      "level": "h3",
+      "text": "Sound¶",
+      "id": "sound"
+    },
+    {
+      "level": "h3",
+      "text": "SpeedPerSec¶",
+      "id": "speedpersec"
+    },
+    {
+      "level": "h3",
+      "text": "Statistic¶",
+      "id": "statistic"
+    },
+    {
+      "level": "h3",
+      "text": "String¶",
+      "id": "string"
+    },
+    {
+      "level": "h3",
+      "text": "Team¶",
+      "id": "team"
+    },
+    {
+      "level": "h3",
+      "text": "Teams¶",
+      "id": "teams"
+    },
+    {
+      "level": "h3",
+      "text": "Unicode¶",
+      "id": "unicode"
+    },
+    {
+      "level": "h3",
+      "text": "UnixTime¶",
+      "id": "unixtime"
+    },
+    {
+      "level": "h3",
+      "text": "World¶",
+      "id": "world"
+    },
+    {
+      "level": "h2",
+      "text": "Plugin-placeholders¶",
+      "id": "plugin-placeholders"
+    },
+    {
+      "level": "h3",
+      "text": "AAC¶",
+      "id": "aac"
+    },
+    {
+      "level": "h3",
+      "text": "AbstractMenus¶",
+      "id": "abstractmenus"
+    },
+    {
+      "level": "h3",
+      "text": "AcidIsland¶",
+      "id": "acidisland"
+    },
+    {
+      "level": "h3",
+      "text": "AcidIslandRate¶",
+      "id": "acidislandrate"
+    },
+    {
+      "level": "h3",
+      "text": "Advanced Abilities¶",
+      "id": "advanced-abilities"
+    },
+    {
+      "level": "h3",
+      "text": "Advanced Achievements¶",
+      "id": "advanced-achievements"
+    },
+    {
+      "level": "h3",
+      "text": "AdvancedAFK¶",
+      "id": "advancedafk"
+    },
+    {
+      "level": "h3",
+      "text": "AdvancedCustomMenu+¶",
+      "id": "advancedcustommenu"
+    },
+    {
+      "level": "h3",
+      "text": "AdvancedLottery¶",
+      "id": "advancedlottery"
+    },
+    {
+      "level": "h3",
+      "text": "AdvancedModReq¶",
+      "id": "advancedmodreq"
+    },
+    {
+      "level": "h3",
+      "text": "AdvancedServerList¶",
+      "id": "advancedserverlist"
+    },
+    {
+      "level": "h3",
+      "text": "ajLeaderboards¶",
+      "id": "ajleaderboards"
+    },
+    {
+      "level": "h3",
+      "text": "ajParkour¶",
+      "id": "ajparkour"
+    },
+    {
+      "level": "h3",
+      "text": "AlonsoLevels¶",
+      "id": "alonsolevels"
+    },
+    {
+      "level": "h3",
+      "text": "AngelChest¶",
+      "id": "angelchest"
+    },
+    {
+      "level": "h3",
+      "text": "Animated Menu¶",
+      "id": "animated-menu"
+    },
+    {
+      "level": "h3",
+      "text": "AntiCombatLogging¶",
+      "id": "anticombatlogging"
+    },
+    {
+      "level": "h3",
+      "text": "AParkour¶",
+      "id": "aparkour"
+    },
+    {
+      "level": "h3",
+      "text": "ASkyBlock¶",
+      "id": "askyblock"
+    },
+    {
+      "level": "h3",
+      "text": "AsyncKeepAlive¶",
+      "id": "asynckeepalive"
+    },
+    {
+      "level": "h3",
+      "text": "Ath¶",
+      "id": "ath"
+    },
+    {
+      "level": "h3",
+      "text": "AutoPickup¶",
+      "id": "autopickup"
+    },
+    {
+      "level": "h3",
+      "text": "AutoRank¶",
+      "id": "autorank"
+    },
+    {
+      "level": "h3",
+      "text": "AutoSell¶",
+      "id": "autosell"
+    },
+    {
+      "level": "h3",
+      "text": "BankSystem¶",
+      "id": "banksystem"
+    },
+    {
+      "level": "h3",
+      "text": "BasicQuests¶",
+      "id": "basicquests"
+    },
+    {
+      "level": "h3",
+      "text": "BattleLevels¶",
+      "id": "battlelevels"
+    },
+    {
+      "level": "h3",
+      "text": "BeautyQuests¶",
+      "id": "beautyquests"
+    },
+    {
+      "level": "h3",
+      "text": "BedWars1058¶",
+      "id": "bedwars1058"
+    },
+    {
+      "level": "h3",
+      "text": "BentoBox¶",
+      "id": "bentobox"
+    },
+    {
+      "level": "h3",
+      "text": "BetonQuest¶",
+      "id": "betonquest"
+    },
+    {
+      "level": "h3",
+      "text": "BetterTeams¶",
+      "id": "betterteams"
+    },
+    {
+      "level": "h3",
+      "text": "BlockParty¶",
+      "id": "blockparty"
+    },
+    {
+      "level": "h3",
+      "text": "BlockQuest¶",
+      "id": "blockquest"
+    },
+    {
+      "level": "h3",
+      "text": "Boxing¶",
+      "id": "boxing"
+    },
+    {
+      "level": "h3",
+      "text": "BuildBattlePro¶",
+      "id": "buildbattlepro"
+    },
+    {
+      "level": "h3",
+      "text": "BungeePerms¶",
+      "id": "bungeeperms"
+    },
+    {
+      "level": "h3",
+      "text": "BuyCraft¶",
+      "id": "buycraft"
+    },
+    {
+      "level": "h3",
+      "text": "CarlTheCreeper¶",
+      "id": "carlthecreeper"
+    },
+    {
+      "level": "h3",
+      "text": "ChatColor+¶",
+      "id": "chatcolor"
+    },
+    {
+      "level": "h3",
+      "text": "ChatColor+ Premium¶",
+      "id": "chatcolor-premium"
+    },
+    {
+      "level": "h3",
+      "text": "ChatReaction¶",
+      "id": "chatreaction"
+    },
+    {
+      "level": "h3",
+      "text": "CheckNameHistory¶",
+      "id": "checknamehistory"
+    },
+    {
+      "level": "h3",
+      "text": "ClaimChunk¶",
+      "id": "claimchunk"
+    },
+    {
+      "level": "h3",
+      "text": "Clans¶",
+      "id": "clans"
+    },
+    {
+      "level": "h3",
+      "text": "Clans¶",
+      "id": "clans_1"
+    },
+    {
+      "level": "h3",
+      "text": "Clans-API for Spigot/Clan tag in chat¶",
+      "id": "clans-api-for-spigotclan-tag-in-chat"
+    },
+    {
+      "level": "h3",
+      "text": "ClanSystem¶",
+      "id": "clansystem"
+    },
+    {
+      "level": "h3",
+      "text": "CombatLogX¶",
+      "id": "combatlogx"
+    },
+    {
+      "level": "h3",
+      "text": "Compassance¶",
+      "id": "compassance"
+    },
+    {
+      "level": "h3",
+      "text": "CoordinateTool¶",
+      "id": "coordinatetool"
+    },
+    {
+      "level": "h3",
+      "text": "Country on Join¶",
+      "id": "country-on-join"
+    },
+    {
+      "level": "h3",
+      "text": "CraftConomy¶",
+      "id": "craftconomy"
+    },
+    {
+      "level": "h3",
+      "text": "CraftingStore.net¶",
+      "id": "craftingstorenet"
+    },
+    {
+      "level": "h3",
+      "text": "CursedVIP¶",
+      "id": "cursedvip"
+    },
+    {
+      "level": "h3",
+      "text": "Custom Advancements¶",
+      "id": "custom-advancements"
+    },
+    {
+      "level": "h3",
+      "text": "Custom Items¶",
+      "id": "custom-items"
+    },
+    {
+      "level": "h3",
+      "text": "Daily Rewards¶",
+      "id": "daily-rewards"
+    },
+    {
+      "level": "h3",
+      "text": "DeliveryMan¶",
+      "id": "deliveryman"
+    },
+    {
+      "level": "h3",
+      "text": "DeluxeChat¶",
+      "id": "deluxechat"
+    },
+    {
+      "level": "h3",
+      "text": "DeluxeCombat¶",
+      "id": "deluxecombat"
+    },
+    {
+      "level": "h3",
+      "text": "DeluxeMenus¶",
+      "id": "deluxemenus"
+    },
+    {
+      "level": "h3",
+      "text": "DeluxePM¶",
+      "id": "deluxepm"
+    },
+    {
+      "level": "h3",
+      "text": "DeluxeTags¶",
+      "id": "deluxetags"
+    },
+    {
+      "level": "h3",
+      "text": "Denizen¶",
+      "id": "denizen"
+    },
+    {
+      "level": "h3",
+      "text": "DimensionPlaceholders¶",
+      "id": "dimensionplaceholders"
+    },
+    {
+      "level": "h3",
+      "text": "DiscordSRV¶",
+      "id": "discordsrv"
+    },
+    {
+      "level": "h3",
+      "text": "Disease¶",
+      "id": "disease"
+    },
+    {
+      "level": "h3",
+      "text": "Donations Holograms¶",
+      "id": "donations-holograms"
+    },
+    {
+      "level": "h3",
+      "text": "DragonSlayer¶",
+      "id": "dragonslayer"
+    },
+    {
+      "level": "h3",
+      "text": "DungeonsXL¶",
+      "id": "dungeonsxl"
+    },
+    {
+      "level": "h3",
+      "text": "Economy Bank¶",
+      "id": "economy-bank"
+    },
+    {
+      "level": "h3",
+      "text": "Enjin & DonationCraft 2.x¶",
+      "id": "enjin-donationcraft-2x"
+    },
+    {
+      "level": "h3",
+      "text": "EntityClearer¶",
+      "id": "entityclearer"
+    },
+    {
+      "level": "h3",
+      "text": "EntityControl¶",
+      "id": "entitycontrol"
+    },
+    {
+      "level": "h3",
+      "text": "Envoys¶",
+      "id": "envoys"
+    },
+    {
+      "level": "h3",
+      "text": "EpicFriends¶",
+      "id": "epicfriends"
+    },
+    {
+      "level": "h3",
+      "text": "EpicLevels¶",
+      "id": "epiclevels"
+    },
+    {
+      "level": "h3",
+      "text": "essCore¶",
+      "id": "esscore"
+    },
+    {
+      "level": "h3",
+      "text": "Essentials¶",
+      "id": "essentials"
+    },
+    {
+      "level": "h3",
+      "text": "EventCore¶",
+      "id": "eventcore"
+    },
+    {
+      "level": "h3",
+      "text": "EZBlocks¶",
+      "id": "ezblocks"
+    },
+    {
+      "level": "h3",
+      "text": "EZPrestige¶",
+      "id": "ezprestige"
+    },
+    {
+      "level": "h3",
+      "text": "EZRanksPro¶",
+      "id": "ezrankspro"
+    },
+    {
+      "level": "h3",
+      "text": "Factions MCore¶",
+      "id": "factions-mcore"
+    },
+    {
+      "level": "h3",
+      "text": "FactionsUUID¶",
+      "id": "factionsuuid"
+    },
+    {
+      "level": "h3",
+      "text": "Factions relation placeholders¶",
+      "id": "factions-relation-placeholders"
+    },
+    {
+      "level": "h3",
+      "text": "GAListener¶",
+      "id": "galistener"
+    },
+    {
+      "level": "h3",
+      "text": "GangsPlus¶",
+      "id": "gangsplus"
+    },
+    {
+      "level": "h3",
+      "text": "GemsEconomy¶",
+      "id": "gemseconomy"
+    },
+    {
+      "level": "h3",
+      "text": "GriefDefender¶",
+      "id": "griefdefender"
+    },
+    {
+      "level": "h3",
+      "text": "GriefPrevention¶",
+      "id": "griefprevention"
+    },
+    {
+      "level": "h3",
+      "text": "GrimAC¶",
+      "id": "grimac"
+    },
+    {
+      "level": "h3",
+      "text": "Guilds¶",
+      "id": "guilds"
+    },
+    {
+      "level": "h3",
+      "text": "GuiRedeemMCMMO¶",
+      "id": "guiredeemmcmmo"
+    },
+    {
+      "level": "h3",
+      "text": "Head Database¶",
+      "id": "head-database"
+    },
+    {
+      "level": "h3",
+      "text": "Heroes¶",
+      "id": "heroes"
+    },
+    {
+      "level": "h3",
+      "text": "HoloBlock¶",
+      "id": "holoblock"
+    },
+    {
+      "level": "h3",
+      "text": "HoloMobHealth¶",
+      "id": "holomobhealth"
+    },
+    {
+      "level": "h3",
+      "text": "Honeypot¶",
+      "id": "honeypot"
+    },
+    {
+      "level": "h3",
+      "text": "HPWizard¶",
+      "id": "hpwizard"
+    },
+    {
+      "level": "h3",
+      "text": "Hugs¶",
+      "id": "hugs"
+    },
+    {
+      "level": "h3",
+      "text": "HyacinthHello¶",
+      "id": "hyacinthhello"
+    },
+    {
+      "level": "h3",
+      "text": "ImageFrame¶",
+      "id": "imageframe"
+    },
+    {
+      "level": "h3",
+      "text": "InteractionVisualizer¶",
+      "id": "interactionvisualizer"
+    },
+    {
+      "level": "h3",
+      "text": "InteractiveChat¶",
+      "id": "interactivechat"
+    },
+    {
+      "level": "h3",
+      "text": "Island Border¶",
+      "id": "island-border"
+    },
+    {
+      "level": "h3",
+      "text": "IslandRate¶",
+      "id": "islandrate"
+    },
+    {
+      "level": "h3",
+      "text": "IslandWorld¶",
+      "id": "islandworld"
+    },
+    {
+      "level": "h3",
+      "text": "Jobs Reborn¶",
+      "id": "jobs-reborn"
+    },
+    {
+      "level": "h3",
+      "text": "Karma¶",
+      "id": "karma"
+    },
+    {
+      "level": "h3",
+      "text": "KillStats¶",
+      "id": "killstats"
+    },
+    {
+      "level": "h3",
+      "text": "KitPvP¶",
+      "id": "kitpvp"
+    },
+    {
+      "level": "h3",
+      "text": "KingdomsX¶",
+      "id": "kingdomsx"
+    },
+    {
+      "level": "h3",
+      "text": "KP-PVP¶",
+      "id": "kp-pvp"
+    },
+    {
+      "level": "h3",
+      "text": "Lands¶",
+      "id": "lands"
+    },
+    {
+      "level": "h3",
+      "text": "LastLoginAPI¶",
+      "id": "lastloginapi"
+    },
+    {
+      "level": "h3",
+      "text": "LeaderHeads¶",
+      "id": "leaderheads"
+    },
+    {
+      "level": "h3",
+      "text": "LegendQuest¶",
+      "id": "legendquest"
+    },
+    {
+      "level": "h3",
+      "text": "LemonMobCoins¶",
+      "id": "lemonmobcoins"
+    },
+    {
+      "level": "h3",
+      "text": "LevelledMobs¶",
+      "id": "levelledmobs"
+    },
+    {
+      "level": "h3",
+      "text": "LevelUp¶",
+      "id": "levelup"
+    },
+    {
+      "level": "h3",
+      "text": "LotterySix¶",
+      "id": "lotterysix"
+    },
+    {
+      "level": "h3",
+      "text": "LuckPerms¶",
+      "id": "luckperms"
+    },
+    {
+      "level": "h3",
+      "text": "LWC¶",
+      "id": "lwc"
+    },
+    {
+      "level": "h3",
+      "text": "Marcely's Bedwars¶",
+      "id": "marcelys-bedwars"
+    },
+    {
+      "level": "h3",
+      "text": "Marriage¶",
+      "id": "marriage"
+    },
+    {
+      "level": "h3",
+      "text": "Marriage (reloaded)¶",
+      "id": "marriage-reloaded"
+    },
+    {
+      "level": "h3",
+      "text": "MarriageMaster¶",
+      "id": "marriagemaster"
+    },
+    {
+      "level": "h3",
+      "text": "McInfected¶",
+      "id": "mcinfected"
+    },
+    {
+      "level": "h3",
+      "text": "McJobs¶",
+      "id": "mcjobs"
+    },
+    {
+      "level": "h3",
+      "text": "McMMO¶",
+      "id": "mcmmo"
+    },
+    {
+      "level": "h3",
+      "text": "MineChess¶",
+      "id": "minechess"
+    },
+    {
+      "level": "h3",
+      "text": "Minecord¶",
+      "id": "minecord"
+    },
+    {
+      "level": "h3",
+      "text": "MineCrates¶",
+      "id": "minecrates"
+    },
+    {
+      "level": "h3",
+      "text": "MineResetLite¶",
+      "id": "mineresetlite"
+    },
+    {
+      "level": "h3",
+      "text": "MobHunting¶",
+      "id": "mobhunting"
+    },
+    {
+      "level": "h3",
+      "text": "Multiverse-Core¶",
+      "id": "multiverse-core"
+    },
+    {
+      "level": "h3",
+      "text": "MyCommand¶",
+      "id": "mycommand"
+    },
+    {
+      "level": "h3",
+      "text": "MyPet¶",
+      "id": "mypet"
+    },
+    {
+      "level": "h3",
+      "text": "MyPrefixSystem¶",
+      "id": "myprefixsystem"
+    },
+    {
+      "level": "h3",
+      "text": "NameColor¶",
+      "id": "namecolor"
+    },
+    {
+      "level": "h3",
+      "text": "Nameless Plugin¶",
+      "id": "nameless-plugin"
+    },
+    {
+      "level": "h3",
+      "text": "NameMC-API-ServersMC¶",
+      "id": "namemc-api-serversmc"
+    },
+    {
+      "level": "h3",
+      "text": "Nicknamer¶",
+      "id": "nicknamer"
+    },
+    {
+      "level": "h3",
+      "text": "NickReloaded¶",
+      "id": "nickreloaded"
+    },
+    {
+      "level": "h3",
+      "text": "Nicky¶",
+      "id": "nicky"
+    },
+    {
+      "level": "h3",
+      "text": "OneBlock¶",
+      "id": "oneblock"
+    },
+    {
+      "level": "h3",
+      "text": "OnePlayerSleep¶",
+      "id": "oneplayersleep"
+    },
+    {
+      "level": "h3",
+      "text": "OnTime¶",
+      "id": "ontime"
+    },
+    {
+      "level": "h3",
+      "text": "OpEconomy¶",
+      "id": "opeconomy"
+    },
+    {
+      "level": "h3",
+      "text": "OreAnnouncer¶",
+      "id": "oreannouncer"
+    },
+    {
+      "level": "h3",
+      "text": "OreMarket¶",
+      "id": "oremarket"
+    },
+    {
+      "level": "h3",
+      "text": "Outpost¶",
+      "id": "outpost"
+    },
+    {
+      "level": "h3",
+      "text": "P-LifeSteal¶",
+      "id": "p-lifesteal"
+    },
+    {
+      "level": "h3",
+      "text": "Paintball Battle¶",
+      "id": "paintball-battle"
+    },
+    {
+      "level": "h3",
+      "text": "Parkour¶",
+      "id": "parkour"
+    },
+    {
+      "level": "h3",
+      "text": "Parkour Maker¶",
+      "id": "parkour-maker"
+    },
+    {
+      "level": "h3",
+      "text": "ParkPlusMC¶",
+      "id": "parkplusmc"
+    },
+    {
+      "level": "h3",
+      "text": "Parties¶",
+      "id": "parties"
+    },
+    {
+      "level": "h3",
+      "text": "Party and Friends¶",
+      "id": "party-and-friends"
+    },
+    {
+      "level": "h3",
+      "text": "PermissionTimer¶",
+      "id": "permissiontimer"
+    },
+    {
+      "level": "h3",
+      "text": "PixelVip¶",
+      "id": "pixelvip"
+    },
+    {
+      "level": "h3",
+      "text": "Plan¶",
+      "id": "plan"
+    },
+    {
+      "level": "h3",
+      "text": "PlayerStats¶",
+      "id": "playerstats"
+    },
+    {
+      "level": "h3",
+      "text": "PlayTime¶",
+      "id": "playtime"
+    },
+    {
+      "level": "h3",
+      "text": "PlayTimeManager¶",
+      "id": "playtimemanager"
+    },
+    {
+      "level": "h3",
+      "text": "PlaytimeRewards¶",
+      "id": "playtimerewards"
+    },
+    {
+      "level": "h3",
+      "text": "PlayerPoints¶",
+      "id": "playerpoints"
+    },
+    {
+      "level": "h3",
+      "text": "PlotSquared¶",
+      "id": "plotsquared"
+    },
+    {
+      "level": "h3",
+      "text": "PocketHorses¶",
+      "id": "pockethorses"
+    },
+    {
+      "level": "h3",
+      "text": "PointsAPI¶",
+      "id": "pointsapi"
+    },
+    {
+      "level": "h3",
+      "text": "PowerBoard¶",
+      "id": "powerboard"
+    },
+    {
+      "level": "h3",
+      "text": "PowerRanks¶",
+      "id": "powerranks"
+    },
+    {
+      "level": "h3",
+      "text": "PrefiX¶",
+      "id": "prefix"
+    },
+    {
+      "level": "h3",
+      "text": "PremiumReports¶",
+      "id": "premiumreports"
+    },
+    {
+      "level": "h3",
+      "text": "PremiumVanish¶",
+      "id": "premiumvanish"
+    },
+    {
+      "level": "h3",
+      "text": "Prison¶",
+      "id": "prison"
+    },
+    {
+      "level": "h3",
+      "text": "PrisonMines¶",
+      "id": "prisonmines"
+    },
+    {
+      "level": "h3",
+      "text": "PrisonRanksX¶",
+      "id": "prisonranksx"
+    },
+    {
+      "level": "h3",
+      "text": "ProCosmetics¶",
+      "id": "procosmetics"
+    },
+    {
+      "level": "h3",
+      "text": "ProfessionalBans¶",
+      "id": "professionalbans"
+    },
+    {
+      "level": "h3",
+      "text": "ProQuest¶",
+      "id": "proquest"
+    },
+    {
+      "level": "h3",
+      "text": "ProtectionStones¶",
+      "id": "protectionstones"
+    },
+    {
+      "level": "h3",
+      "text": "PvPLevels¶",
+      "id": "pvplevels"
+    },
+    {
+      "level": "h3",
+      "text": "PvPManager¶",
+      "id": "pvpmanager"
+    },
+    {
+      "level": "h3",
+      "text": "PVP Stats¶",
+      "id": "pvp-stats"
+    },
+    {
+      "level": "h3",
+      "text": "PvPStats Plugin¶",
+      "id": "pvpstats-plugin"
+    },
+    {
+      "level": "h3",
+      "text": "QualityArmory¶",
+      "id": "qualityarmory"
+    },
+    {
+      "level": "h3",
+      "text": "Quests¶",
+      "id": "quests"
+    },
+    {
+      "level": "h3",
+      "text": "QuestCreator¶",
+      "id": "questcreator"
+    },
+    {
+      "level": "h3",
+      "text": "QuickSell¶",
+      "id": "quicksell"
+    },
+    {
+      "level": "h3",
+      "text": "RecentFind (Treasures Add-on)¶",
+      "id": "recentfind-treasures-add-on"
+    },
+    {
+      "level": "h3",
+      "text": "RabbitsVSPenguins¶",
+      "id": "rabbitsvspenguins"
+    },
+    {
+      "level": "h3",
+      "text": "RageMode¶",
+      "id": "ragemode"
+    },
+    {
+      "level": "h3",
+      "text": "Rankup¶",
+      "id": "rankup"
+    },
+    {
+      "level": "h3",
+      "text": "RealisticWorldGenerator¶",
+      "id": "realisticworldgenerator"
+    },
+    {
+      "level": "h3",
+      "text": "RedProtect¶",
+      "id": "redprotect"
+    },
+    {
+      "level": "h3",
+      "text": "ReferralSystem¶",
+      "id": "referralsystem"
+    },
+    {
+      "level": "h3",
+      "text": "RestrictedDimensions¶",
+      "id": "restricteddimensions"
+    },
+    {
+      "level": "h3",
+      "text": "RocketPlaceholders¶",
+      "id": "rocketplaceholders"
+    },
+    {
+      "level": "h3",
+      "text": "RogueParkour¶",
+      "id": "rogueparkour"
+    },
+    {
+      "level": "h3",
+      "text": "RoyalCommands¶",
+      "id": "royalcommands"
+    },
+    {
+      "level": "h3",
+      "text": "RPGInventory¶",
+      "id": "rpginventory"
+    },
+    {
+      "level": "h3",
+      "text": "RTP¶",
+      "id": "rtp"
+    },
+    {
+      "level": "h3",
+      "text": "Sack¶",
+      "id": "sack"
+    },
+    {
+      "level": "h3",
+      "text": "ScreamingBedWars¶",
+      "id": "screamingbedwars"
+    },
+    {
+      "level": "h3",
+      "text": "Seasons¶",
+      "id": "seasons"
+    },
+    {
+      "level": "h3",
+      "text": "SellAll¶",
+      "id": "sellall"
+    },
+    {
+      "level": "h3",
+      "text": "SignLink¶",
+      "id": "signlink"
+    },
+    {
+      "level": "h3",
+      "text": "SimpleClans¶",
+      "id": "simpleclans"
+    },
+    {
+      "level": "h3",
+      "text": "SimpleCoins¶",
+      "id": "simplecoins"
+    },
+    {
+      "level": "h3",
+      "text": "SimpleCoinsAPI¶",
+      "id": "simplecoinsapi"
+    },
+    {
+      "level": "h3",
+      "text": "SimpleKillTracker¶",
+      "id": "simplekilltracker"
+    },
+    {
+      "level": "h3",
+      "text": "SimplePrefix¶",
+      "id": "simpleprefix"
+    },
+    {
+      "level": "h3",
+      "text": "Simple Suffix¶",
+      "id": "simple-suffix"
+    },
+    {
+      "level": "h3",
+      "text": "SkillAPI¶",
+      "id": "skillapi"
+    },
+    {
+      "level": "h3",
+      "text": "SkinsRestorer¶",
+      "id": "skinsrestorer"
+    },
+    {
+      "level": "h3",
+      "text": "Skript¶",
+      "id": "skript"
+    },
+    {
+      "level": "h3",
+      "text": "SkyWars¶",
+      "id": "skywars"
+    },
+    {
+      "level": "h3",
+      "text": "SkyWars X¶",
+      "id": "skywars-x"
+    },
+    {
+      "level": "h3",
+      "text": "SkywarsReloaded¶",
+      "id": "skywarsreloaded"
+    },
+    {
+      "level": "h3",
+      "text": "Soul¶",
+      "id": "soul"
+    },
+    {
+      "level": "h3",
+      "text": "Spark¶",
+      "id": "spark"
+    },
+    {
+      "level": "h3",
+      "text": "SQLPerms¶",
+      "id": "sqlperms"
+    },
+    {
+      "level": "h3",
+      "text": "SQLTokens¶",
+      "id": "sqltokens"
+    },
+    {
+      "level": "h3",
+      "text": "Staff Facilities¶",
+      "id": "staff-facilities"
+    },
+    {
+      "level": "h3",
+      "text": "Staff++¶",
+      "id": "staff"
+    },
+    {
+      "level": "h3",
+      "text": "Statz¶",
+      "id": "statz"
+    },
+    {
+      "level": "h3",
+      "text": "Streaming Drops¶",
+      "id": "streaming-drops"
+    },
+    {
+      "level": "h3",
+      "text": "StrikePractice 2¶",
+      "id": "strikepractice-2"
+    },
+    {
+      "level": "h3",
+      "text": "stTitles¶",
+      "id": "sttitles"
+    },
+    {
+      "level": "h3",
+      "text": "SubServers¶",
+      "id": "subservers"
+    },
+    {
+      "level": "h3",
+      "text": "SuperbVote¶",
+      "id": "superbvote"
+    },
+    {
+      "level": "h3",
+      "text": "SuperCredits¶",
+      "id": "supercredits"
+    },
+    {
+      "level": "h3",
+      "text": "SuperVanish¶",
+      "id": "supervanish"
+    },
+    {
+      "level": "h3",
+      "text": "The Time¶",
+      "id": "the-time"
+    },
+    {
+      "level": "h3",
+      "text": "ThemePark¶",
+      "id": "themepark"
+    },
+    {
+      "level": "h3",
+      "text": "Thirst¶",
+      "id": "thirst"
+    },
+    {
+      "level": "h3",
+      "text": "TicketGUI¶",
+      "id": "ticketgui"
+    },
+    {
+      "level": "h3",
+      "text": "Timed Rewards¶",
+      "id": "timed-rewards"
+    },
+    {
+      "level": "h3",
+      "text": "TimeManager¶",
+      "id": "timemanager"
+    },
+    {
+      "level": "h3",
+      "text": "Time Tokens¶",
+      "id": "time-tokens"
+    },
+    {
+      "level": "h3",
+      "text": "TNTRun_Reloaded¶",
+      "id": "tntrun_reloaded"
+    },
+    {
+      "level": "h3",
+      "text": "TokenEnchant¶",
+      "id": "tokenenchant"
+    },
+    {
+      "level": "h3",
+      "text": "TokenManager¶",
+      "id": "tokenmanager"
+    },
+    {
+      "level": "h3",
+      "text": "Tokens¶",
+      "id": "tokens"
+    },
+    {
+      "level": "h3",
+      "text": "TokensPlus¶",
+      "id": "tokensplus"
+    },
+    {
+      "level": "h3",
+      "text": "Towny¶",
+      "id": "towny"
+    },
+    {
+      "level": "h3",
+      "text": "TownyChat¶",
+      "id": "townychat"
+    },
+    {
+      "level": "h3",
+      "text": "TransmuteIt¶",
+      "id": "transmuteit"
+    },
+    {
+      "level": "h3",
+      "text": "Treasures¶",
+      "id": "treasures"
+    },
+    {
+      "level": "h3",
+      "text": "Trey's Double Jump¶",
+      "id": "treys-double-jump"
+    },
+    {
+      "level": "h3",
+      "text": "TrickOrTreat¶",
+      "id": "trickortreat"
+    },
+    {
+      "level": "h3",
+      "text": "Two Factor Authentication¶",
+      "id": "two-factor-authentication"
+    },
+    {
+      "level": "h3",
+      "text": "UJobs¶",
+      "id": "ujobs"
+    },
+    {
+      "level": "h3",
+      "text": "USkyBlock¶",
+      "id": "uskyblock"
+    },
+    {
+      "level": "h3",
+      "text": "UltimateChat¶",
+      "id": "ultimatechat"
+    },
+    {
+      "level": "h3",
+      "text": "UltimateClaims¶",
+      "id": "ultimateclaims"
+    },
+    {
+      "level": "h3",
+      "text": "UltimateServerManager¶",
+      "id": "ultimateservermanager"
+    },
+    {
+      "level": "h3",
+      "text": "UltimateVotes¶",
+      "id": "ultimatevotes"
+    },
+    {
+      "level": "h3",
+      "text": "Ultra Economy¶",
+      "id": "ultra-economy"
+    },
+    {
+      "level": "h3",
+      "text": "Ultra Motd¶",
+      "id": "ultra-motd"
+    },
+    {
+      "level": "h3",
+      "text": "Ultra Permissions¶",
+      "id": "ultra-permissions"
+    },
+    {
+      "level": "h3",
+      "text": "Ultra Punishments¶",
+      "id": "ultra-punishments"
+    },
+    {
+      "level": "h3",
+      "text": "Ultra Regions¶",
+      "id": "ultra-regions"
+    },
+    {
+      "level": "h3",
+      "text": "UnityGen¶",
+      "id": "unitygen"
+    },
+    {
+      "level": "h3",
+      "text": "Vault¶",
+      "id": "vault"
+    },
+    {
+      "level": "h3",
+      "text": "VenturaCalendar¶",
+      "id": "venturacalendar"
+    },
+    {
+      "level": "h3",
+      "text": "ViaVersion¶",
+      "id": "viaversion"
+    },
+    {
+      "level": "h3",
+      "text": "VKBackPack/)¶",
+      "id": "vkbackpack"
+    },
+    {
+      "level": "h3",
+      "text": "VoteParty¶",
+      "id": "voteparty"
+    },
+    {
+      "level": "h3",
+      "text": "VoteRoulette¶",
+      "id": "voteroulette"
+    },
+    {
+      "level": "h3",
+      "text": "VotingPlugin¶",
+      "id": "votingplugin"
+    },
+    {
+      "level": "h3",
+      "text": "Weight-RPG¶",
+      "id": "weight-rpg"
+    },
+    {
+      "level": "h3",
+      "text": "WickedSkyWars¶",
+      "id": "wickedskywars"
+    },
+    {
+      "level": "h3",
+      "text": "WorldBorder¶",
+      "id": "worldborder"
+    },
+    {
+      "level": "h3",
+      "text": "WorldGuard¶",
+      "id": "worldguard"
+    },
+    {
+      "level": "h3",
+      "text": "XLTournaments¶",
+      "id": "xltournaments"
+    }
+  ],
+  "code_samples": [
+    {
+      "code": "%advancements_<advancement>%\n%advancements_player_<player>;<advancement>%\n%advancements_list%\n%advancements_list_<command>%\n%advancements_playerList_<player>%\n%advancements_playerList_<player>,<command>%\n%advancements_listFormat%\n%advancements_playerListFormat_<player>%\n%advancements_completedAmount%\n%advancements_completedAmount_<category>%\n%advancements_playerCompletedAmount_<player>%\n%advancements_playerCompletedAmount_<player>,<category>%\n%advancements_remainingAmount%\n%advancements_remainingAmount_<category>%\n%advancements_playerRemainingAmount_<player>%\n%advancements_playerRemainingAmount_<player>,<category>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%animations_<tag>Text</tag>%\n%animations_<tag option>Text</tag>%\n%animations_<tag option=:value>Text</tag>%",
+      "language": "jsx"
+    },
+    {
+      "code": "Chose one value that's inside () and replace SLOT with one of the following: helmet, chestplate, leggings, boots.\n\n%armor_amount_SLOT%\n%armor_color_(red/green/blue/hex)_SLOT%\n%armor_durability_(left/max)_SLOT%\n%armor_has_SLOT%\n%armor_material_SLOT%\n%armor_maxamount_SLOT%",
+      "language": "unknown"
+    },
+    {
+      "code": "%ascii_<value>%",
+      "language": "typescript"
+    },
+    {
+      "code": "// Available for all game versions\n%attribute_player_has_<attribute>%  - whether the player has a certain attribute\n%attribute_player_baseValue_<attribute>%- returns the base value of an attribute\n%attribute_player_value_<attribute>%- returns the value of an attribute with all the modifiers applied\n\n// 1.11+\n%attribute_player_defaultValue_<attribute>% - returns the default value of an attribute",
+      "language": "typescript"
+    },
+    {
+      "code": "%bungee_total%\n%bungee_<servername>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%number_numbervalue,tool:{a placeholder from your ranking plugin}%\n%number_numbervalue,decimal,tool:{a placeholder from your ranking plugin}%\n%number_numbervalue,armor:{a placeholder from your ranking plugin}%\n%number_numbervalue,decimal,armor:{a placeholder from your ranking plugin}%",
+      "language": "sql"
+    },
+    {
+      "code": "%changeoutput_<options>_input:<input>_matcher:<matcher>_ifmatch:<output-if-matched>_else:<output-if-not-matched>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%checkitem_<modifier1>,<modifier2>,<...>%- Returns if user has the item\n%checkitem_amount_<modifier1>,<modifier2>,<...>% - Returns amount of items the user has\n%checkitem_remove_<modifier1>,<modifier2>,<...>% - Removes the items from the players inventory - Can be used with amount, it just has to be after. (Ex. %checkitem_amount_remove_<...>%) Please becareful   as it does REMOVE ITEMS FOR GOOD\n%checkitem_give_<modifier1>,<modifier2>,<...>%   - Gives the player items. Returns true if successful, returns the number of items NOT given if unsuccessful. (When unsuccessful items can still begiven,   it just might not be all of them)\n%checkitem_getinfo:<slot>_<modifier1>,<modifier2>,<...>% - Returns information about an item in a slot. Returns information in the same order listed on this wiki. List is seperated via \" &r\" (Ex.  %checkitem_getinfo:0_mat:)",
+      "language": "typescript"
+    },
+    {
+      "code": "%cooldownbar_{placeholder}%\n%cooldownbar_{placeholder}_p:<PassedTimeSymbol>%\n%cooldownbar_{placeholder}_i:<InProgressSymbol>%\n%cooldownbar_{placeholder}_r:<RemainingSymbol>%\n%cooldownbar_{placeholder}_l:<Maxlength>%\n%cooldownbar_{placeholder}_c:<MainCooldown>%\n%cooldownbar_{placeholder}_rdy:<ReadyText>%\n%cooldownbar_{essentials_kit_time_until_available_tools}_p:&a■_i:&e■_r:&7■_l:5_c:100_rdy:&aReadytoclaim!%\n%cooldownbar_percentage_{placeholder}%\n%cooldownbar_percentage_{placeholder}_c:<MainCooldown>%\n%cooldownbar_percentage_{placeholder}_d:<AmountOfDecimal>%\n%cooldownbar_percentage_{essentials_kit_time_until_available_tools}_c:120_d:0%",
+      "language": "typescript"
+    },
+    {
+      "code": "%distance_x1,y1,z1[,x2,y2,z2][,decimals]%\n%distance_player1[,player2][,decimals]%\n%distance_player[,x,y,z][,decimals]%\n%distance_UUID1[,UUID2][,decimals]%",
+      "language": "unknown"
+    },
+    {
+      "code": "%enchantment_list%  # a list of enchantments on the item a player is holding (separated by ',')\n%enchantment_listLF%  # a list of enchantments on the item a player is holding (separated by '\\n')\n%enchantment_roman_list%  # a list of enchantments on the item a player is holding (separated by ',')\n%enchantment_roman_listLF%  # a list of enchantments on the item a player is holding (separated by '\\n')\n%enchantment_<enchantment_name>_level% # a level of the specified enchantment on the item a player is holding\n%enchantment_<enchantment_name>_total% # a total level (sum) of the specified enchantment on the item a player is holding and wearing.",
+      "language": "typescript"
+    },
+    {
+      "code": "%formatter_number_format_<number>%\n%formatter_number_format_[locale]:[pattern]_<number>%\n%formatter_number_from:<timeunit>_to:<timeunit>_<number>%\n%formatter_number_round_<number>%\n%formatter_number_round_[precision]:[roundingmode]_<number>%\n%formatter_number_shorten_<number>%\n%formatter_number_shorten_<rounding_mode>_<number>%\n%formatter_number_time_<number>%\n%formatter_number_time_<timeunit>_<number>% # Handles number as <timeunit>\n\n%formatter_text_capitalize_<text>%\n%formatter_text_capitalize_<option>_<text>%\n%formatter_text_length_<text>%\n%formatter_text_lowercase_<text>%\n%formatter_text_replace_[target]_[replacement]_<text>%\n%formatter_text_substring_[start]:[end]_<text>%\n%formatter_text_uppercase_<text>%",
+      "language": "swift"
+    },
+    {
+      "code": "%graaljs_<your_placeholder_identifier>%\n%graaljs_<your_placeholder_identifier>_arg1%\n%graaljs_<your_placeholder_identifier>_arg1,arg2,arg3%",
+      "language": "typescript"
+    },
+    {
+      "code": "%javascript_<your placeholder identifier>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%listplayers_with_perm_<permission>%\n%listplayers_in_world_<worldname>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%localtime_time%\n%localtime_time_<SimpleDateFormat>%\n%localtime_timezone_<TimeZoneID>%\n%localtime_timezone_<TimeZoneID>,<SimpleDateFormat>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%math_<expression>%\n%math_[precision]:[rounding]_<expression>%",
+      "language": "swift"
+    },
+    {
+      "code": "%mvdw_<placeholder without {}>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%mysql_<key>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%mysqltokens_tokens%",
+      "language": "unknown"
+    },
+    {
+      "code": "%nf_<format>[:locale]_<other_placeholder>% # Converts a number produced by %other_placeholder% to a number using the specified format.",
+      "language": "julia"
+    },
+    {
+      "code": "%otherplayer_displayname_<player>%\n%otherplayer_gamemode_<player>%\n%otherplayer_hasperm_<player>_perm_<permission.string>%\n%otherplayer_haspotioneffect_<player>_effect_<effect_name>%\n%otherplayer_health_<player>%\n%otherplayer_hunger_<player>%\n%otherplayer_iteminhand_<player>%\n%otherplayer_ip_<player>%\n%otherplayer_level_<player>%\n%otherplayer_locx_<player>%\n%otherplayer_locy_<player>%\n%otherplayer_locz_<player>%\n%otherplayer_oxygen_<player>%\n%otherplayer_spells_<player>%\n%otherplayer_uuid_<player>%\n%otherplayer_world_<player>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%parsenear_<placeholder_without_percent_signs>%  # Parses placeholder for closest player\n%parsenear_<radius>_<placeholder_without_percent_signs>% # Parses placeholder for closest player in a radius",
+      "language": "typescript"
+    },
+    {
+      "code": "%parseother_{username}_{placeholder_without_percent_signs}%\n%parseother_unsafe_{placeholder_for_username}_{placeholder_without_percent_signs}%\n%parseother_{uuid}_{placeholder_without_percent_signs}%\n%parseother_unsafe_{placeholder_for_uuid}_{placeholder_without_percent_signs}%",
+      "language": "unknown"
+    },
+    {
+      "code": "%pinger_gameversion_testplugins.com:25565%\n%pinger_version_testplugins.com:25565%\n%pinger_online_testplugins.com:25565%\n%pinger_isonline_testplugins.com:25565%\n%pinger_max_testplugins.com:25565%\n%pinger_players_testplugins.com:25565%\n%pinger_motd_testplugins.com:25565%\n%pinger_pingversion_testplugins.com:25565%",
+      "language": "json"
+    },
+    {
+      "code": "%player_allow_flight%\n%player_armor_helmet_name%\n%player_armor_helmet_data%\n%player_armor_helmet_durability%\n%player_armor_chestplate_name%\n%player_armor_chestplate_data%\n%player_armor_chestplate_durability%\n%player_armor_leggings_name%\n%player_armor_leggings_data%\n%player_armor_leggings_durability%\n%player_armor_boots_name%\n%player_armor_boots_data%\n%player_armor_boots_durability%\n%player_bed_x%\n%player_bed_y%\n%player_bed_z%\n%player_bed_world%\n%player_biome%\n%player_biome_capitalized%\n%player_block_underneath%\n%player_can_pickup_items%\n%player_colored_ping%\n%player_compass_world%\n%player_compass_x%\n%player_compass_y%\n%player_compass_z%\n%player_custom_name%\n%player_current_exp%\n%player_direction%\n%player_direction_xz%\n%player_displayname%\n%player_list_name%\n%player_exp%\n%player_exp_to_level%\n%player_first_join_date%\n%player_first_played%\n%player_first_join%\n%player_first_played_formatted%\n%player_fly_speed%\n%player_food_level%\n%player_gamemode%\n%player_has_empty_slot%\n%player_has_played_before%\n%player_empty_slots%\n%player_has_health_boost%\n%player_has_potioneffect_<effect>%\n%player_has_permission_<permission>%\n%player_health%\n%player_health_boost%\n%player_health_rounded%\n%player_health_scale%\n%player_ip%\n%player_online%\n%player_is_whitelisted%\n%player_is_banned%\n%player_is_flying%\n%player_is_sneaking%\n%player_is_sprinting%\n%player_is_sleeping%\n%player_is_inside_vehicle%\n%player_is_op%\n%player_item_in_hand%\n%player_item_in_hand_name%\n%player_item_in_hand_data%\n%player_item_in_hand_durability%\n%player_item_in_hand_level_<enchantment>%\n%player_item_in_offhand%\n%player_item_in_offhand_name%\n%player_item_in_offhand_data%\n%player_item_in_offhand_durability%\n%player_item_in_offhand_level_<enchantment>%\n%player_locale%\n%player_locale_display_name%\n%player_locale_short%\n%player_locale_country%\n%player_locale_display_country%\n%player_last_damage%\n%player_last_played%\n%player_last_join%\n%player_last_played_formatted%\n%player_last_join_date%\n%player_level%\n%player_light_level%\n%player_max_air%\n%player_max_health%\n%player_max_health_rounded%\n%player_max_no_damage_ticks%\n%player_minutes_lived%\n%player_name%\n%player_no_damage_ticks%\n%player_ping%\n%player_ping_<playername>%\n%player_remaining_air%\n%player_saturation%\n%player_seconds_lived%\n%player_sleep_ticks%\n%player_thunder_duration%\n%player_ticks_lived%\n%player_time%\n%player_time_offset%\n%player_total_exp%\n%player_uuid%\n%player_walk_speed%\n%player_weather_duration%\n%player_world%\n%player_world_type%\n%player_world_time_12%\n%player_world_time_24%\n%player_x%\n%player_y%\n%player_z%\n%player_yaw%\n%player_pitch%\n%player_absorption%",
+      "language": "typescript"
+    },
+    {
+      "code": "%playerlist_<listName>_<list|amount|#>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%plugin_isenabled_<plugin name>%\n%plugin_isdisabled_<plugin name>%\n%plugin_exists_<plugin name>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%progress_bar_{placeholder}%\n%progress_bar_{placeholder}_c:<completed Symbol>%\n%progress_bar_{placeholder}_p:<progress Symbol>%\n%progress_bar_{placeholder}_r:<remaining Symbol>%\n%progress_bar_{placeholder}_l:<max length>%\n%progress_bar_{placeholder}_m:<max value>%\n%progress_bar_{placeholder}_fullbar:<text>%\n\n# Example\n%progress_bar_{placeholder}_c:&a■_p:&e■_r:&7■_l:10_m:100_fullbar:&aCompleted!%",
+      "language": "jsx"
+    },
+    {
+      "code": "%pronoundb%",
+      "language": "unknown"
+    },
+    {
+      "code": "%RainbowColor_<Text>%\n%RainbowColor_custom_<Color 1>,<Color 2>,<etc>_<Text>%\n\ne.g. %RainbowColor_custom_a,f,e,b_This is an example%",
+      "language": "jsx"
+    },
+    {
+      "code": "%randomcolor_all%\n%randomcolor_color%\n%randomcolor_combined%\n%randomcolor_format%\n%randomcolor_selected_<option1,option2,option3,...>%",
+      "language": "unknown"
+    },
+    {
+      "code": "%randomnumber_value%\n%randomnumber_value_scale%\n%randomnumber_value_min_max%\n%randomnumber_value_min_max_scale%",
+      "language": "unknown"
+    },
+    {
+      "code": "%redisbungee_total%\n%redisbungee_<servername>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%rel_relcon_player_<permission>_<text1>_[text2]%\n%rel_relcon_player_<permission>_<text1>%\n%rel_relcon_viewer_<permission>_<text1>_[text2]%\n%rel_relcon_viewer_<permission>_<text1>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%rng_online_player%\n%rng_random%\n%rng_<minimum>,<maximum>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%reparser_<text>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%objective_displayname_{<obj-name>}%\n%objective_score_{<obj-name>}%\n%objective_score_{<obj-name>}_{[otherEntry]}%\n%objective_scorep_{<obj-name>}%\n%objective_scorep_{<obj-name>}_{[otherPlayer]}%\n%objective_scoreposhigh_{<obj-name>}_{<#>}%\n%objective_scoreposlow_{<obj-name>}_{<#>}%\n%objective_entryposhigh_{<obj-name>}_{<#>}%\n%objective_entryposlow_{<obj-name>}_{<#>}%",
+      "language": "unknown"
+    },
+    {
+      "code": "%server_name%\n%server_online%\n%server_version%\n%server_max_players%\n%server_unique_joins%\n%server_uptime%\n%server_ram_used%\n%server_ram_free%\n%server_ram_total%\n%server_ram_max%\n%server_tps%\n%server_tps_1%\n%server_tps_5%\n%server_tps_15%\n%server_tps_1_colored%\n%server_tps_5_colored%\n%server_tps_15_colored%\n%server_online_<world>%\n%server_has_whitelist%\n%server_total_chunks%\n%server_total_living_entities%\n%server_total_entities%\n%server_time_<SimpleDateFormat>%\n%server_countdown_<SimpleDateFormat>_<time>%\ne.g. %server_countdown_dd.MM.yyyy_01.01.2020%",
+      "language": "typescript"
+    },
+    {
+      "code": "%shortcut_<filename>%\n%shortcut_<filename>:<replacement1>:replacement2>:...%",
+      "language": "typescript"
+    },
+    {
+      "code": "# Player who triggered it\n%sound_<sound>-<volume>-<pitch>%\n\n# All players\n%sound_all_<sound>-<volume>-<pitch>%",
+      "language": "markdown"
+    },
+    {
+      "code": "%speedpersec_blockbreak%\n%speedpersec_blockplace%\n%speedpersec_speed%\n%speedpersec_expcollected%\n%speedpersec_damaging%\n%speedpersec_hurting%\n%speedpersec_clicking%",
+      "language": "unknown"
+    },
+    {
+      "code": "# Blocks, items, entities, ...\n%statistic_mine_block:<material>%\n%statistic_use_item:<Item Material>%\n%statistic_break_item:<Item Material>%\n%statistic_craft_item:<Item Material>%\n%statistic_kill_entity:<MobType>%\n%statistic_entity_killed_by:<MobType>%\n\n# Other statistics\n%statistic_mob_kills%\n%statistic_mine_block%\n%statistic_use_item%\n%statistic_break_item%\n%statistic_craft_item%\n%statistic_ticks_played%\n%statistic_seconds_played%\n%statistic_minutes_played%\n%statistic_hours_played%\n%statistic_days_played%\n%statistic_time_played%\n%statistic_time_played:seconds%\n%statistic_time_played:minutes%\n%statistic_time_played:hours%\n%statistic_time_played:days%\n%statistic_animals_bred%\n%statistic_armor_cleaned%\n%statistic_banner_cleaned%\n%statistic_beacon_interacted%\n%statistic_boat_one_cm%\n%statistic_brewingstand_interaction%\n%statistic_cake_slices_eaten%\n%statistic_cauldron_filled%\n%statistic_cauldron_used%\n%statistic_chest_opened%\n%statistic_climb_one_cm%\n%statistic_crafting_table_interaction%\n%statistic_crouch_one_cm%\n%statistic_damage_dealt%\n%statistic_damage_taken%\n%statistic_deaths%\n%statistic_dispenser_inspected%\n%statistic_dive_one_cm%\n%statistic_drop%\n%statistic_dropper_inspected%\n%statistic_enderchest_opened%\n%statistic_fall_one_cm%\n%statistic_fish_caught%\n%statistic_flower_potted%\n%statistic_fly_one_cm%\n%statistic_furnace_interaction%\n%statistic_hopper_inspected%\n%statistic_horse_one_cm%\n%statistic_item_enchanted%\n%statistic_jump%\n%statistic_junk_fished%\n%statistic_leave_game%\n%statistic_minecart_one_cm%\n%statistic_noteblock_played%\n%statistic_noteblock_tuned%\n%statistic_pig_one_cm%\n%statistic_player_kills%\n%statistic_record_played%\n%statistic_sprint_one_cm%\n%statistic_swim_one_cm%\n%statistic_talked_to_villager%\n%statistic_time_since_death%\n%statistic_ticks_since_death%\n%statistic_seconds_since_death%\n%statistic_minutes_since_death%\n%statistic_hours_since_death%\n%statistic_days_since_death%\n%statistic_traded_with_villager%\n%statistic_trapped_chest_triggered%\n%statistic_walk_one_cm%\n%statistic_sleep_in_bed%\n%statistic_sneak_time%\n%statistic_aviate_one_cm%",
+      "language": "jsx"
+    },
+    {
+      "code": "%string_equals_<string>_<match>%\n%string_equalsIgnoreCase_<string>_<match>%\n%string_contains_<string>_<match>%\n%string_containsIgnoreCase_<string>_<match>%\n%string_indexOf_<string>_<match>%\n%string_lastIndexOf_<string>_<match>%\n%string_substring_<startIndex>_<string>%\n%string_substring_<startIndex>,<endIndex>_<string>%\n%string_charAt_<index>_<string>%\n%string_shuffle_<string>%\n%string_uppercase_<string>%\n%string_lowercase_<string>%\n%string_length_<string>%\n%string_random_<string1>,<string2>,<string3>,<etc>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%team_color%\n%team_prefix%",
+      "language": "unknown"
+    },
+    {
+      "code": "%team_color%\n%team_prefix%\n%team_suffix%\n%team_name%",
+      "language": "unknown"
+    },
+    {
+      "code": "%unicode_<hex value>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%unixtime_[UNIX]_[DateTimeFormat]%",
+      "language": "unknown"
+    },
+    {
+      "code": "%world_biome%\n%world_nearbyEntities_<radius>%\n%world_total%\n%world_name_<world>%\n%world_seed_<world>%\n%world_sealevel_<world>%\n%world_time_<world>%\n%world_timein12_<world>%\n%world_canpvp_<world>%\n%world_thunder_<world>%\n%world_animalallowed_<world>%\n%world_monsterallowed_<world>%\n%world_difficulty_<world>%\n%world_players_<world>%\n%world_players_<group>_<world>%\n%world_haspermission_<permission>_<world>%\n%world_playerexist_<player>_<world>%\n%world_isgamerule_<gamerule>_<world>%\n%world_recentjoin_<world>%\n%world_recentquit_<world>%\n%world_totalbalance_<world>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%aac_ping%\n%aac_player%\n%aac_tps%\n%aac_world%\n%aac_vl_<check>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%hanim_:<animation_name>:<unique_id>%\n%var_:<variable_name>[:<default_value>]%\n%var_:<player>.<variable_name>[:<default_value>]%\n%varp_:<variable_name>[:<default_value>]%\n%vart_:<variable_name>%\n%varpt_:<variable_name>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%acidisland_level%  \n%acidisland_island_x%  \n%acidisland_island_y%  \n%acidisland_island_z%  \n%acidisland_island_world%  \n%acidisland_team_size%  \n%acidisland_coop_islands%",
+      "language": "unknown"
+    },
+    {
+      "code": "%acidislandrate_top_rated_player%\n%acidislandrate_top_rated_amount%\n%acidislandrate_total_ratings_server%\n%acidislandrate_total_ratings_player%",
+      "language": "unknown"
+    },
+    {
+      "code": "%advancedabilities_<ability_name>_level%  \n%advancedabilities_<ability_name>_bar%\n%advancedabilities_player_class%\n%advancedabilities_mana%\n%advancedabilities_max_mana%\n%advancedabilities_max_abilities_limit%\n%advancedabilities_selected_abilities%",
+      "language": "typescript"
+    },
+    {
+      "code": "%aach_achievements% - Return the total unlocked achievements (number)\n%aach_achievements_percentage% - Return the total unlocked achievements (%)\n%aach_total_achievements% - Return the total achievements (number)",
+      "language": "unknown"
+    },
+    {
+      "code": "%aach_connections%\n%aach_deaths%\n%aach_arrows%\n%aach_snowballs%\n%aach_eggs%\n%aach_fish%\n%aach_treasures%\n%aach_itembreaks%\n%aach_eatenitems%\n%aach_shear%\n%aach_milk%\n%aach_lavabuckets%\n%aach_waterbuckets%\n%aach_trades%\n%aach_anvilsused%\n%aach_enchantments%\n%aach_beds%\n%aach_maxlevel%\n%aach_consumedpotions%\n%aach_playedtime%\n%aach_itemdrops%\n%aach_itempickups%\n%aach_hoeplowings%\n%aach_fertilising%\n%aach_taming%\n%aach_brewing%\n%aach_fireworks%\n%aach_musicdiscs%\n%aach_enderpearls%\n%aach_smelting%\n%aach_petmastergive%\n%aach_petmasterreceive%\n%aach_distancefoot%\n%aach_distancepig%\n%aach_distancehorse%\n%aach_distanceminecart%\n%aach_distanceboat%\n%aach_distancegliding%\n%aach_distancellama%\n%aach_distancesneaking%\n%aach_raidswon%\n%aach_riptides%\n%aach_advancementscompleted%",
+      "language": "unknown"
+    },
+    {
+      "code": "%aach_places_[blockname]% - example: %aach_places_dirt%\n%aach_breaks_[blockname]% - example: %aach_breaks_stone%\n%aach_kills_[entityname]% - example: %aach_kills_zombie%\n%aach_targetsshot_[targetname]% - example: %aach_targetsshot_zombie%\n%aach_crafts_[itemname]% - example: %aach_crafts_bread%\n%aach_breeding_[entityname]% - example: %aach_breeding_pig%\n%aach_playercommands_[command]% - example: %aach_playercommands_aach list%\n%aach_custom_[customname]% - example: %aach_custom_votes%\n%aach_jobsreborn_[job]% - example: %aach_jobsreborn_hunter%",
+      "language": "unknown"
+    },
+    {
+      "code": "%aach_total_connections%\n%aach_total_deaths%\n%aach_total_arrows%\n%aach_total_snowballs%\n%aach_total_eggs%\n%aach_total_fish%\n%aach_total_treasures%\n%aach_total_itembreaks%\n%aach_total_eatenitems%\n%aach_total_shear%\n%aach_total_milk%\n%aach_total_lavabuckets%\n%aach_total_waterbuckets%\n%aach_total_trades%\n%aach_total_anvilsused%\n%aach_total_enchantments%\n%aach_total_beds%\n%aach_total_maxlevel%\n%aach_total_consumedpotions%\n%aach_total_playedtime%\n%aach_total_itemdrops%\n%aach_total_itempickups%\n%aach_total_hoeplowings%\n%aach_total_fertilising%\n%aach_total_taming%\n%aach_total_brewing%\n%aach_total_fireworks%\n%aach_total_musicdiscs%\n%aach_total_enderpearls%\n%aach_total_smelting%\n%aach_total_petmastergive%\n%aach_total_petmasterreceive%\n%aach_total_distancefoot%\n%aach_total_distancepig%\n%aach_total_distancehorse%\n%aach_total_distanceminecart%\n%aach_total_distanceboat%\n%aach_total_distancegliding%\n%aach_total_distancellama%\n%aach_total_distancesneaking%\n%aach_total_raidswon%\n%aach_total_riptides%\n%aach_total_advancementscompleted%\n%aach_total_places%\n%aach_total_breaks%\n%aach_total_kills%\n%aach_total_targetsshot%\n%aach_total_crafts%\n%aach_total_breeding%\n%aach_total_playercommands%\n%aach_total_custom%\n%aach_total_commands%\n%aach_total_jobsreborn%",
+      "language": "unknown"
+    },
+    {
+      "code": "%aafk_prefix_tablist%\n%aafk_prefix_playertag%",
+      "language": "unknown"
+    },
+    {
+      "code": "%advancedcustommenu_total%  \n%advancedcustommenu_name%  \n%advancedcustommenu_items%",
+      "language": "unknown"
+    },
+    {
+      "code": "%advancedlottery_time%\n%advancedlottery_tickets_bought%\n%advancedlottery_money%",
+      "language": "unknown"
+    },
+    {
+      "code": "%advancedmodreq_flagged%\n%advancedmodreq_flagged_closed%\n%advancedmodreq_flagged_open%\n%advancedmodreq_total%\n%advancedmodreq_total_claimed%\n%advancedmodreq_total_closed%\n%advancedmodreq_total_open%\n%advancedmodreq_total_player%\n%advancedmodreq_total_player_closed%\n%advancedmodreq_total_player_open%\n%advancedmodreq_unflagged%\n%advancedmodreq_unflagged_closed%\n%advancedmodreq_unflagged_open%",
+      "language": "unknown"
+    },
+    {
+      "code": "%asl_favicon%\n%asl_motd%\n%asl_playercount_extraplayers%\n%asl_playercount_hideplayers%\n%asl_playercount_hideplayershover%\n%asl_playercount_hover%\n%asl_playercount_maxplayers%\n%asl_playercount_onlineplayers%\n%asl_playercount_text%\n%asl_server_playersmax%",
+      "language": "unknown"
+    },
+    {
+      "code": "%ajlb_position_<board>_<type>%\n%ajlb_value_<board>_<type>%\n%ajlb_value_<board>_<type>_formatted%\n%ajlb_value_<board>_<type>_time%\n%ajlb_value_<board>_<type>_raw%\n%ajlb_lb_<board>_<number>_<type>_name%\n%ajlb_lb_<board>_<number>_<type>_value%\n%ajlb_lb_<board>_<number>_<type>_time%\n%ajlb_lb_<board>_<number>_<type>_rawvalue%\n%ajlb_lb_<board>_<number>_<type>_value_formatted%\n%ajlb_lb_<board>_<number>_<type>_prefix%\n%ajlb_lb_<board>_<number>_<type>_suffix%\n%ajlb_lb_<board>_<number>_<type>_color%",
+      "language": "typescript"
+    },
+    {
+      "code": "%ajpk_stats_top_name_<number>%\n%ajpk_stats_top_name_<number>_<area>%\n%ajpk_stats_top_score_<number>%\n%ajpk_stats_top_score_<number>_<area>%\n%ajpk_stats_top_time_<number>%\n%ajpk_stats_highscore%\n%ajpk_stats_highscore_<area>%\n%ajpk_current%\n%ajpk_jumping%",
+      "language": "typescript"
+    },
+    {
+      "code": "%alonsolevels_developer%\n%alonsolevels_empty_progress_bar%\n%alonsolevels_experience%\n%alonsolevels_experience_format%\n%alonsolevels_experience_in_current_level%\n%alonsolevels_experience_to_level_up%\n%alonsolevels_experience_to_level_up_format%\n%alonsolevels_level%\n%alonsolevels_level_format%\n%alonsolevels_progress%\n%alonsolevels_progress_bar%\n%alonsolevels_progress_bar_format%\n%alonsolevels_progress_format%\n%alonsolevels_progress_stripped%\n%alonsolevels_progress_stripped_format%\n%alonsolevels_progress_percent%\n%alonsolevels_progress_percent_format%\n%alonsolevels_reqiored_experience_in_current_level%\n%alonsolevels_version%",
+      "language": "unknown"
+    },
+    {
+      "code": "%angelchest_activechests% - Number of active chests a player has\n%angelchest_price% - Amount of money needed to spawn the AngelChest\n%angelchest_price_teleport% - Amount of money needed to teleport to the AngelChest\n%angelchest_price_fetch% - Amount of money needed to teleport the AngelChest to yourself\n%angelchest_price_open% - Amount of money needed to open the AngelChest\n%angelchest_enabled% - returns \"true\" or \"false\" whether this player has AngelChest enabled\n%angelchest_isactive_<ID>% - Returns \"true\" when the player has an AngelChest with this ID, otherwise \"false\"\n%angelchest_time_<ID>% - Remaining time for this AngelChest. Returns an empty String if no AngelChest with this ID exists.\n%angelchest_x_<ID>% - X coordinate of this AngelChest. Returns an empty String if no AngelChest with this ID exists.\n%angelchest_y_<ID>% - Y coordinate of this AngelChest. Returns an empty String if no AngelChest with this ID exists.\n%angelchest_z_<ID>% - Z coordinate of this AngelChest. Returns an empty String if no AngelChest with this ID exists.\n%angelchest_world_<ID>% - World name of this AngelChest. Returns an empty String if no AngelChest with this ID exists.",
+      "language": "typescript"
+    },
+    {
+      "code": "%animatedmenu_motd_<ip>[_port]%  \n%animatedmenu_status_<ip>[_port]_<onlinemessage>_<offlinemessage>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%animatedmenu_status_testplugins.com_&aOnline_&cOffline%  \n%animatedmenu_status_testplugins.com_25565_&aOnline_&cOffline%",
+      "language": "unknown"
+    },
+    {
+      "code": "%acl_tagged% : compat tag status (True | False) \n%acl_remaining% : remaining seconds.\n%acl_tagged_time% : how many senconds ago this player was tagged.",
+      "language": "unknown"
+    },
+    {
+      "code": "%aparkour_ct% - Shows current time in seconds\n%aparkour_ctf% - Shows current time formatted\n%aparkour_lt_<parkourID>% - Shows specified parkour last time\n%aparkour_ltf_<parkourID>% - Shows specified last time formatted\n%aparkour_bt_<parkourID>% - Shows specified parkour best time\n%aparkour_btf_<parkourID>% - Shows specified parkour best time formatted",
+      "language": "typescript"
+    },
+    {
+      "code": "%askyblock_level%\n%askyblock_island_y%\n%askyblock_island_z%\n%askyblock_island_world%\n%askyblock_team_size%\n%askyblock_coop_islands%\n%askyblock_has_island%\n%askyblock_owner%",
+      "language": "unknown"
+    },
+    {
+      "code": "%asynckeepalive_ping%",
+      "language": "unknown"
+    },
+    {
+      "code": "%ath_date%\n%ath_count%",
+      "language": "unknown"
+    },
+    {
+      "code": "%autopickup_pickup%\n%autopickup_autosell%\n%autopickup_autoplanting%\n%autopickup_autosmelt%\n%autopickup_autoblock%",
+      "language": "unknown"
+    },
+    {
+      "code": "%autorank_total_time_of_player%\n%autorank_total_time_of_player_formatted%\n%autorank_daily_time_of_player%\n%autorank_daily_time_of_player_formatted%\n%autorank_weekly_time_of_player%\n%autorank_weekly_time_of_player_formatted%\n%autorank_monthly_time_of_player%\n%autorank_monthly_time_of_player_formatted%\n%autorank_local_time%\n%autorank_local_time_formatted%\n%autorank_global_time%\n%autorank_global_time_formatted%\n%autorank_completed_paths%\n%autorank_active_paths%\n%autorank_eligible_paths%",
+      "language": "unknown"
+    },
+    {
+      "code": "%autosell_in_autosell_mode%\n%autosell_in_autoblocks_mode%\n%autosell_in_automelt_mode%\n%autosell_current_shop%\n%autosell_total_multiplier%\n%autosell_time_multiplier%\n%autosell_perm_multiplier%\n%autosell_perm_multiplier_name%\n%autosell_time_multiplier_minsleft%\n%autosell_time_multiplier_timeleft%",
+      "language": "unknown"
+    },
+    {
+      "code": "%banksystem_name%\n%banksystem_balance%\n%banksystem_pocket%\n%banksystem_total%\n%banksystem_currency%",
+      "language": "unknown"
+    },
+    {
+      "code": "%bquests% - (formatted, multiline) list of a players quests\n%bquests_detail% - (formatted, multiline) list of a players quests and rewards\n%bquests_count% - Amount of quests a player has\n%bquests_<index>% - Formatted quest at the given index\n%bquests_<index>_title% - Title of the quest at the given index\n%bquests_<index>_progress% - Progress of the quest at the given index\n%bquests_<index>_left% - Amount of (actions) left to complete the quest at the given index\n%bquests_<index>_<linenumber>% - Title of a given quest split into 4 lines that fit on a sign.\n%bquests_<index>_reward_<linenumber>% - Reward of a given quest split into 2 lines. Handy for Scoreboards",
+      "language": "typescript"
+    },
+    {
+      "code": "%battlelevels_level%\n%battlelevels_score%\n%battlelevels_bar%\n%battlelevels_topstreak%\n%battlelevels_killstreak%\n%battlelevels_kills%\n%battlelevels_deaths%\n%battlelevels_kdr%\n%battlelevels_globalbooster%\n%battlelevelseededfornext%\n%battlelevels_neededfornextremaining%",
+      "language": "unknown"
+    },
+    {
+      "code": "%beautyquests_total_amount%\n%beautyquests_player_inprogress_amount%\n%beautyquests_player_finished_amount%\n%beautyquests_player_finished_total_amount%\n%beautyquests_started_ordered%\n%beautyquests_started_ordered_X%\n%beautyquests_advancement_X%\n%beautyquests_advancement_X_raw%\n%beautyquests_player_quest_finished_X%\n%beautyquests_started_id_list%",
+      "language": "unknown"
+    },
+    {
+      "code": "# Player\n%bw1058_player_level%\n%bw1058_player_progress%\n%bw1058_player_rerq_xp%\n%bw1058_player_rerq_xp_formatted%\n%bw1058_player_team%\n%bw1058_player_xp%\n%bw1058_player_xp_formatted%\n\n# Statistics\n%bw1058_stats_bedsdestroyed%\n%bw1058_stats_deaths%\n%bw1058_stats_finalkills%\n%bw1058_stats_finaldeaths%\n%bw1058_stats_firstplay%\n%bw1058_stats_gamesplayed%\n%bw1058_stats_kills%\n%bw1058_stats_lastplay%\n%bw1058_stats_losses%\n%bw1058_stats_wins%\n\n# Other placeholders\n%bw1058_arena_status_[arena]%\n%bw1058_arena_count_[arena]%\n%bw1058_current_playing%\n%bw1058_current_arenas%",
+      "language": "markdown"
+    },
+    {
+      "code": "%[gamemode]_world_friendly_name%\n%[gamemode]_island_distance%\n%[gamemode]_island_protection_range%\n%[gamemode]_island_owner%\n%[gamemode]_island_creation_date%\n%[gamemode]_island_center%\n%[gamemode]_island_name%\n\n# Level Add-on\n%Level_[gamemode]_island_level%\n%Level_[gamemode]_top_value_#RANK#%\n%Level_[gamemode]_top_name_#RANK#%",
+      "language": "markdown"
+    },
+    {
+      "code": "%betonquest_<variable>%\n%betonquest_<package>:<variable>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%betterteams_<variable>%\n%betterteams_position_<variable>_<rank>%\n%betterteams_balanceposition_<variable>_<rank>%\n%betterteams_membersposition_<variable>_<rank>%\n%betterteams_static_<variable>_<team>%\n%betterteams_staticplayer_<variable>_<player>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%blockparty_wins%\n%blockparty_points%\n%blockparty_gamesplayed%",
+      "language": "unknown"
+    },
+    {
+      "code": "%blockquest_blocksfound%\n%blockquest_blocksleft%\n%blockquest_allblocks%",
+      "language": "unknown"
+    },
+    {
+      "code": "%boxing_losses%\n%boxing_times_played%\n%boxing_wins%",
+      "language": "unknown"
+    },
+    {
+      "code": "%buildbattlepro_wins%\n%buildbattlepro_played%\n%buildbattlepro_most_points%\n%buildbattlepro_particles_placed%\n%buildbattlepro_blocks_placed%\n%buildbattlepro_super_votes%\n%buildbattlepro_status_<arena>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%bungeeperms_groups%\n%bungeeperms_primary_group_name%\n%bungeeperms_prefix%\n%bungeeperms_prefix_primary_group%\n%bungeeperms_suffix%\n%bungeeperms_suffix_primary_group%\n%bungeeperms_in_group_<Group>%\n%bungeeperms_has_permission_<Permission>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%buycraftAPI_recent_currency_<number>%\n%buycraftAPI_recent_name_<number>%\n%buycraftAPI_recent_price_<number>%\n%buycraftapi_top_donator_currency%\n%buycraftapi_top_donator_name%\n%buycraftapi_top_donator_price%",
+      "language": "typescript"
+    },
+    {
+      "code": "%carlthecreeper_cooldown_<reward>%\n%carlthecreeper_statistic_rewards_claimed%",
+      "language": "typescript"
+    },
+    {
+      "code": "%chatcolorplus_chatcolor%\n%chatcolorplus_namecolor%",
+      "language": "unknown"
+    },
+    {
+      "code": "%chatcolorpluspremium_chat_color%\n%chatcolorpluspremium_tab_color%\n%chatcolorpluspremium_sign_color%\n%chatcolorpluspremium_font%\n\n%chatcolorpluspremium_chat_color_name%\n%chatcolorpluspremium_sign_color_name%\n%chatcolorpluspremium_name_color_name%\n%chatcolorpluspremium_tab_color_name%\n%chatcolorpluspremium_name_color%",
+      "language": "unknown"
+    },
+    {
+      "code": "%chatreaction_wins% - Chat reaction wins (Requires MySQL)\n%chatreaction_wins_<playername>% - Chat reactions wins for a certain player (Requires MySQL)\n%chatreaction_top_player_<placement>% - Returns the player at the placement inputted from the leaderboard (Requires MySQL)\n%chatreaction_top_wins_<placement>% - Returns the amount of wins a player has at that placement (Requires MySQL)\n%chatreaction_type% - Type of reaction (Reaction or Scramble)\n%chatreaction_active_round% - Is a round currently active\n%chatreaction_display_word% - The scrambled word\n%chatreaction_reaction_word% - The actual solution word\n%chatreaction_start_time% - Time when the round started\n%chatreaction_latest_winner% - Last recorded winner\n%chatreaction_start_time_in_seconds% - Returns the time (in seconds) since the chat reaction started\n%chatreaction_time_remaining% - returns the time (in seconds) when the chat reaction event will expire",
+      "language": "sql"
+    },
+    {
+      "code": "%checknamehistory_previous_name_<#>%\n%checknamehistory_previous_name_date_<#>%",
+      "language": "unknown"
+    },
+    {
+      "code": "%claimchunk_my_name%\n%claimchunk_my_claims%\n%claimchunk_my_max_claims%\n%claimchunk_my_remaining_claims%\n%claimchunk_am_trusted%\n%claimchunk_current_owner%\n%claimchunk_current_name%",
+      "language": "unknown"
+    },
+    {
+      "code": "%clans_clan_tag%\n%clans_colored_clan_tag%",
+      "language": "unknown"
+    },
+    {
+      "code": "%clans_land_status% - Get the relation status with the current claim youre in\n%clans_land_chunk_map_line#% - Get relative claim map data in placeholder form replacing # with a number 1-5 for a 5x5 grid.\n%clans_clan_name% - Get the name of the clan of the player\n%clans_clan_description% - Get the description of the clan of the player\n%clans_clan_color% - Get the color of the clan of the player\n%clans_clan_pvp_mode% - Get the pvp mode of the clan of the player\n%clans_clan_balance% - Get the money balance of the clan of the player\n%clans_clan_power% - Get the amount of power points the clan of the player has.\n%clans_clan_top_slot_#% - Get the name of the clan within the specified placement replacing # with the desired ranking.\n%clans_clan_top_slot_#_power% - Get the name of the clan within the specified placement based on clan power replacing # with the desired ranking.\n%clans_clan_top_slot_#_color% - Get the name of the clan within the specified placement but colored with their clan color repalcing # with the desired ranking.\n%clans_clan_war_active% - Get the current active arena status of the player.\n%clans_clan_war_score% - Get the current arena score of the clan for the player.\n%clans_clan_war_hours% - Get how long the players clan has been at battle in the current arena.\n%clans_clan_war_minutes% - Get how long the players clan has been at battle in the current arena.\n%clans_clan_war_seconds% - Get how long the players clan has been at battle in the current arena.\n%clans_clan_members_online% - Get the count of online clan members for the player\n%clans_member_rank% - Get the name of the rank the player currently resides in within their clan\n%clans_member_rank_short% - Get the symbol for the rank the player currently resides in within their clan.\n%clans_member_bio% - Get the players bio for their clan.\n%clans_raidshield_status% - Get the current raidshield status",
+      "language": "unknown"
+    },
+    {
+      "code": "%clantagprovider_clantag_custom_design%\n%clantagprovider_clantag%",
+      "language": "unknown"
+    },
+    {
+      "code": "%clansystem_clan%\n%clansystem_clan_level%\n%clansystem_clan_leader%\n%clansystem_clan_balance%\n%clansystem_clan_rank%\n%clansystem_clan_deaths%\n%clansystem_clan_kills%\n%clansystem_clan_size%",
+      "language": "unknown"
+    },
+    {
+      "code": "%combatlogx_time_left%\n%combatlogx_enemy_name%\n%combatlogx_enemy_health%\n%combatlogx_enemy_health_rounded%\n%combatlogx_enemy_hearts%\n%combatlogx_status%\n%combatlogx_in_combat%",
+      "language": "unknown"
+    },
+    {
+      "code": "%compassance_p_string%\n%compassance_p_selectedtheme%\n%compassance_p_target%\n%compassance_p_target_location%\n%compassance_p_target_distance%\n%compassance_p_string_theme_<theme-id>%",
+      "language": "unknown"
+    },
+    {
+      "code": "%coordinatetool_file% : a region file of the chunk you're currently standing\n%coordiantetool_chunk% : current chunk\n%coordiantetool_min_chunk% : minmumchunk\n%coordiantetool_max_chunk% : maximumchunk\n%coordiantetool_min_block% : minimumblock\n%coordiantetool_max_block% : maximumblock",
+      "language": "unknown"
+    },
+    {
+      "code": "%countryonjoin_player_country_code%\n%countryonjoin_player_country_name%",
+      "language": "unknown"
+    },
+    {
+      "code": "%craftconomy_<currency>[option]%",
+      "language": "typescript"
+    },
+    {
+      "code": "%craftingstore_donator%\n%craftingstore_donator_1%\n%craftingstore_donator_2%\n%craftingstore_donator_3%\n%craftingstore_donator_4%\n%craftingstore_donator_5%\n\n%craftingstore_payment%\n%craftingstore_payment_1%\n%craftingstore_payment_2%\n%craftingstore_payment_3%\n%craftingstore_payment_4%\n%craftingstore_payment_5%",
+      "language": "unknown"
+    },
+    {
+      "code": "%cursedvip_is_vip%\n%cursedvip_active_vip%\n%cursedvip_days_left%\n%cursedvip_initial_date%",
+      "language": "unknown"
+    },
+    {
+      "code": "%customadvancements_available_advancements% - Displays the number of available advancements for the player\n%customadvancements_available_advancements_<tree>% - Displays the number of available advancements for a specific advancement tree\n%customadvancements_completed_advancements% - Displays the number of completed advancements.\n%customadvancements_completed_advancements_<tree>% - Displays the number of completed advancements for a specific advancement tree.\n%customadvancements_active_advancements% - Displays the number of active advancements.\n%customadvancements_active_advancements_<tree>% - Displays the number of active advancements for a specific advancement tree.\n%customadvancements_progress_percentage_<path>% - Displays the progression in percentages for a specific path (e.g. example.advancement1).\n%customadvancements_progress_<path>% - Displays the progress made for a specific advancement path.\n%customadvancements_max_progress_<path>% - Displays the maximum progress for a specific advancement path.\n%customadvancements_meet_requirements_<path>% - Displays either true or false depending if the player meets all requirements for a specific advancement path.",
+      "language": "typescript"
+    },
+    {
+      "code": "%cui_version%\n%customitems_version%",
+      "language": "unknown"
+    },
+    {
+      "code": "%dailyrewards_remaining_time%\n%dailyrewards_remaining_hours%\n%dailyrewards_remaining_minutes%\n%dailyrewards_remaining_seconds%\n%dailyrewards_player_reward_available%\n%dailyrewards_player_no_rewards%\n%dailyrewards_player_test_qualification%",
+      "language": "unknown"
+    },
+    {
+      "code": "%deliveryman_prizes_all%\n%deliveryman_prizes_from:<menu_id>%\n%deliveryman_has_prize:<menu_id>:<prize_id>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%deluxechat_is_pm_toggled%\n%deluxechat_pm_recipient%\n%deluxechat_social_spy_enabled%",
+      "language": "unknown"
+    },
+    {
+      "code": "%deluxecombat_ranking_points%\n%deluxecombat_ranking_kills%\n%deluxecombat_ranking_deaths%\n%deluxecombat_ranking_combatlogs%\n%deluxecombat_ranking_kd%\n%deluxecombat_ranking_rank%\n%deluxecombat_ranking_streak%\n%deluxecombat_ranking_maxstreak%\n%deluxecombat_in_combat%\n%deluxecombat_combat_time%\n%deluxecombat_combat_opponent%\n%deluxecombat_ranking_<StatsType>_<Rank>%\n%deluxecombat_ranking_<StatsType>_<Rank>_<Group>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%deluxemenus_meta_<key>_<dataType>_<default_value>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%deluxepm_status%",
+      "language": "unknown"
+    },
+    {
+      "code": "%deluxetags_tag%\n%deluxetags_identifier%\n%deluxetags_description%\n%deluxetags_amount%\n%deluxetags_tag_<TagID>%\n%deluxetags_description_<TagID>%\n%deluxetags_has_tag_<TagID>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%denizen_<denizen-tag>% (EX: %denizen_<player.flag[MyFlag]>% )",
+      "language": "unknown"
+    },
+    {
+      "code": "%dimplc_color%\n%dimplc_folder%\n%dimplc_namespacedkey%\n%dimplc_namespace%\n%dimplc_key%\n%dimplc_loadedchunks%",
+      "language": "unknown"
+    },
+    {
+      "code": "%disease_disease%\n%disease_sickness%\n%disease_temperature%",
+      "language": "unknown"
+    },
+    {
+      "code": "%donationsHolograms_percentage%\n%donationsHolograms_progressBar%\n%donationsHolograms_received%\n%donationsHolograms_goal%",
+      "language": "unknown"
+    },
+    {
+      "code": "%dragonslayer_prefix%\n%dragonslayer_timer%\n%dragonslayer_nexttime%\n%dragonslayer_nexttimehms%\n%dragonslayer_nextmap%\n%dragonslayer_mykills%\n%dragonslayer_place_<n>%\n%dragonslayer_place_<n>_name%\n%dragonslayer_place_<n>_score%\n%dragonslayer_slayer%",
+      "language": "typescript"
+    },
+    {
+      "code": "%dxl_floor_player_count%\n%dxl_dungeon_name%\n%dxl_game_player_count%\n%dxl_global_dungeon_count%\n%dxl_global_floor_count%\n%dxl_global_instance_count%\n%dxl_group_members%\n%dxl_group_name%\n%dxl_group_name_raw%\n%dxl_group_player_count%",
+      "language": "unknown"
+    },
+    {
+      "code": "%economybank_balance%",
+      "language": "unknown"
+    },
+    {
+      "code": "%enjin_points%",
+      "language": "unknown"
+    },
+    {
+      "code": "%entityclearer_remaining_minutes_<world>% | The time in minutes until the next clear task is run in the world\n%entityclearer_remaining_seconds_<world>% | The time in seconds until the next clear task is run in the world\n%entityclearer_remaining_seconds_left_<world>% | The time in seconds until the next clear task is run in the world, minus the time the minutes placeholder already accounted for",
+      "language": "typescript"
+    },
+    {
+      "code": "%entitycontrol_limit_for_<bukkit_entityname>% : returns the maximum number of <bukkit_entityname> in the region where you're standing",
+      "language": "typescript"
+    },
+    {
+      "code": "%envoys_time_until_refill%",
+      "language": "unknown"
+    },
+    {
+      "code": "%epicfriends_friendcount%\n%epicfriends_friendcount_online%",
+      "language": "unknown"
+    },
+    {
+      "code": "%epiclevels_level%\n%epiclevels_experience%\n%epiclevels_kills%\n%epiclevels_deaths%\n%epiclevels_killstreak%\n%epiclevels_bestkillstreak%\n%epiclevels_kdr%\n%epiclevels_nextlevel%\n%epiclevels_neededfornextlevel%\n%epiclevels_boosterenabled%\n%epiclevels_booster%\n%epiclevels_globalboosterenabled%\n%epiclevels_globalbooster%\n%epiclevels_progressbar%\n%epiclevels_playerkills%\n%epiclevels_mobkills%",
+      "language": "unknown"
+    },
+    {
+      "code": "%esscore_flight%\n%esscore_is_nicked%\n%esscore_nickname%\n%esscore_is_vanished%\n%esscore_is_muted%\n%esscore_is_frozen%",
+      "language": "unknown"
+    },
+    {
+      "code": "%essentials_afk%\n%essentials_afk_reason%\n%essentials_fly%\n%essentials_geolocation%\n%essentials_godmode%\n%essentials_has_kit_<kitname>%\n%essentials_home_<number>\n%essentials_home_<number>_<w|x|y|z>%\n%essentials_homes_set%\n%essentials_homes_max%\n%essentials_is_muted%\n%essentials_is_pay_confirm%\n%essentials_is_pay_enabled%\n%essentials_is_teleport_enabled%\n%essentials_jailed%\n%essentials_jailed_time_remaining%\n%essentials_kit_is_available_<kitname>%\n%essentials_kit_last_use_<kitname>%\n%essentials_kit_time_until_available_<kitname>%\n%essentials_kit_time_until_available_raw_<kitname>%\n%essentials_msg_ignore%\n%essentials_muted_time_remaining%\n%essentials_nickname%\n%essentials_nickname_stripped%\n%essentials_pm_recipient%\n%essentials_safe_online%\n%essentials_unique%\n%essentials_vanished%\n%essentials_world_date%\n%essentials_world_time%\n%essentials_world_time_24%\n%essentials_worth%\n%essentials_worth:<item>%\n%essentials_baltop_balance_fixed_<rank>%\n%essentials_baltop_balance_formatted_<rank>%\n%essentials_baltop_balance_commas_<rank>%\n%essentials_baltop_balance_<rank>%\n%essentials_baltop_player_<rank>%\n%essentials_baltop_rank%\n%essentials_baltop_player_stripped_<num>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%eventcore_alive%\n%eventcore_dead%\n%eventcore_status%\n%eventcore_revive%\n%eventcore_revives%",
+      "language": "unknown"
+    },
+    {
+      "code": "%ezblocks_broken%",
+      "language": "unknown"
+    },
+    {
+      "code": "%ezprestige_prestige%\n%ezprestige_prestigetag%\n%ezprestige_nextprestige%\n%ezprestige_nextprestigetag%",
+      "language": "unknown"
+    },
+    {
+      "code": "%ezrankspro_player%\n%ezrankspro_displayname%\n%ezrankspro_world%\n%ezrankspro_rank%\n%ezrankspro_rankup%\n%ezrankspro_cost%\n%ezrankspro_cost_formatted%\n%ezrankspro_balance%\n%ezrankspro_balance_formatted%\n%ezrankspro_difference%\n%ezrankspro_difference_formatted%\n%ezrankspro_progress%\n%ezrankspro_progressexact%\n%ezrankspro_progressbar%\n%ezrankspro_rankprefix%\n%ezrankspro_rankupprefix%\n%ezrankspro_lastrank%\n%ezrankspro_lastrankprefix%\n%ezrankspro_rank_cost_<Rank>%\n%ezrankspro_rank_cost_formatted_<Rank>%\n%ezrankspro_rank_prefix_<Rank>%\n%ezrankspro_rankup_rank_prefix_<Rank>%\n%ezrankspro_rankup_rank_<Rank>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%factions_faction%\n%factions_power%\n%factions_powermax%\n%factions_factionpower%\n%factions_factionpowermax%\n%factions_title%\n%factions_role%\n%factions_claims%\n%factions_onlinemembers%\n%factions_allmembers%",
+      "language": "unknown"
+    },
+    {
+      "code": "%rel_[factions/factionsuuid]_relation%\n%rel_[factions/factionsuuid]_relation_color%",
+      "language": "unknown"
+    },
+    {
+      "code": "%galistener_votes%",
+      "language": "unknown"
+    },
+    {
+      "code": "%gangsplus_in_gang%\n%gangsplus_gang_name%\n%gangsplus_gang_name_formatted%\n%gangsplus_gang_rank%\n%gangsplus_gang_rank_number%\n%gangsplus_gang_friendly_fire%\n%gangsplus_gang_online_members_list%\n%gangsplus_gang_online_members_count%\n%gangsplus_gang_members_list%\n%gangsplus_gang_members_count%\n%gangsplus_gang_leader%\n%gangsplus_gang_level%\n%gangsplus_gang_wins%\n%gangsplus_gang_losses%\n%gangsplus_gang_wlr%\n%gangsplus_gang_kills%\n%gangsplus_gang_deaths%\n%gangsplus_gang_kdr%",
+      "language": "unknown"
+    },
+    {
+      "code": "%gemseconomy_balance_default%\n%gemseconomy_balance_default_formatted%\n%gemseconomy_balance_<currency plural or singular>%\n%gemseconomy_balance_<currency plural or singular>_formatted%",
+      "language": "jsx"
+    },
+    {
+      "code": "%griefdefender_blocks_left%\n%griefdefender_blocks_total%\n%griefdefender_claim_admin% \n%griefdefender_claim_basic% \n%griefdefender_claim_subdivision%   \n%griefdefender_claim_town%  \n%griefdefender_claims_admin%    \n%griefdefender_claims_basic%    \n%griefdefender_claims_subdivision%  \n%griefdefender_claims_town% \n%griefdefender_claim_name%  \n%griefdefender_claim_owner% \n%griefdefender_claim_trust% \n%griefdefender_claim_type%  \n%griefdefender_claim_for_sale%  \n%griefdefender_pvp%",
+      "language": "unknown"
+    },
+    {
+      "code": "%griefprevention_claims%\n%griefprevention_claims_formatted%\n%griefprevention_bonusclaims%\n%griefprevention_bonusclaims_formatted%\n%griefprevention_accruedclaims%\n%griefprevention_accruedclaims_formatted%\n%griefprevention_remainingclaims%\n%griefprevention_remainingclaims_formatted%\n%griefprevention_currentclaim_ownername%",
+      "language": "unknown"
+    },
+    {
+      "code": "%grim_player%\n%grim_player_uuid%\n%grim_player_ping%\n%grim_player_brand%\n%grim_player_h_sensitivity%\n%grim_player_v_sensitivity%\n%grim_player_fast_math%\n%grim_player_tps%\n%grim_player_version%\n%grim_prefix%\n%grim_version%",
+      "language": "unknown"
+    },
+    {
+      "code": "%guilds_name%\n%guilds_master%\n%guilds_member_count%\n%guilds_prefix%\n%guilds_members_online%\n%guilds_status%\n%guilds_role%\n%guilds_tier%\n%guilds_balance%\n%guilds_tier_name%\n%guilds_role_node%\n%guilds_id%\n%guilds_code_amount%\n%guilds_max_members%\n%guilds_max_balance%\n%guilds_formatted%\n%guilds_challenge_wins%\n%guilds_challenge_loses%\n%guilds_motd%",
+      "language": "unknown"
+    },
+    {
+      "code": "%guiredeemmcmmo_credits%",
+      "language": "unknown"
+    },
+    {
+      "code": "%hdb_amount%\n%hdb_amount_formatted%\n%hdb_amount_<category>%\n%hdb_tags%",
+      "language": "typescript"
+    },
+    {
+      "code": "%heroes_skill_level_<skillname>%\n%heroes_main_class_name%\n%heroes_main_class_description%\n%heroes_main_class_tier%\n%heroes_second_class_name%\n%heroes_second_class_description%\n%heroes_second_class_tier%\n%heroes_level%\n%heroes_mana%\n%heroes_mana_regen%\n%heroes_max_mana%\n%heroes_mastered_classes%\n%heroes_mastered_classes_amount%\n%heroes_party_is_no_pvp%\n%heroes_party_size%\n%heroes_party_leader%",
+      "language": "typescript"
+    },
+    {
+      "code": "%holoblock_maxowned%\n%holoblock_maxline%\n%holoblock_owned:<player>%\n%holoblock_maxowned:<player>%\n%holoblock_maxline:<player>%\n%holoblock_isPlaceholder:<player>%\n%holoblock_isColor:<player>%\n%holoblock_isCustomSkin:<player>%\n%holoblock_isItemLine:<player>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%holomobhealth_displaytoggle%",
+      "language": "unknown"
+    },
+    {
+      "code": "%honeypot_current_count_broken%\n%honeypot_breaks_before_action%\n%honeypot_current_count_broken_<player>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%hpw_house%\n%hpw_house_coloured%\n%hpw_amount_of_spells%\n%hpw_housepoints%\n%hpw_{house}_housepoints%\n%hpw_hogwarts_last_winner%\n%hpw_hogwarts_last_winner_coloured%\n%hpw_ministry_last_winner%\n%hpw_ministry_last_winner_coloured%",
+      "language": "unknown"
+    },
+    {
+      "code": "%hugs_total%\n%hugs_player_total_given%\n%hugs_player_total_received%",
+      "language": "unknown"
+    },
+    {
+      "code": "%imageframe_imagemap_\"<player>:<imagemap>\"_playback_bar_<length>_[character]_[current_section_prefix]_[remaining_section_prefix]%\n%imageframe_imagemap_\"<player>:<imagemap>\"_playback_current%\n%imageframe_imagemap_\"<player>:<imagemap>\"_playback_total%\n%imageframe_imagemap_\"<player>:<imagemap>\"_playback_pause%\n%imageframe_player_preference_<preference>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%interactionvisualizer_all_<entry>%\n%interactionvisualizer_itemstand_<entry>%\n%interactionvisualizer_itemdrop_<entry>%\n%interactionvisualizer_hologram_<entry>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%interactivechat_mentiontoggle%\n%interactivechat_invdisplaylayout%",
+      "language": "unknown"
+    },
+    {
+      "code": "%isborder_status%\n%isborder_size%\n%isborder_color%",
+      "language": "unknown"
+    },
+    {
+      "code": "%islandrate_top_rated_player%\n%islandrate_top_rated_amount%\n%islandrate_total_ratings_server%\n%islandrate_total_ratings_player%",
+      "language": "unknown"
+    },
+    {
+      "code": "%islandworld_points_with_party%\n%islandworld_points_without_party%\n%islandworld_island_members%\n%islandworld_all_members%\n%islandworld_can_build%\n%islandworld_in_party%",
+      "language": "unknown"
+    },
+    {
+      "code": "%jobsr_user_id%\n%jobsr_user_bstandcount%\n%jobsr_user_maxbstandcount%\n%jobsr_user_furncount%\n%jobsr_user_maxfurncount%\n%jobsr_user_doneq%\n%jobsr_user_seen%\n%jobsr_user_totallevels%\n%jobsr_user_issaved%\n%jobsr_user_displayhonorific%\n%jobsr_user_joinedjobcount%\n%jobsr_user_boost_(jname/number)_(money/exp/points)%\n%jobsr_user_isin_(jname/number)%\n%jobsr_user_canjoin_(jname/number)%\n%jobsr_user_jlevel_(jname/number)%\n%jobsr_user_jexp_(jname/number)%\n%jobsr_user_jmaxexp_(jname/number)%\n%jobsr_user_jmaxlvl_(jname/number)%\n%jobsr_user_points%\n%jobsr_user_total_points%\n%jobsr_user_archived_jobs%\n%jobsr_maxjobs%\n%jobsr_limit_(money/exp/points)%\n%jobsr_plimit_(money/exp/points)%\n%jobsr_plimit_tleft_(money/exp/points)%\n%jobsr_total_workers%\n%jobsr_totalplayers_(jname/number)%\n%jobsr_name_(jname/number)%\n%jobsr_shortname_(jname/number)%\n%jobsr_chatcolor_(jname/number)%\n%jobsr_description_(jname/number)%\n%jobsr_maxdailyq_(jname/number)%\n%jobsr_maxlvl_(jname/number)%\n%jobsr_maxviplvl_(jname/number)%\n%jobsr_maxslots_(jname/number)%\n%jobsr_bonus_(jname/number)%",
+      "language": "unknown"
+    },
+    {
+      "code": "%karma_alignment%\n%karma_aligned_name%\n%karma_score%\n%karma_recent_points_gained%\n%karma_last_source%",
+      "language": "unknown"
+    },
+    {
+      "code": "%killstats_kills%\n%killstats_killrank%\n%killstats_deaths%\n%killstats_deathrank%\n%killstats_streak%\n%killstats_streakrank%\n%killstats_kdr%\n%killstats_kdrrank%",
+      "language": "unknown"
+    },
+    {
+      "code": "%kitpvp_stats_kills%\n%kitpvp_stats_deaths%\n%kitpvp_stats_kdr%\n%kitpvp_stats_level%\n%kitpvp_stats_experience%\n%kitpvp_player_killstreak%\n%kitpvp_player_kit%",
+      "language": "unknown"
+    },
+    {
+      "code": "%kp-pvp_player_kills%\n%kp-pvp_player_deaths%\n%kp-pvp_player_coins%\n%kp-pvp_player_streak%\n%kp-pvp_player_is_on_kitpvp%\n%kp-pvp_players_count_total%\n%kp-pvp_player_kit%\n%kp-pvp_player_level%\n%kp-pvp_player_xp%",
+      "language": "unknown"
+    },
+    {
+      "code": "# General\n%lands_next_tax%\n%lands_next_upkeep%\n%lands_affiliation%\n\n# Land\n%lands_land_name%\n%lands_land_owner%\n%lands_land_role%\n%lands_land_members%\n%lands_land_balance%\n%lands_land_chunks%\n%lands_land_chunks_max%\n%lands_land_chunks_remaining%\n%lands_land_tax%\n%lands_land_upkeep%\n%lands_land_balance%\n%lands_land_chunk_cost_next%\n\n# Nation\n%lands_nation_name%\n\n# War\n%lands_war_enemy%\n%lands_war_time%\n%lands_war_state%\n\n# Top Lands\n%lands_top_balance_NUMBER_name%\n%lands_top_balance_NUMBER_owner%\n%lands_top_balance_NUMBER_balance%\n%lands_top_balance_NUMBER_size%\n%lands_top_balance_NUMBER_members%\n\n%lands_top_chunks_NUMBER_name%\n%lands_top_chunks_NUMBER_owner%\n%lands_top_chunks_NUMBER_balance%\n%lands_top_chunks_NUMBER_size%\n%lands_top_chunks_NUMBER_members%\n\n%lands_top_members_NUMBER_name%\n%lands_top_members_NUMBER_owner%\n%lands_top_members_NUMBER_balance%\n%lands_top_members_NUMBER_size%\n%lands_top_members_NUMBER_members%",
+      "language": "markdown"
+    },
+    {
+      "code": "%lastloginapi_name%\n%lastloginapi_last_login_date%\n%lastloginapi_last_login_elapsed%\n%lastloginapi_last_logout_date%\n%lastloginapi_last_logout_elapsed%",
+      "language": "unknown"
+    },
+    {
+      "code": "%leaderheads_name_<statistic>_<time>_<rank>% \n%leaderheads_value_<statistic>_<time>_<rank>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%legendquest_race%\n%legendquest_mastered%\n%legendquest_class%\n%legendquest_subclass%\n%legendquest_level%\n%legendquest_exp%\n%legendquest_statline%\n%legendquest_hpbar%\n%legendquest_hp%\n%legendquest_manabar%\n%legendquest_mana%\n%legendquest_karma%\n%legendquest_party%\n%legendquest_shortstatline%\n%legendquest_statlineheaders%\n%legendquest_statlinenumbers%\n%legendquest_statlinemods%\n%legendquest_str%\n%legendquest_dex%\n%legendquest_con%\n%legendquest_int%\n%legendquest_wis%\n%legendquest_chr%\n%legendquest_strmod%\n%legendquest_dexmod%\n%legendquest_conmod%\n%legendquest_intmod%\n%legendquest_wismod%\n%legendquest_chrmod%",
+      "language": "unknown"
+    },
+    {
+      "code": "%lemonmobcoins_balance%\n%lemonmobcoins_balance_fixed%\n%lemonmobcoins_balance_formatted%",
+      "language": "unknown"
+    },
+    {
+      "code": "%levelledmobs_level%\n%levelledmobs_displayname%",
+      "language": "unknown"
+    },
+    {
+      "code": "%levelup_item_level%\n%levelup_player_level%\n%levelup_pickaxe_block_count%\n%levelup_pickaxe_level%\n%levelup_pickaxe_level_percentage%\n%levelup_pickaxe_level_meter%\n%levelup_pickaxe_xp%\n%levelup_pickaxe_xp_percentage%\n%levelup_pickaxe_xp_meter%\n%levelup_pickaxe_xp_to_next%\n%levelup_sword_kill_count%\n%levelup_sword_level%\n%levelup_sword_level_percentage%\n%levelup_sword_level_meter%\n%levelup_sword_xp%\n%levelup_sword_xp_percentage%\n%levelup_sword_xp_meter%\n%levelup_sword_xp_to_next%\n%levelup_bow_kill_count%\n%levelup_bow_level%\n%levelup_bow_level_percentage%\n%levelup_bow_level_meter%\n%levelup_bow_xp%\n%levelup_bow_xp_percentage%\n%levelup_bow_xp_meter%\n%levelup_bow_xp_to_next%",
+      "language": "unknown"
+    },
+    {
+      "code": "%lotterysix_currentgame_Now%\n%lotterysix_currentgame_Now_<SimpleDateFormat>%\n%lotterysix_currentgame_GameNumber%\n%lotterysix_currentgame_GameNumberRaw%\n%lotterysix_currentgame_SpecialName%\n%lotterysix_currentgame_Date%\n%lotterysix_currentgame_Date_<SimpleDateFormat>%\n%lotterysix_currentgame_NumberOfChoices%\n%lotterysix_currentgame_PricePerBet%\n%lotterysix_currentgame_TotalBets%\n%lotterysix_currentgame_PrizePool%\n%lotterysix_currentgame_FIRSTOdds%\n%lotterysix_currentgame_SECONDOdds%\n%lotterysix_currentgame_THIRDOdds%\n%lotterysix_currentgame_FOURTHOdds%\n%lotterysix_currentgame_FIFTHOdds%\n%lotterysix_currentgame_SIXTHOdds%\n%lotterysix_currentgame_SEVENTHOdds%\n%lotterysix_currentgame_BetPlayerNames%\n%lotterysix_currentgame_<number>LastDrawn%\n%lotterysix_currentgame_<number>TimesDrawn%\n%lotterysix_lastgame_Now%\n%lotterysix_lastgame_Now_<SimpleDateFormat>%\n%lotterysix_lastgame_GameNumber%\n%lotterysix_lastgame_GameNumberRaw%\n%lotterysix_lastgame_SpecialName%\n%lotterysix_lastgame_Date%\n%lotterysix_lastgame_Date_<SimpleDateFormat>%\n%lotterysix_lastgame_NumberOfChoices%\n%lotterysix_lastgame_PricePerBet%\n%lotterysix_lastgame_TotalBets%\n%lotterysix_lastgame_TotalPrizes%\n%lotterysix_lastgame_FirstToThirdPlaceWinnersCount%\n%lotterysix_lastgame_FirstNumber%\n%lotterysix_lastgame_SecondNumber%\n%lotterysix_lastgame_ThirdNumber%\n%lotterysix_lastgame_FourthNumber%\n%lotterysix_lastgame_FifthNumber%\n%lotterysix_lastgame_SixthNumber%\n%lotterysix_lastgame_FirstNumberOrdered%\n%lotterysix_lastgame_SecondNumberOrdered%\n%lotterysix_lastgame_ThirdNumberOrdered%\n%lotterysix_lastgame_FourthNumberOrdered%\n%lotterysix_lastgame_FifthNumberOrdered%\n%lotterysix_lastgame_SixthNumberOrdered%\n%lotterysix_lastgame_SpecialNumber%\n%lotterysix_lastgame_BetPlayerNames%\n%lotterysix_lastgame_FIRSTPlayerNames%\n%lotterysix_lastgame_SECONDPlayerNames%\n%lotterysix_lastgame_THIRDPlayerNames%\n%lotterysix_lastgame_FOURTHPlayerNames%\n%lotterysix_lastgame_FIFTHPlayerNames%\n%lotterysix_lastgame_SIXTHPlayerNames%\n%lotterysix_lastgame_SEVENTHPlayerNames%\n%lotterysix_lastgame_FIRSTOdds%\n%lotterysix_lastgame_SECONDOdds%\n%lotterysix_lastgame_THIRDOdds%\n%lotterysix_lastgame_FOURTHOdds%\n%lotterysix_lastgame_FIFTHOdds%\n%lotterysix_lastgame_SIXTHOdds%\n%lotterysix_lastgame_SEVENTHOdds%\n%lotterysix_lastgame_FIRSTPrize%\n%lotterysix_lastgame_SECONDPrize%\n%lotterysix_lastgame_THIRDPrize%\n%lotterysix_lastgame_FOURTHPrize%\n%lotterysix_lastgame_FIFTHPrize%\n%lotterysix_lastgame_SIXTHPrize%\n%lotterysix_lastgame_SEVENTHPrize%\n%lotterysix_lastgame_FIRSTPrizeCount%\n%lotterysix_lastgame_SECONDPrizeCount%\n%lotterysix_lastgame_THIRDPrizeCount%\n%lotterysix_lastgame_FOURTHPrizeCount%\n%lotterysix_lastgame_FIFTHPrizeCount%\n%lotterysix_lastgame_SIXTHPrizeCount%\n%lotterysix_lastgame_SEVENTHPrizeCount%\n%lotterysix_lastgame_<number>LastDrawn%\n%lotterysix_lastgame_<number>TimesDrawn%\n%lotterysix_preference_hide_titles%\n%lotterysix_preference_hide_periodic_announcements%\n%lotterysix_preference_bet_limit_per_round%\n%lotterysix_preference_reopen_menu_on_purchase%\n%lotterysix_preference_suspend_account_until%\n%lotterysix_stats_total_bets_placed%\n%lotterysix_stats_total_rounds_participated%\n%lotterysix_stats_total_winnings%\n%lotterysix_stats_highest_won_tier%\n%lotterysix_stats_notify_balance_change%\n%lotterysix_stats_account_balance%\n%lotterysix_scheduler_interval%\n%lotterysix_scheduler_next%",
+      "language": "typescript"
+    },
+    {
+      "code": "%lwc_locks%",
+      "language": "unknown"
+    },
+    {
+      "code": "%mbedwars_arena-<arena>-displayname%\n%mbedwars_arena-<arena>-authors%\n%mbedwars_arena-<arena>-players%\n%mbedwars_arena-<arena>-maxplayers%\n%mbedwars_arena-<arena>-minplayers%\n%mbedwars_arena-<arena>-status%\n%mbedwars_arena-<arena>-teams%\n%mbedwars_arena-<arena>-teamsize%",
+      "language": "typescript"
+    },
+    {
+      "code": "%mbedwars_playerarena-name%\n%mbedwars_playerarena-displayname%\n%mbedwars_playerarena-authors%\n%mbedwars_playerarena-players%\n%mbedwars_playerarena-maxplayers%\n%mbedwars_playerarena-status%\n%mbedwars_playerarena-teams%\n%mbedwars_playerarena-teamsize%\n%mbedwars_playerarena-current-team%\n%mbedwars_playerarena-current-team-color%\n%mbedwars_playerarena-current-team-initials%\n%mbedwars_playerarena-team-<team>-size%\n%mbedwars_playerarena-team-<team>-status%",
+      "language": "typescript"
+    },
+    {
+      "code": "%mbedwars_stats-rank%\n%mbedwars_stats-wins%\n%mbedwars_stats-loses%\n%mbedwars_stats-win_streak%\n%mbedwars_stats-top_win_streak%\n%mbedwars_stats-rounds_played%\n%mbedwars_stats-wl%\n%mbedwars_stats-kills%\n%mbedwars_stats-final_kills%\n%mbedwars_stats-deaths%\n%mbedwars_stats-final_deaths%\n%mbedwars_stats-kd%\n%mbedwars_stats-beds_destroyed%\n%mbedwars_stats-beds_lost%\n%mbedwars_stats-play_time%",
+      "language": "unknown"
+    },
+    {
+      "code": "%mbedwars_gamestats-kills%\n%mbedwars_gamestats-final_kills%\n%mbedwars_gamestats-deaths%\n%mbedwars_gamestats-kd%\n%mbedwars_gamestats-beds_destroyed%\n%mbedwars_gamestats-play_time%",
+      "language": "unknown"
+    },
+    {
+      "code": "%mbedwars_players-in-mode-all%\n%mbedwars_players-in-mode-solos%\n%mbedwars_players-in-mode-doubles%\n%mbedwars_players-in-mode-trios%\n%mbedwars_players-in-mode-quads%",
+      "language": "unknown"
+    },
+    {
+      "code": "%mbedwars_achievements-earned-count%",
+      "language": "unknown"
+    },
+    {
+      "code": "%marriage_gender%\n%marriage_gender_color%\n%marriage_gender_symbol%\n%marriage_home%\n%marriage_partner%\n%marriage_partner_gender%\n%marriage_partner_gender_color%\n%marriage_partner_gender_symbol%\n%marriage_partner_lastseen%\n%marriage_partner_pvp%\n%marriage_pitch%\n%marriage_pvp%\n%marriage_state%\n%marriage_x%\n%marriage_y%\n%marriage_yaw%\n%marriage_z%",
+      "language": "unknown"
+    },
+    {
+      "code": "%marriage_is_married%\n%marriage_is_priest%\n%marriage_gender%\n%marriage_gender_chat_prefix%\n%marriage_last_name%\n%marriage_has_pvp_enabled%\n%marriage_has_home_set%\n%marriage_home_x%\n%marriage_home_y%\n%marriage_home_z%\n%marriage_partner%",
+      "language": "unknown"
+    },
+    {
+      "code": "%marriagemaster_StatusHeart%\n%marriagemaster_MagicHeart%\n%marriagemaster_Heart%\n%marriagemaster_IsMarried%\n%marriagemaster_IsPriest%\n%marriagemaster_Partner%\n%marriagemaster_PartnerDisplayName%\n%marriagemaster_Surname%\n%marriagemaster_HasHome%\n%marriagemaster_HomeX%\n%marriagemaster_HomeY%\n%marriagemaster_HomeZ%\n%marriagemaster_HomeWorld%\n\n# Supported with multiple partners enabled\n%marriagemaster_NearestPartnerName%\n%marriagemaster_NearestPartnerDisplayName%\n%marriagemaster_NearestSurname%\n%marriagemaster_HasNearestHome%\n%marriagemaster_NearestHomeX%\n%marriagemaster_NearestHomeY%\n%marriagemaster_NearestHomeZ%\n%marriagemaster_NearestHomeWorld%\n%marriagemaster_PartnerCount%\n%marriagemaster_PartnerList%\n%marriagemaster_PartnerDisplayNameList%",
+      "language": "markdown"
+    },
+    {
+      "code": "%mcinfected_lobby_name%\n%mcinfected_lobby_time%\n%mcinfected_lobby_arena_name%\n%mcinfected_lobby_state%\n%mcinfected_kit_human%\n%mcinfected_kit_infected%\n%mcinfected_team%\n%mcinfected_killstreak%",
+      "language": "unknown"
+    },
+    {
+      "code": "%mcjobs_jobslist%\n%mcjobs_playerjobs%\n%mcjobs_ranks%\n%mcjobs_levels%\n%mcjobs_(original jobname)_name%\n%mcjobs_(original jobname)_has%\n%mcjobs_(original jobname)_rank%\n%mcjobs_(original jobname)_level%\n%mcjobs_(original jobname)_exp%\n%mcjobs_(original jobname)_exptolvlup%\n%mcjobs_(original jobname)_nextlvlexp%\n%mcjobs_(original jobname)_language%\n%mcjobs_paycache%",
+      "language": "unknown"
+    },
+    {
+      "code": "%mcmmo_level_<skillname>%\n%mcmmo_rank_<skillname>%\n%mcmmo_xp_remaining_<skillname>%\n%mcmmo_xp_needed_<skillname>%\n%mcmmo_xp_<skillname>%\n%mcmmo_xprate_<skillname>%\n%mcmmo_power_level%\n%mcmmo_power_level_cap%\n%mcmmo_in_party%\n%mcmmo_party_name%\n%mcmmo_is_party_leader%\n%mcmmo_party_leader%\n%mcmmo_party_size%\n%mcmmo_xprate%\n%mcmmo_is_xp_event_active%",
+      "language": "typescript"
+    },
+    {
+      "code": "%minechess_wins%\n%minechess_loses%\n%minechess_ties%\n%minechess_played_time%\n%minechess_arenaplayers_count_<arena>%\n%minechess_arena_status_<arena>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%minecord_servers%\n%minecord_view%\n%minecord_name%\n%minecord_nickname%\n%minecord_uuid%",
+      "language": "unknown"
+    },
+    {
+      "code": "%minecrates_area_handler_type%\n%minecrates_area_name%\n%minecrates_in_reward_area%\n%minecrates_counter%\n%minecrates_chance%\n%minecrates_total_needed%\n%minecrates_reward_list_name%",
+      "language": "unknown"
+    },
+    {
+      "code": "%mineresetlite_<mine>_time%\n%mineresetlite_<mine>_time_remaining%\n%mineresetlite_<mine>_time_remaining_seconds%\n%mineresetlite_<mine>_precentage%\n%mineresetlite_<mine>_blocks_mined%\n%mineresetlite_<mine>_percentage_mined%\n%mineresetlite_<mine>_percentage_remaining%",
+      "language": "typescript"
+    },
+    {
+      "code": "%mobhunting_rank% (Only updated when leaderboards is updated)\n%mobhunting_total_kills%  (Number of killed mobs (for the player))\n%mobhunting_total_cash%   (The amount of money dropped on the ground)\n%mobhunting_dropped_rewards%  (Number of rewards left on the ground)\n%mobhunting_dropped_money%(Amount of money left on the ground)\n%mobhunting_balance%  (The amount of money in BagOfGold, in the player inventory)",
+      "language": "unknown"
+    },
+    {
+      "code": "%multiverse-core_alias%\n%multiverse-core_animalspawn%\n%multiverse-core_autoheal%\n%multiverse-core_blacklist%\n%multiverse-core_currency%\n%multiverse-core_difficulty%\n%multiverse-core_entryfee%\n%multiverse-core_environment%\n%multiverse-core_flight%\n%multiverse-core_gamemode%\n%multiverse-core_generator%\n%multiverse-core_hunger%\n%multiverse-core_monstersspawn%\n%multiverse-core_name%\n%multiverse-core_playerlimit%\n%multiverse-core_price%\n%multiverse-core_pvp%\n%multiverse-core_seed%\n%multiverse-core_time%\n%multiverse-core_type%\n%multiverse-core_weather%",
+      "language": "unknown"
+    },
+    {
+      "code": "%multiverse_world_alias%\n%multiverse_world_all_property_names%\n%multiverse_world_generator%\n%multiverse_world_name%\n%multiverse_world_name_colored%\n%multiverse_world_permissible_name%\n%multiverse_world_time%\n%multiverse_world_animals_spawn_enabled%\n%multiverse_world_monsters_spawn_enabled%\n%multiverse_world_access_permission%\n%multiverse_world_adjust_spawn_enabled%\n%multiverse_world_allow_flight_enabled%\n%multiverse_world_auto_heal_enabled%\n%multiverse_world_auto_load_enabled%\n%multiverse_world_bed_respawn_enabled%\n%multiverse_world_color%\n%multiverse_world_currency%\n%multiverse_world_difficulty%\n%multiverse_world_environment%\n%multiverse_world_gamemode%\n%multiverse_world_hunger_enabled%\n%multiverse_world_player_limit%\n%multiverse_world_price%\n%multiverse_world_seed%\n%multiverse_world_style%\n%multiverse_world_type%",
+      "language": "unknown"
+    },
+    {
+      "code": "%mycommand_playerdata_<variable_name>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%mypet_name%\n%mypet_level%\n%mypet_exp%\n%mypet_type%\n%mypet_status%\n%mypet_health%\n%mypet_health_max%\n%mypet_saturation%\n%mypet_uuid%\n%mypet_skilltree_display%\n%mypet_skilltree_name%\n%mypet_world_group%\n%mypet_has_pet%",
+      "language": "unknown"
+    },
+    {
+      "code": "%myprefixsystem_rank_name%\n%myprefixsystem_rank_prefix%\n%myprefixsystem_rank_suffix%\n%myprefixsystem_rank_color%",
+      "language": "unknown"
+    },
+    {
+      "code": "%namecolor_display_name%",
+      "language": "unknown"
+    },
+    {
+      "code": "%nameless_notifications%\n%nameless_store_last_payment_received_username%\n%nameless_store_last_payment_paid_username%\n%nameless_store_last_payment_amount%\n%nameless_store_last_payment_currency%\n%nameless_store_last_payment_date%\n%nameless_store_credits%",
+      "language": "unknown"
+    },
+    {
+      "code": "%namemcapi_prefix%\n%namemcapi_namemcweb%\n%namemcapi_ip%\n%namemcapi_player%",
+      "language": "unknown"
+    },
+    {
+      "code": "%nicknamer_has_nickname%\n%nicknamer_has_skin%\n%nicknamer_nickname%",
+      "language": "unknown"
+    },
+    {
+      "code": "%nickreloaded_nick%\n%nickreloaded_skin%",
+      "language": "unknown"
+    },
+    {
+      "code": "%nicky_nickname%",
+      "language": "unknown"
+    },
+    {
+      "code": "%ob_lvl%\n%ob_lvl_name%\n%ob_next_lvl%\n%ob_next_lvl_name%\n%ob_break_on_this_lvl%\n%ob_need_to_lvl_up%\n%ob_owner_name%\n%ob_top_(number)_name%  (1 - 10)\n%ob_top_(number)_lvl%   (1 - 10)\n%ob_number_of_invited%\n%ob_player_count%\n%ob_ver%",
+      "language": "unknown"
+    },
+    {
+      "code": "%oneplayersleep_sleeping_player_count%\n%oneplayersleep_total_player_count%",
+      "language": "unknown"
+    },
+    {
+      "code": "%ontime_last_login%\n%ontime_last_vote%\n%ontime_time_played_month%\n%ontime_referrals_month%\n%ontime_votes_month%\n%ontime_time_played_today%\n%ontime_referrals_today%\n%ontime_votes_today%\n%ontime_time_played_total%\n%ontime_points_total%\n%ontime_referrals_total%\n%ontime_votes_total%\n%ontime_time_played_week%\n%ontime_referrals_week%\n%ontime_votes_week%",
+      "language": "unknown"
+    },
+    {
+      "code": "%opeconomy_money_<player_name>% - Gets custom player money\n%opeconomy_money% - Gets money\n%opeconomy_baltop_number_<number>% - Gets player's name\n%opeconomy_baltop_player_position_<player_name>% - Gets player's position\n%opeconomy_baltop_player_position% - Getting position of player\n%opeconomy_currency% - Shows active currency\n%opeconomy_is_active_code_<code>% - Boolean, if code is active\n%opeconomy_max_uses_code_<code>% - Shows max uses for code\n%opeconomy_uses_code_<code>% - Shows uses for code\n%opeconomy_reward_code_<code>% - Shows reward for entering code",
+      "language": "typescript"
+    },
+    {
+      "code": "%oremarket_change_<slot>%\n%oremarket_cost_<slot>%\n%oremarket_name_<slot>%\n%oremarket_percent_<slot>%\n%oremarket_stock_<slot>%\n%oremarket_value_<slot>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%outpost_data_id_<outpost>%\n%outpost_data_name_<outpost>%\n%outpost_data_world_<outpost>%\n%outpost_data_region_<outpost>%\n%outpost_conqueror_owner_<outpost>%\n%outpost_conqueror_invader_<outpost>%\n%outpost_conqueror_percentage_<outpost>%\n%outpost_perks_money_<outpost>%\n%outpost_perks_exp_<outpost>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%ls_hearts%\n%ls_health%\n%ls_banned%",
+      "language": "unknown"
+    },
+    {
+      "code": "%paintball_wins%\n%paintball_loses%\n%paintball_ties%\n%paintball_kills%\n%paintball_coins%",
+      "language": "unknown"
+    },
+    {
+      "code": "%parkour_course_completed_<course>%\n%parkour_course_completions_<course>%\n%parkour_course_record_<course>_deaths%\n%parkour_course_record_<course>_milliseconds%\n%parkour_course_record_<course>_player%\n%parkour_course_record_<course>_time%\n%parkour_course_views%\n%parkour_current_checkpoint%\n%parkour_current_course_checkpoints%\n%parkour_current_course_completed%\n%parkour_current_course_deaths%\n%parkour_current_course_name%\n%parkour_current_course_personal_best_deaths%\n%parkour_current_course_personal_best_milliseconds%\n%parkour_current_course_personal_best_player%\n%parkour_current_course_personal_best_time%\n%parkour_current_course_record_deaths%\n%parkour_current_course_record_milliseconds%\n%parkour_current_course_record_player%\n%parkour_current_course_record_time%\n%parkour_current_course_timer%\n%parkour_global_course_count%\n%parkour_global_player_count%\n%parkour_global_version%\n%parkour_leaderboard_<course>_<position>_deaths%\n%parkour_leaderboard_<course>_<position>_milliseconds%\n%parkour_leaderboard_<course>_<position>_player%\n%parkour_leaderboard_<course>_<position>_time%\n%parkour_player_courses_completed%\n%parkour_player_courses_uncompleted%\n%parkour_player_last_completed%\n%parkour_player_last_joined%\n%parkour_player_level%\n%parkour_player_parkoins%\n%parkour_player_personal_best_<course>_deaths%\n%parkour_player_personal_best_<course>_milliseconds%\n%parkour_player_personal_best_<course>_player%\n%parkour_player_personal_best_<course>_time%\n%parkour_player_prize_delay_<course>%\n%parkour_player_rank%\n%parkour_topten_<course>_<position>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%parkourmaker_player_name%\n%parkourmaker_parkour_name%\n%parkourmaker_current_checkpoint%\n%parkourmaker_current_checkpoint_position%\n%parkourmaker_join_cooldown%\n%parkourmaker_reward_cooldown%\n%parkourmaker_start_message%\n%parkourmaker_finish_message%\n%parkourmaker_map_join_cooldown%\n%parkourmaker_map_reward_cooldown%\n%parkourmaker_best-time_<map_name>.<player_name>%\n%parkourmaker_leaderboard_<map_name>.<position>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%pp_name:<AttractionID>%\n%pp_status:<AttractionID>%\n%pp_region:<AttractionID>%\n%pp_ridecount%\n%pp_ridecount:<AttractionID>%\n%pp_ridecounttop_name:<AttractionID>:<Position>[:Type]%\n%pp_ridecounttop_value:<AttractionID>:<Position>[:Type]%",
+      "language": "typescript"
+    },
+    {
+      "code": "%parties_color_code%\n%parties_color_command%\n%parties_color_name%\n%parties_desc%\n%parties_kills%\n%parties_motd%\n%parties_party%\n%parties_rank_chat%\n%parties_rank_name%",
+      "language": "unknown"
+    },
+    {
+      "code": "%friendsapi_friendcount%\n%friendsapi_friendrequestcount%\n%friendsapi_onlinefriendcount%",
+      "language": "unknown"
+    },
+    {
+      "code": "%pt_all%\n%pt_perm_#%\n%pt_timeleft_#%",
+      "language": "unknown"
+    },
+    {
+      "code": "%pixelvip_expiration_millis%\n%pixelvip_expiration_desc%\n%pixelvip_active_vip%",
+      "language": "unknown"
+    },
+    {
+      "code": "%playerstats_prefix% \n%playerstats_prefixtitle% \n%playerstats_rainbowprefix% \n%playerstats_rainbowprefixtitle% \n%playerstats_top:<n>,<statistic>% \n%playerstats_top:<n>,<statistic:item/block>% \n%playerstats_top:<n>,<statistic:entity>% \n%playerstats_top:<n>,<statistic>,only:number% \n%playerstats_top:<n>,<statistic>,only:number_raw%\n%playerstats_top:<n>,<statistic>,only:player_name% \n%playerstats_player:<player-name>,<statistic>% \n%playerstats_player:<player-name>,<statistic:item/block>% \n%playerstats_player:<player-name>,<statistic:entity>% \n%playerstats_player:<player-name>,<statistic>,only:number% \n%playerstats_player:<player-name>,<statistic>,only:number_raw% \n%playerstats_me,<statistic>% \n%playerstats_me,<statistic:item/block>% \n%playerstats_me,<statistic:entity>% \n%playerstats_me,<statistic>,only:number% \n%playerstats_me,<statistic>,only:number_raw% \n%playerstats_server,<statistic>% \n%playerstats_server,<statistic:item/block>% \n%playerstats_server,<statistic:entity>% \n%playerstats_server,<statistic>,only:number% \n%playerstats_server,<statistic>,only:number_raw% \n%playerstats_title,<statistic>% \n%playerstats_title:[n],<statistic>% \n%playerstats_title:[n],<statistic:item/block>% \n%playerstats_title:[n],<statistic:entity>%",
+      "language": "swift"
+    },
+    {
+      "code": "%playtime_player%\n%playtime_time%\n%playtime_timesjoined%\n%playtime_serveruptime%",
+      "language": "unknown"
+    },
+    {
+      "code": "%PTM_playtime%\n%PTM_afk_playtime%\n%PTM_playtime_#%\n%PTM_afk_playtime_#%\n%PTM_playtime_<nickname>%\n%PTM_afk_playtime_<nickname>%\n%PTM_playtime_#_<nickname>%\n%PTM_afk_playtime_#_<nickname>%\n%PTM_firstjoin%\n%PTM_firstjoin_<nickname>%  \n%PTM_lastseen_<nickname>%\n%PTM_lastseen_elapsed_<nickname>%\n%PTM_lastseen_elapsed_#_<nickname>%\n%PTM_playtime_top_<rank>%\n%PTM_playtime_top_#_<rank>%\n%PTM_nickname_top_<rank>%\n%PTM_lastseen_top_<rank>%\n%PTM_lastseen_elapsed_top_<rank>%\n%PTM_lastseen_elapsed_top_#_<rank>%\n%PTM_rank%\n%PTM_rank_<nickname>%\n%PTM_lp_prefix_top_<rank>%\n%PTM_joinstreak%\n%PTM_joinstreak_<nickname>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%ptr_playtime%\n%ptr_playtime_days%\n%ptr_playtime_days_trimmed%\n%ptr_playtime_hours%\n%ptr_playtime_hours_trimmed%\n%ptr_playtime_minutes%\n%ptr_playtime_minutes_trimmed%\n%ptr_playtime_seconds%\n%ptr_playtime_seconds_trimmed%\n%ptr_sessiontime%\n%ptr_sessiontime_days%\n%ptr_sessiontime_days_trimmed%\n%ptr_sessiontime_hours%\n%ptr_sessiontime_hours_trimmed%\n%ptr_sessiontime_minutes%\n%ptr_sessiontime_minutes_trimmed%\n%ptr_sessiontime_seconds%\n%ptr_sessiontime_seconds_trimmed%",
+      "language": "unknown"
+    },
+    {
+      "code": "%playerpoints_points%\n%playerpoints_points_formatted%\n%playerpoints_points_shorthand%",
+      "language": "unknown"
+    },
+    {
+      "code": "%plotsquared_currentplot_alias%\n%plotsquared_currentplot_owner%\n%plotsquared_currentplot_members%\n%plotsquared_currentplot_members_added%\n%plotsquared_currentplot_members_added_list%\n%plotsquared_currentplot_members_trusted%\n%plotsquared_currentplot_members_trusted_list%\n%plotsquared_currentplot_members_denied%\n%plotsquared_currentplot_members_denied_list%\n%plotsquared_currentplot_world_name%\n%plotsquared_currentplot_can_build%\n%plotsquared_has_plot_<world>%\n%plotsquared_currentplot_x%\n%plotsquared_currentplot_y%\n%plotsquared_currentplot_xy%\n%plotsquared_currentplot_rating%\n%plotsquared_currentplot_biome%\n%plotsquared_has_plot%\n%plotsquared_has_build_rights%\n%plotsquared_plot_count%\n%plotsquared_plot_count_<world>%\n%plotsquared_allowed_plot_count%\n%plotsquared_currentplot_localflag_<flag>%\n%plotsquared_currentplot_flag_<flag>%\n%plotsquared_currentplot_creationdate%",
+      "language": "typescript"
+    },
+    {
+      "code": "%pockethorses_<horse>_id%\n%pockethorses_<horse>_displayName%\n%pockethorses_<horse>_color%\n%pockethorses_<horse>_style%\n%pockethorses_<horse>_speed%\n%pockethorses_<horse>_jumpStrength%\n%pockethorses_<horse>_maxHealth%\n%pockethorses_<horse>_buyable%\n%pockethorses_<horse>_price%\n%pockethorses_<horse>_permission%\n%pockethorses_<horse>_storage%\n%pockethorses_<horse>_recyclable%\n%pockethorses_<horse>_recyclePrice%\n%pockethorses_<horse>_model%",
+      "language": "typescript"
+    },
+    {
+      "code": "%pointsapi_points%",
+      "language": "unknown"
+    },
+    {
+      "code": "%powerboard_prefix%\n%powerboard_suffix%\n%powerboard_chat_prefix%\n%powerboard_display_name%\n%powerboard_tps%",
+      "language": "unknown"
+    },
+    {
+      "code": "%powerranks_rank%\n%powerranks_prefix%\n%powerranks_suffix%\n%powerranks_subrankprefix%\n%powerranks_subranksuffix%\n%powerranks_chatcolor%\n%powerranks_namecolor%\n%powerranks_usertag%\n%powerranks_world%\n%powerranks_playtime%",
+      "language": "unknown"
+    },
+    {
+      "code": "%prefix_prefix%\n%prefix_startcolor%\n%prefix_startchar%\n%prefix_tagcolor%\n%prefix_tag%\n%prefix_endchar%\n%prefix_namecolor%\n\n%suffix_suffix%\n%suffix_startcolor%\n%suffix_startchar%\n%suffix_tagcolor%\n%suffix_tag%\n%suffix_endchar%\n%suffix_namecolor%",
+      "language": "unknown"
+    },
+    {
+      "code": "%premiumreports_points%\n%premiumreports_blocked%\n%premiumreports_reports%\n%premiumreports_validReports%\n%premiumreports_invalidReports%",
+      "language": "unknown"
+    },
+    {
+      "code": "%premiumvanish_isvanished%\n%premiumvanish_vanishedplayers%\n%premiumvanish_playercount%\n%premiumvanish_playercountwithoutshowintab%\n%premiumvanish_bungeeplayercount%\n%premiumvanish_bungeeplayercount@<server>%\n%premiumvanish_target%\n%premiumvanish_uselevel%\n%premiumvanish_seelevel%",
+      "language": "typescript"
+    },
+    {
+      "code": "%prison_mines_size_mine5::nFormat:#,##0%\n654,321\n%prison_mines_size_mine5::nFormat:#,##0.00:1:kmg%\n654.32 k\n%prison_mines_size_mine5::nFormat:'#af33ff'#,##0.00:1:binary:hex%\n638.99 KB\n%prison_mines_timeleft_bar_mine5::bar:40:&2:O:&d:x:debug%\nOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOxxxxxxxx",
+      "language": "julia"
+    },
+    {
+      "code": "%prison_rank%\n%prison_r%\n%prison_rank_number%\n%prison_rn%\n%prison_rank_tag%\n%prison_rt%\n%prison_rank_ladder_position%\n%prison_rlp%\n%prison_rankup_cost%\n%prison_rc%\n%prison_rankup_cost_formatted%\n%prison_rcf%\n%prison_rankup_cost_percent%\n%prison_rcp%\n%prison_rankup_cost_bar%\n%prison_rcb%\n%prison_rankup_cost_remaining%\n%prison_rcr%\n%prison_rankup_cost_remaining_formatted%\n%prison_rcrf%\n%prison_rankup_cost_remaining_percent%\n%prison_rcrp%\n%prison_rankup_cost_remaining_bar%\n%prison_rcrb%\n%prison_rankup_rank%\n%prison_rr%\n%prison_rankup_rank_tag%\n%prison_rrt%\n%prison_player_balance%\n%prison_pb%\n%prison_player_balance_formatted%\n%prison_pbf%\n%prison_player_balance_earnings_per_minute%\n%prison_pb_epm%\n%prison_player_balance_earnings_per_minute_formatted%\n%prison_pb_epmf%\n%prison_player_token_balance%\n%prison_ptb%\n%prison_player_token_balance_formatted%\n%prison_ptbf%\n%prison_player_token_balance_formatted_metric%\n%prison_ptbfm%\n%prison_player_token_balance_formatted_kmbt%\n%prison_ptbfk%\n%prison_player_token_balance_earnings_per_minute%\n%prison_ptb_epm%\n%prison_player_token_balance_earnings_per_minute_formatted%\n%prison_ptb_epmf%\n%prison_player_sellall_multiplier%\n%prison_psm%\n%prison_player_blocks_total%\n%prison_pbt%\n%prison_player_blocks_total_formatted%\n%prison_pbtf%\n%prison_player_tool_id%\n%prison_ptid%\n%prison_player_tool_name%\n%prison_ptn%\n%prison_player_tool_type%\n%prison_ptt%\n%prison_player_tool_material_type%\n%prison_ptmt%\n%prison_player_tool_data%\n%prison_ptdata%\n%prison_player_tool_lore%\n%prison_ptlore%\n%prison_player_tool_durability_used%\n%prison_ptdu%\n%prison_player_tool_durability_max%\n%prison_ptdm%\n%prison_player_tool_durability_remaining%\n%prison_ptdr%\n%prison_player_tool_durability_percent%\n%prison_ptdp%\n%prison_player_tool_durability_bar%\n%prison_ptdb%\n%prison_player_tool_enchantment_fortune%\n%prison_ptef%\n%prison_player_tool_enchantment_efficency%\n%prison_ptee%\n%prison_player_tool_enchantment_silktouch%\n%prison_ptes%\n%prison_player_tool_enchantment_unbreaking%\n%prison_pteu%\n%prison_player_tool_enchantment_mending%\n%prison_ptem%\n%prison_player_tool_enchantment_luck%\n%prison_ptel%\n%prison_player_health%\n%prison_ph%\n%prison_player_health_max%\n%prison_phm%\n%prison_player_air_max%\n%prison_pam%\n%prison_player_air_remaining%\n%prison_par%\n%prison_player_food_level%\n%prison_pfl%\n%prison_player_food_saturation%\n%prison_pfs%\n%prison_player_food_exhaustion%\n%prison_pfe%\n%prison_player_xp%\n%prison_pxp%\n%prison_player_xp_to_level%\n%prison_pxptl%\n%prison_player_level%\n%prison_pl%\n%prison_player_walk_speed%\n%prison_pws%",
+      "language": "unknown"
+    },
+    {
+      "code": "%prison_rank_<laddername>%\n%prison_r_<laddername>%\n%prison_rank_number_<laddername>%\n%prison_rn_<laddername>%\n%prison_rank_tag_<laddername>%\n%prison_rt_<laddername>%\n%prison_rank_ladder_position_<laddername>%\n%prison_rlp_<laddername>%\n%prison_rankup_cost_<laddername>%\n%prison_rc_<laddername>%\n%prison_rankup_cost_formatted_<laddername>%\n%prison_rcf_<laddername>%\n%prison_rankup_cost_percent_<laddername>%\n%prison_rcp_<laddername>%\n%prison_rankup_cost_bar_<laddername>%\n%prison_rcb_<laddername>%\n%prison_rankup_cost_remaining_<laddername>%\n%prison_rcr_<laddername>%\n%prison_rankup_cost_remaining_formatted_<laddername>%\n%prison_rcrf_<laddername>%\n%prison_rankup_cost_remaining_percent_<laddername>%\n%prison_rcrp_<laddername>%\n%prison_rankup_cost_remaining_bar_<laddername>%\n%prison_rcrb_<laddername>%\n%prison_rankup_rank_<laddername>%\n%prison_rr_<laddername>%\n%prison_rankup_rank_tag_<laddername>%\n%prison_rrt_<laddername>%\n%prison_player_balance_<laddername>%\n%prison_pb_<laddername>%\n%prison_player_balance_formatted_<laddername>%\n%prison_pbf_<laddername>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%prison_rank__name_<rankname>%\n%prison_r_n_<rankname>%\n%prison_rank__tag_<rankname>%\n%prison_r_t_<rankname>%\n%prison_rank__ladder_<rankname>%\n%prison_r_l_<rankname>%\n%prison_rank__ladder_position_<rankname>%\n%prison_r_lp_<rankname>%\n%prison_rank__cost_<rankname>%\n%prison_r_c_<rankname>%\n%prison_rank__cost_formatted_<rankname>%\n%prison_r_cf_<rankname>%\n%prison_rank__cost_multiplier_<rankname>%\n%prison_r_cm_<rankname>%\n%prison_rank__currency_<rankname>%\n%prison_r_cu_<rankname>%\n%prison_rank__id_<rankname>%\n%prison_r_id_<rankname>%\n%prison_rank__player_count_<rankname>%\n%prison_r_pc_<rankname>%\n%prison_rank__linked_mines_<rankname>%\n%prison_r_lm_<rankname>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%prison_rank__player_cost_<rankname>%\n%prison_r_pcst_<rankname>%\n%prison_rank__player_cost_formatted_<rankname>%\n%prison_r_pcf_<rankname>%\n%prison_rank__player_cost_remaining_<rankname>%\n%prison_r_pcf_<rankname>%\n%prison_rank__player_cost_remaining_formatted_<rankname>%\n%prison_r_pcf_<rankname>%\n%prison_rank__player_cost_percent_<rankname>%\n%prison_r_pcp_<rankname>%\n%prison_rank__player_cost_bar_<rankname>%\n%prison_r_pcb_<rankname>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%prison_mines_name_<minename>%\n%prison_mn_<minename>%\n%prison_mines_tag_<minename>%\n%prison_mt_<minename>%\n%prison_mines_interval_<minename>%\n%prison_mi_<minename>%\n%prison_mines_interval_formatted_<minename>%\n%prison_mif_<minename>%\n%prison_mines_timeleft_<minename>%\n%prison_mtl_<minename>%\n%prison_mines_timeleft_bar_<minename>%\n%prison_mtlb_<minename>%\n%prison_mines_timeleft_formatted_<minename>%\n%prison_mtlf_<minename>%\n%prison_mines_size_<minename>%\n%prison_ms_<minename>%\n%prison_mines_remaining_<minename>%\n%prison_mr_<minename>%\n%prison_mines_remaining_bar_<minename>%\n%prison_mrb_<minename>%\n%prison_mines_percent_<minename>%\n%prison_mp_<minename>%\n%prison_mines_player_count_<minename>%\n%prison_mpc_<minename>%\n%prison_mines_blocks_mined_<minename>%\n%prison_mbm_<minename>%\n%prison_mines_reset_count_<minename>%\n%prison_mrc_<minename>%\n\n%prison_top_mine_block_line_header_<minename>%\n%prison_tmbl_header_<minename>%\n%prison_top_mine_block_line_totals_<minename>%\n%prison_tmbl_totals_<minename>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%prison_player_blocks_total_<minename>%\n%prison_pbt_<minename>%\n%prison_player_blocks_raw_total_<minename>%\n%prison_pbtr_<minename>%\n\n%prison_mines_name_playermines%\n%prison_mn_pm%\n%prison_mines_tag_playermines%\n%prison_mt_pm%\n%prison_mines_interval_playermines%\n%prison_mi_pm%\n%prison_mines_interval_formatted_playermines%\n%prison_mif_pm%\n%prison_mines_timeleft_playermines%\n%prison_mtl_pm%\n%prison_mines_timeleft_bar_playermines%\n%prison_mtlb_pm%\n%prison_mines_timeleft_formatted_playermines%\n%prison_mtlf_pm%\n%prison_mines_size_playermines%\n%prison_ms_pm%\n%prison_mines_remaining_playermines%\n%prison_mr_pm%\n%prison_mines_remaining_bar_playermines%\n%prison_mrb_pm%\n%prison_mines_percent_playermines%\n%prison_mp_pm%\n%prison_mines_player_count_playermines%\n%prison_mpc_pm%\n%prison_mines_blocks_mined_playermines%\n%prison_mbm_pm%\n%prison_mines_reset_count_playermines%\n%prison_mrc_pm%",
+      "language": "typescript"
+    },
+    {
+      "code": "%prison_player_total_blocks__<blockname>%\n%prison_ptb__<blockname>%\n%prison_player_total_blocks_raw__<blockname>%\n%prison_ptbr__<blockname>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%prison_top_mine_block_line_nnn_<minename>%\n%prison_tmbl_nnn_<minename>%\n%prison_top_mine_block_name_nnn_<minename>%\n%prison_tmbn_nnn_<minename>%\n%prison_top_mine_block_chance_nnn_<minename>%\n%prison_tmbc_nnn_<minename>%\n%prison_top_mine_block_placed_nnn_<minename>%\n%prison_tmbpl_nnn_<minename>%\n%prison_top_mine_block_remaing_nnn_<minename>%\n%prison_tmbr_nnn_<minename>%\n%prison_top_mine_block_remaing_bar_nnn_<minename>%\n%prison_tmbrb_nnn_<minename>%\n%prison_top_mine_block_total_nnn_<minename>%\n%prison_tmbt_nnn_<minename>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%prison_top_rank_balance_name_nnn_<rankname>%\n%prison_trbn_nnn_<rankname>%\n%prison_top_rank_balance_score_nnn_<rankname>%\n%prison_trbs_nnn_<rankname>%\n%prison_top_rank_balance_balance_nnn_<rankname>%\n%prison_trbb_nnn_<rankname>%",
+      "language": "typescript"
+    },
+    {
+      "code": "# Mine-specific placeholders\n%prisonmines_blocks_mined_<mine name>%\n%prisonmines_percent_mined_<mine name>%\n%prisonmines_percent_left_<mine name>%\n%prisonmines_time_until_reset_<mine name>%\n%prisonmines_has_timed_reset_<mine name>%\n%prisonmines_has_percentage_reset_<mine name>%\n\n# Player specific placeholders (Use Mine at the player's location)\n%prisonmines_name%\n%prisonmines_blocks_mined%\n%prisonmines_percent_mined%\n%prisonmines_percent_left%\n%prisonmines_time_until_reset%\n%prisonmines_has_timed_reset%\n%prisonmines_has_percentage_reset%",
+      "language": "jsx"
+    },
+    {
+      "code": "%prisonranksx_currentrank_name%\n%prisonranksx_currentrank_displayname%\n%prisonranksx_rankup_name%\n%prisonranksx_rankup_displayname%\n%prisonranksx_rankup_progress%\n%prisonranksx_rankup_progress_double%\n%prisonranksx_rankup_percentage%\n%prisonranksx_rankup_cost%\n%prisonranksx_rankup_cost_formatted%\n%prisonranksx_prestige_name%\n%prisonranksx_prestige_displayname%\n%prisonranksx_nextprestige_cost%\n%prisonranksx_nextprestige_cost_formatted%\n%prisonranksx_money%",
+      "language": "unknown"
+    },
+    {
+      "code": "%procosmetics_coins%\n%procosmetics_cosmetics_activated%\n%procosmetics_treasures_<treasure_name>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%professionalbans_onlinetime%\n%professionalbans_firstjoin%\n%professionalbans_reports%",
+      "language": "unknown"
+    },
+    {
+      "code": "%proquests_completed_quests%\n%proquests_active_quests%\n%proquests_monthly_points%\n%proquests_total_points%\n%proquests_progress_bar_<quest identifier>%\n%proquests_progress_<quest identifier>%\n%proquests_total_<quest identifier>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%pvplevels_kills%\n%pvplevels_deaths%\n%pvplevels_xp%\n%pvplevels_level%\n%pvplevels_kdr%\n%pvplevels_killstreak%\n%pvplevels_xp_required%\n%pvplevels_xp_progress%\n%pvplevels_xp_progress_style%\n%pvplevels_prefix%\n%pvplevels_group%",
+      "language": "unknown"
+    },
+    {
+      "code": "%pvpmanager_in_combat%\n%pvpmanager_combat_timeleft%\n%pvpmanager_combat_prefix%\n%pvpmanager_pvp_status%\n%pvpmanager_pvp_status_prefix%\n%pvpmanager_pvp_command_timeleft%\n%pvpmanager_is_newbie%\n%pvpmanager_newbie_timeleft%\n%pvpmanager_newbie_timeleft_formatted%\n%pvpmanager_grant_timeleft%\n%pvpmanager_has_override%\n%pvpmanager_has_respawn_prot%\n%pvpmanager_has_teleport_prot%\n%pvpmanager_current_enemy%\n%pvpmanager_current_enemy_health%",
+      "language": "unknown"
+    },
+    {
+      "code": "%pvpstats_kills%\n%pvpstats_deaths%\n%pvpstats_elo%\n%pvpstats_killstreak%\n%pvpstats_maxstreak%",
+      "language": "unknown"
+    },
+    {
+      "code": "%pvpstats_kills%\n%pvpstats_deaths%\n%pvpstats_killstreak%\n%pvpstats_kdr%",
+      "language": "unknown"
+    },
+    {
+      "code": "%qualityarmory_ammo_type%\n%qualityarmory_ammo_amount%",
+      "language": "unknown"
+    },
+    {
+      "code": "%quests_player_quest_points%\n%quests_player_has_journal%\n%quests_player_current_quest_amount%\n%quests_player_completed_quest_amount%\n%quests_player_current_quest_names%\n%quests_player_completed_quest_names%\n%quests_player_current_objectives_<quest>%\n%quests_player_has_current_quest_<quest>%\n%quests_player_has_completed_quest_<quest>%\n%quests_player_cooldown_time_remaining_<quest>%\n%quests_player_current_stage_number_<quest>%\n%quests_player_can_accept_quest_<quest>%\n%quests_player_meets_requirements_to_start_<quest>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%questcreator_status_[model id]%\n%questcreator_completion_[model id]%\n%questcreator_cooldownmillis_[model id]%\n%questcreator_cooldown_[model id]%\n%questcreator_lastcompletionmillis_[model id]%\n%questcreator_lastcompletion_[model id]%\n%questcreator_variable_[variable name]%\n%questcreator_hasjournaltoggle%",
+      "language": "unknown"
+    },
+    {
+      "code": "%quicksell_booster%\n%quicksell_booster_time%",
+      "language": "unknown"
+    },
+    {
+      "code": "%treasuresrecentfind_find_number_<number>%\n%treasuresrecentfind_from_first_<number>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%rvp_arenaplayers_count_< arena >%\n%rvp_arena_status_< arena >%\n%rvp_kills%\n%rvp_loses%\n%rvp_ties%\n%rvp_wins%",
+      "language": "typescript"
+    },
+    {
+      "code": "%ragemode_kills%\n%ragemode_axe_kills%\n%ragemode_direct_arrow_kills%\n%ragemode_explosion_kills%\n%ragemode_knife_kills%\n%ragemode_deaths%\n%ragemode_axe_deaths%\n%ragemode_direct_arrow_deaths%\n%ragemode_explosion_deaths%\n%ragemode_knife_deaths%\n%ragemode_current_streak%\n%ragemode_longest_streak%\n%ragemode_points%\n%ragemode_games%\n%ragemode_wins%\n%ragemode_kd%\n%ragemode_rank%",
+      "language": "unknown"
+    },
+    {
+      "code": "%rankup_current_rank%\n%rankup_next_rank%  \n%rankup_current_prestige%   \n%rankup_next_prestige%  \n%rankup_money%\n%rankup_money_formatted%    \n%rankup_prestige_money%     \n%rankup_prestige_money_formatted%   \n%rankup_money_left%     \n%rankup_money_left_formatted%   \n%rankup_percent_left%\n%rankup_percent_left_formatted%     \n%rankup_percent_done_formatted% \n%rankup_requirement_<requirement>[_<left/percent_left/percent_done>]%\n%rankup_rank_requirement_<rank>_<requirement>[_<left/percent_left/percent_done>]%\n%rankup_rank_money_<rank>%\n%rankup_rank_money_<rank>_left%\n%rankup_rank_requirement_<rank>_money_percent_[done/left]%",
+      "language": "typescript"
+    },
+    {
+      "code": "%rwg_schematicAmount%\n%rwg_schematics%\n%rwg_biome%\n%rwg_position1%\n%rwg_position2%",
+      "language": "unknown"
+    },
+    {
+      "code": "%redprotect_player_in_region%\n%redprotect_player_used_claims%\n%redprotect_player_used_blocks%\n%redprotect_player_total_claims%\n%redprotect_player_total_blocks%\n%redprotect_player_region_names_leader%\n%redprotect_player_region_names_admin%\n%redprotect_player_region_names_member%\n%redprotect_player_region_names_leader_<world name>%\n%redprotect_player_region_names_admin_<world name>%\n%redprotect_player_region_names_member_<world name>%\n%redprotect_region_value%\n%redprotect_region_area%\n%redprotect_region_welcome%\n%redprotect_region_center_x%\n%redprotect_region_center_y%\n%redprotect_region_center_z%\n%redprotect_region_flag_value_<flag name>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%rs_points%\n%rs_referrals%",
+      "language": "unknown"
+    },
+    {
+      "code": "%restricteddimensions_has_access_<dimension>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%rp_<name>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%RogueParkour-temporary_top_<number>;<type>%\n%RogueParkour-temporary_get_<player>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%royalcommands_nickname%",
+      "language": "unknown"
+    },
+    {
+      "code": "%rpginv_damage_bonus%\n%rpginv_bow_damage_bonus%\n%rpginv_hand_damage_bonus%\n%rpginv_crit_damage_bonus%\n%rpginv_crit_chance%\n%rpginv_armor_bonus%\n%rpginv_speed_bonus%\n%rpginv_jump_bonus%",
+      "language": "unknown"
+    },
+    {
+      "code": "%rtp_player_status%\n%rtp_total_queue_length%\n%rtp_public_queue_length%\n%rtp_personal_queue_length%\n%rtp_teleport_world%\n%rtp_teleport_x%\n%rtp_teleport_y%\n%rtp_teleport_z%",
+      "language": "unknown"
+    },
+    {
+      "code": "%sack_name% : the name of the sack you're holding.\n%sack_slots% : the number of slots available for the sack you're holding.\n%sack_num_of_sacks% : the number of sacks the palyer currently has in its inventory.\n%sack_empty_slots% : the number of empty slots in the sack you're holding.\n%sack_filled_slots% : the number of slots, which have some items.\n%sack_total_slots% : the total number of slots for all sacks in your inventory.\n%sack_total_item_count% : the total number of items held in all sacks in your inventory.",
+      "language": "unknown"
+    },
+    {
+      "code": "# Global placeholders\n%bedwars_all_games_players%\n%bedwars_all_games_maxplayers%\n%bedwars_all_games_anyrunning%\n%bedwars_all_games_anywaiting%\n\n# Placeholders for the current game the player is in\n%bedwars_current_game%\n%bedwars_current_game_players%\n%bedwars_current_game_minplayers%\n%bedwars_current_game_maxplayers%\n%bedwars_current_game_world%\n%bedwars_current_game_state%\n%bedwars_current_game_time%\n%bedwars_current_game_timeformat%\n%bedwars_current_game_elapsedtime%\n%bedwars_current_game_elapsedtimeformat%\n%bedwars_current_game_running%\n%bedwars_current_game_waiting%\n%bedwars_current_available_teams%\n%bedwars_current_connected_teams%\n%bedwars_current_teamchests%\n\n# Placeholders related to the player's team in the current game\n%bedwars_current_team%\n%bedwars_current_team_color%\n%bedwars_current_team_colored%\n%bedwars_current_team_players%\n%bedwars_current_team_maxplayers%\n%bedwars_current_team_bed%\n%bedwars_current_team_teamchests%\n%bedwars_current_team_bedsymbol%\n\n# Placeholders for a specific team within the current game\n%bedwars_current_game_team_<team_name>_colored%\n%bedwars_current_game_team_<team_name>_color%\n%bedwars_current_game_team_<team_name>_ingame%\n%bedwars_current_game_team_<team_name>_players%\n%bedwars_current_game_team_<team_name>_maxplayers%\n%bedwars_current_game_team_<team_name>_bed%\n%bedwars_current_game_team_<team_name>_bedsymbol%\n%bedwars_current_game_team_<team_name>_teamchests%\n\n# Placeholders related to a specific game\n%bedwars_game_<game>_name%\n%bedwars_game_<game>_players%\n%bedwars_game_<game>_minplayers%\n%bedwars_game_<game>_maxplayers%\n%bedwars_game_<game>_world%\n%bedwars_game_<game>_state%\n%bedwars_game_<game>_available_teams%\n%bedwars_game_<game>_connected_teams%\n%bedwars_game_<game>_teamchests%\n%bedwars_game_<game>_time%\n%bedwars_game_<game>_timeformat%\n%bedwars_game_<game>_elapsedtime%\n%bedwars_game_<game>_elapsedtimeformat%\n%bedwars_game_<game>_running%\n%bedwars_game_<game>_waiting%\n\n# Placeholders related to a specific team in a specific game\n%bedwars_game_<game>_team_<team_name>_colored%\n%bedwars_game_<game>_team_<team_name>_color%\n%bedwars_game_<game>_team_<team_name>_ingame%\n%bedwars_game_<game>_team_<team_name>_players%\n%bedwars_game_<game>_team_<team_name>_maxplayers%\n%bedwars_game_<game>_team_<team_name>_bed%\n%bedwars_game_<game>_team_<team_name>_bedsymbol%\n%bedwars_game_<game>_team_<team_name>_teamchests%\n\n# Player statistics\n%bedwars_stats_deaths%\n%bedwars_stats_destroyed_beds%\n%bedwars_stats_kills%\n%bedwars_stats_loses%\n%bedwars_stats_score%\n%bedwars_stats_wins%\n%bedwars_stats_games%\n%bedwars_stats_kd%\n\n# Statistics of a specific player\n%bedwars_otherstats_<player>_deaths%\n%bedwars_otherstats_<player>_destroyed_beds%\n%bedwars_otherstats_<player>_kills%\n%bedwars_otherstats_<player>_loses%\n%bedwars_otherstats_<player>_score%\n%bedwars_otherstats_<player>_wins%\n%bedwars_otherstats_<player>_games%\n%bedwars_otherstats_<player>_kd%\n\n# Leaderboard information (<position> is the desired ranking spot, starting with 1)\n%bedwars_leaderboard_score_<position>_name%\n%bedwars_leaderboard_score_<position>_uuid%\n%bedwars_leaderboard_score_<position>_deaths%\n%bedwars_leaderboard_score_<position>_destroyed_beds%\n%bedwars_leaderboard_score_<position>_kills%\n%bedwars_leaderboard_score_<position>_loses%\n%bedwars_leaderboard_score_<position>_score%\n%bedwars_leaderboard_score_<position>_wins%\n%bedwars_leaderboard_score_<position>_games%\n%bedwars_leaderboard_score_<position>_kd%",
+      "language": "markdown"
+    },
+    {
+      "code": "%seasons_season%\n%seasons_season_[world]%\n%seasons_weather%\n%seasons_weather_[world]%\n%seasons_day%\n%seasons_day_[world]%",
+      "language": "unknown"
+    },
+    {
+      "code": "%sellall_multiplier%\n%sellall_multitime%",
+      "language": "unknown"
+    },
+    {
+      "code": "%sl_[variable name]%",
+      "language": "unknown"
+    },
+    {
+      "code": "%simplecoins_balane%\n%simplecoins_currency_name%",
+      "language": "unknown"
+    },
+    {
+      "code": "%simplecoinsapi_coins%",
+      "language": "unknown"
+    },
+    {
+      "code": "%simplekilltracker_kills%\n%simplekilltracker_deaths%\n%simplekilltracker_kdr%",
+      "language": "unknown"
+    },
+    {
+      "code": "%simpleprefix_prefix%\n%simpleprefix_suffix%",
+      "language": "unknown"
+    },
+    {
+      "code": "%simplesuffix_prefix%\n%simplesuffix_suffix%",
+      "language": "unknown"
+    },
+    {
+      "code": "%skillapi_attribute_points%\n%skillapi_mana%\n%skillapi_max_mana%\n%skillapi_skill_level_<skillName>%\n%skillapi_skill_points_<skillName>%\n%skillapi_skill_cost_<skillName>%\n%skillapi_skill_levelreq_<skillName>%\n%skillapi_skill_is_maxed_<skillName>%\n%skillapi_skill_message_<skillName>%\n%skillapi_skill_type_<skillName>%\n%skillapi_skill_req_<skillName>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%skillapi_player_skill_points_<#>%\n%skillapi_player_skill_level_<#>%\n%skillapi_player_skill_levelreq_<#>%\n%skillapi_player_skill_name_<#>%\n%skillapi_player_skill_message_<#>%\n%skillapi_player_skill_req_<#>%\n%skillapi_player_skill_type_<#>%\n%skillapi_player_skill_can_autolevel_<#>%\n%skillapi_player_skill_can_cast_<#>%",
+      "language": "unknown"
+    },
+    {
+      "code": "%skinsrestorer_getSkinName%\n%skinsrestorer_getTextureUrl_Or_PlayerName%\n%skinsrestorer_getTextureUrl_Or_Empty%\n%skinsrestorer_getTextureUrl_Or_Null%\n%skinsrestorer_getTextureUrl_Or_Steve%\n%skinsrestorer_getTextureUrl_Or_Alex%",
+      "language": "unknown"
+    },
+    {
+      "code": "%skript_<variable name>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%skywars_coins%\n%skywars_stats_deaths%\n%skywars_stats_kills%\n%skywars_stats_wins%\n%skywars_stats_played%\n%skywars_stats_arrow_shot%\n%skywars_stats_arrow_hit%\n%skywars_stats_blocks_broken%\n%skywars_stats_blocks_placed%\n%skywars_stats_distance_walked%\n%skywars_stats_time_played%\n%skywars_glass%\n%skywars_arena_name%\n%skywars_arena_max_players%\n%skywars_arena_ingame_players%",
+      "language": "unknown"
+    },
+    {
+      "code": "%skywars_players_count%\n%skywars_parties_count%\n%skywars_lobby_players_count%\n%skywars_arenas_count%\n%skywars_kits_count%\n%skywars_trails_count%\n%skywars_cages_count%\n%skywars_kills%\n%skywars_deaths%\n%skywars_wins%\n%skywars_modifier%\n%skywars_projectiles_launched%\n%skywars_projectiles_hit%\n%skywars_player_exp%\n%skywars_player_rank%\n%skywars_blocks_placed%\n%skywars_blocks_broken%\n%skywars_arena%\n%skywars_party_leader%\n%skywars_selected_kit%\n%skywars_selected_trail%\n%skywars_selected_cage%\n%skywars_selected_cage%\n%skywars_coins%",
+      "language": "unknown"
+    },
+    {
+      "code": "# Deprecated in old versions\n%skywarsreloaded_score%\n%skywarsreloaded_wins%\n%skywarsreloaded_kills%\n%skywarsreloaded_deaths%\n%skywarsreloaded_games%\n%skywarsreloaded_games_played%\n%skywarsreloaded_map_name%\n%skywarsreloaded_selected_kit%\n%skywarsreloaded_blocks%\n%skywarsreloaded_timevote%\n%skywarsreloaded_time_vote%\n%skywarsreloaded_opvote%\n%skywarsreloaded_op_vote%\n\n# Tested on version (5.4.2)\n%swr_wins%\n%swr_losses%\n%swr_kills%\n%swr_deaths%\n%swr_xp%\n%swr_level%\n%swr_games_played%\n%swr_kill_death%\n%swr_win_loss%",
+      "language": "markdown"
+    },
+    {
+      "code": "%soul_balance% : balance of souls you gathered.\n%soul_togal_gather% : the amount of soul you can currently gether based on armors/weapons you currently have.\n%soul_gather% : the amount of souls you can gather with the item in your hand.\n%soul_gather_amount% : the base amount of souls you can gather with the item in your hand.\n%soul_gather_rate% : the base rate of souls you can gather with the item in your hand.\n%soul_capacity% : the amount of souls you can hold.",
+      "language": "unknown"
+    },
+    {
+      "code": "%spark_tps%\n%spark_tps_5s%\n%spark_tps_10s%\n%spark_tps_1m%\n%spark_tps_5m%\n%spark_tps_15m%\n%spark_cpu_system%\n%spark_cpu_system_10s%\n%spark_cpu_system_1m%\n%spark_cpu_system_15m%\n%spark_cpu_process%\n%spark_cpu_process_10s%\n%spark_cpu_process_1m%\n%spark_cpu_process_15m%\n%spark_tickduration%\n%spark_tickduration_10s%\n%spark_tickduration_1m%",
+      "language": "unknown"
+    },
+    {
+      "code": "%sqlperms_rank_<channel>%\n%sqlperms_prefix_<chanel>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%sqltokens_tokens%",
+      "language": "unknown"
+    },
+    {
+      "code": "%stafffacilities_bungeetotal%\n%stafffacilities_staffonline%\n%stafffacilities_onlineplayers%\n%stafffacilities_dutysize%\n%stafffacilities_ischatmuted%\n%stafffacilities_playergamemode%\n%stafffacilities_isplayerfrozen%\n%stafffacilities_maintenancemode%\n%stafffacilities_amountofreports%\n%stafffacilities_onduty%\n%stafffacilities_ongodmode%\n%stafffacilities_onfly%\n%stafffacilities_vanished%\n%stafffacilities_fakeleaved%\n%stafffacilities_watchovered%\n%stafffacilities_staffwatched%\n%stafffacilities_staffvanished%\n%stafffacilities_tab_duty%\n%stafffacilities_tab_fakeleave%\n%stafffacilities_tab_freeze%\n%stafffacilities_tab_staffvanish%\n%stafffacilities_tab_vanish%",
+      "language": "unknown"
+    },
+    {
+      "code": "%statz_deaths%\n%statz_blocks_broken%\n%statz_blocks_placed%\n%statz_blocks_broken_<block_ID:data>%\n%statz_blocks_placed_<block_ID:data>%\n%statz_blocks_broken_<block_name>%\n%statz_blocks_placed_<block_name>%\n%statz_caught_items%\n%statz_crafted_items%\n%statz_damage_taken%\n%statz_distance_traveled%\n%statz_distance_traveled_allworlds_<moveType>%\n%statz_distance_traveled_<world>%\n%statz_distance_traveled_<world>:<moveType>%\n%statz_food_eaten%\n%statz_food_eaten_<food_name>%\n%statz_joins%\n%statz_mobs_killed%\n%statz_mobs_killed_<mob_name>%\n%statz_players_killed%\n%statz_time_formated_dhm%\n%statz_time_formated_dh%\n%statz_time_formated_d%\n%statz_time_day%\n%statz_time_hour%\n%statz_time_minute%\n%statz_time_played%\n%statz_times_shorn%\n%statz_villager_trades%\n%statz_villager_trades_<item_name>%\n%statz_xp_gained%",
+      "language": "swift"
+    },
+    {
+      "code": "%streamingdrops_dropsamount%\n%streamingdrops_generaldropsamount%\n%streamingdrops_globallivetag%\n%streamingdrops_nextdroptime%\n%streamingdrops_senddrops%\n%streamingdrops_streamerlivetag%\n%streamingdrops_topdropsprefix%\n%streamingdrops_twitch%",
+      "language": "unknown"
+    },
+    {
+      "code": "%strikepractice_players%\n%strikepractice_next_event_name%\n%strikepractice_next_event_time%\n%strikepractice_in_fight%\n%strikepractice_in_queue%\n%strikepractice_in_ranked_queue%\n%strikepractice_in_unranked_queue%\n%strikepractice_online_staff%\n%strikepractice_tps%\n%strikepractice_time%\n\n# Per Player/Event placeholders\n%strikepractice_ping%\n%strikepractice_kills%\n%strikepractice_deaths%\n%strikepractice_premiummatches%\n%strikepractice_brackets_wins%\n%strikepractice_lms_wins%\n%strikepractice_party_vs_party_wins%\n%strikepractice_player%\n%strikepractice_custom_name%\n%strikepractice_display_name%\n%strikepractice_world%\n%strikepractice_global_elo%\n%strikepractice_elo_rank%\n%strikepractice_elo_<kit>%\n%strikepractice_party_members%\n%strikepractice_party_owner%\n%strikepractice_enderpearl_cooldown%\n%strikepractice_is_enderpearl_cooldown%\n%strikepractice_arena%\n%strikepractice_kit%\n%strikepractice_raw_arena%\n%strikepractice_raw_kit%\n%strikepractice_ranked%\n%strikepractice_is_cooldown_(tag)%\n%strikepractice_cooldown _(tag)%\n%strikepractice_duration%\n%strikepractice_total_duration%\n%strikepractice_opponent%\n%strikepractice_opponent_ping%\n%strikepractice_cps%\n%strikepractice_opponent_cps%\n%strikepractice_total_rounds%\n%strikepractice_round%\n%strikepractice_own_wins%\n%strikepractice_opponent_wins%\n%strikepractice_is_bestof%\n%strikepractice_build%\n%strikepractice_ffa_players%\n%strikepractice_ffa_rollback%\n%strikepractice_[sumo/juggernaut/koth/lms/brackets]_started%\n%strikepractice_enemy_team_members%\n%strikepractice_own_team_members%\n%strikepractice_enemy_team_left%\n%strikepractice_own_team_left%\n%strikepractice_search_range1%\n%strikepractice_search_range1%\n%strikepractice_queuetype%\n%strikepractice_wait_time%\n%strikepractice_current_fight_player1%\n%strikepractice_current_fight_player2%\n%strikepractice_player1_ping%\n%strikepractice_player2_ping%\n%strikepractice_player1_cps%\n%strikepractice_player2_cps%\n%strikepractice_players_left%\n%strikepractice_total_players%\n%strikepractice_estimated_time_left%\n%strikepractice_alive%\n%strikepractice_timer%\n%strikepractice_capper%\n%strikepractice_capper_team%\n%strikepractice_juggernaut%\n%strikepractice_limits_update%\n%strikepractice_rankeds_left%\n%strikepractice_rank%\n%strikepractice_unrankeds_left%\n\n%strikepractice_top_[stats][number]%\n%strikepractice_top_[stats][number]_value%",
+      "language": "markdown"
+    },
+    {
+      "code": "%sttitles_name%\n%sttitles_id%\n%sttitles_display%\n%sttitles_content%",
+      "language": "unknown"
+    },
+    {
+      "code": "%subservers_proxies()%\n%subservers_proxy.displayname(<Proxy>)%\n%subservers_proxy.type(<Proxy>)_{Master Proxy, Proxy}%\n%subservers_proxy.players(<Proxy>)%\n%subservers_proxy.subdata(<Proxy>)_{Connected, Disconnected}%\n%subservers_proxy.subdata.channels(<Proxy>)%\n%subservers_proxy.subdata.subchannels(<Proxy>)%\n%subservers_proxy.signature(<Proxy>)%\n\n%subservers_hosts()%\n%subservers_host.displayname(<Host>)%\n%subservers_host.available(<Host>)_{Available, Unavailable}%\n%subservers_host.enabled(<Host>)_{Enabled, Disabled}%\n%subservers_host.address(<Host>)%\n%subservers_host.creator.templates(<Host>)%\n%subservers_host.creator.template.displayname(<Host>, <Template>)%\n%subservers_host.creator.template.enabled(<Host>, <Template>)_{Enabled, Disabled}%\n%subservers_host.creator.template.type(<Host>, <Template>)%\n%subservers_host.creator.template.requiresversion(<Host>, <Template>)_{Optional, Required}%\n%subservers_host.creator.template.updatable(<Host>, <Template>)_{Updatable, Not Updatable}%\n%subservers_host.subservers(<Host>)%\n%subservers_host.players(<Host>)%\n%subservers_host.subdata(<Host>)_{Connected, Unsupported, Disconnected}%\n%subservers_host.subdata.channels(<Host>)%\n%subservers_host.subdata.subchannels(<Host>)%\n%subservers_host.signature(<Host>)%\n\n%subservers_servers()%\n%subservers_server.displayname(<Server>)%\n%subservers_server.type(<Server>)_{Subserver, Server}%\n%subservers_server.groups(<Server>)%\n%subservers_server.address(<Server>)%\n%subservers_server.motd(<Server>)%\n%subservers_server.restricted(<Server>)_{Public, Private}%\n%subservers_server.hidden(<Server>)_{Visible, Hidden}%\n%subservers_server.players(<Server>)%\n%subservers_server.subdata(<Server>)_{Connected, Disconnected}%\n%subservers_server.subdata.channels(<Server>)%\n%subservers_server.subdata.subchannels(<Server>)%\n%subservers_server.signature(<Server>)%\n\n%subservers_subservers()%\n%subservers_subserver.displayname(<Subserver>)%\n%subservers_subserver.available(<Subserver>)_{Available, Unavailable}%\n%subservers_subserver.enabled(<Subserver>)_{Enabled, Disabled}%\n%subservers_subserver.editable(<Subserver>)_{Editable, Locked}%\n%subservers_subserver.host(<Subserver>)%\n%subservers_subserver.template(<Subserver>)%\n%subservers_subserver.template.displayname(<Subserver>)%\n%subservers_subserver.template.enabled(<Subserver>)_{Enabled, Disabled}%\n%subservers_subserver.template.type(<Subserver>)%\n%subservers_subserver.template.requiresversion(<Subserver>)_{Optional, Required}%\n%subservers_subserver.template.updatable(<Subserver>)_{Updatable, Not Updatable}%\n%subservers_subserver.groups(<Subserver>)%\n%subservers_subserver.address(<Subserver>)%\n%subservers_subserver.motd(<Subserver>)%\n%subservers_subserver.logging(<Subserver>)_{Logging, Muted}%\n%subservers_subserver.running(<Subserver>)_{Running, Offline}%\n%subservers_subserver.online(<Subserver>)_{Online, Starting, Offline}%\n%subservers_subserver.temporary(<Subserver>)_{Permanent, Temporary}%\n%subservers_subserver.stopaction(<Subserver>)%\n%subservers_subserver.incompatibilities(<Subserver>)%\n%subservers_subserver.incompatibilities.current(<Subserver>)%\n%subservers_subserver.restricted(<Subserver>)_{Public, Private}%\n%subservers_subserver.hidden(<Subserver>)_{Visible, Hidden}%\n%subservers_subserver.players(<Subserver>)%\n%subservers_subserver.subdata(<Subserver>)_{Connected, Disconnected}%\n%subservers_subserver.subdata.channels(<Subserver>)%\n%subservers_subserver.subdata.subchannels(<Subserver>)%\n%subservers_subserver.signature(<Subserver>)%",
+      "language": "vue"
+    },
+    {
+      "code": "%superbvote_votes%\n%superbvote_has_voted%\n%superbvote_top_voter_name_<index>%\n%superbvote_top_voter_votes_<index>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%scredits_value%",
+      "language": "unknown"
+    },
+    {
+      "code": "%supervanish_isvanished%\n%supervanish_vanishedplayers%\n%supervanish_playercount%",
+      "language": "unknown"
+    },
+    {
+      "code": "%thetime_date_tick%\n%thetime_date_second%\n%thetime_date_minute%\n%thetime_date_hour%\n%thetime_date_day%\n%thetime_date_day_name%\n%thetime_date_dayOfWeek%\n%thetime_date_week%\n%thetime_date_month%\n%thetime_date_month_name%\n%thetime_date_year%\n%thetime_date_era%\n%thetime_date_era_name%",
+      "language": "unknown"
+    },
+    {
+      "code": "%tp_name:<AttractionID>%\n%tp_status:<AttractionID>%\n%tp_region:<AttractionID>%\n%tp_ridecount%\n%tp_ridecount:<AttractionID>%\n%tp_ridecounttop_name:<AttractionID>:<Position>[:Type]%\n%tp_ridecounttop_value:<AttractionID>:<Position>[:Type]%",
+      "language": "typescript"
+    },
+    {
+      "code": "%thirst_level%",
+      "language": "unknown"
+    },
+    {
+      "code": "%ticketgui_blacklist_points_current%\n%ticketgui_blacklist_points_max%\n%ticketgui_tickets_handled%\n%ticketgui_tickets_sent%",
+      "language": "unknown"
+    },
+    {
+      "code": "%trs_claimed_<reward>%\n%trs_time_remaining_<reward>%\n%trs_name_<reward>%",
+      "language": "typescript"
+    },
+    {
+      "code": "%tm_currentday%\n%tm_daypart%\n%tm_dd%\n%tm_elapseddays%\n%tm_mm%\n%tm_monthname%\n%tm_time%\n%tm_yearweek%\n%tm_yy%\n%tm_yyyy%",
+      "language": "unknown"
+    },
+    {
+      "code": "%timetokens_time_played%\n%timetokens_token_name_plural%\n%timetokens_token_name_singular%\n%timetokens_player_name%\n%timetokens_player_tokens%\n%timetokens_daily_bonus_remaining%\n%timetokens_server_name%\n%timetokens_currently_open_menu%",
+      "language": "unknown"
+    },
+    {
+      "code": "%tntrun_allplayers_<arena>%\n%tntrun_arena_count%\n%tntrun_currency_<arena>%\n%tntrun_current_arena%\n%tntrun_doublejumps%\n%tntrun_joinfee_<arena>%\n%tntrun_leaderboard_losses_player_<position>%\n%tntrun_leaderboard_losses_score_<position>%\n%tntrun_leaderboard_played_player_<position>%\n%tntrun_leaderboard_played_score_<position>%\n%tntrun_leaderboard_wins_player_<position>%\n%tntrun_leaderboard_wins_score_<position>%\n%tntrun_losses%\n%tntrun_nopvp_arena_count%\n%tntrun_nopvp_player_count%\n%tntrun_played%\n%tntrun_players_<arena>%\n%tntrun_player_count%\n%tntrun_player_count_<arena>%\n%tntrun_pvp_arena_count%\n%tntrun_pvp_player_count%\n%tntrun_spectators_<arena>%\n%tntrun_status_<arena>%\n%tntrun_version%\n%tntrun_wins%",
+      "language": "typescript"
+    },
+    {
+      "code": "%tokenenchant_tokens% : Returns the token balance as a double. For formatting, use NumberFormat placeholder %nf_%.\n%tokenenchant_token% : Deprecated. (use %tokenenchant_tokens%)\n%tokenenchant_token_long% : Deprecated. (use %tokenenchant_tokens%) \n%tokenenchant_token_num% : Deprecated. (use %tokenenchant_tokens%)\n%tokenenchant_token_num_long% : Deprecated. (use %tokenenchant_tokens%)\n%tokenenchant_<enchantment>_level%\n%tokenenchant_<enchantment>_affordablelevel% : the maximum level the player can afford based on the the item holding and his/her token balance.\n%tokenenchant_<enchantment>_affordablecost% : the cost to reach the affordable enchantment level based on the item holding and his/her token balance.\n%tokenenchant_<enchantment>_cost% : cost to increment the enchantmnt level by one from the current level\n%tokenenchant_<enchantment>_costmax% : cost to increment the enchantmnt level to its maax one from the current level \n%tokenenchant_<enchantment>_cost_<X>% : cost to increment the enchantmnt level by <X> from the current level\n%tokenenchant_<enchantment>_fullcostmax% : cost to enchant the max level from 0 level\n%tokenenchant_<enchantment>_fullcost_<X>% : cost to enchant the <X> level from 0 level\n%tokenenchant_<enchantment>_max%\n%tokenenchant_<enchantment>_playermax% : the max enchant level for the player - based on the permission.\n%tokenenchant_<enchantment>_description% \n%tokenenchant_<enchantment>_version%\n%tokenenchant_<enchantment>_fullrefund%\n%tokenenchant_<enchantment>_fullrefund_long% : Deprecated. (For formatting, use NumberFormat placeholder %nf_%.) \n%tokenenchant_<enchantment>_refund_Y%\n%tokenenchant_<enchantment>_refund_Y_long% : Deprecated. (For formatting, use NumberFormat placeholder %nf_%.) \n%tokenenchant_<enchantment>_alias%\n%tokenenchant_tokenmultiplier%\n%tokenenchant_<enchantment>_occurrencemultiplier%\n%tokenenchant_<enchantment>_occurrence_<X>% : the activation chance (in %) for the <enchatnment> at the level <X>.  If <X> == 0, chance of the current level will be returned.\n%tokenenchant_repair_cost%\n%tokenenchant_repair_cost_long% : Deprecated. (For formatting, use NumberFormat placeholder %nf_%.) \n%tokenenchant_repair_cost_num%\n%tokenenchant_repair_cost_num_long% : Deprecated. (For formatting, use NumberFormat placeholder %nf_%.) \n%tokenenchant_enchantments%\n%tokenenchant_baltop_<X>_name% : The name of X-th baltop player\n%tokenenchant_baltop_<X>_balance% : The balance of X-th baltop player\n%tokenenchant_<enchantment>_allowed% : true if a palyer's item can have <enchantment>, otherwise false\n%tokenenchant_<enchantment>_permission_node% : returns the permission node for the <enchantment>\n%tokenenchant_<enchantment>_has_permission% : true if a player has a permission node for <enchantment>, otherwise false\n%tokenenchant_<enchantment>_conflict_list% : returns a list of conflicting enchantments",
+      "language": "typescript"
+    },
+    {
+      "code": "%tm_tokens%\n%tm_tokens_commas%\n%tm_tokens_formatted%\n%tm_rank%\n%tm_top_name_[position]%\n%tm_top_tokens_[position]%",
+      "language": "unknown"
+    },
+    {
+      "code": "%tokens_getTokens%",
+      "language": "unknown"
+    },
+    {
+      "code": "%tokensplus_tokens%\n%tokensplus_tokens_commas%\n%tokensplus_tokens_formatted%",
+      "language": "unknown"
+    },
+    {
+      "code": "%townychat_channel_tag%\n%townychat_channel_name%\n%townychat_message_color%\n%townychat_world%\n%townychat_town%\n%townychat_townformatted%\n%townychat_towntag%\n%townychat_towntagoverride%\n%townychat_nation%\n%townychat_nationformatted%\n%townychat_nationtag%\n%townychat_nationtagoverride%\n%townychat_townytag%\n%townychat_townyformatted%\n%townychat_townytagoverride%\n%townychat_title%\n%townychat_surname%\n%townychat_townynameprefix%\n%townychat_townynamepostfix%\n%townychat_townycolor%\n%townychat_group%\n%townychat_permprefix%\n%townychat_permsuffix%\n%townychat_channeltag%",
+      "language": "unknown"
+    },
+    {
+      "code": "%transmuteit_emc%\n%transmuteit_discoveries%\n%transmuteit_total_discoveries%\n%transmuteit_discovered_[ITEM]%",
+      "language": "unknown"
+    },
+    {
+      "code": "%treasures_keys_<treasure name>%\n%treasures_canbuy_treasure_<treasure name>-<config file>%\n%treasures_treasure_price_<treasure name>-<config file>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%tdj_cooldown%\n%tdj_flightenabled%\n%tdj_doublejumpenabled%\n%tdj_groundpoundenabled%\n%tdj_canusegroundpound%",
+      "language": "unknown"
+    },
+    {
+      "code": "%trickortreat_sweets%\n%trickortreat_doors_found%\n%trickortreat_sweets_average%\n%trickortreat_is_at_door%\n%trickortreat_current_ingredient%\n%trickortreat_current_head%\n%trickortreat_chestplate%\n%trickortreat_leggings%\n%trickortreat_boots%",
+      "language": "unknown"
+    },
+    {
+      "code": "%2fa_is_enabled%\n%2fa_time_since_enabled%\n%2fa_key%\n%2fa_is_required%",
+      "language": "unknown"
+    },
+    {
+      "code": "ujobs_job_name_<job>                      \nujobs_job_displayname_<job>\nujobs_job_legacydisplayname_<job>\n\nujobs_player_level_<job>\nujobs_player_exp_<job>\nujobs_player_position_<job>\nujobs_player_totalmoney_<job>\n\nujobs_leaderboard_name_<job>_<position>\nujobs_leaderboard_level_<job>_<position>",
+      "language": "typescript"
+    },
+    {
+      "code": "%uskyblock_island_rank%\n%uskyblock_island_level%",
+      "language": "unknown"
+    },
+    {
+      "code": "%uchat_player_channel_name%\n%uchat_player_channel_alias%\n%uchat_player_tell_with%\n%uchat_player_ignoring%\n%uchat_player_ignoring%\n%uchat_placeholder_<some uchat placeholder>%\n%uchat_tag_<uchat tag name>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%ultimateclaims_claims%\n%ultimateclaims_owner%\n%ultimateclaims_bans%\n%ultimateclaims_totalpower%\n%ultimateclaims_remainingpower%\n%ultimateclaims_totalchunks%",
+      "language": "unknown"
+    },
+    {
+      "code": "%usm_plugins%\n%usm_uptime%\n%usm_tps%\n%usm_allocatedMemory%\n%usm_maxMemory%\n%usm_<world>_chunks%\n%usm_<world>_entities%\n%usm_<world>_tiles%",
+      "language": "typescript"
+    },
+    {
+      "code": "%ultimatevotes_monthlyvotes%\n%ultimatevotes_totalvotes%\n%ultimatevotes_hasvoted%",
+      "language": "unknown"
+    },
+    {
+      "code": "%unitygen_userlimit%\n%unitygen_usergens%",
+      "language": "unknown"
+    },
+    {
+      "code": "# Economy placeholders\n%vault_eco_balance%\n%vault_eco_balance_<number>dp%\n%vault_eco_balance_fixed%\n%vault_eco_balance_formatted%\n%vault_eco_balance_commas%\n\n# Permission/Group placeholders\n%vault_group%\n%vault_group_capital%\n%vault_groups%\n%vault_groups_capital%\n%vault_prefix%\n%vault_suffix%\n%vault_groupprefix%\n%vault_groupprefix_<position>%\n%vault_groupsuffix%\n%vault_groupsuffix_<position>%\n%vault_hasgroup_<group>%\n%vault_inprimarygroup_<group>%",
+      "language": "markdown"
+    },
+    {
+      "code": "%venturacalendar_date_tick%\n%venturacalendar_date_second%\n%venturacalendar_date_minute%\n%venturacalendar_date_hour%\n%venturacalendar_date_day%\n%venturacalendar_date_day_name%\n%venturacalendar_date_dayofweek%\n%venturacalendar_date_week%\n%venturacalendar_date_month%\n%venturacalendar_date_month_name%\n%venturacalendar_date_year%\n%venturacalendar_date_era%\n%venturacalendar_date_era_name%",
+      "language": "unknown"
+    },
+    {
+      "code": "%viaversion_player_protocol_id%\n%viaversion_player_protocol_version%",
+      "language": "unknown"
+    },
+    {
+      "code": "%vkbackpack_bpname% : The name of the backpack the player is currently holding\n%vkbackpack_bpslots% : The number of slots of the backpack the player is currently holding.\n%vkbackpack_maxbp% : The maximum number of backpacks a player can have.",
+      "language": "unknown"
+    },
+    {
+      "code": "%voteroulette_votes_lifetime%\n%voteroulette_votes_day%\n%voteroulette_current_vote_cycle%\n%voteroulette_current_vote_streak%\n%voteroulette_hours_since_last_vote%\n%voteroulette_longest_vote_streak%\n%voteroulette_unclaimed_milestone_count%\n%voteroulette_unclaimed_reward_count%\n%voteroulette_last_vote_timestamp%",
+      "language": "unknown"
+    },
+    {
+      "code": "%VotingPlugin_total%\n%VotingPlugin_alltimetotal%\n%VotingPlugin_lastmonthtotal%\n%VotingPlugin_DisableBroadcast%\n%VotingPlugin_MilestoneCount%\n%VotingPlugin_VoteShopLimit_VOTESHOP%\n%VotingPlugin_Total_AllTime%\n%VotingPlugin_Total_Monthly%\n%VotingPlugin_Total_Weekl%\n%VotingPlugin_Total_Daily%\n%VotingPlugin_BestDailyTotal%\n%VotingPlugin_BestWeeklyTotal%\n%VotingPlugin_BestMonthlyTotal%\n%VotingPlugin_DailyVoteStreak%\n%VotingPlugin_WeeklyVoteStreak%\n%VotingPlugin_MonthVoteStreak%\n%VotingPlugin_BestDailyVoteStreak%\n%VotingPlugin_BestWeeklyVoteStreak%\n%VotingPlugin_BestMonthVoteStreak%\n%VotingPlugin_Points%\n%VotingPlugin_Points_Format%\n%VotingPlugin_CanVote%\n%VotingPlugin_CanVoteSite%\n%VotingPlugin_Next_AnySite%\n%VotingPlugin_Next_VOTESITE%\n%VotingPlugin_Last_VOTESITE%\n%VotingPlugin_CanVote_VOTESITE%\n%VotingPlugin_Top_All_Position%\n%VotingPlugin_Top_Month_Position%\n%VotingPlugin_Top_Week_Position%\n%VotingPlugin_Top_Daily_Position%\n%VotingPlugin_VotePartyContributedVotes%\n%VotingPlugin_Top_AllVotes_#%\n%VotingPlugin_Top_All_#%\n%VotingPlugin_Top_Month_#%\n%VotingPlugin_Top_MonthVotes_#%\n%VotingPlugin_Top_Week_#%\n%VotingPlugin_Top_WeekVotes_#%\n%VotingPlugin_Top_Daily_#%\n%VotingPlugin_Top_DailyVotes_#%\n%VotingPlugin_VotePartyVotesCurrent%\n%VotingPlugin_VotePartyVotesNeeded%\n%VotingPlugin_VotePartyVotesRequired%\n%VotingPlugin_BungeeVotePartyVotesCurrent%\n%VotingPlugin_BungeeVotePartyVotesNeeded%\n%VotingPlugin_BungeeVotePartyVotesRequired%\n%VotingPlugin_GlobalMonthTotal%\n%VotingPlugin_GlobalAllTimeTotal%\n%VotingPlugin_GlobalWeeklyTotal%\n%VotingPlugin_GlobalDailyTotal%\n%VotingPlugin_TimeUntilDayReset%",
+      "language": "unknown"
+    },
+    {
+      "code": "%weight-rpg_current_weight%\n%weight-rpg_max_weight%\n%weight-rpg_armor_weight%\n%weight-rpg_item_in_main_hand%\n%weight-rpg_item_in_second_hand%\n%weight-rpg_weight_level1%\n%weight-rpg_weight_level2%\n%weight-rpg_weight_level3%",
+      "language": "unknown"
+    },
+    {
+      "code": "%wickedskywars_score%\n%wickedskywars_kills%\n%wickedskywars_deaths%\n%wickedskywars_played%\n%wickedskywars_won%",
+      "language": "unknown"
+    },
+    {
+      "code": "%worldborder_size%\n%worldborder_center_z%\n%worldborder_center_x%\n%worldborder_damage_amount%\n%worldborder_damage_buffer%\n%worldborder_warning_time%\n%worldborder_warning_distance%",
+      "language": "unknown"
+    },
+    {
+      "code": "%worldguard_region_name%\n%worldguard_region_name_capitalized%\n%worldguard_region_owner%\n%worldguard_region_owner_groups%\n%worldguard_region_members%\n%worldguard_region_members_groups%\n%worldguard_region_flags%\n%worldguard_region_has_flag_<FlagName>%\n%worldguard_region_min_point_x%\n%worldguard_region_min_point_y%\n%worldguard_region_min_point_z%\n%worldguard_region_max_point_x%\n%worldguard_region_max_point_y%\n%worldguard_region_max_point_z%\n%worldguard_<Any WG Placeholder>_<Priority (Lowest number = Highest priority)>%\n%worldguard_<Any WG Placeholder>:<World>,<X>,<Y>,<Z>%",
+      "language": "jsx"
+    },
+    {
+      "code": "%xlt_{tournamentId}_top1name%\n%xlt_{tournamentId}_top2name%\n%xlt_{tournamentId}_top3name%\n%xlt_{tournamentId}_top1score%\n%xlt_{tournamentId}_top2score%\n%xlt_{tournamentId}_top3score%\n%xlt_{tournamentId}_score%\n%xlt_{tournamentId}_position%\n%xlt_{tournamentId}_type%",
+      "language": "unknown"
+    }
+  ],
+  "patterns": [
+    {
+      "description": "Example: %unicode_1000% would show က",
+      "code": "%unicode_1000%"
+    },
+    {
+      "description": "Example: %unixtime_1750277249389_dd.MM.yyyy-HH:mm:ss% would show 18.06.2025 20:07:29",
+      "code": "%unixtime_1750277249389_dd.MM.yyyy-HH:mm:ss%"
+    },
+    {
+      "description": "Global achievement placeholders: %aach_achievements% - Return the total unlocked achievements (number) %aach_achievements_percentage% - Return the total unlocked achievements (%) %aach_total_achievements% - Return the total achievements (number) Normal achievement placeholders for individual player statistics: %aach_connections% %aach_deaths% %aach_arrows% %aach_snowballs% %aach_eggs% %aach_fish% %aach_treasures% %aach_itembreaks% %aach_eatenitems% %aach_shear% %aach_milk% %aach_lavabuckets% %aach_waterbuckets% %aach_trades% %aach_anvilsused% %aach_enchantments% %aach_beds% %aach_maxlevel% %aach_consumedpotions% %aach_playedtime% %aach_itemdrops% %aach_itempickups% %aach_hoeplowings% %aach_fertilising% %aach_taming% %aach_brewing% %aach_fireworks% %aach_musicdiscs% %aach_enderpearls% %aach_smelting% %aach_petmastergive% %aach_petmasterreceive% %aach_distancefoot% %aach_distancepig% %aach_distancehorse% %aach_distanceminecart% %aach_distanceboat% %aach_distancegliding% %aach_distancellama% %aach_distancesneaking% %aach_raidswon% %aach_riptides% %aach_advancementscompleted% Multiple Achievement Placeholders for individual player statistics: %aach_places_[blockname]% - example: %aach_places_dirt% %aach_breaks_[blockname]% - example: %aach_breaks_stone% %aach_kills_[entityname]% - example: %aach_kills_zombie% %aach_targetsshot_[targetname]% - example: %aach_targetsshot_zombie% %aach_crafts_[itemname]% - example: %aach_crafts_bread% %aach_breeding_[entityname]% - example: %aach_breeding_pig% %aach_playercommands_[command]% - example: %aach_playercommands_aach list% %aach_custom_[customname]% - example: %aach_custom_votes% %aach_jobsreborn_[job]% - example: %aach_jobsreborn_hunter% Placeholders for total category achievements: %aach_total_connections% %aach_total_deaths% %aach_total_arrows% %aach_total_snowballs% %aach_total_eggs% %aach_total_fish% %aach_total_treasures% %aach_total_itembreaks% %aach_total_eatenitems% %aach_total_shear% %aach_total_milk% %aach_total_lavabuckets% %aach_total_waterbuckets% %aach_total_trades% %aach_total_anvilsused% %aach_total_enchantments% %aach_total_beds% %aach_total_maxlevel% %aach_total_consumedpotions% %aach_total_playedtime% %aach_total_itemdrops% %aach_total_itempickups% %aach_total_hoeplowings% %aach_total_fertilising% %aach_total_taming% %aach_total_brewing% %aach_total_fireworks% %aach_total_musicdiscs% %aach_total_enderpearls% %aach_total_smelting% %aach_total_petmastergive% %aach_total_petmasterreceive% %aach_total_distancefoot% %aach_total_distancepig% %aach_total_distancehorse% %aach_total_distanceminecart% %aach_total_distanceboat% %aach_total_distancegliding% %aach_total_distancellama% %aach_total_distancesneaking% %aach_total_raidswon% %aach_total_riptides% %aach_total_advancementscompleted% %aach_total_places% %aach_total_breaks% %aach_total_kills% %aach_total_targetsshot% %aach_total_crafts% %aach_total_breeding% %aach_total_playercommands% %aach_total_custom% %aach_total_commands% %aach_total_jobsreborn%",
+      "code": "%aach_achievements% - Return the total unlocked achievements (number)\n%aach_achievements_percentage% - Return the total unlocked achievements (%)\n%aach_total_achievements% - Return the total achievements (number)"
+    },
+    {
+      "description": "%aach_places_[blockname]% - example: %aach_places_dirt% %aach_breaks_[blockname]% - example: %aach_breaks_stone% %aach_kills_[entityname]% - example: %aach_kills_zombie% %aach_targetsshot_[targetname]% - example: %aach_targetsshot_zombie% %aach_crafts_[itemname]% - example: %aach_crafts_bread% %aach_breeding_[entityname]% - example: %aach_breeding_pig% %aach_playercommands_[command]% - example: %aach_playercommands_aach list% %aach_custom_[customname]% - example: %aach_custom_votes% %aach_jobsreborn_[job]% - example: %aach_jobsreborn_hunter%",
+      "code": "%aach_places_[blockname]% - example: %aach_places_dirt%\n%aach_breaks_[blockname]% - example: %aach_breaks_stone%\n%aach_kills_[entityname]% - example: %aach_kills_zombie%\n%aach_targetsshot_[targetname]% - example: %aach_targetsshot_zombie%\n%aach_crafts_[itemname]% - example: %aach_crafts_bread%\n%aach_breeding_[entityname]% - example: %aach_breeding_pig%\n%aach_playercommands_[command]% - example: %aach_playercommands_aach list%\n%aach_custom_[customname]% - example: %aach_custom_votes%\n%aach_jobsreborn_[job]% - example: %aach_jobsreborn_hunter%"
+    },
+    {
+      "description": "Multiverse-Core v5Multiverse-Core v4 Built into Plugin The below Placeholders are only for Multiverse-Core v5! All placeholders allow a _<world> to be added with <world> being the name of a Multiverse-loaded World. Example: %multiverse-core_alias_myworld% %multiverse-core_alias% %multiverse-core_animalspawn% %multiverse-core_autoheal% %multiverse-core_blacklist% %multiverse-core_currency% %multiverse-core_difficulty% %multiverse-core_entryfee% %multiverse-core_environment% %multiverse-core_flight% %multiverse-core_gamemode% %multiverse-core_generator% %multiverse-core_hunger% %multiverse-core_monstersspawn% %multiverse-core_name% %multiverse-core_playerlimit% %multiverse-core_price% %multiverse-core_pvp% %multiverse-core_seed% %multiverse-core_time% %multiverse-core_type% %multiverse-core_weather% papi ecloud download multiverse %multiverse_world_alias% %multiverse_world_all_property_names% %multiverse_world_generator% %multiverse_world_name% %multiverse_world_name_colored% %multiverse_world_permissible_name% %multiverse_world_time% %multiverse_world_animals_spawn_enabled% %multiverse_world_monsters_spawn_enabled% %multiverse_world_access_permission% %multiverse_world_adjust_spawn_enabled% %multiverse_world_allow_flight_enabled% %multiverse_world_auto_heal_enabled% %multiverse_world_auto_load_enabled% %multiverse_world_bed_respawn_enabled% %multiverse_world_color% %multiverse_world_currency% %multiverse_world_difficulty% %multiverse_world_environment% %multiverse_world_gamemode% %multiverse_world_hunger_enabled% %multiverse_world_player_limit% %multiverse_world_price% %multiverse_world_seed% %multiverse_world_style% %multiverse_world_type%",
+      "code": "_<world>"
+    }
+  ],
+  "links": [
+    "https://wiki.placeholderapi.com/users/placeholder-list/",
+    "https://wiki.placeholderapi.com/",
+    "https://wiki.placeholderapi.com/users/",
+    "https://wiki.placeholderapi.com/developers/",
+    "https://wiki.placeholderapi.com/common-issues/",
+    "https://wiki.placeholderapi.com/faq/",
+    "https://wiki.placeholderapi.com/users/commands/",
+    "https://wiki.placeholderapi.com/users/using-placeholders/",
+    "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/using-placeholderapi/",
+    "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/",
+    "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+  ]
+}

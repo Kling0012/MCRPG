@@ -1,0 +1,57 @@
+{
+  "name": "PlaceholderAPI",
+  "total_pages": 12,
+  "base_url": "https://wiki.placeholderapi.com/",
+  "llms_txt_detected": false,
+  "llms_txt_variant": null,
+  "pages": [
+    {
+      "title": "Welcome¶",
+      "url": "https://wiki.placeholderapi.com/"
+    },
+    {
+      "title": "User Guides¶",
+      "url": "https://wiki.placeholderapi.com/users/"
+    },
+    {
+      "title": "Dev Guides¶",
+      "url": "https://wiki.placeholderapi.com/developers/"
+    },
+    {
+      "title": "Common Issues¶",
+      "url": "https://wiki.placeholderapi.com/common-issues/"
+    },
+    {
+      "title": "FAQ¶",
+      "url": "https://wiki.placeholderapi.com/faq/"
+    },
+    {
+      "title": "Commands¶",
+      "url": "https://wiki.placeholderapi.com/users/commands/"
+    },
+    {
+      "title": "Using Placeholders¶",
+      "url": "https://wiki.placeholderapi.com/users/using-placeholders/"
+    },
+    {
+      "title": "Placeholder List¶",
+      "url": "https://wiki.placeholderapi.com/users/placeholder-list/"
+    },
+    {
+      "title": "Plugins using PlaceholderAPI¶",
+      "url": "https://wiki.placeholderapi.com/users/plugins-using-placeholderapi/"
+    },
+    {
+      "title": "Using PlaceholderAPI¶",
+      "url": "https://wiki.placeholderapi.com/developers/using-placeholderapi/"
+    },
+    {
+      "title": "Creating a PlaceholderExpansion¶",
+      "url": "https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/"
+    },
+    {
+      "title": "eCloud¶",
+      "url": "https://wiki.placeholderapi.com/developers/expansion-cloud/"
+    }
+  ]
+}

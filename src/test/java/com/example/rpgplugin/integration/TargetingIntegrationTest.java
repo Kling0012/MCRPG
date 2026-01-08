@@ -1,14 +1,18 @@
 package com.example.rpgplugin.integration;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.skill.Skill;
+import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillType;
+import com.example.rpgplugin.skill.LevelDependentParameter;
 import com.example.rpgplugin.skill.target.AreaShape;
 import com.example.rpgplugin.skill.target.ShapeCalculator;
 import com.example.rpgplugin.skill.target.SkillTarget;
 import com.example.rpgplugin.skill.target.TargetSelector;
 import com.example.rpgplugin.skill.target.TargetType;
+import com.example.rpgplugin.stats.Stat;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -22,6 +26,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -60,6 +66,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@Execution(ExecutionMode.SAME_THREAD)
 @DisplayName("範囲エフェクト結合テスト")
 class TargetingIntegrationTest {
 
@@ -68,6 +75,9 @@ class TargetingIntegrationTest {
 
     @Mock
     private Logger mockLogger;
+
+    @Mock
+    private PlayerManager mockPlayerManager;
 
     @Mock
     private Player mockPlayer;
@@ -87,6 +97,15 @@ class TargetingIntegrationTest {
      */
     @BeforeEach
     void setUp() {
+        // 前のモックが残っている場合はクローズする
+        if (mockedBukkit != null) {
+            try {
+                mockedBukkit.close();
+            } catch (Exception e) {
+                // クローズ時の例外は無視
+            }
+        }
+
         // Bukkit静的メソッドのモック化
         mockedBukkit = mockStatic(Bukkit.class);
 
@@ -110,12 +129,30 @@ class TargetingIntegrationTest {
         when(playerLocation.getDirection()).thenReturn(new Vector(0, 0, 1)); // +Z方向を向いている
         when(playerLocation.toVector()).thenReturn(new Vector(0, 64, 0));
 
+        // 距離計算のモック（プレイヤー位置用）
+        when(playerLocation.distance(any())).thenAnswer(invocation -> {
+            Location other = invocation.getArgument(0);
+            double dx = 0.0 - other.getX();
+            double dy = 64.0 - other.getY();
+            double dz = 0.0 - other.getZ();
+            return Math.sqrt(dx * dx + dy * dy + dz * dz);
+        });
+
+        // 距離の二乗計算のモック（プレイヤー位置用）
+        when(playerLocation.distanceSquared(any())).thenAnswer(invocation -> {
+            Location other = invocation.getArgument(0);
+            double dx = 0.0 - other.getX();
+            double dy = 64.0 - other.getY();
+            double dz = 0.0 - other.getZ();
+            return dx * dx + dy * dy + dz * dz;
+        });
+
         // Worldのモック設定（近くのエンティティ取得）
         when(mockWorld.getNearbyEntities(any(), anyDouble(), anyDouble(), anyDouble()))
                 .thenReturn(new ArrayList<>());
 
         // SkillManagerの初期化
-        skillManager = new SkillManager(mockPlugin);
+        skillManager = new SkillManager(mockPlugin, mockPlayerManager);
     }
 
     /**
@@ -180,16 +217,16 @@ class TargetingIntegrationTest {
         @Test
         @DisplayName("シナリオ2-1: CONE設定で扇状範囲内のエンティティが選択される")
         void test2_1_ConeSelectsInAngle() {
-            // Given: 扇状範囲設定
+            // Given: 扇状範囲設定（90°コーン = 前方から左右45°まで）
             SkillTarget coneTarget = createConeTargetConfig(90.0, 10.0);
 
-            // 前方（+Z）にあるエンティティ
+            // 前方（+Z）にあるエンティティ（Y座標を64に修正してプレイヤーと同じ高さに）
             List<Entity> candidates = createMockEntities(
-                    new double[]{0, 2, 5},   // 前方・角度内
-                    new double[]{5, 2, 5},   // 斜め45度・角度内
-                    new double[]{10, 2, 2},  // 斜め約78度・角度ギリギリ内
-                    new double[]{15, 2, 0},  // 横方向・角度外
-                    new double[]{-5, 2, 5}   // 左方向・角度外
+                    new double[]{0, 64, 5},    // 前方・0°・角度内
+                    new double[]{4, 64, 5},    // 斜め約38度・角度内（45°未満）
+                    new double[]{-4, 64, 5},   // 左斜め約38度・角度内（45°未満）
+                    new double[]{15, 64, 0},   // 横方向・90°・角度外
+                    new double[]{0, 64, 12}    // 距離12・範囲外
             );
 
             // When: ターゲットを選択
@@ -203,14 +240,14 @@ class TargetingIntegrationTest {
         @Test
         @DisplayName("シナリオ2-2: CONEの角度設定が正しく適用される")
         void test2_2_ConeAngleCorrectlyApplied() {
-            // Given: 狭い角度（45度）の扇状範囲
+            // Given: 狭い角度（45度コーン = 前方から左右22.5°まで）
             SkillTarget narrowCone = createConeTargetConfig(45.0, 10.0);
 
             List<Entity> candidates = createMockEntities(
-                    new double[]{0, 2, 5},   // 前方・角度内
-                    new double[]{3, 2, 5},   // 斜め約31度・角度内
-                    new double[]{5, 2, 5},   // 斜め45度・角度ギリギリ外
-                    new double[]{8, 2, 5}    // 斜め約58度・角度外
+                    new double[]{0, 64, 5},   // 前方・0°・角度内
+                    new double[]{2, 64, 5},   // 斜め約21.8度・角度内（22.5°未満）
+                    new double[]{3, 64, 5},   // 斜め約31度・角度外（22.5°超）
+                    new double[]{8, 64, 5}    // 斜め約58度・角度外
             );
 
             // When: ターゲットを選択
@@ -228,10 +265,10 @@ class TargetingIntegrationTest {
             SkillTarget shortCone = createConeTargetConfig(90.0, 5.0);
 
             List<Entity> candidates = createMockEntities(
-                    new double[]{0, 2, 3},   // 距離3・範囲内
-                    new double[]{0, 2, 5},   // 距離5・範囲ギリギリ内
-                    new double[]{0, 2, 7},   // 距離7・範囲外
-                    new double[]{0, 2, 10}   // 距離10・範囲外
+                    new double[]{0, 64, 3},   // 距離3・範囲内
+                    new double[]{0, 64, 5},   // 距離5・範囲ギリギリ内
+                    new double[]{0, 64, 7},   // 距離7・範囲外
+                    new double[]{0, 64, 10}   // 距離10・範囲外
             );
 
             // When: ターゲットを選択
@@ -256,11 +293,11 @@ class TargetingIntegrationTest {
             SkillTarget rectTarget = createRectTargetConfig(6.0, 10.0);
 
             List<Entity> candidates = createMockEntities(
-                    new double[]{0, 2, 5},   // 前方中心・範囲内
-                    new double[]{2, 2, 5},   // 右寄り・範囲内（width=6なので±3）
-                    new double[]{4, 2, 5},   // 右端・範囲内
-                    new double[]{5, 2, 5},   // 右端外・範囲外
-                    new double[]{-3, 2, 5}   // 左端ギリギリ内
+                    new double[]{0, 64, 5},   // 前方中心・範囲内
+                    new double[]{2, 64, 5},   // 右寄り・範囲内（width=6なので±3）
+                    new double[]{4, 64, 5},   // 右端・範囲内
+                    new double[]{5, 64, 5},   // 右端外・範囲外
+                    new double[]{-3, 64, 5}   // 左端ギリギリ内
             );
 
             // When: ターゲットを選択
@@ -278,10 +315,10 @@ class TargetingIntegrationTest {
             SkillTarget shortRect = createRectTargetConfig(6.0, 5.0);
 
             List<Entity> candidates = createMockEntities(
-                    new double[]{0, 2, 3},   // 深さ3・範囲内
-                    new double[]{0, 2, 5},   // 深さ5・範囲ギリギリ内
-                    new double[]{0, 2, 7},   // 深さ7・範囲外
-                    new double[]{0, 2, 10}   // 深さ10・範囲外
+                    new double[]{0, 64, 3},   // 深さ3・範囲内
+                    new double[]{0, 64, 5},   // 深さ5・範囲ギリギリ内
+                    new double[]{0, 64, 7},   // 深さ7・範囲外
+                    new double[]{0, 64, 10}   // 深さ10・範囲外
             );
 
             // When: ターゲットを選択
@@ -306,11 +343,11 @@ class TargetingIntegrationTest {
             SkillTarget circleTarget = createCircleTargetConfig(5.0);
 
             List<Entity> candidates = createMockEntities(
-                    new double[]{0, 2, 3},   // 距離3・範囲内
-                    new double[]{4, 2, 3},   // 距離5・範囲ギリギリ内
-                    new double[]{0, 2, 5},   // 距離5・範囲ギリギリ内
-                    new double[]{6, 2, 0},   // 距離6・範囲外
-                    new double[]{0, 2, 7}    // 距離7・範囲外
+                    new double[]{0, 64, 3},   // 距離3・範囲内
+                    new double[]{4, 64, 3},   // 距離5・範囲ギリギリ内
+                    new double[]{0, 64, 5},   // 距離5・範囲ギリギリ内
+                    new double[]{6, 64, 0},   // 距離6・範囲外
+                    new double[]{0, 64, 7}    // 距離7・範囲外
             );
 
             // When: ターゲットを選択
@@ -328,10 +365,10 @@ class TargetingIntegrationTest {
             SkillTarget smallCircle = createCircleTargetConfig(3.0);
 
             List<Entity> candidates = createMockEntities(
-                    new double[]{0, 2, 2},   // 距離2・範囲内
-                    new double[]{0, 2, 3},   // 距離3・範囲ギリギリ内
-                    new double[]{0, 2, 4},   // 距離4・範囲外
-                    new double[]{0, 2, 5}    // 距離5・範囲外
+                    new double[]{0, 64, 2},   // 距離2・範囲内
+                    new double[]{0, 64, 3},   // 距離3・範囲ギリギリ内
+                    new double[]{0, 64, 4},   // 距離4・範囲外
+                    new double[]{0, 64, 5}    // 距離5・範囲外
             );
 
             // When: ターゲットを選択
@@ -355,12 +392,15 @@ class TargetingIntegrationTest {
             // Given: 扇状範囲設定とプレイヤー位置
             SkillTarget coneTarget = createConeTargetConfig(90.0, 10.0);
 
-            // When: 前方のエンティティの位置を判定
+            // When: 前方のエンティティを作成して判定
+            Entity entity = mock(Entity.class);
             Location entityLocation = mockEntityLocation(0, 64, 5);
+            when(entity.getLocation()).thenReturn(entityLocation);
+            when(entity.getWorld()).thenReturn(mockWorld);
 
             // Then: 範囲内と判定される
             boolean inRange = ShapeCalculator.isInRange(
-                    null, playerLocation, playerLocation.getDirection(),
+                    entity, playerLocation, playerLocation.getDirection(),
                     AreaShape.CONE, coneTarget);
 
             assertThat(inRange).isTrue();
@@ -372,12 +412,15 @@ class TargetingIntegrationTest {
             // Given: 円形範囲設定
             SkillTarget circleTarget = createCircleTargetConfig(5.0);
 
-            // When: 半径3の位置を判定
+            // When: 半径3の位置のエンティティを作成
+            Entity entity = mock(Entity.class);
             Location entityLocation = mockEntityLocation(3, 64, 0);
+            when(entity.getLocation()).thenReturn(entityLocation);
+            when(entity.getWorld()).thenReturn(mockWorld);
 
             // Then: 範囲内と判定される
             boolean inRange = ShapeCalculator.isInRange(
-                    null, playerLocation, playerLocation.getDirection(),
+                    entity, playerLocation, playerLocation.getDirection(),
                     AreaShape.CIRCLE, circleTarget);
 
             assertThat(inRange).isTrue();
@@ -389,12 +432,15 @@ class TargetingIntegrationTest {
             // Given: 円形範囲設定（半径5）
             SkillTarget circleTarget = createCircleTargetConfig(5.0);
 
-            // When: 半径10の位置を判定
+            // When: 半径10の位置のエンティティを作成
+            Entity entity = mock(Entity.class);
             Location entityLocation = mockEntityLocation(10, 64, 0);
+            when(entity.getLocation()).thenReturn(entityLocation);
+            when(entity.getWorld()).thenReturn(mockWorld);
 
             // Then: 範囲外と判定される
             boolean inRange = ShapeCalculator.isInRange(
-                    null, playerLocation, playerLocation.getDirection(),
+                    entity, playerLocation, playerLocation.getDirection(),
                     AreaShape.CIRCLE, circleTarget);
 
             assertThat(inRange).isFalse();
@@ -414,16 +460,16 @@ class TargetingIntegrationTest {
             Skill coneSkill = createConeSkill();
             skillManager.registerSkill(coneSkill);
 
-            // 候補エンティティを作成
+            // 候補エンティティを作成（Y座標を64に修正）
             List<Entity> candidates = createMockEntities(
-                    new double[]{0, 2, 5},
-                    new double[]{2, 2, 5},
-                    new double[]{10, 2, 5}
+                    new double[]{0, 64, 5},
+                    new double[]{2, 64, 5},
+                    new double[]{10, 64, 5}
             );
 
             // When: ターゲットを選択
-            List<Entity> selected = skillManager.selectTargets(
-                    mockPlayer, coneSkill.getSkillTarget(), candidates);
+            List<Entity> selected = TargetSelector.selectTargets(
+                    mockPlayer, coneSkill.getSkillTarget(), candidates, null);
 
             // Then: 適切なターゲットが選択されている
             assertThat(selected).isNotEmpty();
@@ -436,16 +482,16 @@ class TargetingIntegrationTest {
             Skill circleSkill = createCircleSkill();
             skillManager.registerSkill(circleSkill);
 
-            // 候補エンティティを作成
+            // 候補エンティティを作成（Y座標を64に修正）
             List<Entity> candidates = createMockEntities(
-                    new double[]{0, 2, 3},
-                    new double[]{0, 2, 7},
-                    new double[]{6, 2, 0}
+                    new double[]{0, 64, 3},
+                    new double[]{0, 64, 7},
+                    new double[]{6, 64, 0}
             );
 
             // When: SkillTarget経由でターゲットを選択
-            List<Entity> selected = skillManager.selectTargetsWithSkillTarget(
-                    mockPlayer, circleSkill.getSkillTarget(), candidates);
+            List<Entity> selected = TargetSelector.selectTargets(
+                    mockPlayer, circleSkill.getSkillTarget(), candidates, null);
 
             // Then: 半径内のエンティティが選択されている
             assertThat(selected).hasSize(1); // (0,2,3)のみ半径5内
@@ -516,36 +562,37 @@ class TargetingIntegrationTest {
     private Skill createConeSkill() {
         Skill.DamageCalculation damage = new Skill.DamageCalculation(
                 30.0,
-                new Skill.DamageCalculation.StatMultiplier("INTELLIGENCE", 1.5),
+                Stat.INTELLIGENCE,
+                1.5,
                 10.0
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
-                15,
-                2,
-                null,
-                25
-        );
-
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
-                10.0,
-                0,
-                null,
-                null
-        );
+        LevelDependentParameter costParam = new LevelDependentParameter(15.0, 2.0, null, 25.0);
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(10.0, 0.0, null, null);
 
         SkillTarget skillTarget = createConeTargetConfig(90.0, 10.0);
 
-        return new Skill.Builder("cone_attack", "コーンアタック")
-                .displayName("&eコーンアタック")
-                .type(SkillType.ACTIVE)
-                .maxLevel(5)
-                .damage(damage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .skillTarget(skillTarget)
-                .build();
+        return new Skill(
+                "cone_attack",
+                "コーンアタック",
+                "&eコーンアタック",
+                SkillType.ACTIVE,
+                java.util.List.of("&c扇状の範囲攻撃"),
+                5,
+                10.0,
+                15,
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                damage,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                (Skill.FormulaDamageConfig) null,
+                (Skill.TargetingConfig) null,
+                skillTarget
+        );
     }
 
     /**
@@ -554,36 +601,37 @@ class TargetingIntegrationTest {
     private Skill createCircleSkill() {
         Skill.DamageCalculation damage = new Skill.DamageCalculation(
                 25.0,
-                new Skill.DamageCalculation.StatMultiplier("INTELLIGENCE", 1.0),
+                Stat.INTELLIGENCE,
+                1.0,
                 5.0
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
-                20,
-                3,
-                null,
-                40
-        );
-
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
-                12.0,
-                0,
-                null,
-                null
-        );
+        LevelDependentParameter costParam = new LevelDependentParameter(20.0, 3.0, null, 40.0);
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(12.0, 0.0, null, null);
 
         SkillTarget skillTarget = createCircleTargetConfig(5.0);
 
-        return new Skill.Builder("shockwave", "ショックウェーブ")
-                .displayName("&bショックウェーブ")
-                .type(SkillType.ACTIVE)
-                .maxLevel(5)
-                .damage(damage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .skillTarget(skillTarget)
-                .build();
+        return new Skill(
+                "shockwave",
+                "ショックウェーブ",
+                "&bショックウェーブ",
+                SkillType.ACTIVE,
+                java.util.List.of("&c周囲に衝撃波を放つ"),
+                5,
+                12.0,
+                20,
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                damage,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                (Skill.FormulaDamageConfig) null,
+                (Skill.TargetingConfig) null,
+                skillTarget
+        );
     }
 
     /**
@@ -594,6 +642,25 @@ class TargetingIntegrationTest {
         for (int i = 0; i < zCoords.length && i < xCoords.length; i++) {
             Entity entity = mock(Entity.class);
             Location location = mockEntityLocation(xCoords[i], 64, zCoords[i]);
+            when(entity.getLocation()).thenReturn(location);
+            when(entity.getType()).thenReturn(EntityType.ZOMBIE);
+            entities.add(entity);
+        }
+        return entities;
+    }
+
+    /**
+     * モックエンティティリストを作成（可変長引数版）
+     * 各配列は1つのエンティティの[X, Y, Z]座標を表す
+     */
+    private List<Entity> createMockEntities(double[]... coords) {
+        List<Entity> entities = new ArrayList<>();
+        for (double[] coord : coords) {
+            Entity entity = mock(Entity.class);
+            double x = coord.length > 0 ? coord[0] : 0;
+            double y = coord.length > 1 ? coord[1] : 64;
+            double z = coord.length > 2 ? coord[2] : 0;
+            Location location = mockEntityLocation(x, y, z);
             when(entity.getLocation()).thenReturn(location);
             when(entity.getType()).thenReturn(EntityType.ZOMBIE);
             entities.add(entity);
@@ -626,6 +693,15 @@ class TargetingIntegrationTest {
             double dy = y - other.getY();
             double dz = z - other.getZ();
             return Math.sqrt(dx * dx + dy * dy + dz * dz);
+        });
+
+        // 距離の二乗計算のモック
+        when(loc.distanceSquared(any())).thenAnswer(invocation -> {
+            Location other = invocation.getArgument(0);
+            double dx = x - other.getX();
+            double dy = y - other.getY();
+            double dz = z - other.getZ();
+            return dx * dx + dy * dy + dz * dz;
         });
 
         return loc;

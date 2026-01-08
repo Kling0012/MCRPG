@@ -1,14 +1,18 @@
 package com.example.rpgplugin.integration;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillType;
-import com.example.rpgplugin.stats.PlayerStats;
+import com.example.rpgplugin.skill.LevelDependentParameter;
 import com.example.rpgplugin.stats.Stat;
+import com.example.rpgplugin.stats.StatManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -51,6 +57,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@Execution(ExecutionMode.SAME_THREAD)
 @DisplayName("コスト消費連携結合テスト")
 class ManaCostIntegrationTest {
 
@@ -67,7 +74,13 @@ class ManaCostIntegrationTest {
     private RPGPlayer mockRpgPlayer;
 
     @Mock
-    private PlayerStats mockPlayerStats;
+    private StatManager mockStatManager;
+
+    @Mock
+    private PlayerManager mockPlayerManager;
+
+    @Mock
+    private World mockWorld;
 
     private MockedStatic<Bukkit> mockedBukkit;
 
@@ -78,6 +91,15 @@ class ManaCostIntegrationTest {
      */
     @BeforeEach
     void setUp() {
+        // 前のモックが残っている場合はクローズする
+        if (mockedBukkit != null) {
+            try {
+                mockedBukkit.close();
+            } catch (Exception e) {
+                // クローズ時の例外は無視
+            }
+        }
+
         // Bukkit静的メソッドのモック化
         mockedBukkit = mockStatic(Bukkit.class);
 
@@ -88,21 +110,29 @@ class ManaCostIntegrationTest {
         UUID playerUuid = UUID.randomUUID();
         when(mockPlayer.getUniqueId()).thenReturn(playerUuid);
         when(mockPlayer.getName()).thenReturn("TestPlayer");
+        when(mockPlayer.getWorld()).thenReturn(mockWorld);
+        when(mockPlayer.getLocation()).thenReturn(new Location(mockWorld, 0, 64, 0));
 
         // RPGPlayerのモック設定
         when(mockRpgPlayer.getBukkitPlayer()).thenReturn(mockPlayer);
+        when(mockRpgPlayer.getUuid()).thenReturn(playerUuid);
+        when(mockRpgPlayer.getUsername()).thenReturn("TestPlayer");
         when(mockRpgPlayer.getLevel()).thenReturn(10);
-        when(mockRpgPlayer.getStats()).thenReturn(mockPlayerStats);
+        when(mockRpgPlayer.getStatManager()).thenReturn(mockStatManager);
 
-        // PlayerStatsのモック設定（デフォルト値）
-        when(mockPlayerStats.getStat(Stat.STRENGTH)).thenReturn(50);
-        when(mockPlayerStats.getStat(Stat.INTELLIGENCE)).thenReturn(30);
-        when(mockPlayerStats.getStat(Stat.VITALITY)).thenReturn(40);
-        when(mockPlayerStats.getStat(Stat.DEXTERITY)).thenReturn(35);
-        when(mockPlayerStats.getStat(Stat.SPIRIT)).thenReturn(25);
+        // StatManagerのモック設定（デフォルト値）
+        when(mockStatManager.getFinalStat(any(Stat.class))).thenReturn(50);
+        when(mockRpgPlayer.getFinalStat(Stat.STRENGTH)).thenReturn(50);
+        when(mockRpgPlayer.getFinalStat(Stat.INTELLIGENCE)).thenReturn(30);
+        when(mockRpgPlayer.getFinalStat(Stat.VITALITY)).thenReturn(40);
+        when(mockRpgPlayer.getFinalStat(Stat.DEXTERITY)).thenReturn(35);
+        when(mockRpgPlayer.getFinalStat(Stat.SPIRIT)).thenReturn(25);
+
+        // PlayerManagerのモック設定
+        when(mockPlayerManager.getRPGPlayer(playerUuid)).thenReturn(mockRpgPlayer);
 
         // SkillManagerの初期化
-        skillManager = new SkillManager(mockPlugin);
+        skillManager = new SkillManager(mockPlugin, mockPlayerManager);
     }
 
     /**
@@ -161,17 +191,16 @@ class ManaCostIntegrationTest {
             Skill manaSkill = createManaCostSkill();
             skillManager.registerSkill(manaSkill);
 
-            when(mockPlayerStats.getMana()).thenReturn(100);
+            when(mockRpgPlayer.hasMana(10)).thenReturn(true);
 
             // When: コスト消費を実行
             SkillManager.CostConsumptionResult result = skillManager.consumeCost(
-                    mockPlayer, manaSkill, 1);
+                    mockRpgPlayer, manaSkill.getCost(1), manaSkill.getCostType());
 
             // Then: 消費成功
             assertThat(result).isNotNull();
             assertThat(result.isSuccess()).isTrue();
             assertThat(result.getConsumedAmount()).isEqualTo(10);
-            assertThat(result.getRemainingAmount()).isEqualTo(90);
         }
 
         @Test
@@ -181,11 +210,11 @@ class ManaCostIntegrationTest {
             Skill manaSkill = createManaCostSkill();
             skillManager.registerSkill(manaSkill);
 
-            when(mockPlayerStats.getMana()).thenReturn(5);
+            when(mockRpgPlayer.hasMana(10)).thenReturn(false);
 
             // When: コスト消費を実行
             SkillManager.CostConsumptionResult result = skillManager.consumeCost(
-                    mockPlayer, manaSkill, 1);
+                    mockRpgPlayer, manaSkill.getCost(1), manaSkill.getCostType());
 
             // Then: 消費失敗
             assertThat(result).isNotNull();
@@ -236,12 +265,12 @@ class ManaCostIntegrationTest {
             Skill hpSkill = createHPCostSkill();
             skillManager.registerSkill(hpSkill);
 
-            when(mockPlayerStats.getHealth()).thenReturn(100);
-            when(mockPlayerStats.getMaxHealth()).thenReturn(100);
+            when(mockRpgPlayer.isOnline()).thenReturn(true);
+            when(mockPlayer.getHealth()).thenReturn(100.0);
 
             // When: コスト消費を実行
             SkillManager.CostConsumptionResult result = skillManager.consumeCost(
-                    mockPlayer, hpSkill, 1);
+                    mockRpgPlayer, hpSkill.getCost(1), hpSkill.getCostType());
 
             // Then: 消費成功
             assertThat(result).isNotNull();
@@ -256,12 +285,12 @@ class ManaCostIntegrationTest {
             Skill hpSkill = createHPCostSkill();
             skillManager.registerSkill(hpSkill);
 
-            when(mockPlayerStats.getHealth()).thenReturn(10);
-            when(mockPlayerStats.getMaxHealth()).thenReturn(100);
+            when(mockRpgPlayer.isOnline()).thenReturn(true);
+            when(mockPlayer.getHealth()).thenReturn(10.0);
 
             // When: コスト消費を実行
             SkillManager.CostConsumptionResult result = skillManager.consumeCost(
-                    mockPlayer, hpSkill, 1);
+                    mockRpgPlayer, hpSkill.getCost(1), hpSkill.getCostType());
 
             // Then: 消費失敗
             assertThat(result).isNotNull();
@@ -337,9 +366,10 @@ class ManaCostIntegrationTest {
             Skill manaSkill = createManaCostSkill();
             skillManager.registerSkill(manaSkill);
 
-            when(mockRpgPlayer.hasSkill("fireball")).thenReturn(true);
-            when(mockRpgPlayer.getSkillLevel("fireball")).thenReturn(1);
-            when(mockPlayerStats.getMana()).thenReturn(100);
+            // プレイヤーがスキルを習得したことを設定
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("fireball", 1);
+
+            when(mockRpgPlayer.hasMana(10)).thenReturn(true);
 
             // When: スキルを発動
             SkillManager.SkillExecutionResult result = skillManager.executeSkill(
@@ -356,9 +386,10 @@ class ManaCostIntegrationTest {
             Skill manaSkill = createManaCostSkill();
             skillManager.registerSkill(manaSkill);
 
-            when(mockRpgPlayer.hasSkill("fireball")).thenReturn(true);
-            when(mockRpgPlayer.getSkillLevel("fireball")).thenReturn(1);
-            when(mockPlayerStats.getMana()).thenReturn(5);
+            // プレイヤーがスキルを習得したことを設定
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("fireball", 1);
+
+            when(mockRpgPlayer.hasMana(10)).thenReturn(false);
 
             // When: スキルを発動
             SkillManager.SkillExecutionResult result = skillManager.executeSkill(
@@ -375,10 +406,10 @@ class ManaCostIntegrationTest {
             Skill hpSkill = createHPCostSkill();
             skillManager.registerSkill(hpSkill);
 
-            when(mockRpgPlayer.hasSkill("blood_sacrifice")).thenReturn(true);
-            when(mockRpgPlayer.getSkillLevel("blood_sacrifice")).thenReturn(1);
-            when(mockPlayerStats.getHealth()).thenReturn(100);
-            when(mockPlayerStats.getMaxHealth()).thenReturn(100);
+            // プレイヤーがスキルを習得したことを設定
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("blood_sacrifice", 1);
+
+            when(mockPlayer.getHealth()).thenReturn(100.0);
 
             // When: スキルを発動
             SkillManager.SkillExecutionResult result = skillManager.executeSkill(
@@ -395,10 +426,10 @@ class ManaCostIntegrationTest {
             Skill hpSkill = createHPCostSkill();
             skillManager.registerSkill(hpSkill);
 
-            when(mockRpgPlayer.hasSkill("blood_sacrifice")).thenReturn(true);
-            when(mockRpgPlayer.getSkillLevel("blood_sacrifice")).thenReturn(1);
-            when(mockPlayerStats.getHealth()).thenReturn(10);
-            when(mockPlayerStats.getMaxHealth()).thenReturn(100);
+            // プレイヤーがスキルを習得したことを設定
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("blood_sacrifice", 1);
+
+            when(mockPlayer.getHealth()).thenReturn(10.0);
 
             // When: スキルを発動
             SkillManager.SkillExecutionResult result = skillManager.executeSkill(
@@ -424,9 +455,11 @@ class ManaCostIntegrationTest {
             skillManager.registerSkill(skill1);
             skillManager.registerSkill(skill2);
 
-            when(mockRpgPlayer.hasSkill(anyString())).thenReturn(true);
-            when(mockRpgPlayer.getSkillLevel(anyString())).thenReturn(1);
-            when(mockPlayerStats.getMana()).thenReturn(50);
+            // プレイヤーがスキルを習得したことを設定
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("fireball", 1);
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("ice_spike", 1);
+
+            when(mockRpgPlayer.hasMana(anyInt())).thenReturn(true);
 
             // When: 2つのスキルを連続発動
             SkillManager.SkillExecutionResult result1 = skillManager.executeSkill(
@@ -448,9 +481,11 @@ class ManaCostIntegrationTest {
             skillManager.registerSkill(skill1);
             skillManager.registerSkill(skill2);
 
-            when(mockRpgPlayer.hasSkill(anyString())).thenReturn(true);
-            when(mockRpgPlayer.getSkillLevel(anyString())).thenReturn(1);
-            when(mockPlayerStats.getMana()).thenReturn(15);
+            // プレイヤーがスキルを習得したことを設定
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("fireball", 1);
+
+            // 1回目は成功、2回目は失敗するように設定
+            when(mockRpgPlayer.hasMana(10)).thenReturn(true, false);
 
             // When: 2つのスキルを連続発動
             SkillManager.SkillExecutionResult result1 = skillManager.executeSkill(
@@ -472,33 +507,35 @@ class ManaCostIntegrationTest {
     private Skill createManaCostSkill() {
         Skill.DamageCalculation damage = new Skill.DamageCalculation(
                 40.0,
-                new Skill.DamageCalculation.StatMultiplier("INTELLIGENCE", 2.0),
+                Stat.INTELLIGENCE,
+                2.0,
                 15.0
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
-                10,
-                2,
-                null,
-                30
-        );
+        LevelDependentParameter costParam = new LevelDependentParameter(10.0, 2.0, null, 30.0);
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(8.0, -1.0, 3.0, null);
 
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
+        return new Skill(
+                "fireball",
+                "ファイアボール",
+                "&cファイアボール",
+                SkillType.ACTIVE,
+                java.util.List.of("&c強力な火の玉を放つ"),
+                5,
                 8.0,
-                -1.0,
-                3.0,
-                null
+                10,
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                damage,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                (Skill.FormulaDamageConfig) null,
+                (Skill.TargetingConfig) null,
+                (com.example.rpgplugin.skill.target.SkillTarget) null
         );
-
-        return new Skill.Builder("fireball", "ファイアボール")
-                .displayName("&cファイアボール")
-                .type(SkillType.ACTIVE)
-                .maxLevel(5)
-                .damage(damage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .build();
     }
 
     /**
@@ -507,33 +544,35 @@ class ManaCostIntegrationTest {
     private Skill createMediumManaCostSkill() {
         Skill.DamageCalculation damage = new Skill.DamageCalculation(
                 25.0,
-                new Skill.DamageCalculation.StatMultiplier("INTELLIGENCE", 1.5),
+                Stat.INTELLIGENCE,
+                1.5,
                 10.0
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
-                8,
-                1,
-                null,
-                15
-        );
+        LevelDependentParameter costParam = new LevelDependentParameter(8.0, 1.0, null, 15.0);
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(5.0, 0.0, null, null);
 
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
+        return new Skill(
+                "ice_spike",
+                "アイススパイク",
+                "&bアイススパイク",
+                SkillType.ACTIVE,
+                java.util.List.of("&b鋭い氷の柱を突き出す"),
+                5,
                 5.0,
-                0,
-                null,
-                null
+                8,
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                damage,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                (Skill.FormulaDamageConfig) null,
+                (Skill.TargetingConfig) null,
+                (com.example.rpgplugin.skill.target.SkillTarget) null
         );
-
-        return new Skill.Builder("ice_spike", "アイススパイク")
-                .displayName("&bアイススパイク")
-                .type(SkillType.ACTIVE)
-                .maxLevel(5)
-                .damage(damage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .build();
     }
 
     /**
@@ -542,33 +581,35 @@ class ManaCostIntegrationTest {
     private Skill createHPCostSkill() {
         Skill.DamageCalculation damage = new Skill.DamageCalculation(
                 100.0,
-                new Skill.DamageCalculation.StatMultiplier("STRENGTH", 3.0),
+                Stat.STRENGTH,
+                3.0,
                 20.0
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "hp",
-                20,
-                0,
-                null,
-                null
-        );
+        LevelDependentParameter costParam = new LevelDependentParameter(20.0, 0.0, null, null);
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(15.0, 0.0, null, null);
 
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
+        return new Skill(
+                "blood_sacrifice",
+                "ブラッドサクリファイス",
+                "&cブラッドサクリファイス",
+                SkillType.ACTIVE,
+                java.util.List.of("&cHPを消費して強力な攻撃"),
+                3,
                 15.0,
-                0,
-                null,
-                null
+                20,
+                cooldownParam,
+                costParam,
+                SkillCostType.HP,
+                damage,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                (Skill.FormulaDamageConfig) null,
+                (Skill.TargetingConfig) null,
+                (com.example.rpgplugin.skill.target.SkillTarget) null
         );
-
-        return new Skill.Builder("blood_sacrifice", "ブラッドサクリファイス")
-                .displayName("&cブラッドサクリファイス")
-                .type(SkillType.ACTIVE)
-                .maxLevel(3)
-                .damage(damage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .build();
     }
 
     /**
@@ -577,33 +618,35 @@ class ManaCostIntegrationTest {
     private Skill createVariableCostSkill() {
         Skill.DamageCalculation damage = new Skill.DamageCalculation(
                 50.0,
-                new Skill.DamageCalculation.StatMultiplier("INTELLIGENCE", 2.5),
+                Stat.INTELLIGENCE,
+                2.5,
                 10.0
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
+        LevelDependentParameter costParam = new LevelDependentParameter(10.0, 5.0, null, 30.0);
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(10.0, 0.0, null, null);
+
+        return new Skill(
+                "thunder_storm",
+                "サンダーストーム",
+                "&eサンダーストーム",
+                SkillType.ACTIVE,
+                java.util.List.of("&e雷を落とす"),
                 10,
-                5,
-                null,
-                30
-        );
-
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
                 10.0,
-                0,
-                null,
-                null
+                10,
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                damage,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                (Skill.FormulaDamageConfig) null,
+                (Skill.TargetingConfig) null,
+                (com.example.rpgplugin.skill.target.SkillTarget) null
         );
-
-        return new Skill.Builder("thunder_storm", "サンダーストーム")
-                .displayName("&eサンダーストーム")
-                .type(SkillType.ACTIVE)
-                .maxLevel(10)
-                .damage(damage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .build();
     }
 
     /**
@@ -612,32 +655,34 @@ class ManaCostIntegrationTest {
     private Skill createDecreasingCostSkill() {
         Skill.DamageCalculation damage = new Skill.DamageCalculation(
                 30.0,
-                new Skill.DamageCalculation.StatMultiplier("INTELLIGENCE", 1.5),
+                Stat.INTELLIGENCE,
+                1.5,
                 5.0
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
-                20,
-                -2.5,
-                10,
-                null
-        );
+        LevelDependentParameter costParam = new LevelDependentParameter(20.0, -2.5, 10.0, null);
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(3.0, 0.0, null, null);
 
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
+        return new Skill(
+                "quick_cast",
+                "クイックキャスト",
+                "&aクイックキャスト",
+                SkillType.ACTIVE,
+                java.util.List.of("&a素早い詠唱"),
+                5,
                 3.0,
-                0,
-                null,
-                null
+                20,
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                damage,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                (Skill.FormulaDamageConfig) null,
+                (Skill.TargetingConfig) null,
+                (com.example.rpgplugin.skill.target.SkillTarget) null
         );
-
-        return new Skill.Builder("quick_cast", "クイックキャスト")
-                .displayName("&aクイックキャスト")
-                .type(SkillType.ACTIVE)
-                .maxLevel(5)
-                .damage(damage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .build();
     }
 }

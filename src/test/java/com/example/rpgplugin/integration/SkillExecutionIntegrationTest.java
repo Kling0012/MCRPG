@@ -1,14 +1,19 @@
 package com.example.rpgplugin.integration;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillLoader;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillType;
+import com.example.rpgplugin.skill.SkillCostType;
+import com.example.rpgplugin.skill.LevelDependentParameter;
 import com.example.rpgplugin.skill.target.SkillTarget;
 import com.example.rpgplugin.skill.target.TargetType;
 import com.example.rpgplugin.skill.target.AreaShape;
+import com.example.rpgplugin.stats.Stat;
+import com.example.rpgplugin.stats.StatManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -19,6 +24,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -57,6 +64,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@Execution(ExecutionMode.SAME_THREAD)
 @DisplayName("スキル発動フロー結合テスト")
 class SkillExecutionIntegrationTest {
 
@@ -75,6 +83,12 @@ class SkillExecutionIntegrationTest {
     @Mock
     private Location mockLocation;
 
+    @Mock
+    private PlayerManager mockPlayerManager;
+
+    @Mock
+    private StatManager mockStatManager;
+
     private MockedStatic<Bukkit> mockedBukkit;
 
     private SkillLoader skillLoader;
@@ -85,6 +99,15 @@ class SkillExecutionIntegrationTest {
      */
     @BeforeEach
     void setUp(@TempDir Path tempDir) throws IOException {
+        // 前のモックが残っている場合はクローズする
+        if (mockedBukkit != null) {
+            try {
+                mockedBukkit.close();
+            } catch (Exception e) {
+                // クローズ時の例外は無視
+            }
+        }
+
         // Bukkit静的メソッドのモック化
         mockedBukkit = mockStatic(Bukkit.class);
 
@@ -101,6 +124,14 @@ class SkillExecutionIntegrationTest {
         // RPGPlayerのモック設定
         when(mockRpgPlayer.getBukkitPlayer()).thenReturn(mockPlayer);
         when(mockRpgPlayer.getLevel()).thenReturn(10);
+        when(mockRpgPlayer.getStatManager()).thenReturn(mockStatManager);
+        // デフォルトのステータス値を設定
+        when(mockStatManager.getFinalStat(any(Stat.class))).thenReturn(50);
+        // マナ設定（マナ消費スキルのテスト用）
+        when(mockRpgPlayer.getCurrentMana()).thenReturn(100);
+        when(mockRpgPlayer.getMaxMana()).thenReturn(100);
+        when(mockRpgPlayer.hasMana(anyInt())).thenReturn(true);
+        when(mockRpgPlayer.consumeMana(anyInt())).thenReturn(true);
 
         // スキルディレクトリの作成
         Path skillsDir = tempDir.resolve("skills");
@@ -108,9 +139,15 @@ class SkillExecutionIntegrationTest {
         Path activeSkillsDir = skillsDir.resolve("active");
         Files.createDirectories(activeSkillsDir);
 
+        // PlayerManagerのモック設定
+        when(mockPlayerManager.getRPGPlayer(any(UUID.class))).thenReturn(mockRpgPlayer);
+
         // SkillLoaderとSkillManagerの初期化
         skillLoader = new SkillLoader(mockPlugin);
-        skillManager = new SkillManager(mockPlugin);
+        skillManager = new SkillManager(mockPlugin, mockPlayerManager);
+
+        // RPGPlayerにSkillManagerを設定
+        mockRpgPlayer.setSkillManager(skillManager);
     }
 
     /**
@@ -153,16 +190,18 @@ class SkillExecutionIntegrationTest {
             skillManager.registerSkill(slashSkill);
 
             // When: スキルをプレイヤーに習得させる
-            when(mockRpgPlayer.hasSkill("slash")).thenReturn(true);
-            when(mockRpgPlayer.getSkillLevel("slash")).thenReturn(1);
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("slash", 1);
 
             // Then: スキルが正しく登録されている
-            assertThat(skillManager.hasSkill("slash")).isTrue();
+            assertThat(skillManager.getSkill("slash")).isNotNull();
 
             Skill registeredSkill = skillManager.getSkill("slash");
-            assertThat(registeredSkill).isNotNull();
             assertThat(registeredSkill.getId()).isEqualTo("slash");
             assertThat(registeredSkill.getType()).isEqualTo(SkillType.ACTIVE);
+
+            // プレイヤーがスキルを習得していることを確認
+            assertThat(skillManager.hasSkill(mockPlayer, "slash")).isTrue();
+            assertThat(skillManager.getSkillLevel(mockPlayer, "slash")).isEqualTo(1);
         }
 
         @Test
@@ -173,7 +212,7 @@ class SkillExecutionIntegrationTest {
             skillManager.registerSkill(slashSkill);
 
             // When: ダメージを計算する
-            double damage = skillManager.calculateDamage(slashSkill, 1, mockRpgPlayer);
+            double damage = skillManager.calculateDamage(slashSkill, mockRpgPlayer, 1);
 
             // Then: 基本ダメージ + ステータス補正が含まれている
             assertThat(damage).isGreaterThan(0);
@@ -187,8 +226,8 @@ class SkillExecutionIntegrationTest {
             skillManager.registerSkill(slashSkill);
 
             // When: レベル1とレベル5のダメージを計算
-            double damageLv1 = skillManager.calculateDamage(slashSkill, 1, mockRpgPlayer);
-            double damageLv5 = skillManager.calculateDamage(slashSkill, 5, mockRpgPlayer);
+            double damageLv1 = skillManager.calculateDamage(slashSkill, mockRpgPlayer, 1);
+            double damageLv5 = skillManager.calculateDamage(slashSkill, mockRpgPlayer, 5);
 
             // Then: レベル5の方がダメージが高い
             assertThat(damageLv5).isGreaterThan(damageLv1);
@@ -211,7 +250,7 @@ class SkillExecutionIntegrationTest {
             skillManager.registerSkill(fireballSkill);
 
             // Then: スキルが正しく登録されている
-            assertThat(skillManager.hasSkill("fireball")).isTrue();
+            assertThat(skillManager.getSkill("fireball")).isNotNull();
 
             Skill registeredSkill = skillManager.getSkill("fireball");
             assertThat(registeredSkill).isNotNull();
@@ -286,8 +325,8 @@ class SkillExecutionIntegrationTest {
             Skill slashSkill = createSlashSkill();
             skillManager.registerSkill(slashSkill);
 
-            when(mockRpgPlayer.hasSkill("slash")).thenReturn(true);
-            when(mockRpgPlayer.getSkillLevel("slash")).thenReturn(1);
+            // SkillManager経由でスキル習得を設定
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("slash", 1);
 
             // When: スキルを実行
             SkillManager.SkillExecutionResult result = skillManager.executeSkill(mockPlayer, "slash");
@@ -303,8 +342,7 @@ class SkillExecutionIntegrationTest {
             // Given: 斬撃スキルを登録（プレイヤーは未習得）
             Skill slashSkill = createSlashSkill();
             skillManager.registerSkill(slashSkill);
-
-            when(mockRpgPlayer.hasSkill("slash")).thenReturn(false);
+            // スキル習得設定なし（未習得状態）
 
             // When: スキルを実行
             SkillManager.SkillExecutionResult result = skillManager.executeSkill(mockPlayer, "slash");
@@ -321,8 +359,8 @@ class SkillExecutionIntegrationTest {
             Skill slashSkill = createSlashSkill();
             skillManager.registerSkill(slashSkill);
 
-            when(mockRpgPlayer.hasSkill("slash")).thenReturn(true);
-            when(mockRpgPlayer.getSkillLevel("slash")).thenReturn(1);
+            // SkillManager経由でスキル習得を設定
+            skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("slash", 1);
 
             // When: 2回連続でスキルを実行
             skillManager.executeSkill(mockPlayer, "slash");
@@ -347,8 +385,9 @@ class SkillExecutionIntegrationTest {
             skillManager.registerSkill(formulaSkill);
 
             // When: ダメージを計算
+            String formula = formulaSkill.getFormulaDamage().getFormula();
             double damage = skillManager.calculateDamageWithFormula(
-                    formulaSkill, 1, mockRpgPlayer, null);
+                    formula, mockRpgPlayer, 1);
 
             // Then: ダメージが計算されている
             assertThat(damage).isGreaterThan(0);
@@ -362,10 +401,12 @@ class SkillExecutionIntegrationTest {
             skillManager.registerSkill(levelFormulaSkill);
 
             // When: レベル1とレベル5のダメージを計算
+            String formulaLv1 = levelFormulaSkill.getFormulaDamage().getFormula(1);
+            String formulaLv5 = levelFormulaSkill.getFormulaDamage().getFormula(5);
             double damageLv1 = skillManager.calculateDamageWithFormula(
-                    levelFormulaSkill, 1, mockRpgPlayer, null);
+                    formulaLv1, mockRpgPlayer, 1);
             double damageLv5 = skillManager.calculateDamageWithFormula(
-                    levelFormulaSkill, 5, mockRpgPlayer, null);
+                    formulaLv5, mockRpgPlayer, 5);
 
             // Then: レベル5の方がダメージが高い
             assertThat(damageLv5).isGreaterThan(damageLv1);
@@ -422,27 +463,23 @@ class SkillExecutionIntegrationTest {
      * 斬撃スキルを作成
      */
     private Skill createSlashSkill() {
+        // ダメージ設定（レガシー形式）
         Skill.DamageCalculation damage = new Skill.DamageCalculation(
                 50.0,
-                new Skill.DamageCalculation.StatMultiplier("STRENGTH", 1.5),
+                Stat.STRENGTH,
+                1.5,
                 10.0
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
-                5,
-                1,
-                null,
-                10
-        );
+        // コスト設定（レベル依存パラメータ）
+        LevelDependentParameter costParam = new LevelDependentParameter(5.0, 1.0, 0.0, 10.0);
+        Skill.CostConfig costConfig = new Skill.CostConfig(SkillCostType.MANA, costParam);
 
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
-                3.0,
-                -0.2,
-                2.0,
-                null
-        );
+        // クールダウン設定
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(3.0, -0.2, 2.0, null);
+        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(cooldownParam);
 
+        // ターゲット設定
         SkillTarget skillTarget = new SkillTarget(
                 TargetType.NEAREST_HOSTILE,
                 AreaShape.SINGLE,
@@ -452,42 +489,48 @@ class SkillExecutionIntegrationTest {
                 null
         );
 
-        return new Skill.Builder("slash", "斬撃")
-                .displayName("&6斬撃")
-                .type(SkillType.ACTIVE)
-                .maxLevel(5)
-                .damage(damage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .skillTarget(skillTarget)
-                .build();
+        return new Skill(
+                "slash",
+                "斬撃",
+                "&6斬撃",
+                SkillType.ACTIVE,
+                java.util.List.of("&c鋭い斬撃を放つ"),
+                5,
+                3.0,  // デフォルトクールダウン
+                5,    // デフォルトMPコスト
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                damage,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                (Skill.FormulaDamageConfig) null,
+                (Skill.TargetingConfig) null,
+                skillTarget
+        );
     }
 
     /**
      * ファイアボールスキルを作成
      */
     private Skill createFireballSkill() {
+        // ダメージ設定（INTELLIGENCEベース）
         Skill.DamageCalculation damage = new Skill.DamageCalculation(
                 40.0,
-                new Skill.DamageCalculation.StatMultiplier("INTELLIGENCE", 2.0),
+                Stat.INTELLIGENCE,
+                2.0,
                 15.0
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
-                10,
-                2,
-                null,
-                30
-        );
+        // コスト設定（レベル依存パラメータ）
+        LevelDependentParameter costParam = new LevelDependentParameter(10.0, 2.0, null, 30.0);
 
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
-                8.0,
-                -1.0,
-                3.0,
-                null
-        );
+        // クールダウン設定
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(8.0, -1.0, 3.0, null);
 
+        // ターゲット設定（扇状範囲）
         SkillTarget skillTarget = new SkillTarget(
                 TargetType.NEAREST_HOSTILE,
                 AreaShape.CONE,
@@ -497,54 +540,73 @@ class SkillExecutionIntegrationTest {
                 null
         );
 
-        return new Skill.Builder("fireball", "ファイアボール")
-                .displayName("&cファイアボール")
-                .type(SkillType.ACTIVE)
-                .maxLevel(5)
-                .damage(damage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .skillTarget(skillTarget)
-                .build();
+        return new Skill(
+                "fireball",
+                "ファイアボール",
+                "&cファイアボール",
+                SkillType.ACTIVE,
+                java.util.List.of("&c扇状範囲に炎を放つ"),
+                5,
+                8.0,  // デフォルトクールダウン
+                10,   // デフォルトMPコスト
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                damage,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                (Skill.FormulaDamageConfig) null,
+                (Skill.TargetingConfig) null,
+                skillTarget
+        );
     }
 
     /**
      * 数式ダメージスキルを作成
      */
     private Skill createFormulaSkill() {
+        // 数式ダメージ設定
         Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
-                "STR * 1.5 + INT * 1.0 + Lv * 5"
-        );
-
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
-                10,
-                1,
-                null,
-                20
-        );
-
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
-                5.0,
-                0,
-                null,
+                "STR * 1.5 + INT * 1.0 + Lv * 5",
                 null
         );
 
-        return new Skill.Builder("magic_arrow", "マジックアロー")
-                .displayName("&bマジックアロー")
-                .type(SkillType.ACTIVE)
-                .maxLevel(10)
-                .formulaDamage(formulaDamage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .build();
+        // コスト設定
+        LevelDependentParameter costParam = new LevelDependentParameter(10.0, 1.0, null, 20.0);
+
+        // クールダウン設定
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(5.0, 0, null, null);
+
+        return new Skill(
+                "magic_arrow",
+                "マジックアロー",
+                "&bマジックアロー",
+                SkillType.ACTIVE,
+                java.util.List.of("&b魔法の矢を放つ"),
+                10,
+                5.0,
+                10,
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                (Skill.DamageCalculation) null,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                formulaDamage,
+                (Skill.TargetingConfig) null,
+                (com.example.rpgplugin.skill.target.SkillTarget) null
+        );
     }
 
     /**
      * レベル別数式ダメージスキルを作成
      */
     private Skill createLevelBasedFormulaSkill() {
+        // レベル別数式ダメージ設定
         Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
                 "STR * 2.0",
                 java.util.Map.of(
@@ -554,28 +616,32 @@ class SkillExecutionIntegrationTest {
                 )
         );
 
-        Skill.CostConfig costConfig = new Skill.CostConfig(
-                "mana",
-                15,
-                2,
-                null,
-                35
-        );
+        // コスト設定
+        LevelDependentParameter costParam = new LevelDependentParameter(15.0, 2.0, null, 35.0);
 
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(
+        // クールダウン設定
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(6.0, 0, null, null);
+
+        return new Skill(
+                "power_strike",
+                "パワーストライク",
+                "&eパワーストライク",
+                SkillType.ACTIVE,
+                java.util.List.of("&e強力な一撃を放つ"),
+                10,
                 6.0,
-                0,
-                null,
-                null
+                15,
+                cooldownParam,
+                costParam,
+                SkillCostType.MANA,
+                (Skill.DamageCalculation) null,
+                (Skill.SkillTreeConfig) null,
+                (String) null,
+                java.util.List.of(),
+                (java.util.List<Skill.VariableDefinition>) null,
+                formulaDamage,
+                (Skill.TargetingConfig) null,
+                (com.example.rpgplugin.skill.target.SkillTarget) null
         );
-
-        return new Skill.Builder("power_strike", "パワーストライク")
-                .displayName("&eパワーストライク")
-                .type(SkillType.ACTIVE)
-                .maxLevel(10)
-                .formulaDamage(formulaDamage)
-                .costConfig(costConfig)
-                .cooldownConfig(cooldownConfig)
-                .build();
     }
 }

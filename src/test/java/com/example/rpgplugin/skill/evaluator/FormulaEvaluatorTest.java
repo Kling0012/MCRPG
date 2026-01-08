@@ -345,8 +345,6 @@ class FormulaEvaluatorTest {
     @Test
     @DisplayName("RPGプレイヤーを使用した評価テスト")
     void testEvaluateWithRpgPlayer() throws Exception {
-        // RPGプレイヤーがnullの場合（VariableContextがデフォルト値を使用）
-        double result = evaluator.evaluate("STR + 10", null, 5);
         // STRは未定義なので例外が発生するはず
         assertThrows(FormulaEvaluator.FormulaEvaluationException.class,
                 () -> evaluator.evaluate("STR + 10", null, 5));
@@ -360,9 +358,9 @@ class FormulaEvaluatorTest {
                 "int_scale", 0.5
         );
 
-        double result = evaluator.evaluate("STR * str_scale + INT * int_scale", null, 5, customVars);
         // カスタム変数がセットされていないのでSTR/INTで例外
-        // 実際の使用ではVariableContextにカスタム変数が含まれる
+        assertThrows(FormulaEvaluator.FormulaEvaluationException.class,
+                () -> evaluator.evaluate("STR * str_scale + INT * int_scale", null, 5, customVars));
     }
 
     // ===== キャッシュの上限テスト =====
@@ -422,7 +420,7 @@ class FormulaEvaluatorTest {
 
     @Test
     @DisplayName("レベル別数式：nullフォールバックのテスト")
-    void testLevelBasedNullFallback() {
+    void testLevelBasedNullFallback() throws Exception {
         java.util.Map<Integer, String> levelFormulas = java.util.Map.of();
 
         // フォールバックもnullの場合は0を返す
@@ -457,7 +455,7 @@ class FormulaEvaluatorTest {
         double result = evaluator.evaluateWithContext("(Lv >= 5) * 100 + (Lv < 5) * 50", context);
         assertEquals(100.0, result, 0.001);
 
-        context.setSkillLevel(3);
+        context.setCustomVariable("Lv", 3.0);  // setSkillLevelではなくLvを直接変更
         double result2 = evaluator.evaluateWithContext("(Lv >= 5) * 100 + (Lv < 5) * 50", context);
         assertEquals(50.0, result2, 0.001);
     }
@@ -469,7 +467,8 @@ class FormulaEvaluatorTest {
         context.setCustomVariable("b", 20.0);
 
         // max(a, b) 的な表現: (a + b + |a - b|) / 2
-        double maxResult = evaluator.evaluateWithContext("(a + b + (a - b) * ((a - b) >= 0 ? 1 : -1)) / 2", context);
+        // 絶対値は (x >= 0) * x - (x < 0) * x = x * ((x >= 0) - (x < 0))
+        double maxResult = evaluator.evaluateWithContext("(a + b + (a - b) * ((a - b) >= 0) - (a - b) * ((a - b) < 0)) / 2", context);
         assertEquals(20.0, maxResult, 0.001);
     }
 

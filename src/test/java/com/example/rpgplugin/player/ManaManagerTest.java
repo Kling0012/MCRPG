@@ -3,18 +3,22 @@ package com.example.rpgplugin.player;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.rpgclass.RPGClass;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.mockito.MockedStatic;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -34,6 +39,7 @@ import static org.mockito.Mockito.*;
  * @version 1.0.0
  */
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("MP管理 テスト")
 class ManaManagerTest {
 
@@ -57,18 +63,30 @@ class ManaManagerTest {
 
     private ManaManager manaManager;
     private UUID testUuid;
+    private MockedStatic<Bukkit> mockedBukkit;
 
     @BeforeEach
     void setUp() {
         testUuid = UUID.randomUUID();
 
         when(plugin.getLogger()).thenReturn(logger);
-        when(plugin.getScheduler()).thenReturn(scheduler);
+
+        // Bukkit.getScheduler()のモック設定
+        mockedBukkit = mockStatic(Bukkit.class);
+        mockedBukkit.when(Bukkit::getScheduler).thenReturn(scheduler);
+
         when(scheduler.runTaskTimer(eq(plugin), any(Runnable.class), anyLong(), anyLong()))
                 .thenReturn(task);
         when(task.isCancelled()).thenReturn(true);
 
         manaManager = new ManaManager(plugin, playerManager, classManager);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (mockedBukkit != null) {
+            mockedBukkit.close();
+        }
     }
 
     // ===== コンストラクタテスト =====
@@ -351,23 +369,37 @@ class ManaManagerTest {
                     return mock(BukkitTask.class);
                 });
 
-        RPGPlayer player1 = createMockRpgPlayer(UUID.randomUUID());
-        RPGPlayer player2 = createMockRpgPlayer(UUID.randomUUID());
+        UUID uuid1 = UUID.randomUUID();
+        UUID uuid2 = UUID.randomUUID();
+        RPGPlayer player1 = createMockRpgPlayer(uuid1);
+        RPGPlayer player2 = createMockRpgPlayer(uuid2);
 
-        when(playerManager.getOnlinePlayers()).thenReturn(Arrays.asList(player1, player2));
-        when(player1.getBukkitPlayer()).thenReturn(mock(Player.class));
-        when(player2.getBukkitPlayer()).thenReturn(mock(Player.class));
+        when(playerManager.getOnlinePlayers()).thenReturn(Map.of(
+                uuid1, player1,
+                uuid2, player2
+        ));
+        Player bukkitPlayer1 = mock(Player.class);
+        Player bukkitPlayer2 = mock(Player.class);
+        when(player1.getBukkitPlayer()).thenReturn(bukkitPlayer1);
+        when(player2.getBukkitPlayer()).thenReturn(bukkitPlayer2);
+        when(bukkitPlayer1.isOnline()).thenReturn(true);
+        when(bukkitPlayer2.isOnline()).thenReturn(true);
         when(player1.isFullMana()).thenReturn(false);
         when(player2.isFullMana()).thenReturn(false);
         when(player1.getManaRatio()).thenReturn(0.3); // 50%未満
         when(player2.getManaRatio()).thenReturn(0.7); // 50%以上
         when(player1.regenerateMana(anyDouble())).thenReturn(1);
+        when(player2.regenerateMana(anyDouble())).thenReturn(1);
 
         manaManager.start();
 
+        // 両方のプレイヤーで回復が実行される
         verify(player1).regenerateMana(anyDouble());
-        // 50%以上なのでインジケーター非表示
-        verify(player2, never()).regenerateMana(anyDouble());
+        verify(player2).regenerateMana(anyDouble());
+        // player1は50%未満なのでインジケーター表示
+        verify(bukkitPlayer1).sendActionBar((String) argThat(s -> s != null && ((String) s).contains("MP")));
+        // player2は50%以上なのでインジケーター非表示
+        verify(bukkitPlayer2, never()).sendActionBar((String) any());
     }
 
     @Test
@@ -382,11 +414,13 @@ class ManaManagerTest {
                 });
 
         RPGPlayer player = createMockRpgPlayer(testUuid);
-        when(player.getBukkitPlayer()).thenReturn(mock(Player.class));
+        Player bukkitPlayer = mock(Player.class);
+        when(player.getBukkitPlayer()).thenReturn(bukkitPlayer);
+        when(bukkitPlayer.isOnline()).thenReturn(true);
         when(player.isOnline()).thenReturn(true);
         when(player.isFullMana()).thenReturn(true);
 
-        when(playerManager.getOnlinePlayers()).thenReturn(Arrays.asList(player));
+        when(playerManager.getOnlinePlayers()).thenReturn(Map.of(testUuid, player));
 
         manaManager.start();
 
@@ -405,10 +439,12 @@ class ManaManagerTest {
                 });
 
         RPGPlayer player = createMockRpgPlayer(testUuid);
-        when(player.getBukkitPlayer()).thenReturn(mock(Player.class));
+        Player bukkitPlayer = mock(Player.class);
+        when(player.getBukkitPlayer()).thenReturn(bukkitPlayer);
+        when(bukkitPlayer.isOnline()).thenReturn(false);
         when(player.isOnline()).thenReturn(false);
 
-        when(playerManager.getOnlinePlayers()).thenReturn(Arrays.asList(player));
+        when(playerManager.getOnlinePlayers()).thenReturn(Map.of(testUuid, player));
 
         manaManager.start();
 
@@ -431,16 +467,17 @@ class ManaManagerTest {
         RPGPlayer player = createMockRpgPlayer(testUuid);
         Player bukkitPlayer = mock(Player.class);
         when(player.getBukkitPlayer()).thenReturn(bukkitPlayer);
+        when(bukkitPlayer.isOnline()).thenReturn(true);
         when(player.isOnline()).thenReturn(true);
         when(player.isFullMana()).thenReturn(false);
         when(player.getManaRatio()).thenReturn(0.3); // 50%未満
         when(player.regenerateMana(anyDouble())).thenReturn(1);
 
-        when(playerManager.getOnlinePlayers()).thenReturn(Arrays.asList(player));
+        when(playerManager.getOnlinePlayers()).thenReturn(Map.of(testUuid, player));
 
         manaManager.start();
 
-        verify(bukkitPlayer).sendActionBar(contains("MP"));
+        verify(bukkitPlayer).sendActionBar((String) argThat(s -> s != null && ((String) s).contains("MP")));
     }
 
     @Test
@@ -457,16 +494,17 @@ class ManaManagerTest {
         RPGPlayer player = createMockRpgPlayer(testUuid);
         Player bukkitPlayer = mock(Player.class);
         when(player.getBukkitPlayer()).thenReturn(bukkitPlayer);
+        when(bukkitPlayer.isOnline()).thenReturn(true);
         when(player.isOnline()).thenReturn(true);
         when(player.isFullMana()).thenReturn(false);
         when(player.getManaRatio()).thenReturn(0.7); // 50%以上
         when(player.regenerateMana(anyDouble())).thenReturn(1);
 
-        when(playerManager.getOnlinePlayers()).thenReturn(Arrays.asList(player));
+        when(playerManager.getOnlinePlayers()).thenReturn(Map.of(testUuid, player));
 
         manaManager.start();
 
-        verify(bukkitPlayer, never()).sendActionBar(any());
+        verify(bukkitPlayer, never()).sendActionBar((String) any());
     }
 
     // ===== ヘルパーメソッド =====

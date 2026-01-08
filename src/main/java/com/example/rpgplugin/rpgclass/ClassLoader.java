@@ -173,6 +173,9 @@ public class ClassLoader {
             builder.setExpDiminish(expDiminish);
         }
 
+        // MP回復量/秒
+        builder.setManaRegen(config.getDouble("mana_regen", 1.0));
+
         return builder.build();
     }
 

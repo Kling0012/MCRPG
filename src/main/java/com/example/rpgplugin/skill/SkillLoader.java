@@ -110,6 +110,9 @@ public class SkillLoader extends ConfigLoader {
             int maxLevel = config.getInt("max_level", 5);
             validateRange(maxLevel, 1, 100, "max_level", file.getName());
 
+            // Phase11-6: カスタム変数のパース
+            List<Skill.VariableDefinition> variables = parseVariables(config, file.getName());
+
             // レベル依存パラメータのパース（Phase11-2で追加）
             LevelDependentParameter cooldownParameter = null;
             LevelDependentParameter costParameter = null;
@@ -144,11 +147,24 @@ public class SkillLoader extends ConfigLoader {
                 validateRange(manaCost, 0, 1000, "mana_cost", file.getName());
             }
 
-            // ダメージ計算
+            // ダメージ計算（レガシー形式）
             Skill.DamageCalculation damage = null;
+            Skill.FormulaDamageConfig formulaDamage = null;
+            
             if (config.contains("damage")) {
-                damage = parseDamageCalculation(config.getConfigurationSection("damage"), file.getName());
+                ConfigurationSection damageSection = config.getConfigurationSection("damage");
+                
+                // Phase11-6: 数式形式のチェック
+                if (damageSection.contains("formula")) {
+                    formulaDamage = parseFormulaDamage(damageSection, file.getName());
+                } else {
+                    // レガシー形式のダメージ計算
+                    damage = parseDamageCalculation(damageSection, file.getName());
+                }
             }
+
+            // Phase11-6: ターゲット設定のパース
+            Skill.TargetingConfig targeting = parseTargeting(config, file.getName());
 
             // スキルツリー
             Skill.SkillTreeConfig skillTree = null;
@@ -166,10 +182,12 @@ public class SkillLoader extends ConfigLoader {
             double cooldownFallback = config.getDouble("cooldown", 0.0);
             int manaCostFallback = config.getInt("mana_cost", 0);
 
+            // Phase11-6: 新コンストラクタを使用して全設定を渡す
             return new Skill(id, name, displayName, type, description, maxLevel,
                     cooldownFallback, manaCostFallback,
                     cooldownParameter, costParameter, costType,
-                    damage, skillTree, iconMaterial, availableClasses);
+                    damage, skillTree, iconMaterial, availableClasses,
+                    variables, formulaDamage, targeting);
 
         } catch (Exception e) {
             getLogger().log(Level.WARNING, "スキルのパースに失敗しました: " + file.getName(), e);
@@ -325,6 +343,242 @@ public class SkillLoader extends ConfigLoader {
         }
 
         return new LevelDependentParameter(base, perLevel, minValue, maxValue);
+    }
+
+/**
+     * カスタム変数定義をパースします
+     *
+     * <p>YAML例:</p>
+     * <pre>
+     * variables:
+     *   base_mod: 1.0
+     *   str_scale: 1.5
+     * </pre>
+     *
+     * @param config コンフィグ
+     * @param fileName ファイル名（エラー表示用）
+     * @return カスタム変数定義リスト
+     */
+    private List<Skill.VariableDefinition> parseVariables(ConfigurationSection config, String fileName) {
+        List<Skill.VariableDefinition> variables = new ArrayList<>();
+        
+        if (!config.contains("variables")) {
+            return variables;
+        }
+        
+        ConfigurationSection variablesSection = config.getConfigurationSection("variables");
+        if (variablesSection == null) {
+            return variables;
+        }
+        
+        for (String key : variablesSection.getKeys(false)) {
+            double value = variablesSection.getDouble(key, 0.0);
+            variables.add(new Skill.VariableDefinition(key, value));
+        }
+        
+        return variables;
+    }
+
+    /**
+     * 数式ダメージ設定をパースします
+     *
+     * <p>YAML例:</p>
+     * <pre>
+     * damage:
+     *   formula: "STR * str_scale + (Lv * 5) + base_mod * 10"
+     * </pre>
+     *
+     * <p>またはレベル別定義:</p>
+     * <pre>
+     * damage:
+     *   formula: "STR * 2"
+     *   levels:
+     *     1: "STR * 2"
+     *     5: "STR * 3"
+     *     10: "STR * 5"
+     * </pre>
+     *
+     * @param section ダメージセクション
+     * @param fileName ファイル名（エラー表示用）
+     * @return 数式ダメージ設定、数式がない場合はnull
+     */
+    private Skill.FormulaDamageConfig parseFormulaDamage(ConfigurationSection section, String fileName) {
+        if (section == null) {
+            return null;
+        }
+        
+        // formulaキーのチェック
+        String formula = section.getString("formula");
+        if (formula == null || formula.trim().isEmpty()) {
+            return null;
+        }
+        
+        // 数式のバリデーション
+        if (!validateFormulaSyntax(formula)) {
+            getLogger().warning("無効な数式です: " + formula + " (" + fileName + ")");
+            return null;
+        }
+        
+        // レベル別数式のパース
+        java.util.Map<Integer, String> levelFormulas = new java.util.HashMap<>();
+        if (section.contains("levels")) {
+            ConfigurationSection levelsSection = section.getConfigurationSection("levels");
+            if (levelsSection != null) {
+                for (String levelKey : levelsSection.getKeys(false)) {
+                    try {
+                        int level = Integer.parseInt(levelKey);
+                        String levelFormula = levelsSection.getString(levelKey);
+                        if (levelFormula != null && validateFormulaSyntax(levelFormula)) {
+                            levelFormulas.put(level, levelFormula);
+                        }
+                    } catch (NumberFormatException e) {
+                        getLogger().warning("無効なレベルキーです: " + levelKey + " (" + fileName + ")");
+                    }
+                }
+            }
+        }
+        
+        return new Skill.FormulaDamageConfig(formula, levelFormulas);
+    }
+
+    /**
+     * ターゲット設定をパースします
+     *
+     * <p>YAML例:</p>
+     * <pre>
+     * targeting:
+     *   type: cone
+     *   cone:
+     *     angle: 90
+     *     range: 5.0
+     * </pre>
+     *
+     * @param config コンフィグ
+     * @param fileName ファイル名（エラー表示用）
+     * @return ターゲット設定、未設定の場合はnull
+     */
+    private Skill.TargetingConfig parseTargeting(ConfigurationSection config, String fileName) {
+        if (!config.contains("targeting")) {
+            return null;
+        }
+        
+        ConfigurationSection targetingSection = config.getConfigurationSection("targeting");
+        if (targetingSection == null) {
+            return null;
+        }
+        
+        String type = targetingSection.getString("type", "single");
+        Skill.TargetingConfig.TargetingParams params = null;
+        
+        switch (type.toLowerCase()) {
+            case "cone":
+                params = parseConeParams(targetingSection, fileName);
+                break;
+            case "sphere":
+            case "radius":
+                params = parseSphereParams(targetingSection, fileName);
+                break;
+            case "sector":
+                params = parseSectorParams(targetingSection, fileName);
+                break;
+            case "single":
+            default:
+                // デフォルトは単体ターゲット（パラメータなし）
+                break;
+        }
+        
+        return new Skill.TargetingConfig(type, params);
+    }
+
+    /**
+     * コーン型パラメータをパースします
+     */
+    private Skill.TargetingConfig.ConeParams parseConeParams(ConfigurationSection section, String fileName) {
+        ConfigurationSection coneSection = section.getConfigurationSection("cone");
+        if (coneSection == null) {
+            coneSection = section;
+        }
+        
+        double angle = coneSection.getDouble("angle", 90.0);
+        double range = coneSection.getDouble("range", 5.0);
+        
+        validateRange(angle, 1.0, 360.0, "targeting.cone.angle", fileName);
+        validateRange(range, 0.1, 100.0, "targeting.cone.range", fileName);
+        
+        return new Skill.TargetingConfig.ConeParams(angle, range);
+    }
+
+    /**
+     * 球形パラメータをパースします
+     */
+    private Skill.TargetingConfig.SphereParams parseSphereParams(ConfigurationSection section, String fileName) {
+        ConfigurationSection sphereSection = section.getConfigurationSection("sphere");
+        if (sphereSection == null) {
+            sphereSection = section.getConfigurationSection("radius");
+            if (sphereSection == null) {
+                sphereSection = section;
+            }
+        }
+        
+        double radius = sphereSection.getDouble("radius", sphereSection.getDouble("range", 5.0));
+        
+        validateRange(radius, 0.1, 100.0, "targeting.sphere.radius", fileName);
+        
+        return new Skill.TargetingConfig.SphereParams(radius);
+    }
+
+    /**
+     * 扇形パラメータをパースします
+     */
+    private Skill.TargetingConfig.SectorParams parseSectorParams(ConfigurationSection section, String fileName) {
+        ConfigurationSection sectorSection = section.getConfigurationSection("sector");
+        if (sectorSection == null) {
+            sectorSection = section;
+        }
+        
+        double angle = sectorSection.getDouble("angle", 90.0);
+        double radius = sectorSection.getDouble("radius", 5.0);
+        
+        validateRange(angle, 1.0, 360.0, "targeting.sector.angle", fileName);
+        validateRange(radius, 0.1, 100.0, "targeting.sector.radius", fileName);
+        
+        return new Skill.TargetingConfig.SectorParams(angle, radius);
+    }
+
+    /**
+     * 数式の構文をバリデーションします
+     *
+     * <p>チェック内容:</p>
+     * <ul>
+     *   <li>空でないこと</li>
+     *   <li>危険な文字列を含まないこと</li>
+     *   <li>基本的な括弧の整合性</li>
+     * </ul>
+     *
+     * @param formula 数式文字列
+     * @return 有効な場合はtrue
+     */
+    private boolean validateFormulaSyntax(String formula) {
+        if (formula == null || formula.trim().isEmpty()) {
+            return false;
+        }
+        
+        // 括弧の整合性チェック
+        int bracketCount = 0;
+        for (char c : formula.toCharArray()) {
+            if (c == '(') bracketCount++;
+            if (c == ')') bracketCount--;
+            if (bracketCount < 0) return false;
+        }
+        if (bracketCount != 0) return false;
+        
+        // 危険なパターンをチェック（簡易的なセキュリティチェック）
+        String dangerousPattern = "(eval|exec|runtime|process|system|cmd)";
+        if (formula.toLowerCase().matches(".*" + dangerousPattern + ".*")) {
+            return false;
+        }
+        
+        return true;
     }
 
     /**

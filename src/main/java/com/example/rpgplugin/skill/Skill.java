@@ -40,6 +40,11 @@ public class Skill {
     private final String iconMaterial;
     private final List<String> availableClasses;
 
+    // Phase11-6: 新YAMLフォーマット対応フィールド
+    private final java.util.List<VariableDefinition> variables;
+    private final FormulaDamageConfig formulaDamage;
+    private final TargetingConfig targeting;
+
     /**
      * ダメージ計算設定
      */
@@ -139,6 +144,268 @@ public class Skill {
     }
 
     /**
+     * カスタム変数定義
+     * 
+     * <p>YAMLのvariablesセクションで定義されるカスタム変数を表します。</p>
+     * 
+     * <p>YAML例:</p>
+     * <pre>
+     * variables:
+     *   base_mod: 1.0
+     *   str_scale: 1.5
+     * </pre>
+     */
+    public static class VariableDefinition {
+        private final String name;
+        private final double value;
+        
+        public VariableDefinition(String name, double value) {
+            this.name = name;
+            this.value = value;
+        }
+        
+        public String getName() {
+            return name;
+        }
+        
+        public double getValue() {
+            return value;
+        }
+    }
+
+    /**
+     * コスト設定
+     * 
+     * <p>レベル依存のコスト設定を表します。</p>
+     * 
+     * <p>YAML例:</p>
+     * <pre>
+     * cost:
+     *   type: mana
+     *   base: 10
+     *   per_level: -1
+     *   min: 0
+     * </pre>
+     */
+    public static class CostConfig {
+        private final SkillCostType type;
+        private final LevelDependentParameter parameter;
+        
+        public CostConfig(SkillCostType type, LevelDependentParameter parameter) {
+            this.type = type != null ? type : SkillCostType.MANA;
+            this.parameter = parameter;
+        }
+        
+        public SkillCostType getType() {
+            return type;
+        }
+        
+        public LevelDependentParameter getParameter() {
+            return parameter;
+        }
+        
+        /**
+         * 指定レベルでのコストを取得します
+         *
+         * @param level スキルレベル
+         * @return コスト値
+         */
+        public int getCost(int level) {
+            if (parameter != null) {
+                return parameter.getIntValue(level);
+            }
+            return 0;
+        }
+    }
+
+    /**
+     * クールダウン設定
+     * 
+     * <p>レベル依存のクールダウン設定を表します。</p>
+     * 
+     * <p>YAML例:</p>
+     * <pre>
+     * cooldown:
+     *   base: 5.0
+     *   per_level: -0.5
+     *   min: 1.0
+     * </pre>
+     */
+    public static class CooldownConfig {
+        private final LevelDependentParameter parameter;
+        
+        public CooldownConfig(LevelDependentParameter parameter) {
+            this.parameter = parameter;
+        }
+        
+        public LevelDependentParameter getParameter() {
+            return parameter;
+        }
+        
+        /**
+         * 指定レベルでのクールダウンを取得します
+         *
+         * @param level スキルレベル
+         * @return クールダウン（秒）
+         */
+        public double getCooldown(int level) {
+            if (parameter != null) {
+                return parameter.getValue(level);
+            }
+            return 0.0;
+        }
+    }
+
+    /**
+     * ターゲット設定
+     * 
+     * <p>スキルのターゲット範囲設定を表します。</p>
+     * 
+     * <p>YAML例:</p>
+     * <pre>
+     * targeting:
+     *   type: cone
+     *   cone:
+     *     angle: 90
+     *     range: 5.0
+     * </pre>
+     */
+    public static class TargetingConfig {
+        private final String type;
+        private final TargetingParams params;
+        
+        public TargetingConfig(String type, TargetingParams params) {
+            this.type = type != null ? type : "single";
+            this.params = params;
+        }
+        
+        public String getType() {
+            return type;
+        }
+        
+        public TargetingParams getParams() {
+            return params;
+        }
+        
+        /**
+         * ターゲットパラメータの基底クラス
+         */
+        public static class TargetingParams {
+            private final double range;
+            
+            public TargetingParams(double range) {
+                this.range = range;
+            }
+            
+            public double getRange() {
+                return range;
+            }
+        }
+        
+        /**
+         * コーン型範囲パラメータ
+         */
+        public static class ConeParams extends TargetingParams {
+            private final double angle;
+            
+            public ConeParams(double angle, double range) {
+                super(range);
+                this.angle = angle;
+            }
+            
+            public double getAngle() {
+                return angle;
+            }
+        }
+        
+        /**
+         * 球形範囲パラメータ
+         */
+        public static class SphereParams extends TargetingParams {
+            private final double radius;
+            
+            public SphereParams(double radius) {
+                super(radius);
+                this.radius = radius;
+            }
+            
+            public double getRadius() {
+                return radius;
+            }
+        }
+        
+        /**
+         * 扇形パラメータ
+         */
+        public static class SectorParams extends TargetingParams {
+            private final double angle;
+            private final double radius;
+            
+            public SectorParams(double angle, double radius) {
+                super(radius);
+                this.angle = angle;
+                this.radius = radius;
+            }
+            
+            public double getAngle() {
+                return angle;
+            }
+            
+            public double getRadius() {
+                return radius;
+            }
+        }
+    }
+
+    /**
+     * 数式ダメージ設定
+     * 
+     * <p>数式を使用したダメージ計算設定を表します。</p>
+     * 
+     * <p>YAML例:</p>
+     * <pre>
+     * damage:
+     *   formula: "STR * str_scale + (Lv * 5) + base_mod * 10"
+     * </pre>
+     */
+    public static class FormulaDamageConfig {
+        private final String formula;
+        private final java.util.Map<Integer, String> levelFormulas;
+        
+        public FormulaDamageConfig(String formula, java.util.Map<Integer, String> levelFormulas) {
+            this.formula = formula;
+            this.levelFormulas = levelFormulas != null ? levelFormulas : new java.util.HashMap<>();
+        }
+        
+        public String getFormula() {
+            return formula;
+        }
+        
+        public java.util.Map<Integer, String> getLevelFormulas() {
+            return new java.util.HashMap<>(levelFormulas);
+        }
+        
+        /**
+         * 指定レベルの数式を取得します
+         *
+         * @param level スキルレベル
+         * @return 数式、レベル別定義がない場合は基本数式
+         */
+        public String getFormula(int level) {
+            return levelFormulas.getOrDefault(level, formula);
+        }
+        
+        /**
+         * レベル別数式が定義されているかチェックします
+         *
+         * @return レベル別数式が存在する場合はtrue
+         */
+        public boolean hasLevelFormulas() {
+            return !levelFormulas.isEmpty();
+        }
+    }
+
+    /**
      * コンストラクタ（レベル依存パラメータ対応版）
      *
      * @param id スキルID
@@ -162,6 +429,40 @@ public class Skill {
                  LevelDependentParameter cooldownParameter, LevelDependentParameter costParameter,
                  SkillCostType costType, DamageCalculation damage,
                  SkillTreeConfig skillTree, String iconMaterial, List<String> availableClasses) {
+        this(id, name, displayName, type, description, maxLevel, cooldown, manaCost,
+                cooldownParameter, costParameter, costType, damage, skillTree, iconMaterial,
+                availableClasses, null, null, null);
+    }
+
+    /**
+     * コンストラクタ（Phase11-6: 新YAMLフォーマット完全対応版）
+     *
+     * @param id スキルID
+     * @param name スキル名
+     * @param displayName 表示名（カラーコード対応）
+     * @param type スキルタイプ
+     * @param description 説明リスト
+     * @param maxLevel 最大レベル
+     * @param cooldown クールダウン（秒）、レベル依存パラメータ未使用時のフォールバック値
+     * @param manaCost 消費MP、レベル依存パラメータ未使用時のフォールバック値
+     * @param cooldownParameter レベル依存CDパラメータ（null可能）
+     * @param costParameter レベル依存コストパラメータ（null可能）
+     * @param costType コストタイプ（MANA/HP）
+     * @param damage ダメージ計算設定
+     * @param skillTree スキルツリー設定
+     * @param iconMaterial アイコン素材
+     * @param availableClasses 利用可能なクラスリスト
+     * @param variables カスタム変数定義リスト（Phase11-6）
+     * @param formulaDamage 数式ダメージ設定（Phase11-6）
+     * @param targeting ターゲット設定（Phase11-6）
+     */
+    public Skill(String id, String name, String displayName, SkillType type, List<String> description,
+                 int maxLevel, double cooldown, int manaCost,
+                 LevelDependentParameter cooldownParameter, LevelDependentParameter costParameter,
+                 SkillCostType costType, DamageCalculation damage,
+                 SkillTreeConfig skillTree, String iconMaterial, List<String> availableClasses,
+                 java.util.List<VariableDefinition> variables, FormulaDamageConfig formulaDamage,
+                 TargetingConfig targeting) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
@@ -177,6 +478,10 @@ public class Skill {
         this.skillTree = skillTree;
         this.iconMaterial = iconMaterial != null ? iconMaterial : "DIAMOND_SWORD";
         this.availableClasses = availableClasses != null ? new ArrayList<>(availableClasses) : new ArrayList<>();
+        // Phase11-6: 新フィールドの初期化
+        this.variables = variables != null ? new ArrayList<>(variables) : new ArrayList<>();
+        this.formulaDamage = formulaDamage;
+        this.targeting = targeting;
     }
 
     /**
@@ -338,6 +643,124 @@ public class Skill {
      */
     public boolean isPassive() {
         return type == SkillType.PASSIVE;
+    }
+
+/**
+     * カスタム変数定義リストを取得します
+     *
+     * @return カスタム変数定義リスト
+     */
+    public java.util.List<VariableDefinition> getVariables() {
+        return new ArrayList<>(variables);
+    }
+
+    /**
+     * 数式ダメージ設定を取得します
+     *
+     * @return 数式ダメージ設定、未設定の場合はnull
+     */
+    public FormulaDamageConfig getFormulaDamage() {
+        return formulaDamage;
+    }
+
+    /**
+     * ターゲット設定を取得します
+     *
+     * @return ターゲット設定、未設定の場合はnull
+     */
+    public TargetingConfig getTargeting() {
+        return targeting;
+    }
+
+    /**
+     * 数式ダメージ設定が存在するかチェックします
+     *
+     * @return 数式ダメージ設定がある場合はtrue
+     */
+    public boolean hasFormulaDamage() {
+        return formulaDamage != null;
+    }
+
+    /**
+     * ターゲット設定が存在するかチェックします
+     *
+     * @return ターゲット設定がある場合はtrue
+     */
+    public boolean hasTargeting() {
+        return targeting != null;
+    }
+
+    /**
+     * カスタム変数が定義されているかチェックします
+     *
+     * @return カスタム変数がある場合はtrue
+     */
+    public boolean hasVariables() {
+        return variables != null && !variables.isEmpty();
+    }
+
+    /**
+     * 数式を使用してダメージを計算します
+     *
+     * <p>このメソッドはFormulaDamageCalculatorと連携して動作します。</p>
+     *
+     * @param calculator 数式ダメージ計算機
+     * @param skillLevel スキルレベル
+     * @return 計算されたダメージ、エラー時は0.0
+     */
+    public double calculateFormulaDamage(com.example.rpgplugin.skill.evaluator.FormulaDamageCalculator calculator, int skillLevel) {
+        if (formulaDamage == null || calculator == null) {
+            return 0.0;
+        }
+        
+        // カスタム変数を設定
+        if (hasVariables()) {
+            java.util.Map<String, Double> varMap = new java.util.HashMap<>();
+            for (VariableDefinition var : variables) {
+                varMap.put(var.getName(), var.getValue());
+            }
+            calculator.setCustomVariables(varMap);
+        }
+        
+        try {
+            return calculator.calculateDamage(skillLevel);
+        } catch (Exception e) {
+            return 0.0;
+        }
+    }
+
+    /**
+     * 数式ダメージ計算機を作成します
+     *
+     * @param evaluator 数式エバリュエーター
+     * @return 数式ダメージ計算機、数式設定がない場合はnull
+     */
+    public com.example.rpgplugin.skill.evaluator.FormulaDamageCalculator createFormulaDamageCalculator(
+            com.example.rpgplugin.skill.evaluator.FormulaEvaluator evaluator) {
+        if (formulaDamage == null || evaluator == null) {
+            return null;
+        }
+        
+        String formula = formulaDamage.getFormula();
+        java.util.Map<Integer, String> levelFormulas = formulaDamage.getLevelFormulas();
+        
+        return new com.example.rpgplugin.skill.evaluator.FormulaDamageCalculator(
+                evaluator, formula, levelFormulas, formula);
+    }
+
+    /**
+     * カスタム変数をマップとして取得します
+     *
+     * @return 変数名と値のマップ
+     */
+    public java.util.Map<String, Double> getVariableMap() {
+        java.util.Map<String, Double> map = new java.util.HashMap<>();
+        if (variables != null) {
+            for (VariableDefinition var : variables) {
+                map.put(var.getName(), var.getValue());
+            }
+        }
+        return map;
     }
 
     @Override

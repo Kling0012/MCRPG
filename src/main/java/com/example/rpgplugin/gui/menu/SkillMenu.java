@@ -7,6 +7,7 @@ import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillNode;
 import com.example.rpgplugin.skill.SkillTree;
+import com.example.rpgplugin.stats.StatManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -49,31 +50,6 @@ public class SkillMenu {
     private static final int POINTS_ITEM_SLOT = 49;
     private static final int BACK_SLOT = 45;
     private static final int CLOSE_SLOT = 53;
-
-    /** スロットとスキルのマッピング（クリック時のスキル特定に使用） */
-    private final java.util.Map<Integer, Skill> slotToSkillMap = new java.util.HashMap<>();
-
-import com.example.rpgplugin.stats.StatManager;
-    /**
-     * コンストラクタ
-     *
-     * @param plugin プラグインインスタンス
-     * @param player プレイヤー
-     * @param skillTree スキルツリー
-     */
-    public SkillMenu(RPGPlugin plugin, Player player, SkillTree skillTree) {
-        this.plugin = plugin;
-        this.player = player;
-        this.skillManager = plugin.getSkillManager();
-        this.skillTree = skillTree;
-
-        PlayerManager playerManager = plugin.getPlayerManager();
-        this.rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
-
-        this.inventory = Bukkit.createInventory(null, INVENTORY_SIZE, INVENTORY_TITLE);
-
-        initializeItems();
-    }
 
     /** スロットとスキルのマッピング（クリック時のスキル特定に使用） */
     private final java.util.Map<Integer, Skill> slotToSkillMap = new java.util.HashMap<>();

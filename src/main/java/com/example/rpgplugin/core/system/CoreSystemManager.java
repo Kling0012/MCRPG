@@ -2,9 +2,10 @@ package com.example.rpgplugin.core.system;
 
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.core.config.YamlConfigManager;
+import com.example.rpgplugin.core.config.ConfigWatcher;
+import com.example.rpgplugin.core.config.ResourceSetupManager;
 import com.example.rpgplugin.core.dependency.DependencyManager;
 import com.example.rpgplugin.core.module.ModuleManager;
-import com.example.rpgplugin.core.config.ConfigWatcher;
 import com.example.rpgplugin.storage.StorageManager;
 
 /**

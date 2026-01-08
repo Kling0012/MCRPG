@@ -179,34 +179,63 @@ public class SkillManager {
         }
     }
 
+    /** スキルツリーレジストリ（Phase14: 自動更新対応） */
+    private final SkillTreeRegistry treeRegistry;
+
     /**
-     * コンストラクタ
+ * コンストラクタ
+ *
+ * @param plugin プラグインインスタンス
+ * @param playerManager プレイヤーマネージャー
+ */
+public SkillManager(RPGPlugin plugin, PlayerManager playerManager) {
+    this.plugin = plugin;
+    this.playerManager = playerManager;
+    this.skills = new ConcurrentHashMap<>();
+    this.playerSkills = new ConcurrentHashMap<>();
+    this.formulaEvaluator = new FormulaEvaluator();
+    this.treeRegistry = new SkillTreeRegistry();
+}
+
+    /**
+ * スキルを登録します
+ *
+ * <p>登録時にスキルツリーレジストリにも追加し、GUIの自動更新を有効にします。</p>
+ *
+ * @param skill 登録するスキル
+ * @return 重複がある場合はfalse
+ */
+public boolean registerSkill(Skill skill) {
+    if (skills.containsKey(skill.getId())) {
+        plugin.getLogger().warning("Skill already registered: " + skill.getId());
+        return false;
+    }
+    skills.put(skill.getId(), skill);
+    plugin.getLogger().info("Skill registered: " + skill.getId());
+
+    // スキルツリーレジストリにも登録（GUI自動更新対応）
+    treeRegistry.registerSkill(skill);
+
+    return true;
+}
+
+    /**
+     * スキルツリーレジストリを取得します（Phase14: 自動更新対応）
      *
-     * @param plugin プラグインインスタンス
-     * @param playerManager プレイヤーマネージャー
+     * @return スキルツリーレジストリ
      */
-    public SkillManager(RPGPlugin plugin, PlayerManager playerManager) {
-        this.plugin = plugin;
-        this.playerManager = playerManager;
-        this.skills = new ConcurrentHashMap<>();
-        this.playerSkills = new ConcurrentHashMap<>();
-        this.formulaEvaluator = new FormulaEvaluator();
+    public SkillTreeRegistry getTreeRegistry() {
+        return treeRegistry;
     }
 
     /**
-     * スキルを登録します
+     * 指定されたクラスのスキルツリーを取得します（Phase14: 自動更新対応）
      *
-     * @param skill 登録するスキル
-     * @return 重複がある場合はfalse
+     * @param classId クラスID
+     * @return スキルツリー
      */
-    public boolean registerSkill(Skill skill) {
-        if (skills.containsKey(skill.getId())) {
-            plugin.getLogger().warning("Skill already registered: " + skill.getId());
-            return false;
-        }
-        skills.put(skill.getId(), skill);
-        plugin.getLogger().info("Skill registered: " + skill.getId());
-        return true;
+    public SkillTree getSkillTree(String classId) {
+        return treeRegistry.getTree(classId);
     }
 
     /**

@@ -267,50 +267,44 @@ public class RPGCommand implements CommandExecutor {
     }
 
     /**
-     * スキルコマンドを処理します
-     *
-     * <p>SkillMenu（GUI）を開きます。</p>
-     *
-     * @param player プレイヤー
-     */
-    private void handleSkillCommand(Player player) {
-        SkillManager skillManager = RPGPlugin.getInstance().getSkillManager();
-        if (skillManager == null) {
-            player.sendMessage(ChatColor.RED + "スキルマネージャーが初期化されていません");
-            return;
-        }
-
-        PlayerManager playerManager = RPGPlugin.getInstance().getPlayerManager();
-        if (playerManager == null) {
-            player.sendMessage(ChatColor.RED + "プレイヤーマネージャーが初期化されていません");
-            return;
-        }
-
-        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
-        if (rpgPlayer == null) {
-            player.sendMessage(ChatColor.RED + "プレイヤーデータがロードされていません");
-            return;
-        }
-
-        // スキルツリーを作成
-        // TODO: クラスごとのスキルツリー設定を読み込む
-        String classId = rpgPlayer.getClassId();
-        SkillTree skillTree = new SkillTree(classId);
-
-        // TODO: スキルツリーにノードを追加
-        // 現時点では空のツリーを作成
-
-        // SkillMenuを開く
-        SkillMenu menu = new SkillMenu(RPGPlugin.getInstance(), player, skillTree);
-
-        // リスナーに登録
-        SkillMenuListener listener = RPGPlugin.getInstance().getSkillMenuListener();
-        if (listener != null) {
-            listener.registerMenu(player, menu);
-        }
-
-        menu.open();
+ * スキルコマンドを処理します
+ *
+ * <p>SkillMenu（GUI）を開きます。</p>
+ * <p>Phase14: SkillTreeRegistryを使用して自動的にスキルツリーを構築します。</p>
+ *
+ * @param player プレイヤー
+ */
+private void handleSkillCommand(Player player) {
+    SkillManager skillManager = RPGPlugin.getInstance().getSkillManager();
+    if (skillManager == null) {
+        player.sendMessage(ChatColor.RED + "スキルマネージャーが初期化されていません");
+        return;
     }
+
+    PlayerManager playerManager = RPGPlugin.getInstance().getPlayerManager();
+    if (playerManager == null) {
+        player.sendMessage(ChatColor.RED + "プレイヤーマネージャーが初期化されていません");
+        return;
+    }
+
+    RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+    if (rpgPlayer == null) {
+        player.sendMessage(ChatColor.RED + "プレイヤーデータがロードされていません");
+        return;
+    }
+
+    // Phase14: 新しいコンストラクタを使用（自動更新対応）
+    // SkillTreeRegistryから自動的にスキルツリーを取得
+    SkillMenu menu = new SkillMenu(RPGPlugin.getInstance(), player);
+
+    // リスナーに登録
+    SkillMenuListener listener = RPGPlugin.getInstance().getSkillMenuListener();
+    if (listener != null) {
+        listener.registerMenu(player, menu);
+    }
+
+    menu.open();
+}
 
     /**
      * キャストコマンドを処理します

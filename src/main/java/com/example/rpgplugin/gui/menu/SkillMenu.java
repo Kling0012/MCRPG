@@ -75,6 +75,67 @@ import com.example.rpgplugin.stats.StatManager;
         initializeItems();
     }
 
+    /** スロットとスキルのマッピング（クリック時のスキル特定に使用） */
+    private final java.util.Map<Integer, Skill> slotToSkillMap = new java.util.HashMap<>();
+
+    /** プレイヤーのクラスID（キャッシュ用） */
+    private final String playerClassId;
+
+    /** 自動更新有効フラグ */
+    private final boolean autoRefreshEnabled;
+
+    /**
+     * コンストラクタ（Phase14: 自動更新対応版）
+     *
+     * <p>SkillTreeRegistryからスキルツリーを自動取得します。</p>
+     *
+     * @param plugin プラグインインスタンス
+     * @param player プレイヤー
+     * @param autoRefresh 自動更新を有効にするか
+     */
+    public SkillMenu(RPGPlugin plugin, Player player, boolean autoRefresh) {
+        this.plugin = plugin;
+        this.player = player;
+        this.skillManager = plugin.getSkillManager();
+        this.playerClassId = skillManager.getPlayerManager().getRPGPlayer(player.getUniqueId()).getClassId();
+        this.skillTree = skillManager.getSkillTree(playerClassId);
+        this.autoRefreshEnabled = autoRefresh;
+
+        PlayerManager playerManager = plugin.getPlayerManager();
+        this.rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+
+        this.inventory = Bukkit.createInventory(null, INVENTORY_SIZE, INVENTORY_TITLE);
+
+        // 自動更新リスナーを登録
+        if (autoRefreshEnabled) {
+            skillManager.getTreeRegistry().addListener(this::onTreeUpdated);
+        }
+
+        initializeItems();
+    }
+
+    /**
+     * コンストラクタ（自動更新有効版）
+     *
+     * @param plugin プラグインインスタンス
+     * @param player プレイヤー
+     */
+    public SkillMenu(RPGPlugin plugin, Player player) {
+        this(plugin, player, true);
+    }
+
+    /**
+     * スキルツリー更新時のコールバック
+     *
+     * @param classId 更新されたクラスID
+     */
+    private void onTreeUpdated(String classId) {
+        if (classId.equals(playerClassId) && player.getOpenInventory().getTopInventory().equals(inventory)) {
+            // GUIをリフレッシュ
+            refreshGUI();
+        }
+    }
+
     /**
      * GUIアイテムを初期化します
      */

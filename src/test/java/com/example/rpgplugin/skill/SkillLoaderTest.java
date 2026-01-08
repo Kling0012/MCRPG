@@ -451,4 +451,242 @@ class SkillLoaderTest {
         assertEquals("sector", targeting.getType());
         assertTrue(targeting.getParams() instanceof Skill.TargetingConfig.SectorParams);
     }
+
+    // ===== 追加: 新YAMLフォーマットの拡張テスト =====
+
+    /**
+     * セクターターゲットのテスト
+     */
+    @Test
+    void testSectorTargeting() throws IOException {
+        Path skillFile = tempDir.resolve("skills").resolve("test_sector.yml");
+        Files.createDirectories(skillFile.getParent());
+
+        String sectorYaml = """
+                id: test_sector
+                name: セクターテスト
+                type: active
+                max_level: 5
+
+                targeting:
+                  type: sector
+                  sector:
+                    angle: 120
+                    radius: 6.0
+                """;
+
+        Files.writeString(skillFile, sectorYaml);
+
+        List<Skill> skills = loader.loadAllSkills();
+
+        assertFalse(skills.isEmpty());
+        Skill skill = skills.get(0);
+        assertTrue(skill.hasTargeting());
+
+        Skill.TargetingConfig targeting = skill.getTargeting();
+        assertEquals("sector", targeting.getType());
+        assertTrue(targeting.getParams() instanceof Skill.TargetingConfig.SectorParams);
+
+        Skill.TargetingConfig.SectorParams sectorParams =
+                (Skill.TargetingConfig.SectorParams) targeting.getParams();
+        assertEquals(120.0, sectorParams.getAngle());
+        assertEquals(6.0, sectorParams.getRadius());
+    }
+
+    /**
+     * RECTターゲットのテスト
+     */
+    @Test
+    void testRectTargeting() throws IOException {
+        Path skillFile = tempDir.resolve("skills").resolve("test_rect.yml");
+        Files.createDirectories(skillFile.getParent());
+
+        String rectYaml = """
+                id: test_rect
+                name: 矩形範囲テスト
+                type: active
+                max_level: 5
+
+                targeting:
+                  type: rect
+                  rect:
+                    width: 4.0
+                    depth: 8.0
+                """;
+
+        Files.writeString(skillFile, rectYaml);
+
+        List<Skill> skills = loader.loadAllSkills();
+
+        assertFalse(skills.isEmpty());
+        Skill skill = skills.get(0);
+        assertTrue(skill.hasTargeting());
+
+        Skill.TargetingConfig targeting = skill.getTargeting();
+        assertEquals("rect", targeting.getType());
+        assertTrue(targeting.getParams() instanceof Skill.TargetingConfig.RectParams);
+
+        Skill.TargetingConfig.RectParams rectParams =
+                (Skill.TargetingConfig.RectParams) targeting.getParams();
+        assertEquals(4.0, rectParams.getWidth());
+        assertEquals(8.0, rectParams.getDepth());
+    }
+
+    /**
+     * 代替コストタイプのテスト
+     */
+    @Test
+    void testAlternativeCostType() throws IOException {
+        Path skillFile = tempDir.resolve("skills").resolve("test_stamina.yml");
+        Files.createDirectories(skillFile.getParent());
+
+        String staminaYaml = """
+                id: test_stamina
+                name: スタミナ消費テスト
+                type: active
+                max_level: 5
+
+                cost:
+                  type: stamina
+                  base: 15
+                  per_level: 2
+                """;
+
+        Files.writeString(skillFile, staminaYaml);
+
+        List<Skill> skills = loader.loadAllSkills();
+
+        assertFalse(skills.isEmpty());
+        Skill skill = skills.get(0);
+        assertEquals("stamina", skill.getCostType());
+    }
+
+    /**
+     * パッシブスキルのテスト
+     */
+    @Test
+    void testPassiveSkill() throws IOException {
+        Path skillFile = tempDir.resolve("skills").resolve("test_passive.yml");
+        Files.createDirectories(skillFile.getParent());
+
+        String passiveYaml = """
+                id: test_passive
+                name: パッシブスキル
+                type: passive
+                max_level: 3
+                description:
+                  - "常時発動するパッシブ"
+                """;
+
+        Files.writeString(skillFile, passiveYaml);
+
+        List<Skill> skills = loader.loadAllSkills();
+
+        assertFalse(skills.isEmpty());
+        Skill skill = skills.get(0);
+        assertFalse(skill.isActive());
+        assertTrue(skill.isPassive());
+    }
+
+    /**
+     * スキルツリー設定の詳細テスト
+     */
+    @Test
+    void testSkillTreeDetails() throws IOException {
+        Path skillFile = tempDir.resolve("skills").resolve("test_skilltree.yml");
+        Files.createDirectories(skillFile.getParent());
+
+        String skillTreeYaml = """
+                id: test_skilltree
+                name: スキルツリー詳細テスト
+                type: active
+                max_level: 5
+
+                skill_tree:
+                  parent: base_skill
+                  cost: 3
+                  unlock_requirements:
+                    - type: level
+                      value: 10
+                    - type: skill
+                      skill_id: base_skill
+                      level: 3
+                """;
+
+        Files.writeString(skillFile, skillTreeYaml);
+
+        List<Skill> skills = loader.loadAllSkills();
+
+        assertFalse(skills.isEmpty());
+        Skill skill = skills.get(0);
+        assertNotNull(skill.getSkillTree());
+        assertEquals("base_skill", skill.getSkillTree().getParent());
+        assertEquals(3, skill.getSkillTree().getCost());
+    }
+
+    /**
+     * 複数スキルファイルの読み込みテスト
+     */
+    @Test
+    void testMultipleSkillFiles() throws IOException {
+        Path skillsDir = tempDir.resolve("skills");
+        Files.createDirectories(skillsDir);
+
+        // 複数のスキルファイルを作成
+        Files.writeString(skillsDir.resolve("skill1.yml"), """
+                id: skill1
+                name: スキル1
+                type: active
+                max_level: 5
+                """);
+
+        Files.writeString(skillsDir.resolve("skill2.yml"), """
+                id: skill2
+                name: スキル2
+                type: passive
+                max_level: 3
+                """);
+
+        List<Skill> skills = loader.loadAllSkills();
+
+        assertEquals(2, skills.size());
+        assertTrue(skills.stream().anyMatch(s -> s.getId().equals("skill1")));
+        assertTrue(skills.stream().anyMatch(s -> s.getId().equals("skill2")));
+    }
+
+    /**
+     * 空のスキルディレクトリのテスト
+     */
+    @Test
+    void testEmptySkillDirectory() throws IOException {
+        Path skillsDir = tempDir.resolve("skills").resolve("empty");
+        Files.createDirectories(skillsDir);
+
+        List<Skill> skills = loader.loadAllSkills();
+
+        assertTrue(skills.isEmpty());
+    }
+
+    /**
+     * 無効なYAML形式のエラーハンドリングテスト
+     */
+    @Test
+    void testInvalidYamlFormat() throws IOException {
+        Path skillFile = tempDir.resolve("skills").resolve("test_invalid.yml");
+        Files.createDirectories(skillFile.getParent());
+
+        String invalidYaml = """
+                id: test_invalid
+                name: 無効なYAML
+                type: active
+                max_level: [this, is, wrong]
+                """;
+
+        Files.writeString(skillFile, invalidYaml);
+
+        // エラーが発生してもクラッシュしない
+        List<Skill> skills = loader.loadAllSkills();
+        // 実装により、空リストまたは部分的に読み込まれたリスト
+        assertNotNull(skills);
+    }
 }

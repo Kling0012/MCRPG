@@ -1,4 +1,5 @@
 # アイムドショット - アーチャーの基本攻撃スキル
+# Phase11-12: 新フォーマットに移行完了
 id: aimed_shot
 name: アイムドショット
 display_name: "&bアイムドショット"
@@ -7,15 +8,33 @@ description:
   - "&b精密な一撃を放つ"
   - "&eDEXに依存してダメージ増加"
 max_level: 5
-cooldown: 5.0
-mana_cost: 8
 
+# カスタム変数（Phase11-12移行）
+variables:
+  dex_mod: 1.8
+  base_damage: 35.0
+  level_scale: 12.0
+
+# コスト（Phase11-12移行）
+cost:
+  type: mana
+  base: 8
+  per_level: 0
+  min: 0
+
+# クールダウン（Phase11-12移行）
+cooldown:
+  base: 5.0
+  per_level: 0.0
+  min: 2.5
+
+# ダメージ（Phase11-12: 数式形式に移行）
 damage:
-  base: 35.0
-  stat_multiplier:
-    stat: DEXTERITY
-    multiplier: 1.8
-  level_multiplier: 12.0
+  formula: "DEX * dex_mod + Lv * level_scale + base_damage"
+
+# ターゲット設定（Phase11-12移行）
+targeting:
+  type: single
 
 skill_tree:
   parent: none

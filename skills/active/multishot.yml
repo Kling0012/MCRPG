@@ -1,4 +1,5 @@
 # マルチショット - アーチャーの範囲攻撃スキル
+# Phase11-12: 新フォーマットに移行完了
 id: multishot
 name: マルチショット
 display_name: "&aマルチショット"
@@ -7,15 +8,36 @@ description:
   - "&a複数の矢を放つ"
   - "&eDEXに依存してダメージ増加"
 max_level: 3
-cooldown: 10.0
-mana_cost: 20
 
+# カスタム変数（Phase11-12移行）
+variables:
+  dex_mod: 1.5
+  base_damage: 25.0
+  level_scale: 10.0
+
+# コスト（Phase11-12移行）
+cost:
+  type: mana
+  base: 20
+  per_level: 0
+  min: 0
+
+# クールダウン（Phase11-12移行）
+cooldown:
+  base: 10.0
+  per_level: 0.0
+  min: 5.0
+
+# ダメージ（Phase11-12: 数式形式に移行）
 damage:
-  base: 25.0
-  stat_multiplier:
-    stat: DEXTERITY
-    multiplier: 1.5
-  level_multiplier: 10.0
+  formula: "DEX * dex_mod + Lv * level_scale + base_damage"
+
+# ターゲット設定（Phase11-12移行: 円錐形範囲攻撃）
+targeting:
+  type: cone
+  cone:
+    angle: 45
+    range: 20.0
 
 skill_tree:
   parent: aimed_shot

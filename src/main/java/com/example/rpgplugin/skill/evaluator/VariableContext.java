@@ -53,8 +53,12 @@ public class VariableContext {
      * コンストラクタ
      *
      * @param rpgPlayer RPGプレイヤー（ステータス取得用）
+     * @throws IllegalArgumentException 引数がnullの場合
      */
     public VariableContext(RPGPlayer rpgPlayer) {
+        if (rpgPlayer == null) {
+            throw new IllegalArgumentException("rpgPlayer cannot be null");
+        }
         this.rpgPlayer = rpgPlayer;
         this.customVariables = new ConcurrentHashMap<>();
         this.skillLevel = 1;
@@ -65,8 +69,12 @@ public class VariableContext {
      *
      * @param rpgPlayer RPGプレイヤー（ステータス取得用）
      * @param skillLevel スキルレベル
+     * @throws IllegalArgumentException 引数がnullの場合
      */
     public VariableContext(RPGPlayer rpgPlayer, int skillLevel) {
+        if (rpgPlayer == null) {
+            throw new IllegalArgumentException("rpgPlayer cannot be null");
+        }
         this.rpgPlayer = rpgPlayer;
         this.customVariables = new ConcurrentHashMap<>();
         this.skillLevel = skillLevel;
@@ -149,9 +157,15 @@ public class VariableContext {
      *
      * @param name 変数名
      * @param value 文字列値（数値にパース可能であること）
-     * @throws NumberFormatException 数値パースに失敗した場合
+     * @throws IllegalArgumentException 引数がnullまたは数値パースに失敗した場合
      */
     public void setCustomVariable(String name, String value) {
+        if (name == null) {
+            throw new IllegalArgumentException("variable name cannot be null");
+        }
+        if (value == null) {
+            throw new IllegalArgumentException("variable value cannot be null");
+        }
         double parsedValue = parseNumericString(value);
         customVariables.put(name, parsedValue);
     }

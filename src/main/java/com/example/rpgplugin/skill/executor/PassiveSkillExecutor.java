@@ -48,6 +48,9 @@ public class PassiveSkillExecutor implements SkillExecutor {
         private final PotionEffect potionEffect;
 
         public PassiveEffect(Skill skill, int level, StatModifier modifier, PotionEffect potionEffect) {
+            if (skill == null) {
+                throw new IllegalArgumentException("skill cannot be null");
+            }
             this.skill = skill;
             this.level = level;
             this.modifier = modifier;
@@ -77,8 +80,18 @@ public class PassiveSkillExecutor implements SkillExecutor {
      * @param plugin プラグインインスタンス
      * @param skillManager スキルマネージャー
      * @param playerManager プレイヤーマネージャー
+     * @throws IllegalArgumentException 引数がnullの場合
      */
     public PassiveSkillExecutor(RPGPlugin plugin, SkillManager skillManager, PlayerManager playerManager) {
+        if (plugin == null) {
+            throw new IllegalArgumentException("plugin cannot be null");
+        }
+        if (skillManager == null) {
+            throw new IllegalArgumentException("skillManager cannot be null");
+        }
+        if (playerManager == null) {
+            throw new IllegalArgumentException("playerManager cannot be null");
+        }
         this.plugin = plugin;
         this.skillManager = skillManager;
         this.playerManager = playerManager;
@@ -114,10 +127,12 @@ public class PassiveSkillExecutor implements SkillExecutor {
 
         // ステータス補正値を計算
         StatModifier modifier = null;
-        if (skill.getDamage() != null && skill.getDamage().getStatMultiplier() != null) {
+        if (skill.getDamage() != null) {
             Stat stat = skill.getDamage().getStatMultiplier();
-            double bonus = skill.getDamage().calculateDamage(0, level);
-            modifier = new StatModifier(skill.getId(), StatModifier.Type.FLAT, bonus);
+            if (stat != null) {
+                double bonus = skill.getDamage().calculateDamage(0, level);
+                modifier = new StatModifier(skill.getId(), StatModifier.Type.FLAT, bonus);
+            }
         }
 
         // ポーション効果を作成（必要に応じて）
@@ -201,7 +216,7 @@ public class PassiveSkillExecutor implements SkillExecutor {
             int level = entry.getValue();
 
             Skill skill = skillManager.getSkill(skillId);
-            if (skill != null && skill.isPassive()) {
+            if (skill != null && skill.isPassive() && skill.getId() != null) {
                 applyPassive(player, skill, level);
             }
         }

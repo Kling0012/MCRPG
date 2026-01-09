@@ -46,9 +46,15 @@ public final class TargetSelector {
             return result;
         }
 
+        // candidatesのnull安全
+        if (candidates == null) {
+            candidates = new ArrayList<>();
+        }
+
         TargetType type = config.getType();
-        Location origin = caster.getLocation();
-        Vector direction = caster.getLocation().getDirection();
+        Location casterLocation = caster.getLocation();
+        Location origin = casterLocation;
+        Vector direction = casterLocation.getDirection();
 
         switch (type) {
             case SELF:
@@ -101,7 +107,7 @@ public final class TargetSelector {
 
         // 敵対MOBのみフィルタリング
         List<Entity> hostiles = candidates.stream()
-                .filter(e -> !(e instanceof Player))
+                .filter(e -> e != null && !(e instanceof Player))
                 .filter(e -> isInRange(e, origin, direction, config))
                 .toList();
 
@@ -134,7 +140,7 @@ public final class TargetSelector {
 
         // 自分以外のエンティティをフィルタリング
         List<Entity> entities = candidates.stream()
-                .filter(e -> !e.getUniqueId().equals(caster.getUniqueId()))
+                .filter(e -> e != null && !e.getUniqueId().equals(caster.getUniqueId()))
                 .filter(e -> isInRange(e, origin, direction, config))
                 .toList();
 
@@ -159,6 +165,7 @@ public final class TargetSelector {
                                           List<Entity> candidates, Location origin,
                                           Vector direction, List<Entity> result) {
         List<Entity> inRange = candidates.stream()
+                .filter(e -> e != null)
                 .filter(e -> isInRange(e, origin, direction, config))
                 .toList();
 
@@ -196,6 +203,7 @@ public final class TargetSelector {
      */
     private static Optional<Entity> findNearest(Location origin, List<Entity> entities) {
         return entities.stream()
+                .filter(e -> e != null && e.getLocation() != null)
                 .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(origin)));
     }
 

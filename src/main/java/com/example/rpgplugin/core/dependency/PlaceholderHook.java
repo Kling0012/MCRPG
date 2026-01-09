@@ -52,7 +52,8 @@ public class PlaceholderHook extends PlaceholderExpansion {
 	@Override
 	@NotNull
 	public String getAuthor() {
-		return String.join(", ", plugin.getDescription().getAuthors());
+		List<String> authors = plugin.getDescription().getAuthors();
+		return (authors == null || authors.isEmpty()) ? "Unknown" : String.join(", ", authors);
 	}
 
 	@Override

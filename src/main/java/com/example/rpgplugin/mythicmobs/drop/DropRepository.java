@@ -303,7 +303,18 @@ public class DropRepository { // implements IRepository<DropData, Integer> { // 
     private DropData mapResultSetToDrop(ResultSet rs) throws SQLException {
         DropData drop = new DropData();
         drop.setId(rs.getInt("id"));
-        drop.setPlayerUuid(UUID.fromString(rs.getString("player_uuid")));
+
+        // UUIDのパース例外処理
+        String uuidStr = rs.getString("player_uuid");
+        if (uuidStr == null) {
+            throw new SQLException("player_uuid is null in database");
+        }
+        try {
+            drop.setPlayerUuid(UUID.fromString(uuidStr));
+        } catch (IllegalArgumentException e) {
+            throw new SQLException("Invalid UUID format in database: " + uuidStr, e);
+        }
+
         drop.setMobId(rs.getString("mob_id"));
         drop.setItemData(rs.getString("item_data"));
         drop.setDroppedAt(rs.getLong("dropped_at"));

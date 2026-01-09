@@ -48,50 +48,57 @@ public class AuctionManager {
      * @return 作成されたオークション、失敗時null
      */
     public Auction createAuction(AuctionListing listing) {
-        try (Connection conn = dbManager.getConnection()) {
-            // オークションを作成
-            String sql = """
-                INSERT INTO auction_listings (
-                    seller_uuid, seller_name, item_data, starting_price,
-                    duration_seconds, created_at, expires_at, is_active
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """;
+        try {
+            Connection conn = dbManager.getConnection();
+            if (conn == null) {
+                logger.severe("データベース接続の取得に失敗しました");
+                return null;
+            }
+            try (Connection connection = conn) {
+                // オークションを作成
+                String sql = """
+                    INSERT INTO auction_listings (
+                        seller_uuid, seller_name, item_data, starting_price,
+                        duration_seconds, created_at, expires_at, is_active
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
 
-            try (PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-                stmt.setString(1, listing.getSellerUuid().toString());
-                stmt.setString(2, listing.getSellerName());
-                stmt.setString(3, serializeItemStack(listing.getItem()));
-                stmt.setDouble(4, listing.getStartingPrice());
-                stmt.setInt(5, listing.getDurationSeconds());
-                stmt.setLong(6, listing.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond());
-                stmt.setLong(7, listing.calculateExpiration().atZone(ZoneId.systemDefault()).toEpochSecond());
-                stmt.setBoolean(8, true);
+                try (PreparedStatement stmt = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+                    stmt.setString(1, listing.getSellerUuid().toString());
+                    stmt.setString(2, listing.getSellerName());
+                    stmt.setString(3, serializeItemStack(listing.getItem()));
+                    stmt.setDouble(4, listing.getStartingPrice());
+                    stmt.setInt(5, listing.getDurationSeconds());
+                    stmt.setLong(6, listing.getCreatedAt().atZone(ZoneId.systemDefault()).toEpochSecond());
+                    stmt.setLong(7, listing.calculateExpiration().atZone(ZoneId.systemDefault()).toEpochSecond());
+                    stmt.setBoolean(8, true);
 
-                int affectedRows = stmt.executeUpdate();
-                if (affectedRows == 0) {
-                    logger.severe("オークション作成に失敗: 行が挿入されませんでした");
-                    return null;
-                }
+                    int affectedRows = stmt.executeUpdate();
+                    if (affectedRows == 0) {
+                        logger.severe("オークション作成に失敗: 行が挿入されませんでした");
+                        return null;
+                    }
 
-                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        int auctionId = generatedKeys.getInt(1);
+                    try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            int auctionId = generatedKeys.getInt(1);
 
-                        Auction auction = new Auction(
-                                auctionId,
-                                listing.getSellerUuid(),
-                                listing.getSellerName(),
-                                listing.getItem(),
-                                listing.getStartingPrice(),
-                                listing.getCreatedAt(),
-                                listing.calculateExpiration()
-                        );
+                            Auction auction = new Auction(
+                                    auctionId,
+                                    listing.getSellerUuid(),
+                                    listing.getSellerName(),
+                                    listing.getItem(),
+                                    listing.getStartingPrice(),
+                                    listing.getCreatedAt(),
+                                    listing.calculateExpiration()
+                            );
 
-                        activeAuctions.put(auctionId, auction);
-                        logger.info(String.format("オークションを作成しました: ID=%d, 出品者=%s, 価格=%.2f",
-                                auctionId, listing.getSellerName(), listing.getStartingPrice()));
+                            activeAuctions.put(auctionId, auction);
+                            logger.info(String.format("オークションを作成しました: ID=%d, 出品者=%s, 価格=%.2f",
+                                    auctionId, listing.getSellerName(), listing.getStartingPrice()));
 
-                        return auction;
+                            return auction;
+                        }
                     }
                 }
             }
@@ -262,36 +269,52 @@ public class AuctionManager {
             AND expires_at > strftime('%s', 'now')
         """;
 
-        try (Connection conn = dbManager.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+        try {
+            Connection conn = dbManager.getConnection();
+            if (conn == null) {
+                logger.severe("データベース接続の取得に失敗しました（オークションロード）");
+                return;
+            }
+            try (Connection connection = conn;
+                 PreparedStatement stmt = connection.prepareStatement(sql);
+                 ResultSet rs = stmt.executeQuery()) {
 
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                UUID sellerUuid = UUID.fromString(rs.getString("seller_uuid"));
-                String sellerName = rs.getString("seller_name");
-                ItemStack item = deserializeItemStack(rs.getString("item_data"));
-                double startingPrice = rs.getDouble("starting_price");
-                double currentBid = rs.getDouble("current_bid");
-                String bidderStr = rs.getString("current_bidder");
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    UUID sellerUuid;
+                    try {
+                        sellerUuid = UUID.fromString(rs.getString("seller_uuid"));
+                    } catch (IllegalArgumentException e) {
+                        logger.severe("無効なseller_uuid: " + rs.getString("seller_uuid"));
+                        continue;
+                    }
+                    String sellerName = rs.getString("seller_name");
+                    ItemStack item = deserializeItemStack(rs.getString("item_data"));
+                    double startingPrice = rs.getDouble("starting_price");
+                    double currentBid = rs.getDouble("current_bid");
+                    String bidderStr = rs.getString("current_bidder");
 
-                long createdAtEpoch = rs.getLong("created_at");
-                long expiresAtEpoch = rs.getLong("expires_at");
+                    long createdAtEpoch = rs.getLong("created_at");
+                    long expiresAtEpoch = rs.getLong("expires_at");
 
-                LocalDateTime createdAt = LocalDateTime.ofEpochSecond(createdAtEpoch, 0, ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now()));
-                LocalDateTime expiresAt = LocalDateTime.ofEpochSecond(expiresAtEpoch, 0, ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now()));
+                    LocalDateTime createdAt = LocalDateTime.ofEpochSecond(createdAtEpoch, 0, ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now()));
+                    LocalDateTime expiresAt = LocalDateTime.ofEpochSecond(expiresAtEpoch, 0, ZoneId.systemDefault().getRules().getOffset(LocalDateTime.now()));
 
-                Auction auction = new Auction(id, sellerUuid, sellerName, item, startingPrice, createdAt, expiresAt);
+                    Auction auction = new Auction(id, sellerUuid, sellerName, item, startingPrice, createdAt, expiresAt);
 
-                if (bidderStr != null) {
-                    auction.placeBid(UUID.fromString(bidderStr), currentBid);
+                    if (bidderStr != null) {
+                        try {
+                            auction.placeBid(UUID.fromString(bidderStr), currentBid);
+                        } catch (IllegalArgumentException e) {
+                            logger.warning("無効なbidder_uuidをスキップ: " + bidderStr);
+                        }
+                    }
+
+                    activeAuctions.put(id, auction);
                 }
 
-                activeAuctions.put(id, auction);
+                logger.info("アクティブなオークションをロード: " + activeAuctions.size() + "件");
             }
-
-            logger.info("アクティブなオークションをロード: " + activeAuctions.size() + "件");
-
         } catch (SQLException e) {
             logger.severe("オークションロード中にエラー: " + e.getMessage());
             e.printStackTrace();
@@ -354,29 +377,36 @@ public class AuctionManager {
      */
     private void saveBidToDatabase(int auctionId, UUID bidderUuid, double amount) {
         dbManager.executeAsync(() -> {
-            try (Connection conn = dbManager.getConnection()) {
-                String sql = """
-                    UPDATE auction_listings
-                    SET current_bid = ?, current_bidder = ?
-                    WHERE id = ?
-                """;
-                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    stmt.setDouble(1, amount);
-                    stmt.setString(2, bidderUuid.toString());
-                    stmt.setInt(3, auctionId);
-                    stmt.executeUpdate();
+            try {
+                Connection conn = dbManager.getConnection();
+                if (conn == null) {
+                    logger.warning("データベース接続の取得に失敗しました（入札保存）");
+                    return;
                 }
+                try (Connection connection = conn) {
+                    String sql = """
+                        UPDATE auction_listings
+                        SET current_bid = ?, current_bidder = ?
+                        WHERE id = ?
+                    """;
+                    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                        stmt.setDouble(1, amount);
+                        stmt.setString(2, bidderUuid.toString());
+                        stmt.setInt(3, auctionId);
+                        stmt.executeUpdate();
+                    }
 
-                // 入札履歴にも記録
-                String bidHistorySql = """
-                    INSERT INTO auction_bids (auction_id, bidder_uuid, bid_amount)
-                    VALUES (?, ?, ?)
-                """;
-                try (PreparedStatement stmt = conn.prepareStatement(bidHistorySql)) {
-                    stmt.setInt(1, auctionId);
-                    stmt.setString(2, bidderUuid.toString());
-                    stmt.setDouble(3, amount);
-                    stmt.executeUpdate();
+                    // 入札履歴にも記録
+                    String bidHistorySql = """
+                        INSERT INTO auction_bids (auction_id, bidder_uuid, bid_amount)
+                        VALUES (?, ?, ?)
+                    """;
+                    try (PreparedStatement stmt = connection.prepareStatement(bidHistorySql)) {
+                        stmt.setInt(1, auctionId);
+                        stmt.setString(2, bidderUuid.toString());
+                        stmt.setDouble(3, amount);
+                        stmt.executeUpdate();
+                    }
                 }
             } catch (SQLException e) {
                 logger.severe("入札保存中にエラー: " + e.getMessage());
@@ -389,12 +419,19 @@ public class AuctionManager {
      */
     private void updateExpirationInDatabase(int auctionId, LocalDateTime newExpiration) {
         dbManager.executeAsync(() -> {
-            try (Connection conn = dbManager.getConnection()) {
-                String sql = "UPDATE auction_listings SET expires_at = ? WHERE id = ?";
-                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    stmt.setLong(1, newExpiration.atZone(ZoneId.systemDefault()).toEpochSecond());
-                    stmt.setInt(2, auctionId);
-                    stmt.executeUpdate();
+            try {
+                Connection conn = dbManager.getConnection();
+                if (conn == null) {
+                    logger.warning("データベース接続の取得に失敗しました（有効期限更新）");
+                    return;
+                }
+                try (Connection connection = conn) {
+                    String sql = "UPDATE auction_listings SET expires_at = ? WHERE id = ?";
+                    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                        stmt.setLong(1, newExpiration.atZone(ZoneId.systemDefault()).toEpochSecond());
+                        stmt.setInt(2, auctionId);
+                        stmt.executeUpdate();
+                    }
                 }
             } catch (SQLException e) {
                 logger.severe("有効期限更新中にエラー: " + e.getMessage());
@@ -407,12 +444,19 @@ public class AuctionManager {
      */
     private void updateAuctionStatusInDatabase(int auctionId, boolean isActive) {
         dbManager.executeAsync(() -> {
-            try (Connection conn = dbManager.getConnection()) {
-                String sql = "UPDATE auction_listings SET is_active = ? WHERE id = ?";
-                try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-                    stmt.setBoolean(1, isActive);
-                    stmt.setInt(2, auctionId);
-                    stmt.executeUpdate();
+            try {
+                Connection conn = dbManager.getConnection();
+                if (conn == null) {
+                    logger.warning("データベース接続の取得に失敗しました（ステータス更新）");
+                    return;
+                }
+                try (Connection connection = conn) {
+                    String sql = "UPDATE auction_listings SET is_active = ? WHERE id = ?";
+                    try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                        stmt.setBoolean(1, isActive);
+                        stmt.setInt(2, auctionId);
+                        stmt.executeUpdate();
+                    }
                 }
             } catch (SQLException e) {
                 logger.severe("ステータス更新中にエラー: " + e.getMessage());

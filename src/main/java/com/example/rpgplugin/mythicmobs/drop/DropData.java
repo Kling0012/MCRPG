@@ -263,18 +263,23 @@ public class DropData implements Serializable {
             String key = keyValue[0].replaceAll("[\"{}]", "").trim();
             String value = keyValue[1].replaceAll("[\"{}]", "").trim();
 
-            switch (key) {
-                case "id" -> id = Integer.parseInt(value);
-                case "playerUuid" -> playerUuid = UUID.fromString(value);
-                case "mobId" -> mobId = value;
-                case "itemData" -> itemData = value;
-                case "droppedAt" -> droppedAt = Long.parseLong(value);
-                case "claimed" -> claimed = Boolean.parseBoolean(value);
-                case "expiresAt" -> {
-                    if (!value.equals("null")) {
-                        expiresAt = Long.parseLong(value);
+            try {
+                switch (key) {
+                    case "id" -> id = Integer.parseInt(value);
+                    case "playerUuid" -> playerUuid = UUID.fromString(value);
+                    case "mobId" -> mobId = value;
+                    case "itemData" -> itemData = value;
+                    case "droppedAt" -> droppedAt = Long.parseLong(value);
+                    case "claimed" -> claimed = Boolean.parseBoolean(value);
+                    case "expiresAt" -> {
+                        if (!value.equals("null")) {
+                            expiresAt = Long.parseLong(value);
+                        }
                     }
                 }
+            } catch (IllegalArgumentException | NumberFormatException e) {
+                java.util.logging.Logger.getLogger("DropData")
+                        .warning("Failed to parse field: " + key + " = " + value);
             }
         }
     }

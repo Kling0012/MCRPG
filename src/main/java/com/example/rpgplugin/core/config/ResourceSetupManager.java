@@ -237,6 +237,12 @@ public class ResourceSetupManager {
                 return false;
             }
 
+            // 親ディレクトリが存在しない場合は作成
+            File parentDir = targetFile.getParentFile();
+            if (parentDir != null && !parentDir.exists()) {
+                parentDir.mkdirs();
+            }
+
             try (FileOutputStream os = new FileOutputStream(targetFile)) {
                 byte[] buffer = new byte[1024];
                 int length;

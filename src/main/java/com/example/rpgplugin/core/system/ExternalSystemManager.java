@@ -112,9 +112,7 @@ public class ExternalSystemManager {
     public void shutdown() {
         plugin.getLogger().info("[ExternalSystem] シャットダウンを開始します");
 
-        if (mythicMobsManager != null) {
-            mythicMobsManager.cleanup();
-        }
+        mythicMobsManager.cleanup();
 
         plugin.getLogger().info("[ExternalSystem] シャットダウンが完了しました");
     }

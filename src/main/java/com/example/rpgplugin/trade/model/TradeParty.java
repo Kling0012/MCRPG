@@ -74,13 +74,19 @@ public class TradeParty {
     }
 
     /**
-     * プレイヤーを取得
-     *
-     * @return プレイヤー（オンラインの場合）
-     */
-    public Player getPlayer() {
-        return player;
-    }
+ * プレイヤーを取得
+ *
+ * <p>プレイヤーがオンラインの場合はPlayerインスタンスを返します。
+ * プレイヤーがオフラインの場合、またはupdatePlayer()で更新されていない場合はnullを返す可能性があります。</p>
+ *
+ * <p>null安全な処理を行う場合は、{@link #isOnline()}メソッドを先に呼び出してください。</p>
+ *
+ * @return プレイヤー（オンラインの場合）、それ以外の場合はnull
+ * @see #isOnline()
+ */
+public Player getPlayer() {
+    return player;
+}
 
     /**
      * オファーを取得

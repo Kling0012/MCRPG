@@ -87,6 +87,11 @@ public class APICommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
 
+        // 防御的チェック
+        if (args == null || args.length == 0) {
+            return completions;
+        }
+
         if (args.length == 1) {
             // 第一引数: サブコマンドまたはアクション
             completions.add("help");

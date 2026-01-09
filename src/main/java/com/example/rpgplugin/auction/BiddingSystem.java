@@ -20,6 +20,16 @@ public class BiddingSystem {
      * @return 入札結果
      */
     public BidResult placeBid(Player bidder, Auction auction, double amount) {
+        // nullチェック
+        if (bidder == null) {
+            return new BidResult(Auction.BidResult.FAIL_AUCTION_NOT_ACTIVE,
+                    0, "入札者情報が無効です");
+        }
+        if (auction == null) {
+            return new BidResult(Auction.BidResult.FAIL_AUCTION_NOT_ACTIVE,
+                    0, "オークションが見つかりません");
+        }
+
         // ルール1: オークションが有効か確認
         if (!auction.isActive()) {
             return new BidResult(Auction.BidResult.FAIL_AUCTION_NOT_ACTIVE,

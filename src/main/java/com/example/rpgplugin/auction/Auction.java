@@ -36,6 +36,9 @@ public class Auction {
      */
     public Auction(int id, UUID sellerUuid, String sellerName, ItemStack item,
                    double startingPrice, LocalDateTime createdAt, LocalDateTime expiresAt) {
+        if (item == null) {
+            throw new IllegalArgumentException("アイテムはnullであってはなりません");
+        }
         this.id = id;
         this.sellerUuid = sellerUuid;
         this.sellerName = sellerName;

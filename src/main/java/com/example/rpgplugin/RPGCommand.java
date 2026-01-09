@@ -293,17 +293,24 @@ private void handleSkillCommand(Player player) {
         return;
     }
 
-    // Phase14: 新しいコンストラクタを使用（自動更新対応）
-    // SkillTreeRegistryから自動的にスキルツリーを取得
-    SkillMenu menu = new SkillMenu(RPGPlugin.getInstance(), player);
+    try {
+        // Phase14: 新しいコンストラクタを使用（自動更新対応）
+        // SkillTreeRegistryから自動的にスキルツリーを取得
+        SkillMenu menu = new SkillMenu(RPGPlugin.getInstance(), player);
 
-    // リスナーに登録
-    SkillMenuListener listener = RPGPlugin.getInstance().getSkillMenuListener();
-    if (listener != null) {
-        listener.registerMenu(player, menu);
+        // リスナーに登録
+        SkillMenuListener listener = RPGPlugin.getInstance().getSkillMenuListener();
+        if (listener != null) {
+            listener.registerMenu(player, menu);
+        }
+
+        menu.open();
+    } catch (Exception e) {
+        player.sendMessage(ChatColor.RED + "スキルメニューを開けませんでした");
+        RPGPlugin.getInstance().getLogger().warning(
+            "Failed to open skill menu for " + player.getName() + ": " + e.getMessage()
+        );
     }
-
-    menu.open();
 }
 
     /**

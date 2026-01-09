@@ -80,8 +80,15 @@ public class DropHandler {
                 ItemStack itemStack = dropItem.createItemStack();
                 applyDropMetadata(itemStack, player, dropItem);
 
+                // ワールドの取得とnullチェック
+                World world = location.getWorld();
+                if (world == null) {
+                    logger.warning("Cannot drop item - world is null for location: " + location);
+                    continue;
+                }
+
                 // アイテムをワールドにドロップ
-                location.getWorld().dropItemNaturally(location, itemStack);
+                world.dropItemNaturally(location, itemStack);
 
                 // データベースに記録
                 DropData dropData = createDropData(player, mobId, itemStack, dropItem);

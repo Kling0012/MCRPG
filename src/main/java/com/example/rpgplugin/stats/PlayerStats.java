@@ -90,56 +90,64 @@ public class PlayerStats {
     }
 
     /**
-     * ステータスにポイントを配分
-     *
-     * @param stat  対象ステータス
-     * @param points 配分ポイント数
-     * @return 実際に配分されたポイント数（残りポイント不足の場合は少なくなる）
-     */
-    public int allocatePoint(Stat stat, int points) {
-        if (points <= 0) {
-            return 0;
-        }
+	 * ステータスにポイントを配分
+	 *
+	 * @param stat  対象ステータス
+	 * @param points 配分ポイント数
+	 * @return 実際に配分されたポイント数（残りポイント不足の場合は少なくなる）
+	 * @throws IllegalArgumentException statがnullの場合
+	 */
+	public int allocatePoint(Stat stat, int points) {
+		if (stat == null) {
+			throw new IllegalArgumentException("Stat cannot be null");
+		}
+		if (points <= 0) {
+			return 0;
+		}
 
-        // 残りポイントを考慮
-        int actualPoints = Math.min(points, availablePoints);
-        if (actualPoints <= 0) {
-            return 0;
-        }
+		// 残りポイントを考慮
+		int actualPoints = Math.min(points, availablePoints);
+		if (actualPoints <= 0) {
+			return 0;
+		}
 
-        // ポイント配分
-        int currentValue = getBaseStat(stat);
-        setBaseStat(stat, currentValue + actualPoints);
-        availablePoints -= actualPoints;
+		// ポイント配分
+		int currentValue = getBaseStat(stat);
+		setBaseStat(stat, currentValue + actualPoints);
+		availablePoints -= actualPoints;
 
-        return actualPoints;
-    }
+		return actualPoints;
+	}
 
     /**
-     * ステータスからポイントを削除
-     *
-     * @param stat  対象ステータス
-     * @param points 削除ポイント数
-     * @return 実際に削除されたポイント数（現在値不足の場合は少なくなる）
-     */
-    public int deallocatePoint(Stat stat, int points) {
-        if (points <= 0) {
-            return 0;
-        }
+	 * ステータスからポイントを削除
+	 *
+	 * @param stat  対象ステータス
+	 * @param points 削除ポイント数
+	 * @return 実際に削除されたポイント数（現在値不足の場合は少なくなる）
+	 * @throws IllegalArgumentException statがnullの場合
+	 */
+	public int deallocatePoint(Stat stat, int points) {
+		if (stat == null) {
+			throw new IllegalArgumentException("Stat cannot be null");
+		}
+		if (points <= 0) {
+			return 0;
+		}
 
-        int currentValue = getBaseStat(stat);
-        int actualPoints = Math.min(points, currentValue);
+		int currentValue = getBaseStat(stat);
+		int actualPoints = Math.min(points, currentValue);
 
-        if (actualPoints <= 0) {
-            return 0;
-        }
+		if (actualPoints <= 0) {
+			return 0;
+		}
 
-        // ポイント削除
-        setBaseStat(stat, currentValue - actualPoints);
-        availablePoints += actualPoints;
+		// ポイント削除
+		setBaseStat(stat, currentValue - actualPoints);
+		availablePoints += actualPoints;
 
-        return actualPoints;
-    }
+		return actualPoints;
+	}
 
     /**
      * すべての手動配分ステータスを取得

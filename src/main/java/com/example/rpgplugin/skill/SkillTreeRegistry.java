@@ -239,7 +239,9 @@ public class SkillTreeRegistry {
                 listener.onTreeUpdated(classId);
             } catch (Exception e) {
                 // リスナーの例外は無視して続行
-                e.printStackTrace();
+                java.util.logging.Logger.getLogger(SkillTreeRegistry.class.getName())
+                        .log(java.util.logging.Level.WARNING,
+                                "リスナー通知中に例外が発生しました: classId=" + classId, e);
             }
         }
     }

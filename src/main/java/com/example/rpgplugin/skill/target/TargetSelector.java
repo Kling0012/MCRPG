@@ -46,9 +46,15 @@ public final class TargetSelector {
             return result;
         }
 
+        // candidatesのnull安全
+        if (candidates == null) {
+            candidates = new ArrayList<>();
+        }
+
         TargetType type = config.getType();
-        Location origin = caster.getLocation();
-        Vector direction = caster.getLocation().getDirection();
+        Location casterLocation = caster.getLocation();
+        Location origin = casterLocation;
+        Vector direction = casterLocation.getDirection();
 
         switch (type) {
             case SELF:
@@ -144,6 +150,7 @@ public final class TargetSelector {
         // Mobのみフィルタリング
         List<Entity> mobs = filterByEntityType(candidates, EntityTypeFilter.MOB_ONLY, caster);
         mobs = mobs.stream()
+                .filter(e -> e != null)
                 .filter(e -> isInRange(e, origin, direction, config))
                 .toList();
 
@@ -210,6 +217,7 @@ public final class TargetSelector {
         // EntityTypeFilterに基づいて候補をフィルタリング
         List<Entity> filtered = filterByEntityType(candidates, config.getEntityTypeFilter(), caster);
         filtered = filtered.stream()
+                .filter(e -> e != null)
                 .filter(e -> !e.getUniqueId().equals(caster.getUniqueId()))
                 .filter(e -> isInRange(e, origin, direction, config))
                 .toList();
@@ -241,6 +249,7 @@ public final class TargetSelector {
 
         // 範囲内のエンティティを選択
         List<Entity> inRange = filtered.stream()
+                .filter(e -> e != null)
                 .filter(e -> isInRange(e, origin, direction, config))
                 .filter(e -> includeSelf || !e.getUniqueId().equals(caster.getUniqueId()))
                 .toList();
@@ -289,6 +298,7 @@ public final class TargetSelector {
      */
     private static Optional<Entity> findNearest(Location origin, List<Entity> entities) {
         return entities.stream()
+                .filter(e -> e != null && e.getLocation() != null)
                 .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(origin)));
     }
 

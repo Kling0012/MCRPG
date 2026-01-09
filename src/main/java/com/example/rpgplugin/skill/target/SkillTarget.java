@@ -1,6 +1,7 @@
 package com.example.rpgplugin.skill.target;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * スキルのターゲット設定を表すクラス
@@ -118,6 +119,42 @@ public class SkillTarget {
      */
     public int getMaxTargetsOrUnlimited() {
         return maxTargets != null ? maxTargets : Integer.MAX_VALUE;
+    }
+
+    /**
+     * 扇状範囲設定をOptionalで取得します
+     *
+     * @return 扇状範囲設定
+     */
+    public Optional<ConeConfig> getConeAsOptional() {
+        return Optional.ofNullable(cone);
+    }
+
+    /**
+     * 四角形範囲設定をOptionalで取得します
+     *
+     * @return 四角形範囲設定
+     */
+    public Optional<RectConfig> getRectAsOptional() {
+        return Optional.ofNullable(rect);
+    }
+
+    /**
+     * 円形範囲設定をOptionalで取得します
+     *
+     * @return 円形範囲設定
+     */
+    public Optional<CircleConfig> getCircleAsOptional() {
+        return Optional.ofNullable(circle);
+    }
+
+    /**
+     * 単体ターゲット設定をOptionalで取得します
+     *
+     * @return 単体ターゲット設定
+     */
+    public Optional<SingleTargetConfig> getSingleTargetAsOptional() {
+        return Optional.ofNullable(singleTarget);
     }
 
     /**

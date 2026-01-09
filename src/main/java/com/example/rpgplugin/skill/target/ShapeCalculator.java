@@ -41,7 +41,11 @@ public final class ShapeCalculator {
         }
 
         Location entityLoc = entity.getLocation();
-        if (!origin.getWorld().equals(entityLoc.getWorld())) {
+        if (entityLoc == null) {
+            return false;
+        }
+
+        if (origin.getWorld() == null || !origin.getWorld().equals(entityLoc.getWorld())) {
             return false;
         }
 

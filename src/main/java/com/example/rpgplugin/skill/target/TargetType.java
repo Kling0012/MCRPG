@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill.target;
 
+import java.util.Optional;
+
 /**
  * スキルのターゲット選択方式を表す列挙型
  *
@@ -66,18 +68,30 @@ public enum TargetType {
      * IDから対応するTargetTypeを取得します
      *
      * @param id ターゲットタイプID
-     * @return 対応するTargetType、見つからない場合はnull
+     * @return 対応するTargetType、見つからない場合は空のOptional
      */
-    public static TargetType fromId(String id) {
+    public static Optional<TargetType> fromId(String id) {
         if (id == null) {
-            return null;
+            return Optional.empty();
         }
         for (TargetType type : values()) {
             if (type.id.equalsIgnoreCase(id)) {
-                return type;
+                return Optional.of(type);
             }
         }
-        return null;
+        return Optional.empty();
+    }
+
+    /**
+     * IDから対応するTargetTypeを取得します（レガシーメソッド）
+     *
+     * @param id ターゲットタイプID
+     * @return 対応するTargetType、見つからない場合はnull
+     * @deprecated {@link #fromId(String)}を使用してください
+     */
+    @Deprecated
+    public static TargetType fromIdOrNull(String id) {
+        return fromId(id).orElse(null);
     }
 
     /**

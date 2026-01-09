@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill.target;
 
+import java.util.Optional;
+
 /**
  * スキルエフェクトの範囲形状を表す列挙型
  *
@@ -46,18 +48,30 @@ public enum AreaShape {
      * IDから対応するAreaShapeを取得します
      *
      * @param id 形状ID
-     * @return 対応するAreaShape、見つからない場合はnull
+     * @return 対応するAreaShape、見つからない場合は空のOptional
      */
-    public static AreaShape fromId(String id) {
+    public static Optional<AreaShape> fromId(String id) {
         if (id == null) {
-            return null;
+            return Optional.empty();
         }
         for (AreaShape shape : values()) {
             if (shape.id.equalsIgnoreCase(id)) {
-                return shape;
+                return Optional.of(shape);
             }
         }
-        return null;
+        return Optional.empty();
+    }
+
+    /**
+     * IDから対応するAreaShapeを取得します（レガシーメソッド）
+     *
+     * @param id 形状ID
+     * @return 対応するAreaShape、見つからない場合はnull
+     * @deprecated {@link #fromId(String)}を使用してください
+     */
+    @Deprecated
+    public static AreaShape fromIdOrNull(String id) {
+        return fromId(id).orElse(null);
     }
 
     /**

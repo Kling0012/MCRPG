@@ -89,7 +89,7 @@ public class MythicMobsHook {
      * @return 利用可能な場合はtrue
      */
     public boolean isAvailable() {
-        return available && mythicBukkit != null && mythicPlugin != null;
+        return available && mythicBukkit != null;
     }
 
     /**

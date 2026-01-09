@@ -254,6 +254,11 @@ public class MobDropConfig {
 
             try {
                 String materialName = dropSection.getString("item");
+                if (materialName == null || materialName.trim().isEmpty()) {
+                    logger.warning("Missing material name in drop config");
+                    continue;
+                }
+
                 int amount = dropSection.getInt("amount", 1);
                 double chance = dropSection.getDouble("chance", 1.0);
                 boolean exclusive = dropSection.getBoolean("exclusive", false);

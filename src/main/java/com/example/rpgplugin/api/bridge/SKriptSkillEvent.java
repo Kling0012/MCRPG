@@ -6,6 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import java.util.Objects;
+
 /**
  * スキル発動カスタムイベント
  *
@@ -42,16 +44,17 @@ public class SKriptSkillEvent extends Event {
     /**
      * コンストラクタ
      *
-     * @param caster 発動プレイヤー
-     * @param skillId スキルID
-     * @param skill スキルインスタンス
+     * @param caster 発動プレイヤー（null不可）
+     * @param skillId スキルID（null不可）
+     * @param skill スキルインスタンス（null不可）
      * @param skillLevel スキルレベル
      * @param target ターゲットエンティティ（存在しない場合はnull）
+     * @throws IllegalArgumentException caster、skillId、またはskillがnullの場合
      */
     public SKriptSkillEvent(Player caster, String skillId, Skill skill, int skillLevel, Entity target) {
-        this.caster = caster;
-        this.skillId = skillId;
-        this.skill = skill;
+        this.caster = Objects.requireNonNull(caster, "Caster cannot be null");
+        this.skillId = Objects.requireNonNull(skillId, "Skill ID cannot be null");
+        this.skill = Objects.requireNonNull(skill, "Skill cannot be null");
         this.skillLevel = skillLevel;
         this.target = target;
         this.cancelled = false;
@@ -60,18 +63,19 @@ public class SKriptSkillEvent extends Event {
     /**
      * 非同期版コンストラクタ
      *
-     * @param caster 発動プレイヤー
-     * @param skillId スキルID
-     * @param skill スキルインスタンス
+     * @param caster 発動プレイヤー（null不可）
+     * @param skillId スキルID（null不可）
+     * @param skill スキルインスタンス（null不可）
      * @param skillLevel スキルレベル
      * @param target ターゲットエンティティ（存在しない場合はnull）
      * @param async 非同期かどうか
+     * @throws IllegalArgumentException caster、skillId、またはskillがnullの場合
      */
     public SKriptSkillEvent(Player caster, String skillId, Skill skill, int skillLevel, Entity target, boolean async) {
         super(async);
-        this.caster = caster;
-        this.skillId = skillId;
-        this.skill = skill;
+        this.caster = Objects.requireNonNull(caster, "Caster cannot be null");
+        this.skillId = Objects.requireNonNull(skillId, "Skill ID cannot be null");
+        this.skill = Objects.requireNonNull(skill, "Skill cannot be null");
         this.skillLevel = skillLevel;
         this.target = target;
         this.cancelled = false;

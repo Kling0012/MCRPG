@@ -99,12 +99,19 @@ public class SKriptBridge {
      * @return 処理結果
      */
     public boolean handleCall(CommandSender sender, String[] args) {
-        if (args.length == 0) {
+        // 引数のnullチェック
+        if (args == null || args.length == 0) {
             sendHelp(sender);
             return false;
         }
 
-        String action = args[0].toLowerCase();
+        String action = args[0];
+        if (action == null) {
+            sendHelp(sender);
+            return false;
+        }
+
+        action = action.toLowerCase();
         String[] actionArgs = new String[args.length - 1];
         System.arraycopy(args, 1, actionArgs, 0, actionArgs.length);
 

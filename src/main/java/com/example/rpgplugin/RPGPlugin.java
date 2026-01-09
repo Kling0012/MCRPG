@@ -50,8 +50,6 @@ public class RPGPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        instance = this;
-
         getLogger().info("========================================");
         getLogger().info(" RPGPlugin is starting...");
         getLogger().info(" Version: " + getDescription().getVersion());
@@ -93,6 +91,9 @@ public class RPGPlugin extends JavaPlugin {
             registerCommands();
             registerListeners();
 
+            // 初期化成功後にinstanceを設定
+            instance = this;
+
             getLogger().info("========================================");
             getLogger().info(" RPGPlugin has been enabled successfully!");
             getLogger().info(" Loaded modules: " + coreSystem.getModuleManager().getModuleCount());
@@ -101,6 +102,7 @@ public class RPGPlugin extends JavaPlugin {
         } catch (Exception e) {
             getLogger().severe("Failed to enable RPGPlugin:");
             e.printStackTrace();
+            // 初期化失敗時はinstanceを設定せず、プラグインを無効化
             getServer().getPluginManager().disablePlugin(this);
         }
     }
@@ -139,6 +141,9 @@ public class RPGPlugin extends JavaPlugin {
         } catch (Exception e) {
             getLogger().severe("Error during plugin shutdown:");
             e.printStackTrace();
+        } finally {
+            // プラグイン無効化時にinstanceをクリア
+            instance = null;
         }
     }
 

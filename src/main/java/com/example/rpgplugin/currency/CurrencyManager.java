@@ -98,55 +98,77 @@ public class CurrencyManager {
     }
 
     /**
-     * ゴールドを入金
-     *
-     * @param player プレイヤー
-     * @param amount 入金額
-     * @return 成功した場合はtrue
-     */
-    public boolean depositGold(Player player, double amount) {
-        if (amount <= 0) {
+ * ゴールドを入金
+ *
+ * @param player プレイヤー
+ * @param amount 入金額
+ * @return 成功した場合はtrue
+ */
+public boolean depositGold(Player player, double amount) {
+    if (amount <= 0) {
+        return false;
+    }
+
+    PlayerCurrency currency = currencyCache.get(player.getUniqueId());
+    if (currency == null) {
+        try {
+            currency = loadPlayerCurrency(player.getUniqueId());
+        } catch (Exception e) {
+            logger.severe("[Currency] Failed to load currency for " + player.getName() + ": " + e.getMessage());
             return false;
         }
+    }
 
-        PlayerCurrency currency = currencyCache.get(player.getUniqueId());
-        if (currency == null) {
+    // 二重チェック（loadPlayerCurrencyのフォールバック後も安全確保）
+    if (currency == null) {
+        logger.severe("[Currency] Currency is null after loading for " + player.getName());
+        return false;
+    }
+
+    currency.deposit(amount);
+    repository.saveAsync(currency);
+
+    logger.fine("[Currency] Deposited " + amount + "G to " + player.getName());
+    return true;
+}
+
+    /**
+ * ゴールドを出金
+ *
+ * @param player プレイヤー
+ * @param amount 出金額
+ * @return 成功した場合はtrue
+ */
+public boolean withdrawGold(Player player, double amount) {
+    if (amount <= 0) {
+        return false;
+    }
+
+    PlayerCurrency currency = currencyCache.get(player.getUniqueId());
+    if (currency == null) {
+        try {
             currency = loadPlayerCurrency(player.getUniqueId());
+        } catch (Exception e) {
+            logger.severe("[Currency] Failed to load currency for " + player.getName() + ": " + e.getMessage());
+            return false;
         }
+    }
 
-        currency.deposit(amount);
+    // 二重チェック（loadPlayerCurrencyのフォールバック後も安全確保）
+    if (currency == null) {
+        logger.severe("[Currency] Currency is null after loading for " + player.getName());
+        return false;
+    }
+
+    if (currency.withdraw(amount)) {
         repository.saveAsync(currency);
-
-        logger.fine("[Currency] Deposited " + amount + "G to " + player.getName());
+        logger.fine("[Currency] Withdrew " + amount + "G from " + player.getName());
         return true;
     }
 
-    /**
-     * ゴールドを出金
-     *
-     * @param player プレイヤー
-     * @param amount 出金額
-     * @return 成功した場合はtrue
-     */
-    public boolean withdrawGold(Player player, double amount) {
-        if (amount <= 0) {
-            return false;
-        }
-
-        PlayerCurrency currency = currencyCache.get(player.getUniqueId());
-        if (currency == null) {
-            currency = loadPlayerCurrency(player.getUniqueId());
-        }
-
-        if (currency.withdraw(amount)) {
-            repository.saveAsync(currency);
-            logger.fine("[Currency] Withdrew " + amount + "G from " + player.getName());
-            return true;
-        }
-
-        logger.fine("[Currency] Failed to withdraw " + amount + "G from " + player.getName() + " (insufficient balance)");
-        return false;
-    }
+    logger.fine("[Currency] Failed to withdraw " + amount + "G from " + player.getName() + " (insufficient balance)");
+    return false;
+}
 
     /**
      * ゴールド残高が足りているか確認
@@ -178,12 +200,34 @@ public class CurrencyManager {
 
         PlayerCurrency fromCurrency = currencyCache.get(from.getUniqueId());
         if (fromCurrency == null) {
-            fromCurrency = loadPlayerCurrency(from.getUniqueId());
+            try {
+                fromCurrency = loadPlayerCurrency(from.getUniqueId());
+            } catch (Exception e) {
+                logger.severe("[Currency] Failed to load currency for " + from.getName() + ": " + e.getMessage());
+                return false;
+            }
+        }
+
+        // 二重チェック
+        if (fromCurrency == null) {
+            logger.severe("[Currency] fromCurrency is null after loading for " + from.getName());
+            return false;
         }
 
         PlayerCurrency toCurrency = currencyCache.get(to.getUniqueId());
         if (toCurrency == null) {
-            toCurrency = loadPlayerCurrency(to.getUniqueId());
+            try {
+                toCurrency = loadPlayerCurrency(to.getUniqueId());
+            } catch (Exception e) {
+                logger.severe("[Currency] Failed to load currency for " + to.getName() + ": " + e.getMessage());
+                return false;
+            }
+        }
+
+        // 二重チェック
+        if (toCurrency == null) {
+            logger.severe("[Currency] toCurrency is null after loading for " + to.getName());
+            return false;
         }
 
         // デッドロック防止: UUID順でロックを取得
@@ -207,17 +251,9 @@ public class CurrencyManager {
 
                 toCurrency.deposit(amount);
 
-                // 同期保存（トランザクション整合性のため）
-                try {
-                    repository.save(fromCurrency);
-                    repository.save(toCurrency);
-                } catch (SQLException e) {
-                    // ロールバック: メモリ上の状態を元に戻す
-                    toCurrency.withdraw(amount);
-                    fromCurrency.deposit(amount);
-                    logger.severe("[Currency] Transfer failed during save, rolled back: " + e.getMessage());
-                    return false;
-                }
+                // 非同期保存
+                repository.saveAsync(fromCurrency);
+                repository.saveAsync(toCurrency);
 
                 logger.info("[Currency] Transferred " + amount + "G from " + from.getName() + " to " + to.getName());
                 return true;

@@ -389,49 +389,63 @@ public class TradeManager {
     }
 
     /**
-     * ゴールドを交換
-     *
-     * @param session トレードセッション
-     */
-    private void exchangeGold(TradeSession session) {
-        var p1 = session.getParty1();
-        var p2 = session.getParty2();
+ * ゴールドを交換
+ *
+ * @param session トレードセッション
+ * @throws IllegalStateException ゴールド交換が失敗した場合
+ */
+private void exchangeGold(TradeSession session) {
+    var p1 = session.getParty1();
+    var p2 = session.getParty2();
 
-        Player player1 = p1.getPlayer();
-        Player player2 = p2.getPlayer();
+    Player player1 = p1.getPlayer();
+    Player player2 = p2.getPlayer();
 
-        if (player1 == null || player2 == null) {
-            throw new IllegalStateException("Both players must be online");
+    if (player1 == null || player2 == null) {
+        throw new IllegalStateException("Both players must be online");
+    }
+
+    // CurrencyManagerを取得
+    com.example.rpgplugin.currency.CurrencyManager currencyManager = plugin.getCurrencyManager();
+    if (currencyManager == null) {
+        String errorMsg = "CurrencyManager is not available, cannot execute trade with gold";
+        logger.severe("[Trade] " + errorMsg);
+        throw new IllegalStateException(errorMsg);
+    }
+
+    double gold1 = p1.getOffer().getGoldAmount();
+    double gold2 = p2.getOffer().getGoldAmount();
+
+    if (gold1 > 0 || gold2 > 0) {
+        // P1のゴールドをP2に
+        if (gold1 > 0) {
+            if (!currencyManager.withdrawGold(player1, gold1)) {
+                throw new IllegalStateException("Failed to withdraw gold from player1");
+            }
+            if (!currencyManager.depositGold(player2, gold1)) {
+                // ロールバック
+                currencyManager.depositGold(player1, gold1);
+                throw new IllegalStateException("Failed to deposit gold to player2");
+            }
+            logger.info(String.format("[Trade] %s transferred %.2f gold to %s",
+                player1.getName(), gold1, player2.getName()));
         }
 
-        // CurrencyManagerを取得
-        com.example.rpgplugin.currency.CurrencyManager currencyManager = plugin.getCurrencyManager();
-        if (currencyManager == null) {
-            logger.warning("CurrencyManager is not available, skipping gold exchange");
-            return;
-        }
-
-        double gold1 = p1.getOffer().getGoldAmount();
-        double gold2 = p2.getOffer().getGoldAmount();
-
-        if (gold1 > 0 || gold2 > 0) {
-            // P1のゴールドをP2に
-            if (gold1 > 0) {
-                currencyManager.withdrawGold(player1, gold1);
-                currencyManager.depositGold(player2, gold1);
-                logger.info(String.format("[Trade] %s transferred %.2f gold to %s",
-                    player1.getName(), gold1, player2.getName()));
+        // P2のゴールドをP1に
+        if (gold2 > 0) {
+            if (!currencyManager.withdrawGold(player2, gold2)) {
+                throw new IllegalStateException("Failed to withdraw gold from player2");
             }
-
-            // P2のゴールドをP1に
-            if (gold2 > 0) {
-                currencyManager.withdrawGold(player2, gold2);
-                currencyManager.depositGold(player1, gold2);
-                logger.info(String.format("[Trade] %s transferred %.2f gold to %s",
-                    player2.getName(), gold2, player1.getName()));
+            if (!currencyManager.depositGold(player1, gold2)) {
+                // ロールバック
+                currencyManager.depositGold(player2, gold2);
+                throw new IllegalStateException("Failed to deposit gold to player1");
             }
+            logger.info(String.format("[Trade] %s transferred %.2f gold to %s",
+                player2.getName(), gold2, player1.getName()));
         }
     }
+}
 
     /**
      * セッションをキャンセル

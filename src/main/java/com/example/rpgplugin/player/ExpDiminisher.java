@@ -352,9 +352,12 @@ public class ExpDiminisher {
         }
 
         RPGClass rpgClass = classOpt.get();
-        int level = player.getLevel();
-
         RPGClass.ExpDiminish expDiminish = rpgClass.getExpDiminish();
+        if (expDiminish == null) {
+            return 0.0;
+        }
+
+        int level = player.getLevel();
         if (level < expDiminish.getStartLevel()) {
             return 0.0;
         }
@@ -375,6 +378,11 @@ public class ExpDiminisher {
         }
 
         RPGClass rpgClass = classOpt.get();
-        return rpgClass.getExpDiminish().getStartLevel();
+        RPGClass.ExpDiminish expDiminish = rpgClass.getExpDiminish();
+        if (expDiminish == null) {
+            return Integer.MAX_VALUE;
+        }
+
+        return expDiminish.getStartLevel();
     }
 }

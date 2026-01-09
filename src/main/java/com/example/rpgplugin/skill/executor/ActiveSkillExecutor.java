@@ -96,7 +96,7 @@ public class ActiveSkillExecutor implements SkillExecutor {
         // ダメージ計算と適用
         int targetsHit = 0;
         if (skill.getDamage() != null) {
-            double damage = calculateDamage(player, skill, level);
+            double damage = calculateDamage(rpgPlayer, skill, level);
 
             for (LivingEntity target : targets) {
                 if (isEnemy(target)) {
@@ -176,19 +176,14 @@ public class ActiveSkillExecutor implements SkillExecutor {
     /**
      * ダメージを計算します
      *
-     * @param player プレイヤー
+     * @param rpgPlayer RPGプレイヤー
      * @param skill スキル
      * @param level スキルレベル
      * @return 計算されたダメージ
      */
-    private double calculateDamage(Player player, Skill skill, int level) {
+    private double calculateDamage(RPGPlayer rpgPlayer, Skill skill, int level) {
         Skill.DamageCalculation damageConfig = skill.getDamage();
         if (damageConfig == null) {
-            return 0.0;
-        }
-
-        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
-        if (rpgPlayer == null) {
             return 0.0;
         }
 
@@ -277,6 +272,12 @@ public class ActiveSkillExecutor implements SkillExecutor {
             return false;
         }
 
+        // RPGプレイヤー取得
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer == null) {
+            return false;
+        }
+
         // ターゲットが有効かチェック
         if (!target.isValid()) {
             player.sendMessage(ChatColor.RED + "ターゲットが無効です");
@@ -290,7 +291,7 @@ public class ActiveSkillExecutor implements SkillExecutor {
 
         // ダメージ計算と適用
         if (skill.getDamage() != null && target instanceof LivingEntity) {
-            double damage = calculateDamage(player, skill, level);
+            double damage = calculateDamage(rpgPlayer, skill, level);
             LivingEntity livingTarget = (LivingEntity) target;
 
             // 敵対的かチェック
@@ -364,12 +365,14 @@ public class ActiveSkillExecutor implements SkillExecutor {
         Collection<LivingEntity> targets = getTargets(player, skill);
 
         // ダメージ計算と適用
+        int targetsHit = 0;
         if (skill.getDamage() != null) {
-            double damage = calculateDamage(player, skill, level);
+            double damage = calculateDamage(rpgPlayer, skill, level);
 
             for (LivingEntity target : targets) {
                 if (isEnemy(target)) {
                     target.damage(damage, player);
+                    targetsHit++;
                 }
             }
         }
@@ -409,7 +412,8 @@ public class ActiveSkillExecutor implements SkillExecutor {
         // メッセージ送信
         if (isShowMessage("show_cast_success")) {
             player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level
-                    + ChatColor.GRAY + " (" + costType.getDisplayName() + "消費)");
+                    + ChatColor.GRAY + " (" + costType.getDisplayName() + "消費)"
+                    + (targetsHit > 0 ? " [対象: " + targetsHit + "]" : ""));
         }
 
         return true;

@@ -8,6 +8,7 @@ import com.example.rpgplugin.stats.Stat;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Denizenブリッジクラス
@@ -62,10 +63,12 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.level]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @return レベル
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public int getLevel(Player player) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.getLevel(player);
     }
 
@@ -76,11 +79,13 @@ public class DenizenBridge {
      *
      * <p>ステータス指定: STR, INT, SPI, VIT, DEX</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param statName ステータス名
      * @return ステータス値
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public int getStat(Player player, String statName) {
+        Objects.requireNonNull(player, "Player cannot be null");
         Stat stat = parseStat(statName);
         if (stat == null) {
             return 0;
@@ -93,10 +98,12 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.stats]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @return ステータスマップ（Stat -> 値）
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public Map<Stat, Integer> getAllStats(Player player) {
+        Objects.requireNonNull(player, "Player cannot be null");
         var rpgPlayerOpt = api.getRPGPlayer(player);
         if (!rpgPlayerOpt.isPresent()) {
             return Map.of();
@@ -110,10 +117,12 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.class]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @return クラスID、未設定の場合は"none"
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public String getClassId(Player player) {
+        Objects.requireNonNull(player, "Player cannot be null");
         String classId = api.getClassId(player);
         return classId != null ? classId : "none";
     }
@@ -123,10 +132,12 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.class_rank]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @return クラスランク
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public int getClassRank(Player player) {
+        Objects.requireNonNull(player, "Player cannot be null");
         var rpgPlayerOpt = api.getRPGPlayer(player);
         if (!rpgPlayerOpt.isPresent()) {
             return 0;
@@ -139,11 +150,13 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.has_skill[<skillId>]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param skillId スキルID
      * @return 習得している場合は"true"、それ以外は"false"
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public String hasSkill(Player player, String skillId) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return String.valueOf(api.hasSkill(player, skillId));
     }
 
@@ -152,11 +165,13 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.skill_level[<skillId>]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param skillId スキルID
      * @return スキルレベル
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public int getSkillLevel(Player player, String skillId) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.getSkillLevel(player, skillId);
     }
 
@@ -165,10 +180,12 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.skill_count]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @return 習得済みスキル数
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public int getSkillCount(Player player) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.getAcquiredSkills(player).size();
     }
 
@@ -177,10 +194,12 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.gold]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @return ゴールド残高
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public double getGoldBalance(Player player) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.getGoldBalance(player);
     }
 
@@ -189,11 +208,13 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.has_gold[<amount>]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param amount 金額
      * @return 足りている場合は"true"、それ以外は"false"
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public String hasEnoughGold(Player player, double amount) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return String.valueOf(api.hasEnoughGold(player, amount));
     }
 
@@ -202,10 +223,12 @@ public class DenizenBridge {
      *
      * <p>Denizenタグ: {@code <player.tag[rpg.available_points]>}</p>
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @return 利用可能なポイント数
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public int getAvailablePoints(Player player) {
+        Objects.requireNonNull(player, "Player cannot be null");
         var rpgPlayerOpt = api.getRPGPlayer(player);
         if (!rpgPlayerOpt.isPresent()) {
             return 0;
@@ -218,11 +241,13 @@ public class DenizenBridge {
     /**
      * レベルを設定します
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param level レベル
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean setLevel(Player player, int level) {
+        Objects.requireNonNull(player, "Player cannot be null");
         api.setLevel(player, level);
         return true;
     }
@@ -230,12 +255,14 @@ public class DenizenBridge {
     /**
      * ステータスを設定します
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param statName ステータス名
      * @param value 値
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean setStat(Player player, String statName, int value) {
+        Objects.requireNonNull(player, "Player cannot be null");
         Stat stat = parseStat(statName);
         if (stat == null) {
             return false;
@@ -247,11 +274,13 @@ public class DenizenBridge {
     /**
      * ステータスポイントを追加します
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param points 追加するポイント数
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean addStatPoints(Player player, int points) {
+        Objects.requireNonNull(player, "Player cannot be null");
         api.addStatPoints(player, points);
         return true;
     }
@@ -259,98 +288,117 @@ public class DenizenBridge {
     /**
      * クラスを設定します
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param classId クラスID
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean setClass(Player player, String classId) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.setClass(player, classId);
     }
 
     /**
      * クラスをランクアップします
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean upgradeClassRank(Player player) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.upgradeClassRank(player);
     }
 
     /**
      * クラスアップが可能かチェックします
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @return 可能な場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean canUpgradeClass(Player player) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.canUpgradeClass(player);
     }
 
     /**
      * スキルを習得させます
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param skillId スキルID
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean unlockSkill(Player player, String skillId) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.unlockSkill(player, skillId);
     }
 
     /**
      * スキルを使用します
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param skillId スキルID
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean castSkill(Player player, String skillId) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.castSkill(player, skillId);
     }
 
     /**
      * ゴールドを入金します
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param amount 入金額
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean depositGold(Player player, double amount) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.depositGold(player, amount);
     }
 
     /**
      * ゴールドを出金します
      *
-     * @param player プレイヤー
+     * @param player プレイヤー（null不可）
      * @param amount 出金額
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException playerがnullの場合
      */
     public boolean withdrawGold(Player player, double amount) {
+        Objects.requireNonNull(player, "Player cannot be null");
         return api.withdrawGold(player, amount);
     }
 
     /**
      * プレイヤー間でゴールドを転送します
      *
-     * @param from 送金元プレイヤー
-     * @param to 送金先プレイヤー
+     * @param from 送金元プレイヤー（null不可）
+     * @param to 送金先プレイヤー（null不可）
      * @param amount 送金額
      * @return 成功した場合はtrue
+     * @throws IllegalArgumentException fromまたはtoがnullの場合
      */
     public boolean transferGold(Player from, Player to, double amount) {
+        Objects.requireNonNull(from, "Source player cannot be null");
+        Objects.requireNonNull(to, "Target player cannot be null");
         return api.transferGold(from, to, amount);
     }
 
     /**
      * ダメージを計算します
      *
-     * @param attacker 攻撃者
+     * @param attacker 攻撃者（null不可）
      * @param targetName ターゲット名
      * @return 計算されたダメージ
+     * @throws IllegalArgumentException attackerがnullの場合
      */
     public double calculateDamageByName(Player attacker, String targetName) {
+        Objects.requireNonNull(attacker, "Attacker cannot be null");
         var target = plugin.getServer().getPlayer(targetName);
         if (target == null) {
             return 0.0;

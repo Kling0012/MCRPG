@@ -1,0 +1,46 @@
+{
+  "title": "Effects",
+  "content": "{% tabs %}\n{% tab title=\"With one pattern\" %}\n\n{% tab title=\"With multiple patterns\" %}\n\n{% endtab %}\n{% endtabs %}\n\nSpecifying that an effect is `local` makes the effect only usable from within the script that it is defined in. This allows you to create effects that do not interfere with effects from other addons or scripts.\n\n{% hint style=\"info\" %}\nLocal effects are guaranteed to be parsed before other custom effects, but not necessarily before effects from other addons.\n{% endhint %}\n\n## Section `usable in`\n\nEach entry in this section should be either an imported class or a custom event (syntax: `custom event %string%`).\n\nThis condition will error if it is used outside of all the given events.\n\nCode in this section is executed whenever the effect is parsed. This section may be used to emit errors if the effect is used in an improper context.\n\nIf this section is included, you must also [`continue`](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/..#continue) if the effect was parsed successfully.\n\n{% hint style=\"info\" %}\nLocal variables created in this section are copied by-value to other sections.\n\nThe code in this section is executed whenever the effect is run. You can delay the execution of this effect with the following syntax:\n\nAfter the delay effect has been run, you can use delays in this section. If you're done using delays, you can use [the continue effect](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/..#continue) to continue the execution.",
+  "code_samples": [
+    {
+      "code": "[local] effect <pattern>:\n  usable in:\n    # events, optional\n  parse:\n    # code, optional\n  trigger:\n    # code, required",
+      "language": "unknown"
+    },
+    {
+      "code": "[local] effect:\n  usable in:\n    # events, optional\n  patterns:\n    # patterns, one per line\n  parse:\n    # code, optional\n  trigger:\n    # code, required",
+      "language": "unknown"
+    },
+    {
+      "code": "effect example:\n  parse:\n    set {_test} to 1\n    continue\n  trigger:\n    # {_test} always starts at 1 here\n    add 1 to {_test}\n    # 2 is always broadcast\n    broadcast \"%{_test}%\"",
+      "language": "unknown"
+    },
+    {
+      "code": "delay [the] [current] effect",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Flag `local`",
+      "id": "flag-`local`"
+    },
+    {
+      "level": "h2",
+      "text": "Section `usable in`",
+      "id": "section-`usable-in`"
+    },
+    {
+      "level": "h2",
+      "text": "Section `parse`",
+      "id": "section-`parse`"
+    },
+    {
+      "level": "h2",
+      "text": "Section `trigger`",
+      "id": "section-`trigger`"
+    }
+  ],
+  "url": "llms-txt#effects",
+  "links": []
+}

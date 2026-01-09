@@ -1,0 +1,85 @@
+{
+  "title": "Importing classes",
+  "content": "Many of skript-reflect's reflection features require a reference to a java class.\n\n## Importing classes at parse-time (recommended)\n\nIn most cases, the exact qualified name of the class you need is known without running the script. If this is the case, you should use skript-reflect's import block.\n\nSimilar to events, import blocks must be placed at the root of your script (no indentation before `import`). Imports must also be placed before the imported classes are referred to in your code, so we recommend you place your imports as far up in your script as possible.\n\nOnce you import a class through an import block, skript-reflect will create an expression allowing you to reference the java class by its simple name.\n\n{% hint style=\"info\" %}\nTo avoid conflicts, expressions created by import blocks are only available to the script that imported them. You must import java classes in each script that uses them.\n{% endhint %}\n\nIn most cases, expressions created by import blocks will not conflict with each other or with other Skript expressions. In cases where the class's simple name conflicts with another expression (such as with `Player` and `String`), you must import the class under an alias.\n\n{% hint style=\"info\" %}\nAliases must be valid Java identifiers!\n{% endhint %}\n\n### Importing NMS classes on Minecraft versions below 1.17\n\nSince NMS packages from Minecraft versions below 1.17 change with each Minecraft version, you should generate the package prefix dynamically. See [Computed Options](https://tpgamesnl.gitbook.io/skript-reflect/advanced/computed-options#using-computed-options-for-nms-imports) for more details.\n\n## Importing classes at runtime\n\nSometimes, the class reference you need cannot be determined until the script is executed.\n\n### From a fully qualified name\n\n### Importing in effect commands\n\nSince import blocks aren't available in effect commands, you can use the import effect (only available in effect commands):\n\nThis import will only be usable in following effect commands, until you stop the server.\n\n## Dealing with nested classes\n\nSometimes, a class may be nested inside another class. When referring to the fully qualified name of the class, the nested class is separated from the surrounding class using a `$` rather than a `.`\n\nFor example, [`org.bukkit.entity.EnderDragon.Phase`](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EnderDragon.Phase.html) would become `org.bukkit.entity.EnderDragon$Phase`\n\nNested classes usually have more general names than their surrounding classes, so you should import these under an alias.\n\nAnother way to import these classes, is to just import their enclosing class:",
+  "code_samples": [
+    {
+      "code": "import:\n    <fully qualified name> [as <alias>]\n    # multiple imports may be placed under the import section",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n    java.lang.System\n\ncommand /example:\n    trigger:\n        message \"%System%\" # java.lang.System\n        System.out.println(\"test\")",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n    java.lang.String as JavaString\n\ncommand /example:\n    trigger:\n        message JavaString.format(\"Hello %%s\", sender)",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] [java] class %text%",
+      "language": "unknown"
+    },
+    {
+      "code": "on script load:\n    set {Player} to the class \"org.bukkit.entity.Player\"\n    message \"%{Player}%\" # org.bukkit.entity.Player",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] [java] class[es] of %objects%\n%objects%'[s] [java] class[es]",
+      "language": "unknown"
+    },
+    {
+      "code": "command /example:\n    executable by: players\n    trigger:\n        set {Player} to player's class\n        message \"%{Player}%\" # org.bukkit.entity.Player",
+      "language": "unknown"
+    },
+    {
+      "code": "import <fully qualified name> [as <alias>]",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n    org.bukkit.entity.EnderDragon$Phase as EnderDragonPhase",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n    org.bukkit.entity.EnderDragon\n\non load:\n    set {phase} to EnderDragon.Phase.LEAVE_PORTAL",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Importing classes at parse-time (recommended)",
+      "id": "importing-classes-at-parse-time-(recommended)"
+    },
+    {
+      "level": "h3",
+      "text": "Importing NMS classes on Minecraft versions below 1.17",
+      "id": "importing-nms-classes-on-minecraft-versions-below-1.17"
+    },
+    {
+      "level": "h2",
+      "text": "Importing classes at runtime",
+      "id": "importing-classes-at-runtime"
+    },
+    {
+      "level": "h3",
+      "text": "From a fully qualified name",
+      "id": "from-a-fully-qualified-name"
+    },
+    {
+      "level": "h3",
+      "text": "From an object",
+      "id": "from-an-object"
+    },
+    {
+      "level": "h3",
+      "text": "Importing in effect commands",
+      "id": "importing-in-effect-commands"
+    },
+    {
+      "level": "h2",
+      "text": "Dealing with nested classes",
+      "id": "dealing-with-nested-classes"
+    }
+  ],
+  "url": "llms-txt#importing-classes",
+  "links": []
+}

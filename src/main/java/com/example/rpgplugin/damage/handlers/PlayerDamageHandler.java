@@ -1,6 +1,5 @@
 package com.example.rpgplugin.damage.handlers;
 
-import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.damage.DamageModifier;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
@@ -39,7 +38,6 @@ import java.util.logging.Logger;
  */
 public class PlayerDamageHandler {
 
-    private final RPGPlugin plugin;
     private final PlayerManager playerManager;
     private final Logger logger;
 
@@ -62,12 +60,12 @@ public class PlayerDamageHandler {
     /**
      * コンストラクタ
      *
-     * @param plugin プラグインインスタンス
+     * @param playerManager プレイヤーマネージャー
+     * @param logger ロガー
      */
-    public PlayerDamageHandler(RPGPlugin plugin) {
-        this.plugin = plugin;
-        this.playerManager = plugin.getPlayerManager();
-        this.logger = plugin.getLogger();
+    public PlayerDamageHandler(PlayerManager playerManager, Logger logger) {
+        this.playerManager = playerManager;
+        this.logger = logger;
         this.damageCache = new ConcurrentHashMap<>();
     }
 

@@ -1,0 +1,33 @@
+{
+  "title": "Error handling",
+  "content": "By default, warnings and errors related to your code are logged to the console. Skript-reflect also offers additional tools that give you more control over how errors are handled.\n\n## Suppressing errors\n\nAdding `try` before a Java call prevents errors from being logged to the console.\n\n{% tabs %}\n{% tab title=\"example.sk\" %}\n\n{% endtab %}\n{% endtabs %}\n\nIf an error occurs, the error object can still be accessed programmatically.\n\n## Programmatic access\n\nIn some cases, you may want to handle errors yourself, either to do your own error logging or to perform an alternate task in case of a failure.\n\n{% tabs %}\n{% tab title=\"Syntax\" %}\n\n{% endtab %}\n{% endtabs %}\n\nReturns the last error object thrown by a java call. If there was an issue resolving the method or converting its output, it may be a `com.btk5h.skriptmirror.JavaCallException`.",
+  "code_samples": [
+    {
+      "code": "set {_second item in list} to try {_list}.get(1)\ntry {_connection}.setUseCaches(true)",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] [last] [java] (throwable|exception|error)",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Suppressing errors",
+      "id": "suppressing-errors"
+    },
+    {
+      "level": "h2",
+      "text": "Programmatic access",
+      "id": "programmatic-access"
+    },
+    {
+      "level": "h3",
+      "text": "Error object",
+      "id": "error-object"
+    }
+  ],
+  "url": "llms-txt#error-handling",
+  "links": []
+}

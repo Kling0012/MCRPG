@@ -48,16 +48,21 @@ public class APICommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // 権限チェック
-        if (!sender.hasPermission("rpgplugin.api")) {
-            sender.sendMessage(ChatColor.RED + "このコマンドを実行する権限がありません");
-            return false;
+        // 権限チェック - コンソールまたは権限を持つプレイヤーのみ
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            if (!player.hasPermission("rpgplugin.api")) {
+                player.sendMessage(ChatColor.RED + "このコマンドは一般ユーザーは使用できません");
+                player.sendMessage(ChatColor.GRAY + "このAPIはSkript/Denizenからのみ使用されます");
+                return true;
+            }
         }
+        // コンソールからの実行は常に許可（Skript/Denizenが "execute as_server" で実行）
 
         // 引数チェック
         if (args.length == 0) {
             sendHelp(sender);
-            return false;
+            return true;
         }
 
         // サブコマンド処理
@@ -120,9 +125,10 @@ public class APICommand implements CommandExecutor, TabCompleter {
     private List<String> getActionList() {
         return Arrays.asList(
                 "get_level", "set_level",
-                "get_stat", "set_stat",
-                "get_class", "set_class", "upgrade_class", "can_upgrade_class",
-                "has_skill", "unlock_skill", "cast_skill", "get_skill_level",
+                "get_stat", "set_stat", "get_available_points", "add_stat_point",
+                "get_class", "set_class", "try_change_class", "can_change_class", "upgrade_class", "can_upgrade_class",
+                "has_skill", "unlock_skill", "unlock_skill_with_points", "cast_skill", "get_skill_level",
+                "get_skill_points", "add_skill_points",
                 "get_gold", "give_gold", "take_gold", "has_gold", "transfer_gold",
                 "calculate_damage"
         );
@@ -143,14 +149,26 @@ public class APICommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "get_stat":
             case "set_stat":
+            case "add_stat_point":
                 if (args.length == 2 || (args.length == 3 && args[0].equals("call"))) {
                     // ステータス補完
                     completions.addAll(Arrays.asList("STR", "INT", "SPI", "VIT", "DEX"));
                 }
                 break;
 
+            case "try_change_class":
+            case "can_change_class":
+                if (args.length == 2 || (args.length == 3 && args[0].equals("call"))) {
+                    // クラスID補完
+                    if (plugin.getClassManager() != null) {
+                        completions.addAll(plugin.getClassManager().getAllClassIds());
+                    }
+                }
+                break;
+
             case "has_skill":
             case "unlock_skill":
+            case "unlock_skill_with_points":
             case "cast_skill":
             case "get_skill_level":
                 // スキルIDはプラグインから取得可能だが、今回は空リスト
@@ -182,9 +200,10 @@ public class APICommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("");
         sender.sendMessage(ChatColor.YELLOW + "アクション一覧:");
         sender.sendMessage(ChatColor.WHITE + "  レベル: get_level, set_level");
-        sender.sendMessage(ChatColor.WHITE + "  ステータス: get_stat, set_stat");
-        sender.sendMessage(ChatColor.WHITE + "  クラス: get_class, set_class, upgrade_class, can_upgrade_class");
-        sender.sendMessage(ChatColor.WHITE + "  スキル: has_skill, unlock_skill, cast_skill, get_skill_level");
+        sender.sendMessage(ChatColor.WHITE + "  ステータス: get_stat, set_stat, get_available_points, add_stat_point");
+        sender.sendMessage(ChatColor.WHITE + "  クラス: get_class, set_class, try_change_class, can_change_class, upgrade_class, can_upgrade_class");
+        sender.sendMessage(ChatColor.WHITE + "  スキル: has_skill, unlock_skill, unlock_skill_with_points, cast_skill, get_skill_level");
+        sender.sendMessage(ChatColor.WHITE + "  スキル管理: get_skill_points, add_skill_points");
         sender.sendMessage(ChatColor.WHITE + "  経済: get_gold, give_gold, take_gold, has_gold, transfer_gold");
         sender.sendMessage(ChatColor.WHITE + "  ダメージ: calculate_damage");
         sender.sendMessage("");

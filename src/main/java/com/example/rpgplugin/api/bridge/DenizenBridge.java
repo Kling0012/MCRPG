@@ -127,6 +127,9 @@ public class DenizenBridge {
      * @return クラスランク
      */
     public int getClassRank(Player player) {
+        if (player == null) {
+            return 0;
+        }
         var rpgPlayerOpt = api.getRPGPlayer(player);
         if (!rpgPlayerOpt.isPresent()) {
             return 0;
@@ -206,6 +209,9 @@ public class DenizenBridge {
      * @return 利用可能なポイント数
      */
     public int getAvailablePoints(Player player) {
+        if (player == null) {
+            return 0;
+        }
         var rpgPlayerOpt = api.getRPGPlayer(player);
         if (!rpgPlayerOpt.isPresent()) {
             return 0;

@@ -6,11 +6,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>rpg-plugin</artifactId>
-    <version>1.0.0</version>
+    <artifactId>mc-rpg</artifactId>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
-    <name>RPGPlugin</name>
+    <name>MCRPG</name>
     <description>Minecraft RPG Plugin</description>
 
     <properties>

@@ -66,6 +66,52 @@ show_my_stats_command:
     - narrate "<aqua>DEX: %dex%"
 
 # ============================================
+# 新機能: ステータスポイント配分
+# ============================================
+
+allocate_stat_command:
+  type: task
+  script:
+    - define stat <c.args.get[1]>
+    - define amount <c.args.get[2]>
+    
+    # 利用可能ポイント確認
+    - execute as_server "rpg api get_available_points %player%"
+    
+    # ポイント配分実行
+    - execute as_server "rpg api add_stat_point %player% %stat% %amount%"
+    - narrate "<green>%stat% に %amount% ポイント配分しました"
+
+check_available_points_command:
+  type: task
+  script:
+    - execute as_server "rpg api get_available_points %player%"
+
+# ============================================
+# 新機能: スキルポイント管理
+# ============================================
+
+check_skill_points_command:
+  type: task
+  script:
+    - execute as_server "rpg api get_skill_points %player%"
+
+give_skill_points_command:
+  type: task
+  script:
+    - define target <server.match_player[<c.args.get[1]>].get>
+    - define amount <c.args.get[2]>
+    - execute as_server "rpg api add_skill_points %target% %amount%"
+    - narrate "<green>%target% に %amount% スキルポイントを付与しました！"
+
+learn_skill_with_points_command:
+  type: task
+  script:
+    - define skillId <c.args.get[1]>
+    - execute as_server "rpg api unlock_skill_with_points %player% %skillId%"
+    - narrate "<green>スキル %skillId% をポイント消費で習得しました！"
+
+# ============================================
 # 例3: クラス操作
 # ============================================
 
@@ -81,6 +127,28 @@ change_class_command:
     - define classId <c.args.get[1]>
     - execute as_server "rpg api set_class %player% %classId%"
     - narrate "<green>クラスを %classId% に変更しました！"
+
+# ============================================
+# 新機能: 条件チェック付きクラス変更
+# ============================================
+
+try_change_class_command:
+  type: task
+  script:
+    - define classId <c.args.get[1]>
+    
+    # クラス変更可能かチェック
+    - execute as_server "rpg api can_change_class %player% %classId%"
+    
+    # 条件チェック付きクラス変更を試行
+    - execute as_server "rpg api try_change_class %player% %classId%"
+    - narrate "<green>クラス変更を試行しました: %classId%"
+
+can_change_class_command:
+  type: task
+  script:
+    - define classId <c.args.get[1]>
+    - execute as_server "rpg api can_change_class %player% %classId%"
 
 upgrade_class_command:
   type: task

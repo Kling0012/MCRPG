@@ -15,6 +15,8 @@ import com.example.rpgplugin.mythicmobs.listener.MythicDeathListener;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.ExpDiminisher;
 import com.example.rpgplugin.player.VanillaExpHandler;
+import com.example.rpgplugin.rpgclass.ClassLoader;
+import com.example.rpgplugin.rpgclass.RPGClass;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.config.SkillConfig;
 import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
@@ -148,6 +150,13 @@ public class RPGPlugin extends JavaPlugin {
     private void setupMainConfig() {
         YamlConfigManager configManager = coreSystem.getConfigManager();
 
+        // デフォルト設定ファイルが存在しない場合はJARからコピー
+        java.io.File configFile = new java.io.File(getDataFolder(), "config.yml");
+        if (!configFile.exists()) {
+            saveResource("config.yml", false);
+            getLogger().info("Created default config.yml from JAR.");
+        }
+
         // メイン設定ファイルを読み込み
         boolean loaded = configManager.loadConfig(
             "main",
@@ -176,27 +185,94 @@ public class RPGPlugin extends JavaPlugin {
         YamlConfigManager configManager = coreSystem.getConfigManager();
         boolean hotReloadClasses = configManager.getBoolean("main", "hot_reload.classes", true);
         boolean hotReloadSkills = configManager.getBoolean("main", "hot_reload.skills", true);
-        boolean hotReloadExp = configManager.getBoolean("main", "hot_reload.exp_diminish", false);
+        boolean hotReloadExp = configManager.getBoolean("main", "hot_reload.exp_diminish", true);
+        boolean hotReloadMobs = configManager.getBoolean("main", "hot_reload.mobs", true);
+        boolean hotReloadTemplates = configManager.getBoolean("main", "hot_reload.templates", false);
 
         // クラス定義の監視
         if (hotReloadClasses) {
             configWatcher.watchDirectory("classes");
-            configWatcher.enableAutoReload("classes", "classes");
+            configWatcher.addDirectoryListener("classes", path -> {
+                try {
+                    getLogger().info("[HotReload] Class file modified: " + path.getFileName());
+                    ClassLoader classLoader = new ClassLoader(this, gameSystem.getPlayerManager());
+                    Map<String, RPGClass> classes = classLoader.loadAllClasses();
+                    gameSystem.getClassManager().registerAll(classes);
+                    getLogger().info("[HotReload] Reloaded " + classes.size() + " classes.");
+                } catch (Exception e) {
+                    getLogger().warning("[HotReload] Failed to reload classes: " + e.getMessage());
+                }
+            });
         }
 
         // スキル定義の監視
         if (hotReloadSkills) {
-            configWatcher.watchDirectory("skills");
-            configWatcher.enableAutoReload("skills", "skills");
+            // スキルディレクトリ（サブディレクトリも監視）
+            configWatcher.watchDirectory("skills/active");
+            configWatcher.watchDirectory("skills/passive");
+
+            configWatcher.addDirectoryListener("skills/active", path -> {
+                reloadSkills();
+            });
+            configWatcher.addDirectoryListener("skills/passive", path -> {
+                reloadSkills();
+            });
         }
 
         // 経験値減衰設定の監視
         if (hotReloadExp) {
             configWatcher.watchDirectory("exp");
-            configWatcher.enableAutoReload("exp", "exp");
+            configWatcher.addDirectoryListener("exp", path -> {
+                try {
+                    if (path.getFileName().toString().equals("diminish_config.yml")) {
+                        getLogger().info("[HotReload] Exp config modified");
+                        getExpDiminisher().loadConfig();
+                        getLogger().info("[HotReload] Reloaded diminish_config.yml");
+                    }
+                } catch (Exception e) {
+                    getLogger().warning("[HotReload] Failed to reload exp config: " + e.getMessage());
+                }
+            });
+        }
+
+        // モブドロップ設定の監視
+        if (hotReloadMobs && coreSystem.getDependencyManager().isMythicMobsAvailable()) {
+            configWatcher.watchDirectory("mobs");
+            configWatcher.addDirectoryListener("mobs", path -> {
+                try {
+                    if (path.getFileName().toString().equals("mob_drops.yml")) {
+                        getLogger().info("[HotReload] Mob drops config modified");
+                        loadMobDropConfigs();
+                        getLogger().info("[HotReload] Reloaded mob_drops.yml");
+                    }
+                } catch (Exception e) {
+                    getLogger().warning("[HotReload] Failed to reload mob drops: " + e.getMessage());
+                }
+            });
+        }
+
+        // テンプレートファイルの監視（ログ出力のみ）
+        if (hotReloadTemplates) {
+            configWatcher.watchDirectory("templates");
+            configWatcher.addDirectoryListener("templates", path -> {
+                getLogger().info("[HotReload] Template file modified: " + path.getFileName() + ". Copy template to use as new skill/class.");
+            });
         }
 
         getLogger().info("ConfigWatcher initialized with " + configWatcher.getWatchedDirectoryCount() + " directories.");
+    }
+
+    /**
+     * スキルをリロードするヘルパーメソッド
+     */
+    private void reloadSkills() {
+        try {
+            SkillConfig skillConfig = gameSystem.getSkillConfig();
+            int count = skillConfig.reloadSkills();
+            getLogger().info("[HotReload] Reloaded " + count + " skills.");
+        } catch (Exception e) {
+            getLogger().warning("[HotReload] Failed to reload skills: " + e.getMessage());
+        }
     }
 
     /**
@@ -218,6 +294,7 @@ public class RPGPlugin extends JavaPlugin {
         com.example.rpgplugin.rpgclass.ClassLoader clsLoader =
             new com.example.rpgplugin.rpgclass.ClassLoader(this, gameSystem.getPlayerManager());
         Map<String, com.example.rpgplugin.rpgclass.RPGClass> classes = clsLoader.loadAllClasses();
+        gameSystem.getClassManager().registerAll(classes);
         getLogger().info("Loaded " + classes.size() + " classes");
 
         // スキル設定を読み込み
@@ -233,6 +310,9 @@ public class RPGPlugin extends JavaPlugin {
 
         // プレイヤーマネージャーを登録
         getServer().getPluginManager().registerEvents(gameSystem.getPlayerManager(), this);
+
+        // 自動保存タスクを開始
+        startAutoSaveTask();
 
         // オークション期限切れチェックタスクを開始
         startAuctionExpirationTask();
@@ -324,6 +404,30 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
+     * 自動保存タスクを開始
+     */
+    private void startAutoSaveTask() {
+        // 設定から自動保存間隔を取得（秒）
+        int autoSaveInterval = getConfig().getInt("database.auto_save_interval", 300);
+
+        if (autoSaveInterval > 0) {
+            long intervalTicks = autoSaveInterval * 20L; // 秒をティックに変換
+
+            getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+                try {
+                    gameSystem.getPlayerManager().saveAllAsync();
+                } catch (Exception e) {
+                    getLogger().warning("[AutoSave] Failed to save player data: " + e.getMessage());
+                }
+            }, intervalTicks, intervalTicks);
+
+            getLogger().info("Auto-save task started: interval=" + autoSaveInterval + "s");
+        } else {
+            getLogger().info("Auto-save is disabled (auto_save_interval=0)");
+        }
+    }
+
+    /**
      * ログレベルを設定します
      *
      * @param level ログレベル文字列
@@ -342,7 +446,9 @@ public class RPGPlugin extends JavaPlugin {
      */
     private void registerCommands() {
         try {
-            getCommand("rpg").setExecutor(new RPGCommand());
+            RPGCommand rpgCommand = new RPGCommand();
+            getCommand("rpg").setExecutor(rpgCommand);
+            getCommand("rpg").setTabCompleter(rpgCommand);
             getLogger().info("Commands registered.");
         } catch (Exception e) {
             getLogger().warning("Failed to register commands: " + e.getMessage());
@@ -574,6 +680,18 @@ public class RPGPlugin extends JavaPlugin {
      */
     public com.example.rpgplugin.currency.CurrencyListener getCurrencyListener() {
         return guiSystem.getCurrencyListener();
+    }
+
+    /**
+     * ダメージ追跡システムを取得します
+     *
+     * <p>Paper 1.20.6で削除されたEntityDeathEvent.getKiller()の代替として、
+     * ダメージイベントを監視して最後にダメージを与えたプレイヤーを特定します。</p>
+     *
+     * @return DamageTrackerインスタンス
+     */
+    public com.example.rpgplugin.damage.DamageTracker getDamageTracker() {
+        return guiSystem.getDamageTracker();
     }
 
     // ====== 外部システム ======

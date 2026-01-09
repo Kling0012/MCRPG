@@ -25,6 +25,8 @@ public class SkillTarget {
     private final ConeConfig cone;
     private final RectConfig rect;
     private final CircleConfig circle;
+    private final EntityTypeFilter entityTypeFilter;
+    private final Integer maxTargets;
 
     /**
      * コンストラクタ
@@ -35,16 +37,30 @@ public class SkillTarget {
      * @param cone 扇状範囲設定
      * @param rect 四角形範囲設定
      * @param circle 円形範囲設定
+     * @param entityTypeFilter エンティティタイプフィルタ
+     * @param maxTargets 最大ターゲット数（nullで制限なし）
      */
     public SkillTarget(TargetType type, AreaShape areaShape,
                        SingleTargetConfig singleTarget, ConeConfig cone,
-                       RectConfig rect, CircleConfig circle) {
+                       RectConfig rect, CircleConfig circle,
+                       EntityTypeFilter entityTypeFilter, Integer maxTargets) {
         this.type = type != null ? type : TargetType.NEAREST_HOSTILE;
         this.areaShape = areaShape != null ? areaShape : AreaShape.SINGLE;
         this.singleTarget = singleTarget;
         this.cone = cone;
         this.rect = rect;
         this.circle = circle;
+        this.entityTypeFilter = entityTypeFilter != null ? entityTypeFilter : EntityTypeFilter.ALL;
+        this.maxTargets = maxTargets;
+    }
+
+    /**
+     * レガシーコンストラクタ（後方互換性）
+     */
+    public SkillTarget(TargetType type, AreaShape areaShape,
+                       SingleTargetConfig singleTarget, ConeConfig cone,
+                       RectConfig rect, CircleConfig circle) {
+        this(type, areaShape, singleTarget, cone, rect, circle, EntityTypeFilter.ALL, null);
     }
 
     /**
@@ -85,6 +101,23 @@ public class SkillTarget {
 
     public CircleConfig getCircle() {
         return circle;
+    }
+
+    public EntityTypeFilter getEntityTypeFilter() {
+        return entityTypeFilter;
+    }
+
+    public Integer getMaxTargets() {
+        return maxTargets;
+    }
+
+    /**
+     * 最大ターゲット数を取得します（制限なしの場合はInteger.MAX_VALUE）
+     *
+     * @return 最大ターゲット数
+     */
+    public int getMaxTargetsOrUnlimited() {
+        return maxTargets != null ? maxTargets : Integer.MAX_VALUE;
     }
 
     /**

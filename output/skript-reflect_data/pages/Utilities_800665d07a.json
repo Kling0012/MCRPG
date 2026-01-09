@@ -1,0 +1,122 @@
+{
+  "title": "Utilities",
+  "content": "Creates an array containing the specified objects. Specifying a type determines the component type of the resulting array.\n\n{% hint style=\"info\" %}\nThe brackets in this syntax are literal, not representing an optional group.\n{% endhint %}\n\nReturns the contents of a single array, iterable, iterator, or stream.\n\nCreates an array of the given type and size. The type may be primitive, which doesn't require an import.\n\n{% hint style=\"info\" %}\nThe brackets in this syntax are literal, not representing an optional group.\n{% endhint %}\n\nRepresents the value at a certain index of an array.\n\nThis value may be read from and written to.\n\n{% hint style=\"info\" %}\nThe brackets in this syntax are literal, not representing an optional group.\n{% endhint %}\n\nRepresents `null` in Java. This is different from Skript's `<none>`.\n\nRepresents a subset of bits from a number.\n\nThis value may be read from and written to.\n\nReturns the underlying object of an expression.\n\n{% hint style=\"info\" %}\nWhen used with [the expression-expression](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax#expression), you can set it to a value, which will change the input value from that argument. This can be used to store data in variables in the calling trigger.\n\nReturns a list of the fields, methods, or constructors of an object, including their modifiers and parameters.\n\nIf you need a list of field or method names without modifier or parameter details, see [Member Names](#member-names).\n\nReturns a list of the fields or methods of an object.\n\nChecks whether objects are instances of the given java types.\n\nReturns a reference to the class from the given java type. Returns an object of type `java.lang.Class`. This expression also supports primitive types, which doesn't require an import.\n\nReturns the instance of the given plugin (either the name as a string, or the plugin class).",
+  "code_samples": [
+    {
+      "code": "[%objects%]\n[%objects% as %javatype%]",
+      "language": "unknown"
+    },
+    {
+      "code": "...%object%",
+      "language": "unknown"
+    },
+    {
+      "code": "new %javatype%[%integer%]",
+      "language": "unknown"
+    },
+    {
+      "code": "%array%[%integer%]",
+      "language": "unknown"
+    },
+    {
+      "code": "null",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] (bit %number%|bit(s| range) [from] %number%( to |[ ]-[ ])%number%) of %numbers%\n%numbers%'[s] (bit %number%|1¦bit(s| range) [from] %number%( to |[ ]-[ ])%number%)",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] raw %objects%",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n\tch.njol.skript.lang.Variable\n\neffect put %objects% in %objects%:\n\tparse:\n\t\texpr-2 is an instance of Variable # to check if the second argument is a variable\n\t\tcontinue\n\ttrigger:\n\t\tset raw expr-2 to expr-1",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] (fields|methods|constructors) of %objects%\n%objects%'[s] (fields|methods|constructors)",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] (field|method) names of %objects%\n%objects%'[s] (field|method) names",
+      "language": "unknown"
+    },
+    {
+      "code": "%objects% (is|are) [a[n]] instance[s] of %javatypes%\n%objects% (is not|isn't|are not|aren't) [a[n]] instance[s] of %javatypes%",
+      "language": "unknown"
+    },
+    {
+      "code": "%javatype%.class",
+      "language": "unknown"
+    },
+    {
+      "code": "[(an|the)] instance of [the] plugin %javatype/string%",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Collect",
+      "id": "collect"
+    },
+    {
+      "level": "h2",
+      "text": "Spread",
+      "id": "spread"
+    },
+    {
+      "level": "h2",
+      "text": "Array Creation",
+      "id": "array-creation"
+    },
+    {
+      "level": "h2",
+      "text": "Array Value",
+      "id": "array-value"
+    },
+    {
+      "level": "h2",
+      "text": "Null",
+      "id": "null"
+    },
+    {
+      "level": "h2",
+      "text": "Bits",
+      "id": "bits"
+    },
+    {
+      "level": "h2",
+      "text": "Raw Expression",
+      "id": "raw-expression"
+    },
+    {
+      "level": "h2",
+      "text": "Members",
+      "id": "members"
+    },
+    {
+      "level": "h2",
+      "text": "Member Names",
+      "id": "member-names"
+    },
+    {
+      "level": "h2",
+      "text": "Is Instance",
+      "id": "is-instance"
+    },
+    {
+      "level": "h2",
+      "text": "Class reference",
+      "id": "class-reference"
+    },
+    {
+      "level": "h2",
+      "text": "Plugin instance",
+      "id": "plugin-instance"
+    }
+  ],
+  "url": "llms-txt#utilities",
+  "links": []
+}

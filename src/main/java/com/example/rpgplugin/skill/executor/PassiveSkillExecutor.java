@@ -120,9 +120,9 @@ public class PassiveSkillExecutor implements SkillExecutor {
             modifier = new StatModifier(skill.getId(), StatModifier.Type.FLAT, bonus);
         }
 
-        // ポーション効果を作成（必要に応じて）
+        // ポーション効果は実装しない（パッシブスキルはステータス補正に特化）
+        // 理由: .spec-workflow/steering/exclusions.md を参照
         PotionEffect potionEffect = null;
-        // TODO: スキル設定に基づいてポーション効果を作成
 
         PassiveEffect effect = new PassiveEffect(skill, level, modifier, potionEffect);
         playerEffects.put(skill.getId(), effect);

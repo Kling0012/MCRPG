@@ -42,8 +42,14 @@ public class DatabaseManager {
             dataFolder.mkdirs();
         }
 
+        // dataサブディレクトリを作成
+        File dataSubDir = new File(dataFolder, "data");
+        if (!dataSubDir.exists()) {
+            dataSubDir.mkdirs();
+        }
+
         // データベースファイルのパス
-        File dbFile = new File(dataFolder, "data.db");
+        File dbFile = new File(dataSubDir, "database.db");
 
         logger.info("Initializing database: " + dbFile.getAbsolutePath());
 
@@ -126,7 +132,8 @@ public class DatabaseManager {
      */
     public boolean deleteDatabase() {
         shutdown();
-        File dbFile = new File(dataFolder, "data.db");
+        File dataSubDir = new File(dataFolder, "data");
+        File dbFile = new File(dataSubDir, "database.db");
         if (dbFile.exists()) {
             return dbFile.delete();
         }

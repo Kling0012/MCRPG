@@ -26,7 +26,9 @@ public class ConfigWatcher {
     private final Logger logger;
     private final YamlConfigManager configManager;
     private final Map<WatchKey, Path> watchKeys;
+    private final Map<WatchKey, String> directoryNames; // ディレクトリ名のマッピング
     private final Map<String, List<Consumer<Path>>> fileListeners;
+    private final Map<String, List<Consumer<Path>>> directoryListeners;
 
     private WatchService watchService;
     private Thread watchThread;
@@ -43,7 +45,9 @@ public class ConfigWatcher {
         this.logger = plugin.getLogger();
         this.configManager = configManager;
         this.watchKeys = new ConcurrentHashMap<>();
+        this.directoryNames = new ConcurrentHashMap<>();
         this.fileListeners = new ConcurrentHashMap<>();
+        this.directoryListeners = new ConcurrentHashMap<>();
     }
 
     /**
@@ -101,6 +105,7 @@ public class ConfigWatcher {
 
         // 監視キーをクリア
         watchKeys.clear();
+        directoryNames.clear();
 
         logger.info("ConfigWatcher stopped");
     }
@@ -137,6 +142,7 @@ public class ConfigWatcher {
             );
 
             watchKeys.put(key, path);
+            directoryNames.put(key, directoryPath);
             logger.info("Watching directory: " + directoryPath);
             return true;
 
@@ -154,6 +160,18 @@ public class ConfigWatcher {
      */
     public void addFileListener(@NotNull String fileName, @NotNull Consumer<Path> listener) {
         fileListeners.computeIfAbsent(fileName, k -> new ArrayList<>()).add(listener);
+    }
+
+    /**
+     * ディレクトリ監視リスナーを登録します
+     *
+     * <p>指定したディレクトリ内のYAMLファイルが変更されたときに通知されます。</p>
+     *
+     * @param directoryPath ディレクトリパス
+     * @param listener リスナー
+     */
+    public void addDirectoryListener(@NotNull String directoryPath, @NotNull Consumer<Path> listener) {
+        directoryListeners.computeIfAbsent(directoryPath, k -> new ArrayList<>()).add(listener);
     }
 
     /**
@@ -176,6 +194,25 @@ public class ConfigWatcher {
     }
 
     /**
+     * ディレクトリ変更を通知します
+     *
+     * @param directoryPath ディレクトリパス
+     * @param path ファイルパス
+     */
+    private void notifyDirectoryListeners(@NotNull String directoryPath, @NotNull Path path) {
+        List<Consumer<Path>> listeners = directoryListeners.get(directoryPath);
+        if (listeners != null) {
+            for (Consumer<Path> listener : listeners) {
+                try {
+                    listener.accept(path);
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Error in directory listener for: " + directoryPath, e);
+                }
+            }
+        }
+    }
+
+    /**
      * 監視ループ
      */
     private void watchLoop() {
@@ -191,6 +228,7 @@ public class ConfigWatcher {
                 }
 
                 Path watchPath = watchKeys.get(key);
+                String directoryName = directoryNames.get(key);
                 if (watchPath == null) {
                     logger.warning("Unknown watch key");
                     key.reset();
@@ -199,7 +237,7 @@ public class ConfigWatcher {
 
                 // イベントを処理
                 for (WatchEvent<?> event : key.pollEvents()) {
-                    handleEvent(watchPath, event);
+                    handleEvent(watchPath, directoryName, event);
                 }
 
                 // キーをリセット
@@ -207,6 +245,7 @@ public class ConfigWatcher {
                 if (!valid) {
                     logger.warning("Watch key no longer valid: " + watchPath);
                     watchKeys.remove(key);
+                    directoryNames.remove(key);
                 }
 
             } catch (InterruptedException e) {
@@ -228,9 +267,10 @@ public class ConfigWatcher {
      * ファイルイベントを処理します
      *
      * @param watchPath 監視パス
+     * @param directoryName ディレクトリ名
      * @param event イベント
      */
-    private void handleEvent(@NotNull Path watchPath, @NotNull WatchEvent<?> event) {
+    private void handleEvent(@NotNull Path watchPath, String directoryName, @NotNull WatchEvent<?> event) {
         WatchEvent.Kind<?> kind = event.kind();
 
         if (kind == StandardWatchEventKinds.OVERFLOW) {
@@ -248,58 +288,23 @@ public class ConfigWatcher {
             return;
         }
 
+        // ファイルリスナーに通知
+        notifyFileListeners(fileName.toString(), fullPath);
+
+        // ディレクトリリスナーに通知
+        if (directoryName != null) {
+            notifyDirectoryListeners(directoryName, fullPath);
+        }
+
         if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
             logger.info("File created: " + fullPath);
-            notifyFileListeners(fileName.toString(), fullPath);
 
         } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-            // 重複通知を防ぐための遅延処理
-            scheduleReload(fileName.toString(), fullPath);
+            // 重複通知を防ぐための遅延処理（既に通知済みなので何もしない）
 
         } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
             logger.info("File deleted: " + fullPath);
-            notifyFileListeners(fileName.toString(), fullPath);
         }
-    }
-
-    /**
-     * リロードをスケジュールします（重複通知の防止）
-     */
-    private final Map<String, Long> reloadSchedule = new ConcurrentHashMap<>();
-    private static final long RELOAD_DELAY_MS = 500; // 500msの遅延
-
-    private void scheduleReload(@NotNull String fileName, @NotNull Path fullPath) {
-        long now = System.currentTimeMillis();
-        reloadSchedule.put(fileName, now);
-
-        // 遅延実行
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            Long scheduledTime = reloadSchedule.get(fileName);
-            if (scheduledTime != null && scheduledTime == now) {
-                logger.info("File modified: " + fullPath);
-                notifyFileListeners(fileName, fullPath);
-                reloadSchedule.remove(fileName);
-            }
-        }, RELOAD_DELAY_MS / 50); // Minecraft tick (50ms) に変換
-    }
-
-    /**
-     * 設定ファイルの自動リロードを有効化します
-     *
-     * @param configName 設定名
-     * @param fileName ファイル名
-     */
-    public void enableAutoReload(@NotNull String configName, @NotNull String fileName) {
-        addFileListener(fileName, path -> {
-            logger.info("Auto-reloading config: " + configName);
-            boolean success = configManager.reloadConfig(configName);
-
-            if (success) {
-                logger.info("Successfully reloaded: " + configName);
-            } else {
-                logger.warning("Failed to reload: " + configName);
-            }
-        });
     }
 
     /**

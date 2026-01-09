@@ -55,16 +55,28 @@ public final class TargetSelector {
                 result.add(caster);
                 break;
 
+            case SELF_PLUS_ONE:
+                selectSelfPlusOne(caster, config, candidates, origin, direction, result);
+                break;
+
             case NEAREST_HOSTILE:
                 selectNearestHostile(caster, config, candidates, origin, direction, result);
+                break;
+
+            case NEAREST_PLAYER:
+                selectNearestPlayer(caster, config, candidates, origin, direction, result);
                 break;
 
             case NEAREST_ENTITY:
                 selectNearestEntity(caster, config, candidates, origin, direction, result);
                 break;
 
-            case AREA:
-                selectAreaTargets(caster, config, candidates, origin, direction, result);
+            case AREA_SELF:
+                selectAreaTargets(caster, config, candidates, origin, direction, result, true);
+                break;
+
+            case AREA_OTHERS:
+                selectAreaTargets(caster, config, candidates, origin, direction, result, false);
                 break;
 
             case EXTERNAL:
@@ -78,6 +90,36 @@ public final class TargetSelector {
         }
 
         return result;
+    }
+
+    /**
+     * 自分と最も近いターゲット一人を選択します
+     *
+     * @param caster 発動者
+     * @param config ターゲット設定
+     * @param candidates 候補エンティティリスト
+     * @param origin 中心位置
+     * @param direction 方向ベクトル
+     * @param result 結果を追加するリスト
+     */
+    private static void selectSelfPlusOne(Player caster, SkillTarget config,
+                                          List<Entity> candidates, Location origin,
+                                          Vector direction, List<Entity> result) {
+        // 自分を追加
+        result.add(caster);
+
+        // EntityTypeFilterに基づいて候補をフィルタリング
+        List<Entity> filtered = filterByEntityType(candidates, config.getEntityTypeFilter(), caster);
+        filtered = filtered.stream()
+                .filter(e -> isInRange(e, origin, direction, config))
+                .toList();
+
+        if (filtered.isEmpty()) {
+            return;
+        }
+
+        // 最も近いエンティティを一人追加
+        findNearest(origin, filtered).ifPresent(result::add);
     }
 
     /**
@@ -99,18 +141,51 @@ public final class TargetSelector {
             return;
         }
 
-        // 敵対MOBのみフィルタリング
-        List<Entity> hostiles = candidates.stream()
-                .filter(e -> !(e instanceof Player))
+        // Mobのみフィルタリング
+        List<Entity> mobs = filterByEntityType(candidates, EntityTypeFilter.MOB_ONLY, caster);
+        mobs = mobs.stream()
                 .filter(e -> isInRange(e, origin, direction, config))
                 .toList();
 
-        if (hostiles.isEmpty()) {
+        if (mobs.isEmpty()) {
             return;
         }
 
         // 最も近いエンティティを選択
-        findNearest(origin, hostiles).ifPresent(result::add);
+        findNearest(origin, mobs).ifPresent(result::add);
+    }
+
+    /**
+     * 最も近いプレイヤーを選択します
+     *
+     * @param caster 発動者
+     * @param config ターゲット設定
+     * @param candidates 候補エンティティリスト
+     * @param origin 中心位置
+     * @param direction 方向ベクトル
+     * @param result 結果を追加するリスト
+     */
+    private static void selectNearestPlayer(Player caster, SkillTarget config,
+                                             List<Entity> candidates, Location origin,
+                                             Vector direction, List<Entity> result) {
+        // 自分をターゲットにする設定の場合
+        if (config.getSingleTarget() != null && config.getSingleTarget().isTargetSelf()) {
+            result.add(caster);
+            return;
+        }
+
+        // プレイヤーのみフィルタリング
+        List<Entity> players = filterByEntityType(candidates, EntityTypeFilter.PLAYER_ONLY, caster);
+        players = players.stream()
+                .filter(e -> isInRange(e, origin, direction, config))
+                .toList();
+
+        if (players.isEmpty()) {
+            return;
+        }
+
+        // 最も近いプレイヤーを選択
+        findNearest(origin, players).ifPresent(result::add);
     }
 
     /**
@@ -132,17 +207,18 @@ public final class TargetSelector {
             return;
         }
 
-        // 自分以外のエンティティをフィルタリング
-        List<Entity> entities = candidates.stream()
+        // EntityTypeFilterに基づいて候補をフィルタリング
+        List<Entity> filtered = filterByEntityType(candidates, config.getEntityTypeFilter(), caster);
+        filtered = filtered.stream()
                 .filter(e -> !e.getUniqueId().equals(caster.getUniqueId()))
                 .filter(e -> isInRange(e, origin, direction, config))
                 .toList();
 
-        if (entities.isEmpty()) {
+        if (filtered.isEmpty()) {
             return;
         }
 
-        findNearest(origin, entities).ifPresent(result::add);
+        findNearest(origin, filtered).ifPresent(result::add);
     }
 
     /**
@@ -154,13 +230,30 @@ public final class TargetSelector {
      * @param origin 中心位置
      * @param direction 方向ベクトル
      * @param result 結果を追加するリスト
+     * @param includeSelf 自分を含めるかどうか
      */
     private static void selectAreaTargets(Player caster, SkillTarget config,
                                           List<Entity> candidates, Location origin,
-                                          Vector direction, List<Entity> result) {
-        List<Entity> inRange = candidates.stream()
+                                          Vector direction, List<Entity> result,
+                                          boolean includeSelf) {
+        // EntityTypeFilterに基づいて候補をフィルタリング
+        List<Entity> filtered = filterByEntityType(candidates, config.getEntityTypeFilter(), caster);
+
+        // 範囲内のエンティティを選択
+        List<Entity> inRange = filtered.stream()
                 .filter(e -> isInRange(e, origin, direction, config))
+                .filter(e -> includeSelf || !e.getUniqueId().equals(caster.getUniqueId()))
                 .toList();
+
+        // 最大ターゲット数を適用
+        int maxTargets = config.getMaxTargetsOrUnlimited();
+        if (inRange.size() > maxTargets) {
+            // 距離の順にソートして最大数に制限
+            inRange = inRange.stream()
+                    .sorted(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(origin)))
+                    .limit(maxTargets)
+                    .toList();
+        }
 
         result.addAll(inRange);
     }
@@ -211,5 +304,36 @@ public final class TargetSelector {
             return List.of();
         }
         return new ArrayList<>(origin.getWorld().getNearbyEntities(origin, radius, radius, radius));
+    }
+
+    /**
+     * エンティティタイプフィルタで候補をフィルタリングします
+     *
+     * @param candidates 候補エンティティリスト
+     * @param filter エンティティタイプフィルタ
+     * @param caster 発動者（自分除外用）
+     * @return フィルタリングされたエンティティリスト
+     */
+    private static List<Entity> filterByEntityType(List<Entity> candidates,
+                                                     EntityTypeFilter filter,
+                                                     Player caster) {
+        return candidates.stream()
+                .filter(e -> matchesFilter(e, filter))
+                .toList();
+    }
+
+    /**
+     * エンティティがフィルタ条件に一致するか判定します
+     *
+     * @param entity エンティティ
+     * @param filter エンティティタイプフィルタ
+     * @return 一致する場合はtrue
+     */
+    private static boolean matchesFilter(Entity entity, EntityTypeFilter filter) {
+        return switch (filter) {
+            case PLAYER_ONLY -> entity instanceof Player;
+            case MOB_ONLY -> !(entity instanceof Player);
+            case ALL -> true;
+        };
     }
 }

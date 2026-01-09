@@ -5,7 +5,11 @@ description: PlaceholderAPI - Minecraft plugin expansion system for placeholder 
 
 # PlaceholderAPI Skill
 
-PlaceholderAPI is a powerful placeholder system for Minecraft servers that allows dynamic text replacement through expansions. It enables plugins to provide and consume placeholder values like `%player_name%` or `%server_online%`.
+PlaceholderAPI is a plugin for Spigot servers that allows server owners to display information from various plugins with a uniform format. It enables dynamic text replacement through expansions, allowing plugins to provide and consume placeholder values like `%player_name%` or `%server_online%`.
+
+## Overview
+
+PlaceholderAPI has been downloaded over **1,700,000 times** on Spigot and has been used concurrently on over **45,000 servers**, making it a must-have for servers of any type or scale. With over **240+ expansions**, it supports a wide variety of plugins including Essentials, Factions, LuckPerms, and Vault.
 
 ## When to Use This Skill
 
@@ -210,22 +214,6 @@ public String onRequest(OfflinePlayer player, @NotNull String params) {
 }
 ```
 
-### 9. Relational Placeholder Example
-
-```java
-@Override
-public String onRequest(OfflinePlayer player, @NotNull String params) {
-    // For relational placeholders, override this method
-    return null;
-}
-
-@Override
-public String onPlaceholderRequest(Player player, @NotNull String params) {
-    // This method is called when onRequest is not overridden
-    return null;
-}
-```
-
 ## Reference Files
 
 This skill includes comprehensive documentation in `references/`:
@@ -271,42 +259,6 @@ This skill includes comprehensive documentation in `references/`:
 - **Return `true`**: Required for internal expansions to prevent unregistration
 - **Return `false`**: Expansion will be unregistered on reload (default for external)
 
-## Working with This Skill
-
-### For Beginners (Getting Started)
-
-1. **Add dependency** to your `pom.xml` or `build.gradle` (see Quick Reference #1 or #2)
-2. **Create expansion class** extending `PlaceholderExpansion` (see Quick Reference #3)
-3. **Implement required methods**: `getAuthor()`, `getIdentifier()`, `getVersion()`
-4. **Override `onRequest()`** to handle placeholder parsing
-5. **Register expansion** in your plugin's `onEnable()` (see Quick Reference #5)
-6. **Test with command**: `/papi parse me %youridentifier_param%`
-
-### For Plugin Developers (Best Practices)
-
-- **Use internal expansions** for plugin-specific features (better integration, no separate JAR)
-- **Always set `persist() = true`** for internal expansions
-- **Handle `null` players gracefully** in `onRequest()` (use `OfflinePlayer` when possible)
-- **Use `compileOnly`/`provided` scope** - don't shade PlaceholderAPI into your plugin
-- **Add soft dependency** in `plugin.yml` to ensure proper load order
-- **Consider caching** expensive operations in `onRequest()` for performance
-
-### For Advanced Users (Relational & Complex Expansions)
-
-- **Relational placeholders**: Override appropriate methods, use `%rel_<identifier>_%` syntax
-- **Multi-parameter handling**: Parse `params` string with `split("_")` or custom logic
-- **Database integration**: Query external data sources in `onRequest()`
-- **Conditional placeholders**: Return different values based on player state/world/time
-
-### For Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| Expansion not loading | Check console for `NoClassDefFoundError` - add missing dependencies |
-| Placeholder shows as literal text | Verify expansion is registered: `/papi list` |
-| `/papi reload` breaks expansion | Ensure `persist()` returns `true` for internal expansions |
-| Class loading failure | Ensure all dependencies use `provided`/`compileOnly` scope, don't shade PAPI |
-
 ## Common Commands
 
 ### Parse Commands
@@ -346,11 +298,18 @@ This skill includes comprehensive documentation in `references/`:
 
 ### Official Links
 
-- **Wiki**: https://wiki.placeholderapi.com/
-- **Spigot Resource**: https://www.spigotmc.org/resources/6245/
-- **GitHub Repository**: https://github.com/PlaceholderAPI/PlaceholderAPI
-- **Discord Community**: https://discord.gg/placeholderapi
-- **eCloud API**: https://extendedclip.com/
+| Resource | URL |
+|----------|-----|
+| **Wiki** | https://wiki.placeholderapi.com/ |
+| **Spigot Resource** | https://www.spigotmc.org/resources/6245/ |
+| **Hangar Page** | https://hangar.papermc.io/HelpChat/PlaceholderAPI |
+| **Modrinth Page** | https://modrinth.com/plugin/placeholderapi |
+| **GitHub Repository** | https://github.com/PlaceholderAPI/PlaceholderAPI |
+| **CI Server** | http://ci.extendedclip.com/job/PlaceholderAPI/ |
+| **Discord Community** | https://helpch.at/discord |
+| **eCloud** | https://api.extendedclip.com/home |
+| **Placeholder List** | https://helpch.at/placeholders |
+| **Plugin Statistics** | https://bstats.org/plugin/bukkit/PlaceholderAPI |
 
 ### Popular Expansions
 
@@ -399,3 +358,16 @@ public boolean persist() {
 5. **Add soft dependency in plugin.yml** - Ensures proper load order
 6. **Check if PAPI is enabled** before registering: `Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")`
 7. **Keep expansions lightweight** - Focus on specific functionality, avoid heavy operations in `onRequest()`
+
+## Contributing
+
+If you would like to contribute towards PlaceholderAPI, take a look at the [Contributing file](https://github.com/PlaceholderAPI/PlaceholderAPI/blob/master/.github/CONTRIBUTING.md) for the ins and outs on how you can do that and what you need to keep in mind.
+
+## Creating an Expansion
+
+If you would like to create your own Placeholder Expansion for PlaceholderAPI, take a look at the [Wiki](https://wiki.placeholderapi.com/developers/creating-a-placeholderexpansion/) which contains a detailed tutorial on how you can achieve this.
+
+## Support
+
+- **Issue Tracker**: https://github.com/PlaceholderAPI/PlaceholderAPI/issues
+- **Discord Support**: https://helpch.at/discord

@@ -206,6 +206,10 @@ public SkillManager(RPGPlugin plugin, PlayerManager playerManager) {
  * @return 重複がある場合はfalse
  */
 public boolean registerSkill(Skill skill) {
+    if (skill == null || skill.getId() == null) {
+        plugin.getLogger().warning("Cannot register null skill or skill with null ID");
+        return false;
+    }
     if (skills.containsKey(skill.getId())) {
         plugin.getLogger().warning("Skill already registered: " + skill.getId());
         return false;
@@ -255,6 +259,15 @@ public boolean registerSkill(Skill skill) {
      */
     public Map<String, Skill> getAllSkills() {
         return new HashMap<>(skills);
+    }
+
+    /**
+     * 全スキルIDを取得します
+     *
+     * @return スキルIDのセット
+     */
+    public Set<String> getAllSkillIds() {
+        return new HashSet<>(skills.keySet());
     }
 
     /**

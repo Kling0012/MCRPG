@@ -269,6 +269,12 @@ public class TradeManager {
             return false;
         }
 
+        // インベントリ空き容量チェック
+        if (!hasEnoughInventorySpace(session)) {
+            cancelSession(session, "一方のプレイヤーのインベントリが満杯です");
+            return false;
+        }
+
         try {
             // アイテムとゴールドの交換を実行
             exchangeItems(session);
@@ -301,9 +307,46 @@ public class TradeManager {
     }
 
     /**
+     * インベントリ空き容量チェック
+     *
+     * @param session トレードセッション
+     * @return 双方のインベントリに十分な空きがある場合true
+     */
+    private boolean hasEnoughInventorySpace(TradeSession session) {
+        var p1 = session.getParty1();
+        var p2 = session.getParty2();
+
+        Player player1 = p1.getPlayer();
+        Player player2 = p2.getPlayer();
+
+        if (player1 == null || player2 == null) {
+            return false;
+        }
+
+        // P1が受け取るアイテム数チェック
+        int p1ReceiveCount = (int) p2.getOffer().getItems().stream().filter(i -> i != null && !i.getType().isAir()).count();
+        int p1EmptySlots = (int) java.util.stream.IntStream.range(0, player1.getInventory().getSize())
+                .filter(i -> player1.getInventory().getItem(i) == null ||
+                           player1.getInventory().getItem(i).getType().isAir()).count();
+
+        if (p1ReceiveCount > p1EmptySlots) {
+            return false;
+        }
+
+        // P2が受け取るアイテム数チェック
+        int p2ReceiveCount = (int) p1.getOffer().getItems().stream().filter(i -> i != null && !i.getType().isAir()).count();
+        int p2EmptySlots = (int) java.util.stream.IntStream.range(0, player2.getInventory().getSize())
+                .filter(i -> player2.getInventory().getItem(i) == null ||
+                           player2.getInventory().getItem(i).getType().isAir()).count();
+
+        return p2ReceiveCount <= p2EmptySlots;
+    }
+
+    /**
      * アイテムを交換
      *
      * @param session トレードセッション
+     * @throws IllegalStateException インベントリが満杯でアイテムを追加できない場合
      */
     private void exchangeItems(TradeSession session) {
         var p1 = session.getParty1();
@@ -319,13 +362,29 @@ public class TradeManager {
         // P1のアイテムをP2に
         for (var item : p1.getOffer().getItems()) {
             player1.getInventory().removeItem(item);
-            player2.getInventory().addItem(item);
+            HashMap<Integer, ItemStack> overflow = player2.getInventory().addItem(item);
+            
+            // インベントリに入りきらなかったアイテムをドロップ
+            if (!overflow.isEmpty()) {
+                for (ItemStack overflowItem : overflow.values()) {
+                    player2.getWorld().dropItemNaturally(player2.getLocation(), overflowItem);
+                    player2.sendMessage(ChatColor.YELLOW + "インベントリが満杯のため、アイテムが足元にドロップされました");
+                }
+            }
         }
 
         // P2のアイテムをP1に
         for (var item : p2.getOffer().getItems()) {
             player2.getInventory().removeItem(item);
-            player1.getInventory().addItem(item);
+            HashMap<Integer, ItemStack> overflow = player1.getInventory().addItem(item);
+            
+            // インベントリに入りきらなかったアイテムをドロップ
+            if (!overflow.isEmpty()) {
+                for (ItemStack overflowItem : overflow.values()) {
+                    player1.getWorld().dropItemNaturally(player1.getLocation(), overflowItem);
+                    player1.sendMessage(ChatColor.YELLOW + "インベントリが満杯のため、アイテムが足元にドロップされました");
+                }
+            }
         }
     }
 

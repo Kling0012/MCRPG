@@ -1,6 +1,7 @@
 package com.example.rpgplugin.currency;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.damage.DamageTracker;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import org.bukkit.ChatColor;
@@ -17,12 +18,17 @@ import java.util.Random;
 
 /**
  * 通貨システムリスナー
- * モブ討伐時のゴールドドロップを処理
+ *
+ * <p>注意: モブ討伐時のゴールドドロップ機能は実装していません。</p>
+ * <p>経済システムはプレイヤー間の取り引きを中心に設計されています。</p>
+ *
+ * <p>このクラスは将来の拡張のために残されています。</p>
  */
 public class CurrencyListener implements Listener {
 
     private final RPGPlugin plugin;
     private final CurrencyManager currencyManager;
+    private final DamageTracker damageTracker;
     private final Random random;
 
     // デフォルトドロップ設定
@@ -33,55 +39,29 @@ public class CurrencyListener implements Listener {
     // MythicMobsボーナス倍率
     private static final double MYTHICMOB_BONUS_MULTIPLIER = 2.0;
 
-    public CurrencyListener(RPGPlugin plugin, CurrencyManager currencyManager) {
+    public CurrencyListener(RPGPlugin plugin, CurrencyManager currencyManager, DamageTracker damageTracker) {
         this.plugin = plugin;
         this.currencyManager = currencyManager;
+        this.damageTracker = damageTracker;
         this.random = new Random();
     }
 
     /**
      * エンティティ死亡イベントを処理
-     * モブ討伐時にゴールドをドロップ
+     *
+     * <p>ゴールドドロップ機能は現在実装していません。
+     * DamageTrackerを使用してキラーを特定することは可能です。</p>
      */
     @EventHandler(priority = EventPriority.NORMAL)
     public void onEntityDeath(EntityDeathEvent event) {
-        Entity entity = event.getEntity();
+        // ゴールドドロップは実装しない
+        // 将来、他の報酬システム（クエスト等）でDamageTracker.getKiller()を使用可能
 
-        // Paper 1.20.6: getKiller()は削除されたため、ダメージイベントからプレイヤーを特定
-        // TODO: ダメージ追跡システムを実装して、キラーを特定できるようにする
-        // 現在は一時的に無効化
-        return;
-
-        /*
-        Player killer = entity.getKiller();
-
-        // プレイヤーに倒されたか確認
-        if (killer == null) {
-            return;
-        }
-
-        // プレイヤー自身の死亡は無視
-        if (entity instanceof Player) {
-            return;
-        }
-
-        // ゴールド計算
-        double goldDrop = calculateGoldDrop(entity);
-
-        if (goldDrop <= 0) {
-            return;
-        }
-
-        // ゴールドを付与
-        boolean success = currencyManager.depositGold(killer, goldDrop);
-
-        if (success) {
-            // メッセージを送信
-            sendGoldEarnMessage(killer, entity, goldDrop);
-
-            plugin.getLogger().fine("[Currency] " + killer.getName() + " earned " + goldDrop + "G from " + entity.getType().name());
-        }
-        */
+        // キラーの取得例（コメントアウト）:
+        // Player killer = damageTracker.getKiller(event);
+        // if (killer != null) {
+        //     // キラーに対する報酬処理
+        // }
     }
 
     /**

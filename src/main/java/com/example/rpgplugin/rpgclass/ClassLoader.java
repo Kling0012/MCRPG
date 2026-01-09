@@ -50,10 +50,9 @@ public class ClassLoader {
     public Map<String, RPGClass> loadAllClasses() {
         Map<String, RPGClass> classes = new HashMap<>();
 
-        File[] files = classesDirectory.listFiles((dir, name) ->
-                name.toLowerCase().endsWith(".yml"));
+        List<File> files = findYamlFiles(classesDirectory, true);
 
-        if (files == null || files.length == 0) {
+        if (files.isEmpty()) {
             logger.warning("classes/ directory is empty or does not exist");
             return classes;
         }
@@ -267,5 +266,35 @@ public class ClassLoader {
      */
     public File getClassesDirectory() {
         return classesDirectory;
+    }
+
+    /**
+     * ディレクトリから再帰的にYAMLファイルを検索
+     *
+     * @param directory 検索対象ディレクトリ
+     * @param recursive 再帰的に検索するか
+     * @return YAMLファイルのリスト
+     */
+    private List<File> findYamlFiles(File directory, boolean recursive) {
+        List<File> yamlFiles = new ArrayList<>();
+        
+        if (!directory.exists() || !directory.isDirectory()) {
+            return yamlFiles;
+        }
+
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return yamlFiles;
+        }
+
+        for (File file : files) {
+            if (file.isFile() && (file.getName().endsWith(".yml") || file.getName().endsWith(".yaml"))) {
+                yamlFiles.add(file);
+            } else if (file.isDirectory() && recursive) {
+                yamlFiles.addAll(findYamlFiles(file, true));
+            }
+        }
+
+        return yamlFiles;
     }
 }

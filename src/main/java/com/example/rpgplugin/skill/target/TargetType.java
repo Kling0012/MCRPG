@@ -20,9 +20,19 @@ public enum TargetType {
     SELF("self", "自分自身"),
 
     /**
+     * 自分と最も近いターゲット一人
+     */
+    SELF_PLUS_ONE("self_plus_one", "自分と他人一人"),
+
+    /**
      * 最も近い敵対MOB
      */
-    NEAREST_HOSTILE("nearest_hostile", "最も近い敵対MOB"),
+    NEAREST_HOSTILE("nearest_hostile", "最も近いMob"),
+
+    /**
+     * 最も近いプレイヤー
+     */
+    NEAREST_PLAYER("nearest_player", "最も近いプレイヤー"),
 
     /**
      * 最も近いエンティティ（プレイヤー含む）
@@ -30,9 +40,14 @@ public enum TargetType {
     NEAREST_ENTITY("nearest_entity", "最も近いエンティティ"),
 
     /**
-     * 範囲内の全エンティティ
+     * 範囲内の全エンティティ（自分を含む）
      */
-    AREA("area", "範囲内全て"),
+    AREA_SELF("area_self", "自分を含む範囲"),
+
+    /**
+     * 範囲内の全エンティティ（自分を含まない）
+     */
+    AREA_OTHERS("area_others", "自分を含まない範囲"),
 
     /**
      * 外部から指定されたターゲット
@@ -89,7 +104,7 @@ public enum TargetType {
      * @return 範囲系の場合はtrue
      */
     public boolean isAreaType() {
-        return this == AREA;
+        return this == AREA_SELF || this == AREA_OTHERS;
     }
 
     /**
@@ -98,6 +113,16 @@ public enum TargetType {
      * @return 単体ターゲットの場合はtrue
      */
     public boolean isSingleType() {
-        return this == SELF || this == NEAREST_HOSTILE || this == NEAREST_ENTITY;
+        return this == SELF || this == SELF_PLUS_ONE || this == NEAREST_HOSTILE
+                || this == NEAREST_PLAYER || this == NEAREST_ENTITY;
+    }
+
+    /**
+     * 複数ターゲットタイプか判定します
+     *
+     * @return 複数ターゲットの場合はtrue
+     */
+    public boolean isMultiTargetType() {
+        return this == SELF_PLUS_ONE || this == AREA_SELF || this == AREA_OTHERS;
     }
 }

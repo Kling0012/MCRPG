@@ -1,0 +1,14 @@
+{
+  "title": "skript-reflect",
+  "content": "This fork of [skript-mirror](https://github.com/btk5h/skript-mirror) aims to fix multiple issues that I believe have been present for too long, and implement some long-wanted features.\n\nDocumentation: <https://tpgamesnl.gitbook.io/skript-reflect>\n\nSource code: <https://github.com/TPGamesNL/skript-reflect>\n\nDownloads: [releases](https://github.com/TPGamesNL/skript-reflect/releases) or [actions](https://github.com/TPGamesNL/skript-reflect/actions?query=event%3Apush+is%3Asuccess+actor%3ATPGamesNL) (not stable)\n\nDiscord: <https://discord.gg/jDW8UbD>\n\n## What's been changed in this fork:\n\n* Added custom events\n* Support for more Java versions (Java 13+, OpenJ9)\n* Support for listening to asynchronous events\n* Class proxy fixes + documentation\n* Fixed multiple issues with local variables\n* \\+ much more",
+  "code_samples": [],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "What's been changed in this fork:",
+      "id": "what's-been-changed-in-this-fork:"
+    }
+  ],
+  "url": "llms-txt#skript-reflect",
+  "links": []
+}

@@ -1,0 +1,105 @@
+{
+  "name": "skript-reflect",
+  "total_pages": 24,
+  "base_url": "https://tpgamesnl.gitbook.io/skript-reflect",
+  "llms_txt_detected": true,
+  "llms_txt_variant": null,
+  "pages": [
+    {
+      "title": "skript-reflect",
+      "url": "llms-txt#skript-reflect"
+    },
+    {
+      "title": "Getting Started",
+      "url": "llms-txt#getting-started"
+    },
+    {
+      "title": "Basics",
+      "url": "llms-txt#basics"
+    },
+    {
+      "title": "Reading Javadocs",
+      "url": "llms-txt#reading-javadocs"
+    },
+    {
+      "title": "Importing classes",
+      "url": "llms-txt#importing-classes"
+    },
+    {
+      "title": "Running Java code",
+      "url": "llms-txt#running-java-code"
+    },
+    {
+      "title": "Handling events",
+      "url": "llms-txt#handling-events"
+    },
+    {
+      "title": "Utilities",
+      "url": "llms-txt#utilities"
+    },
+    {
+      "title": "Advanced",
+      "url": "llms-txt#advanced"
+    },
+    {
+      "title": "Error handling",
+      "url": "llms-txt#error-handling"
+    },
+    {
+      "title": "Loading external libraries",
+      "url": "llms-txt#loading-external-libraries"
+    },
+    {
+      "title": "Custom syntax",
+      "url": "llms-txt#custom-syntax"
+    },
+    {
+      "title": "Effects",
+      "url": "llms-txt#effects"
+    },
+    {
+      "title": "Conditions",
+      "url": "llms-txt#conditions"
+    },
+    {
+      "title": "Expressions",
+      "url": "llms-txt#expressions"
+    },
+    {
+      "title": "Events",
+      "url": "llms-txt#events"
+    },
+    {
+      "title": "Computed Options",
+      "url": "llms-txt#computed-options"
+    },
+    {
+      "title": "Reflection",
+      "url": "llms-txt#reflection"
+    },
+    {
+      "title": "Proxies",
+      "url": "llms-txt#proxies"
+    },
+    {
+      "title": "Sections",
+      "url": "llms-txt#sections"
+    },
+    {
+      "title": "Experiments",
+      "url": "llms-txt#experiments"
+    },
+    {
+      "title": "Code Conventions",
+      "url": "llms-txt#code-conventions"
+    },
+    {
+      "title": "Frequently Asked Questions",
+      "url": "llms-txt#frequently-asked-questions"
+    },
+    {
+      "title": "Initial page",
+      "url": "llms-txt#initial-page"
+    }
+  ]
+}

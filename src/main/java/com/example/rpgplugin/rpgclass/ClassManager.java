@@ -93,6 +93,15 @@ public class ClassManager {
     }
 
     /**
+     * 全クラスIDを取得します
+     *
+     * @return クラスIDのセット
+     */
+    public Set<String> getAllClassIds() {
+        return new HashSet<>(classes.keySet());
+    }
+
+    /**
      * 指定ランクのクラスを取得
      *
      * @param rank ランク

@@ -1,0 +1,74 @@
+{
+  "title": "Code Conventions",
+  "content": "## Separate complex Skript expressions from skript-reflect calls\n\nCombining Skript expressions with skript-reflect calls may make your code difficult to read. Use variables to separate these different types of calls.\n\n{% hint style=\"danger\" %}\n\n{% hint style=\"success\" %}\n\n## Keep the target of a skript-reflect call grouped\n\nWhen calling a method or accessing a field, avoid using spaces when possible.\n\n{% hint style=\"danger\" %}\n\n{% hint style=\"success\" %}\n\nIf the expression is simple (i.e. does not contain other expressions) but requires a space, surround the expression in parentheses.\n\n{% hint style=\"danger\" %}\n\n{% hint style=\"success\" %}\n\nIf the target of the expression is not simple (i.e. contains other expressions), extract the expression into a local variable. ([rule](#separate-complex-skript-expressions-from-skript-reflect-calls))\n\nVariables are the exception to this rule and may contain spaces and/or other expressions\n\n{% hint style=\"success\" %}\n\n## Avoid aliasing classes for aesthetic purposes\n\nThe purpose of import aliases is to avoid conflicts with other imports and expressions. Do not alias imports in order to make them look like Skript events.\n\n{% hint style=\"danger\" %}\n\n{% hint style=\"success\" %}\n\n## Avoid unnecessary uses of Java reflection\n\nEspecially when copying Java code and translating it for skript-reflect, you may run into instances where you need to use reflection to access a private method, field, or constructor. In skript-reflect, private members are visible and accessible by default.\n\n{% hint style=\"danger\" %}\n\n{% hint style=\"success\" %}",
+  "code_samples": [
+    {
+      "code": "(the player's targeted block).breakNaturally()",
+      "language": "unknown"
+    },
+    {
+      "code": "set {_target} to the player's targeted block\n{_target}.breakNaturally()",
+      "language": "unknown"
+    },
+    {
+      "code": "the event.getPlayer()",
+      "language": "unknown"
+    },
+    {
+      "code": "event.getPlayer()",
+      "language": "unknown"
+    },
+    {
+      "code": "spawned creeper.isPowered()",
+      "language": "unknown"
+    },
+    {
+      "code": "(spawned creeper).isPowered()",
+      "language": "unknown"
+    },
+    {
+      "code": "{my script::%player%::pet}.isDead()",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n  org.bukkit.event.player.PlayerMoveEvent as move\n\non move:\n  # code",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n   org.bukkit.event.player.PlayerMoveEvent\n\non PlayerMoveEvent:\n  # code",
+      "language": "unknown"
+    },
+    {
+      "code": "set {_mod count field} to {_map}.getClass().getDeclaredField(\"modCount\")\n{_mod count field}.setAccessible(true)\nset {_mod count} to {_mod count field}.get({_map})",
+      "language": "unknown"
+    },
+    {
+      "code": "set {_mod count} to {_map}.modCount",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Separate complex Skript expressions from skript-reflect calls",
+      "id": "separate-complex-skript-expressions-from-skript-reflect-calls"
+    },
+    {
+      "level": "h2",
+      "text": "Keep the target of a skript-reflect call grouped",
+      "id": "keep-the-target-of-a-skript-reflect-call-grouped"
+    },
+    {
+      "level": "h2",
+      "text": "Avoid aliasing classes for aesthetic purposes",
+      "id": "avoid-aliasing-classes-for-aesthetic-purposes"
+    },
+    {
+      "level": "h2",
+      "text": "Avoid unnecessary uses of Java reflection",
+      "id": "avoid-unnecessary-uses-of-java-reflection"
+    }
+  ],
+  "url": "llms-txt#code-conventions",
+  "links": []
+}

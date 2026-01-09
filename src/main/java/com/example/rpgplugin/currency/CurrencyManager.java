@@ -186,22 +186,43 @@ public class CurrencyManager {
             toCurrency = loadPlayerCurrency(to.getUniqueId());
         }
 
-        // 残高チェック
-        if (!fromCurrency.hasEnough(amount)) {
-            logger.fine("[Currency] Transfer failed: " + from.getName() + " has insufficient balance");
-            return false;
+        // デッドロック防止: UUID順でロックを取得
+        Object firstLock = from.getUniqueId().compareTo(to.getUniqueId()) < 0 ? fromCurrency : toCurrency;
+        Object secondLock = from.getUniqueId().compareTo(to.getUniqueId()) < 0 ? toCurrency : fromCurrency;
+
+        synchronized (firstLock) {
+            synchronized (secondLock) {
+                // 残高チェック
+                if (!fromCurrency.hasEnough(amount)) {
+                    logger.fine("[Currency] Transfer failed: " + from.getName() + " has insufficient balance");
+                    return false;
+                }
+
+                // 転送実行（アトミック操作）
+                boolean withdrawSuccess = fromCurrency.withdraw(amount);
+                if (!withdrawSuccess) {
+                    logger.warning("[Currency] Transfer failed: withdraw operation failed");
+                    return false;
+                }
+
+                toCurrency.deposit(amount);
+
+                // 同期保存（トランザクション整合性のため）
+                try {
+                    repository.save(fromCurrency);
+                    repository.save(toCurrency);
+                } catch (SQLException e) {
+                    // ロールバック: メモリ上の状態を元に戻す
+                    toCurrency.withdraw(amount);
+                    fromCurrency.deposit(amount);
+                    logger.severe("[Currency] Transfer failed during save, rolled back: " + e.getMessage());
+                    return false;
+                }
+
+                logger.info("[Currency] Transferred " + amount + "G from " + from.getName() + " to " + to.getName());
+                return true;
+            }
         }
-
-        // 転送実行
-        fromCurrency.withdraw(amount);
-        toCurrency.deposit(amount);
-
-        // 非同期保存
-        repository.saveAsync(fromCurrency);
-        repository.saveAsync(toCurrency);
-
-        logger.info("[Currency] Transferred " + amount + "G from " + from.getName() + " to " + to.getName());
-        return true;
     }
 
     /**

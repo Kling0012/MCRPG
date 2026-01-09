@@ -1,0 +1,101 @@
+{
+  "title": "Expressions",
+  "content": "{% tabs %}\n{% tab title=\"With one pattern\" %}\n\n{% tab title=\"With multiple patterns\" %}\n\n{% tab title=\"Property expression\" %}\n\nProperty expressions have two patterns:\n\nWhen property expressions are used, if multiple inputs are passed, the `get` section is called multiple times with each individual input passed as the first expression.\n\n{% hint style=\"info\" %}\n`expression-1` is always the object the property belongs to, even when the`[the] <pattern> of %$<skript types>%` form is used.\n{% endhint %}\n{% endtab %}\n{% endtabs %}\n\nSpecifying that an expression is `local` makes the expression only usable from within the script that it is defined in. This allows you to create expression that do not interfere with expressions from other addons or scripts.\n\n{% hint style=\"info\" %}\nLocal expressions are guaranteed to be parsed before other custom expressions, but not necessarily before expressions from other addons.\n{% endhint %}\n\n## Flag `plural`/`non-single`\n\nSpecifying that an expression is `plural` or `non-single` indicates that the expression may return more than one value regardless of context.\n\n### `$` type modifier\n\nIf the expression is single or non-single depending on whether the input is single or non-single, you may prefix the type with a `$`.\n\n{% tabs %}\n{% tab title=\"example.sk\" %}\n\n{% endtab %}\n{% endtabs %}\n\nIn the above example, `uppercase \"test\"` would be single and `uppercase (\"hello\" and \"world\")` would be non-single.\n\n## Option `return type`\n\nSpecifying a return type restricts the possible values that an expression returns, allowing Skript to potentially resolve type conflicts or perform optimizations.\n\nIn most cases, explicitly specifying a return type is unnecessary.\n\nIf the expression is non-single, this option specifies an alias that may be used if the expression is looped.\n\n{% tabs %}\n{% tab title=\"example.sk\" %}\n\n{% endtab %}\n{% endtabs %}\n\n## Section `usable in`\n\nEach entry in this section should be either an imported class or a custom event (syntax: `custom event %string%`).\n\nThis condition will error if it is used outside of all the given events.\n\nCode in this section is executed whenever the effect is parsed. This section may be used to emit errors if the effect is used in an improper context.\n\nIf this section is included, you must also [`continue`](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/..#continue) if the effect was parsed successfully.\n\n{% hint style=\"info\" %}\nLocal variables created in this section are copied by-value to other sections.\n\nCode in this section is executed whenever the expression's value is read. This section must [return](#return) a value and must not contain delays.\n\n{% tabs %}\n{% tab title=\"Syntax\" %}\n\n{% endtab %}\n{% endtabs %}\n\n## Section `add`/`set`/`remove`/`remove all`/`delete`/`reset`\n\nCode in these sections is executed whenever the expression is changed using Skript's change effect (or by other means).\n\n{% tabs %}\n{% tab title=\"Syntax\" %}\n\n{% endtab %}\n{% endtabs %}\n\nRepresents the value (or values) that the expression is being changed by.\n\n{% hint style=\"info\" %}\nIf multiple change values are expected, use the plural form of the expression `change values` instead of the singular `change value`.\n{% endhint %}",
+  "code_samples": [
+    {
+      "code": "[local] [(plural|non(-|[ ])single))] expression <pattern>:\n  return type: <skript type (cannot be a java type)> # optional\n  loop of: <text> # optional\n  usable in:\n    # events, optional\n  parse:\n    # code, optional\n  get:\n    # code, optional\n  add:\n    # code, optional\n  set:\n    # code, optional\n  remove:\n    # code, optional\n  remove all:\n    # code, optional\n  delete:\n    # code, optional\n  reset:\n    # code, optional",
+      "language": "unknown"
+    },
+    {
+      "code": "[local] [(plural|non(-|[ ])single))] expression:\n  patterns:\n    # patterns, one per line\n  return type: <skript type (cannot be a java type)> # optional\n  usable in:\n    # events, optional\n  parse:\n    # code, optional\n  get:\n    # code, optional\n  add:\n    # code, optional\n  set:\n    # code, optional\n  remove:\n    # code, optional\n  remove all:\n    # code, optional\n  delete:\n    # code, optional\n  reset:\n    # code, optional",
+      "language": "unknown"
+    },
+    {
+      "code": "[local] <skript types> property <pattern>:\n  return type: <skript type> # optional\n  usable in:\n    # events, optional\n  parse:\n    # code, optional\n  get:\n    # code, optional\n  add:\n    # code, optional\n  set:\n    # code, optional\n  remove:\n    # code, optional\n  remove all:\n    # code, optional\n  delete:\n    # code, optional\n  reset:\n    # code, optional",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] <pattern> of %$<skript types>%\n%$<skript types>%'[s] <pattern>",
+      "language": "unknown"
+    },
+    {
+      "code": "expression uppercase %$strings%:\n  # ...",
+      "language": "unknown"
+    },
+    {
+      "code": "plural expression test points:\n  loop of: point\n\non script load:\n  loop test points:\n    # You may use \"loop-point\" instead of \"loop-value\" here",
+      "language": "unknown"
+    },
+    {
+      "code": "expression example:\n  parse:\n    set {_test} to 1\n    continue\n  get:\n    # {_test} always starts at 1 here\n    add 1 to {_test}\n    # 2 is always returned\n    return {_test}",
+      "language": "unknown"
+    },
+    {
+      "code": "return [%objects%]",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] change value[s]",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Flag `local`",
+      "id": "flag-`local`"
+    },
+    {
+      "level": "h2",
+      "text": "Flag `plural`/`non-single`",
+      "id": "flag-`plural`/`non-single`"
+    },
+    {
+      "level": "h3",
+      "text": "`$` type modifier",
+      "id": "`$`-type-modifier"
+    },
+    {
+      "level": "h2",
+      "text": "Option `return type`",
+      "id": "option-`return-type`"
+    },
+    {
+      "level": "h2",
+      "text": "Option `loop of`",
+      "id": "option-`loop-of`"
+    },
+    {
+      "level": "h2",
+      "text": "Section `usable in`",
+      "id": "section-`usable-in`"
+    },
+    {
+      "level": "h2",
+      "text": "Section `parse`",
+      "id": "section-`parse`"
+    },
+    {
+      "level": "h2",
+      "text": "Section `get`",
+      "id": "section-`get`"
+    },
+    {
+      "level": "h3",
+      "text": "Return",
+      "id": "return"
+    },
+    {
+      "level": "h2",
+      "text": "Section `add`/`set`/`remove`/`remove all`/`delete`/`reset`",
+      "id": "section-`add`/`set`/`remove`/`remove-all`/`delete`/`reset`"
+    },
+    {
+      "level": "h3",
+      "text": "Change Value",
+      "id": "change-value"
+    }
+  ],
+  "url": "llms-txt#expressions",
+  "links": []
+}

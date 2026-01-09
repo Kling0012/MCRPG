@@ -225,7 +225,7 @@ public class TradeMenuListener implements Listener {
         }
 
         ItemStack item = party.get().getOffer().getItem(slot);
-        if (item == null || !item.isSimilar(item)) {
+        if (item == null) {
             return;
         }
 

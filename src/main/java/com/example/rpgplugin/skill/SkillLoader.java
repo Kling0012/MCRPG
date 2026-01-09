@@ -55,7 +55,7 @@ public class SkillLoader extends ConfigLoader {
             return skills;
         }
 
-        List<File> yamlFiles = getYamlFiles("skills", false);
+        List<File> yamlFiles = getYamlFiles("skills", true);
         if (yamlFiles.isEmpty()) {
             plugin.getLogger().warning("スキルファイルが見つかりません: " + skillsDir.getPath());
             return skills;
@@ -90,7 +90,10 @@ public class SkillLoader extends ConfigLoader {
 
         try {
             // 必須フィールドのバリデーション
-            validateRequired(config, List.of("id", "name", "type"));
+            if (!validateRequired(config, List.of("id", "name", "type"))) {
+                getLogger().warning("必須フィールドが不足しています: " + file.getName());
+                return null;
+            }
 
             String id = config.getString("id");
             String name = config.getString("name");

@@ -3,6 +3,7 @@ package com.example.rpgplugin.damage;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.damage.handlers.EntityDamageHandler;
 import com.example.rpgplugin.damage.handlers.PlayerDamageHandler;
+import com.example.rpgplugin.player.PlayerManager;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -53,12 +54,13 @@ public class DamageManager implements Listener {
      * コンストラクタ
      *
      * @param plugin プラグインインスタンス
+     * @param playerManager プレイヤーマネージャー
      */
-    public DamageManager(RPGPlugin plugin) {
+    public DamageManager(RPGPlugin plugin, PlayerManager playerManager) {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
-        this.playerDamageHandler = new PlayerDamageHandler(plugin);
-        this.entityDamageHandler = new EntityDamageHandler(plugin);
+        this.playerDamageHandler = new PlayerDamageHandler(playerManager, logger);
+        this.entityDamageHandler = new EntityDamageHandler(playerManager, logger);
         this.enabled = true;
     }
 

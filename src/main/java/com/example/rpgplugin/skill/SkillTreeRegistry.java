@@ -4,6 +4,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * スキルツリーレジストリ
@@ -39,7 +40,7 @@ public class SkillTreeRegistry {
     private final Map<String, Skill> registeredSkills = new ConcurrentHashMap<>();
 
     /** GUI更新リスナー */
-    private final List<TreeUpdateListener> listeners = new ArrayList<>();
+    private final List<TreeUpdateListener> listeners = new CopyOnWriteArrayList<>();
 
     /**
      * ツリー更新リスナー
@@ -63,6 +64,10 @@ public class SkillTreeRegistry {
      * @return スキルツリー、存在しない場合は空のツリー
      */
     public SkillTree getTree(String classId) {
+        if (classId == null) {
+            // クラスが未設定の場合は空のツリーを返す
+            return new SkillTree("default");
+        }
         return treeCache.computeIfAbsent(classId, this::buildTreeForClass);
     }
 

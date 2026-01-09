@@ -4,18 +4,23 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * オークションコマンドハンドラー
  * /rpg auction コマンドの処理を担当
  */
-public class AuctionCommand implements CommandExecutor {
+public class AuctionCommand implements CommandExecutor, TabCompleter {
 
     private final AuctionManager auctionManager;
 
@@ -306,5 +311,49 @@ public class AuctionCommand implements CommandExecutor {
 
         player.sendMessage(ChatColor.GOLD + "有効期限: " + ChatColor.WHITE + remainingSeconds + "秒");
         player.sendMessage(ChatColor.GRAY + "最低次回入札額: " + String.format("%.2f", auction.getMinimumNextBid()));
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        // /rpg auction なので、args[0]がauction、args[1]がサブコマンド
+        if (args.length == 1) {
+            // サブコマンド補完
+            completions.addAll(Arrays.asList("list", "bid", "create", "cancel", "info"));
+        } else if (args.length >= 2) {
+            String subCommand = args[0].toLowerCase();
+
+            switch (subCommand) {
+                case "bid":
+                case "cancel":
+                case "info":
+                    if (args.length == 2) {
+                        // オークションID補完
+                        completions.addAll(auctionManager.getActiveAuctions().stream()
+                                .map(auction -> String.valueOf(auction.getId()))
+                                .collect(Collectors.toList()));
+                    }
+                    break;
+
+                case "create":
+                    if (args.length == 2) {
+                        completions.add("<価格>");
+                    } else if (args.length == 3) {
+                        completions.addAll(Arrays.asList("30", "60", "90", "120", "180"));
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        // 入力された文字列でフィルタリング
+        String lastArg = args[args.length - 1];
+        return completions.stream()
+                .filter(completion -> completion.toLowerCase().startsWith(lastArg.toLowerCase()))
+                .sorted()
+                .collect(Collectors.toList());
     }
 }

@@ -1,6 +1,7 @@
 package com.example.rpgplugin.storage.database;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -34,22 +35,187 @@ public class SchemaManager {
             // スキーマバージョンテーブルが存在しない場合は作成
             createSchemaVersionTable(stmt);
 
-            // 現在のスキーマバージョンを取得
-            int currentVersion = getCurrentSchemaVersion(stmt);
+            // フレッシュインストールかチェック（player_dataテーブルが存在しない）
+            boolean isFreshInstall = !tableExists(stmt, "player_data");
 
-            logger.info("Current schema version: " + currentVersion);
+            if (isFreshInstall) {
+                // フレッシュインストール時は最新スキーマを直接作成
+                logger.info("Fresh install detected, creating latest schema (version " + CURRENT_SCHEMA_VERSION + ")");
+                createLatestSchema(stmt);
+                // バージョンを記録
+                recordSchemaVersion(conn, CURRENT_SCHEMA_VERSION);
+            } else {
+                // 既存データベースの場合はバージョンを取得してマイグレーション
+                int currentVersion = getCurrentSchemaVersion(stmt);
+                logger.info("Current schema version: " + currentVersion);
 
-            // 必要に応じてマイグレーション実行
-            if (currentVersion < CURRENT_SCHEMA_VERSION) {
-                logger.info("Migrating schema from version " + currentVersion + " to " + CURRENT_SCHEMA_VERSION);
-                migrateSchema(conn, stmt, currentVersion, CURRENT_SCHEMA_VERSION);
-            } else if (currentVersion > CURRENT_SCHEMA_VERSION) {
-                logger.warning("Database schema version (" + currentVersion + ") is newer than expected (" + CURRENT_SCHEMA_VERSION + ")");
+                // 必要に応じてマイグレーション実行
+                if (currentVersion < CURRENT_SCHEMA_VERSION) {
+                    logger.info("Migrating schema from version " + currentVersion + " to " + CURRENT_SCHEMA_VERSION);
+                    migrateSchema(conn, stmt, currentVersion, CURRENT_SCHEMA_VERSION);
+                } else if (currentVersion > CURRENT_SCHEMA_VERSION) {
+                    logger.warning("Database schema version (" + currentVersion + ") is newer than expected (" + CURRENT_SCHEMA_VERSION + ")");
+                }
+
+                // すべてのテーブルが存在することを確認
+                ensureTablesExist(stmt);
             }
-
-            // すべてのテーブルが存在することを確認
-            ensureTablesExist(stmt);
         }
+    }
+
+    /**
+     * スキーマバージョンを記録
+     */
+    private void recordSchemaVersion(Connection conn, int version) throws SQLException {
+        String sql = "INSERT INTO schema_version (version) VALUES (?)";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, version);
+            pstmt.executeUpdate();
+        }
+    }
+
+    /**
+     * 最新のスキーマ（バージョン5）を直接作成
+     * フレッシュインストール時に使用
+     */
+    private void createLatestSchema(Statement stmt) throws SQLException {
+        logger.info("Creating latest schema");
+
+        // player_data テーブル（V5相当のカラムを含む）
+        String playerDataSql = """
+            CREATE TABLE IF NOT EXISTS player_data (
+                uuid TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                class_id TEXT,
+                class_rank INTEGER DEFAULT 1,
+                class_history TEXT DEFAULT NULL,
+                first_join INTEGER DEFAULT (strftime('%s', 'now')),
+                last_login INTEGER DEFAULT (strftime('%s', 'now')),
+                max_health INTEGER DEFAULT 20,
+                max_mana INTEGER DEFAULT 100,
+                current_mana INTEGER DEFAULT 100,
+                cost_type TEXT DEFAULT 'mana'
+            )
+        """;
+        stmt.execute(playerDataSql);
+
+        // player_stats テーブル
+        String playerStatsSql = """
+            CREATE TABLE IF NOT EXISTS player_stats (
+                uuid TEXT PRIMARY KEY,
+                strength_base INTEGER DEFAULT 0,
+                intelligence_base INTEGER DEFAULT 0,
+                spirit_base INTEGER DEFAULT 0,
+                vitality_base INTEGER DEFAULT 0,
+                dexterity_base INTEGER DEFAULT 0,
+                strength_auto INTEGER DEFAULT 0,
+                intelligence_auto INTEGER DEFAULT 0,
+                spirit_auto INTEGER DEFAULT 0,
+                vitality_auto INTEGER DEFAULT 0,
+                dexterity_auto INTEGER DEFAULT 0,
+                available_points INTEGER DEFAULT 0,
+                FOREIGN KEY (uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
+            )
+        """;
+        stmt.execute(playerStatsSql);
+
+        // インデックス作成
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_stats_uuid ON player_stats(uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_data_username ON player_data(username)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_data_class ON player_data(class_id)");
+
+        // V3: 通貨テーブル
+        String playerCurrencySql = """
+            CREATE TABLE IF NOT EXISTS player_currency (
+                uuid TEXT PRIMARY KEY,
+                gold_balance REAL DEFAULT 0.0,
+                total_earned REAL DEFAULT 0.0,
+                total_spent REAL DEFAULT 0.0,
+                FOREIGN KEY (uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
+            )
+        """;
+        stmt.execute(playerCurrencySql);
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_currency_uuid ON player_currency(uuid)");
+
+        // V3: オークションテーブル
+        String auctionListingsSql = """
+            CREATE TABLE IF NOT EXISTS auction_listings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                seller_uuid TEXT NOT NULL,
+                seller_name TEXT NOT NULL,
+                item_data TEXT NOT NULL,
+                starting_price REAL NOT NULL,
+                current_bid REAL DEFAULT 0,
+                current_bidder TEXT,
+                duration_seconds INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                expires_at INTEGER NOT NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                FOREIGN KEY (seller_uuid) REFERENCES player_data(uuid)
+            )
+        """;
+        stmt.execute(auctionListingsSql);
+
+        String auctionBidsSql = """
+            CREATE TABLE IF NOT EXISTS auction_bids (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                auction_id INTEGER NOT NULL,
+                bidder_uuid TEXT NOT NULL,
+                bid_amount REAL NOT NULL,
+                bid_time INTEGER DEFAULT (strftime('%s', 'now')),
+                FOREIGN KEY (auction_id) REFERENCES auction_listings(id) ON DELETE CASCADE
+            )
+        """;
+        stmt.execute(auctionBidsSql);
+
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_seller ON auction_listings(seller_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_expires ON auction_listings(expires_at)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_active ON auction_listings(is_active)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_auction ON auction_bids(auction_id)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_bidder ON auction_bids(bidder_uuid)");
+
+        // V3: トレード履歴テーブル
+        String tradeHistorySql = """
+            CREATE TABLE IF NOT EXISTS trade_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player1_uuid TEXT NOT NULL,
+                player2_uuid TEXT NOT NULL,
+                player1_items TEXT,
+                player2_items TEXT,
+                gold_amount1 REAL DEFAULT 0.0,
+                gold_amount2 REAL DEFAULT 0.0,
+                trade_time INTEGER DEFAULT (strftime('%s', 'now')),
+                FOREIGN KEY (player1_uuid) REFERENCES player_data(uuid),
+                FOREIGN KEY (player2_uuid) REFERENCES player_data(uuid)
+            )
+        """;
+        stmt.execute(tradeHistorySql);
+
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player1 ON trade_history(player1_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player2 ON trade_history(player2_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_time ON trade_history(trade_time)");
+
+        // V4: MythicMobsドロップ管理テーブル
+        String mythicDropsSql = """
+            CREATE TABLE IF NOT EXISTS mythic_drops (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                player_uuid TEXT NOT NULL,
+                mob_id TEXT NOT NULL,
+                item_data TEXT NOT NULL,
+                dropped_at INTEGER DEFAULT (strftime('%s', 'now')),
+                is_claimed BOOLEAN DEFAULT 0,
+                expires_at INTEGER,
+                FOREIGN KEY (player_uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
+            )
+        """;
+        stmt.execute(mythicDropsSql);
+
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_player ON mythic_drops(player_uuid)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_mob ON mythic_drops(mob_id)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_expires ON mythic_drops(expires_at)");
+        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_claimed ON mythic_drops(is_claimed)");
+
+        logger.info("Latest schema created successfully");
     }
 
     /**
@@ -90,6 +256,8 @@ public class SchemaManager {
      * スキーママイグレーション実行
      */
     private void migrateSchema(Connection conn, Statement stmt, int fromVersion, int toVersion) throws SQLException {
+        String insertVersionSql = "INSERT INTO schema_version (version) VALUES (?)";
+        
         try {
             conn.setAutoCommit(false);
 
@@ -97,8 +265,11 @@ public class SchemaManager {
                 logger.info("Applying migration for version " + version);
                 applyMigration(stmt, version);
 
-                // バージョンを記録
-                stmt.execute("INSERT INTO schema_version (version) VALUES (" + version + ")");
+                // バージョンを記録（PreparedStatementでSQLインジェクション対策）
+                try (PreparedStatement pstmt = conn.prepareStatement(insertVersionSql)) {
+                    pstmt.setInt(1, version);
+                    pstmt.executeUpdate();
+                }
             }
 
             conn.commit();
@@ -183,10 +354,26 @@ public class SchemaManager {
     }
 
     /**
+     * テーブルが存在するかチェック
+     */
+    private boolean tableExists(Statement stmt, String tableName) throws SQLException {
+        ResultSet rs = stmt.executeQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "'"
+        );
+        return rs.next();
+    }
+
+    /**
      * バージョン2のマイグレーション: クラス履歴カラムを追加
      */
     private void applyMigrationV2(Statement stmt) throws SQLException {
         logger.info("Applying version 2 migration: adding class_history column");
+
+        // player_dataテーブルが存在しない場合はスキップ（V1で作成される）
+        if (!tableExists(stmt, "player_data")) {
+            logger.info("player_data table does not exist yet, skipping V2 migration");
+            return;
+        }
 
         // class_historyカラムを追加（既存の場合はスキップ）
         String alterSql = """
@@ -326,6 +513,12 @@ public class SchemaManager {
      */
     private void applyMigrationV5(Statement stmt) throws SQLException {
         logger.info("Applying version 5 migration: adding MP/HP fields to player_data");
+
+        // player_dataテーブルが存在しない場合はスキップ（V1で作成される）
+        if (!tableExists(stmt, "player_data")) {
+            logger.info("player_data table does not exist yet, skipping V5 migration");
+            return;
+        }
 
         // player_data テーブルにカラム追加
         stmt.execute("ALTER TABLE player_data ADD COLUMN max_health INTEGER DEFAULT 20");

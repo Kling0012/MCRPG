@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 軽量コネクションプール実装
@@ -18,7 +19,7 @@ public class ConnectionPool {
     private final ConnectionFactory connectionFactory;
     private final int maxPoolSize;
     private final long connectionTimeoutMillis;
-    private int totalConnections;
+    private final AtomicInteger totalConnections;
     private boolean isShutdown;
 
     /**
@@ -33,7 +34,7 @@ public class ConnectionPool {
         this.maxPoolSize = maxPoolSize;
         this.connectionTimeoutMillis = connectionTimeoutSeconds * 1000;
         this.availableConnections = new ArrayBlockingQueue<>(maxPoolSize);
-        this.totalConnections = 0;
+        this.totalConnections = new AtomicInteger(0);
         this.isShutdown = false;
     }
 
@@ -76,18 +77,20 @@ public class ConnectionPool {
 
         if (pooledConn != null) {
             if (pooledConn.isValid()) {
+                // プールから取得時にisClosed状態をリセット
+                pooledConn.resetClosed();
                 return pooledConn;
             }
             // 無効なコネクションを削除
-            totalConnections--;
+            totalConnections.decrementAndGet();
         }
 
         // 新規コネクションを作成
-        if (totalConnections < maxPoolSize) {
+        if (totalConnections.get() < maxPoolSize) {
             synchronized (this) {
-                if (totalConnections < maxPoolSize) {
+                if (totalConnections.get() < maxPoolSize) {
                     Connection conn = connectionFactory.create();
-                    totalConnections++;
+                    totalConnections.incrementAndGet();
                     return new PooledConnection(conn);
                 }
             }
@@ -125,10 +128,10 @@ public class ConnectionPool {
             if (!availableConnections.offer(pooledConn)) {
                 // プールが満杯の場合、クローズ
                 closeConnection(pooledConn);
-                totalConnections--;
+                totalConnections.decrementAndGet();
             }
         } else {
-            totalConnections--;
+            totalConnections.decrementAndGet();
         }
     }
 
@@ -151,7 +154,7 @@ public class ConnectionPool {
         while ((conn = availableConnections.poll()) != null) {
             closeConnection(conn);
         }
-        totalConnections = 0;
+        totalConnections.set(0);
     }
 
     /**
@@ -187,6 +190,13 @@ public class ConnectionPool {
             } catch (SQLException e) {
                 return false;
             }
+        }
+
+        /**
+         * プールから再取得時にisClosed状態をリセット
+         */
+        void resetClosed() {
+            this.isClosed = false;
         }
 
         @Override

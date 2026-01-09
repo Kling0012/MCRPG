@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -355,7 +356,7 @@ public class YamlConfigManager {
      * @param listener リスナー
      */
     public void addReloadListener(@NotNull String name, @NotNull Consumer<FileConfiguration> listener) {
-        reloadListeners.computeIfAbsent(name, k -> new ArrayList<>()).add(listener);
+        reloadListeners.computeIfAbsent(name, k -> new CopyOnWriteArrayList<>()).add(listener);
     }
 
     /**

@@ -1,0 +1,82 @@
+{
+  "title": "Custom syntax",
+  "content": "Due to Skript and skript-reflect limitations, it is not easy to create custom syntax through Java calls alone. To help with this, skript-reflect offers utilities that simplify the creation of custom syntax.\n\n{% hint style=\"info\" %}\nWhen used with [the raw expression](https://tpgamesnl.gitbook.io/skript-reflect/basics/utilities#raw-expression), you can set it to a value, which will change the input value from that argument. This can be used to store data in variables in the calling trigger.\n\nParse tags are like parse tags, but they're a set of strings instead of a single integer.\n\nParse tags were added in Skript 2.6.1, and are explained in more detail [here](https://github.com/SkriptLang/Skript/pull/4176#issuecomment-882056536)\n\n### Parser Regular Expression\n\n{% content-ref url=\"custom-syntax/effects\" %}\n[effects](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/effects)\n{% endcontent-ref %}\n\n{% content-ref url=\"custom-syntax/conditions\" %}\n[conditions](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/conditions)\n{% endcontent-ref %}\n\n{% content-ref url=\"custom-syntax/expressions\" %}\n[expressions](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/expressions)\n{% endcontent-ref %}\n\n{% content-ref url=\"custom-syntax/events\" %}\n[events](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/events)\n{% endcontent-ref %}",
+  "code_samples": [
+    {
+      "code": "event-classes",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] expr[ession][s](-| )%number%",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n\tch.njol.skript.lang.Variable\n\neffect put %objects% in %objects%:\n\tparse:\n\t\texpr-2 is an instance of Variable # to check if the second argument is a variable\n\t\tcontinue\n\ttrigger:\n\t\tset raw expr-2 to expr-1",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] [matched] pattern",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] [parse[r]] mark",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] parse[r] tags",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] [parse[r]] (regex|regular expression)(-| )%number%",
+      "language": "unknown"
+    },
+    {
+      "code": "continue",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Shared Syntax",
+      "id": "shared-syntax"
+    },
+    {
+      "level": "h3",
+      "text": "Event Classes",
+      "id": "event-classes"
+    },
+    {
+      "level": "h3",
+      "text": "Expression",
+      "id": "expression"
+    },
+    {
+      "level": "h3",
+      "text": "Matched Pattern",
+      "id": "matched-pattern"
+    },
+    {
+      "level": "h3",
+      "text": "Parser Mark",
+      "id": "parser-mark"
+    },
+    {
+      "level": "h3",
+      "text": "Parse Tag",
+      "id": "parse-tag"
+    },
+    {
+      "level": "h3",
+      "text": "Parser Regular Expression",
+      "id": "parser-regular-expression"
+    },
+    {
+      "level": "h3",
+      "text": "Continue",
+      "id": "continue"
+    }
+  ],
+  "url": "llms-txt#custom-syntax",
+  "links": []
+}

@@ -64,6 +64,42 @@ command /addstatpoints <integer>:
         send "&cこの機能はゲーム内のステータスGUIを使用してください"
 
 # ============================================
+# 新機能: ステータスポイント配分
+# ============================================
+
+command /allocatestat <text> <integer>:
+    trigger:
+        # 利用可能ポイント確認
+        execute player command "rpg api get_available_points %player%"
+        wait 1 tick
+        
+        # ポイント配分実行
+        execute player command "rpg api add_stat_point %player% %{_text}% %{_integer}%"
+
+command /checkavailablepoints:
+    trigger:
+        execute player command "rpg api get_available_points %player%"
+
+# ============================================
+# 新機能: スキルポイント管理
+# ============================================
+
+command /checkskillpoints:
+    trigger:
+        execute player command "rpg api get_skill_points %player%"
+
+command /giveskillpoints <player> <integer>:
+    permission: rpgplugin.api
+    trigger:
+        execute player command "rpg api add_skill_points %{_player}% %{_integer}%"
+        send "&a%{_player}% に %{_integer}% スキルポイントを付与しました！"
+
+command /learnskillwithpoints <text>:
+    trigger:
+        # スキルポイント消費でスキル習得
+        execute player command "rpg api unlock_skill_with_points %player% %{_text}%"
+
+# ============================================
 # 例3: クラス操作
 # ============================================
 
@@ -78,6 +114,24 @@ command /changeclass <text>:
         # クラスを変更
         execute player command "rpg api set_class %player% %{_text}%"
         send "&aクラスを %{_text}% に変更しました！"
+
+# ============================================
+# 新機能: 条件チェック付きクラス変更
+# ============================================
+
+command /trychangeclass <text>:
+    trigger:
+        # クラス変更可能かチェック
+        execute player command "rpg api can_change_class %player% %{_text}%"
+        wait 1 tick
+        
+        # 条件チェック付きクラス変更を試行
+        execute player command "rpg api try_change_class %player% %{_text}%"
+
+command /cancheckclass <text>:
+    trigger:
+        # クラス変更可能性チェック
+        execute player command "rpg api can_change_class %player% %{_text}%"
 
 command /upgradeclass:
     permission: rpgplugin.api

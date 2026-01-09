@@ -2,6 +2,8 @@ package com.example.rpgplugin.stats;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -39,8 +41,8 @@ public class StatManager {
     private final Logger logger;
     private final Map<Stat, Integer> baseStats;
     private final Map<Stat, List<StatModifier>> modifiers;
-    private int availablePoints;
-    private int totalLevel;
+    private final AtomicInteger availablePoints;
+    private final AtomicInteger totalLevel;
 
     /**
      * デフォルトコンストラクタ
@@ -59,15 +61,15 @@ public class StatManager {
      */
     public StatManager(int initialBaseValue, int initialAvailablePoints) {
         this.logger = Logger.getLogger(StatManager.class.getName());
-        this.baseStats = new EnumMap<>(Stat.class);
+        this.baseStats = new ConcurrentHashMap<>();
         this.modifiers = new ConcurrentHashMap<>();
-        this.availablePoints = initialAvailablePoints;
-        this.totalLevel = 1;
+        this.availablePoints = new AtomicInteger(initialAvailablePoints);
+        this.totalLevel = new AtomicInteger(1);
 
         // 初期化
         for (Stat stat : Stat.values()) {
             baseStats.put(stat, initialBaseValue);
-            modifiers.put(stat, new ArrayList<>());
+            modifiers.put(stat, new CopyOnWriteArrayList<>());
         }
     }
 
@@ -184,7 +186,7 @@ public class StatManager {
      * @return 現在の手動配分ポイント
      */
     public int getAvailablePoints() {
-        return availablePoints;
+        return availablePoints.get();
     }
 
     /**
@@ -197,7 +199,7 @@ public class StatManager {
         if (points < 0) {
             throw new IllegalArgumentException("Available points cannot be negative: " + points);
         }
-        this.availablePoints = points;
+        this.availablePoints.set(points);
     }
 
     /**
@@ -210,7 +212,7 @@ public class StatManager {
         if (amount < 0) {
             throw new IllegalArgumentException("Amount cannot be negative: " + amount);
         }
-        this.availablePoints += amount;
+        this.availablePoints.addAndGet(amount);
     }
 
     /**
@@ -227,14 +229,14 @@ public class StatManager {
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be positive: " + amount);
         }
-        if (availablePoints < amount) {
-            logger.fine("Not enough available points. Have: " + availablePoints + ", Need: " + amount);
+        if (availablePoints.get() < amount) {
+            logger.fine("Not enough available points. Have: " + availablePoints.get() + ", Need: " + amount);
             return false;
         }
 
         int currentValue = getBaseStat(stat);
         setBaseStat(stat, currentValue + amount);
-        availablePoints -= amount;
+        availablePoints.addAndGet(-amount);
 
         logger.fine("Allocated " + amount + " points to " + stat.getDisplayName() +
                    ". New value: " + getBaseStat(stat) + ", Remaining points: " + availablePoints);
@@ -261,7 +263,7 @@ public class StatManager {
             }
         }
 
-        availablePoints += totalUsed;
+        availablePoints.addAndGet(totalUsed);
 
         logger.fine("Reset stat allocation. Returned " + totalUsed + " points.");
 
@@ -432,7 +434,7 @@ public class StatManager {
      * @return 総レベル
      */
     public int getTotalLevel() {
-        return totalLevel;
+        return totalLevel.get();
     }
 
     /**
@@ -445,7 +447,7 @@ public class StatManager {
         if (level < 1) {
             throw new IllegalArgumentException("Level cannot be less than 1: " + level);
         }
-        this.totalLevel = level;
+        this.totalLevel.set(level);
     }
 
     // ==================== ユーティリティ ====================

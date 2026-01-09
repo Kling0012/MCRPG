@@ -285,7 +285,7 @@ public class ResourceSetupManager {
 
                 ## テンプレートの場所
 
-                テンプレートファイルは `plugins/RPGPlugin/templates/skills/` にあります。
+                テンプレートファイルは `plugins/MCRPG/templates/skills/` にあります。
                 """;
 
         java.nio.file.Files.writeString(file.toPath(), content);
@@ -317,7 +317,7 @@ public class ResourceSetupManager {
 
                 ## テンプレートの場所
 
-                テンプレートファイルは `plugins/RPGPlugin/templates/classes/` にあります。
+                テンプレートファイルは `plugins/MCRPG/templates/classes/` にあります。
                 """;
 
         java.nio.file.Files.writeString(file.toPath(), content);

@@ -1,0 +1,28 @@
+{
+  "title": "Computed Options",
+  "content": "Skript's options section allows you to create snippets of text that are copied into other sections of your script. This is useful for static text, but does not work well for text that must be derived from dynamic sources, such as variables.\n\nAfter the computed option is defined, it is accessible as `{@<option name>}` within the same script.\n\nCode in this section is executed as soon as it is parsed. This section must [return](https://tpgamesnl.gitbook.io/skript-reflect/custom-syntax/expressions#return) a value and must not contain delays.\n\n## Using computed options for NMS imports\n\nNMS packages from before Minecraft 1.17 include the Minecraft version, preventing code referencing NMS classes from working across versions. To get around this, computed options may be used to dynamically generate the proper NMS package.\n\n{% hint style=\"warning\" %}\nWhile this code dynamically generates the appropriate NMS package prefix, it does not guarantee your code will work across versions! Be aware that classes, methods, and fields may change in incompatible ways across versions.\n{% endhint %}",
+  "code_samples": [
+    {
+      "code": "option <option name>:\n  get:\n    # code, required",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n  org.bukkit.Bukkit\n\noption nms:\n  get:\n    set {_nms version} to Bukkit.getServer().getClass().getPackage().getName().split(\"\\.\")[3]\n    return \"net.minecraft.server.%{_nms version}%\"\n\nimport:\n  {@nms}.MinecraftServer\n  {@nms}.Item",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h3",
+      "text": "Section `get`",
+      "id": "section-`get`"
+    },
+    {
+      "level": "h2",
+      "text": "Using computed options for NMS imports",
+      "id": "using-computed-options-for-nms-imports"
+    }
+  ],
+  "url": "llms-txt#computed-options",
+  "links": []
+}

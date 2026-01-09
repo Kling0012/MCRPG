@@ -91,7 +91,8 @@ public class GameSystemManager {
         this.skillConfig = new com.example.rpgplugin.skill.config.SkillConfig(plugin, skillManager);
         this.activeSkillExecutor = new com.example.rpgplugin.skill.executor.ActiveSkillExecutor(plugin, skillManager, playerManager);
         this.passiveSkillExecutor = new com.example.rpgplugin.skill.executor.PassiveSkillExecutor(plugin, skillManager, playerManager);
-        this.damageManager = new DamageManager(plugin);
+        // DamageManagerはPlayerManagerに依存するため、初期化順序を考慮して渡す
+        this.damageManager = new DamageManager(plugin, playerManager);
         this.currencyManager = new CurrencyManager(
             coreSystem.getStorageManager().getPlayerCurrencyRepository(),
             plugin.getLogger()

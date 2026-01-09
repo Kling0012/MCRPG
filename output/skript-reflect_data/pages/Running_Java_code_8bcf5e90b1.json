@@ -1,0 +1,72 @@
+{
+  "title": "Running Java code",
+  "content": "Methods may be used as effects, expressions, and conditions. If used as a condition, the condition will pass as long as the return value of the method is not `false`, `null`, or `0`.\n\n### Calling non-public methods\n\nIf the method you're trying to invoke is not public, you may have to prefix the method name with the declaring class in brackets. Since an object may have a non-public method with the same name in multiple superclasses, you must explicitly specify where to find the method.\n\n### Calling overloaded methods\n\nGenerally, skript-reflect can infer the correct overloaded method to call from the arguments passed at runtime. If you need to use a certain implementation of a method, you may append a comma separated list to the end of the method name surrounded in brackets.\n\n### Calling non-public fields\n\nIf the field you're trying to access is not public, you may have to prefix the field name with the declaring class in brackets. Since an object may have a non-public field with the same name in multiple superclasses, you must explicitly specify where to find the field.\n\n## Calling constructors",
+  "code_samples": [
+    {
+      "code": "%object%.<method name>(%objects%)",
+      "language": "unknown"
+    },
+    {
+      "code": "event-block.breakNaturally()\n(last spawned creeper).setPowered(true)\nplayer.giveExpLevels({_levels})",
+      "language": "unknown"
+    },
+    {
+      "code": "{_arraylist}.[ArrayList]fastRemove(1)",
+      "language": "unknown"
+    },
+    {
+      "code": "System.out.println[Object]({_something})\n\nMath.max[int, int](0, {_value})",
+      "language": "unknown"
+    },
+    {
+      "code": "%object%.<descriptor>",
+      "language": "unknown"
+    },
+    {
+      "code": "{_hashmap}.[HashMap]modCount",
+      "language": "unknown"
+    },
+    {
+      "code": "[a] new %javatype%(%objects%)",
+      "language": "unknown"
+    },
+    {
+      "code": "new Location(player's world, 0, 0, 0)",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Calling methods",
+      "id": "calling-methods"
+    },
+    {
+      "level": "h3",
+      "text": "Calling non-public methods",
+      "id": "calling-non-public-methods"
+    },
+    {
+      "level": "h3",
+      "text": "Calling overloaded methods",
+      "id": "calling-overloaded-methods"
+    },
+    {
+      "level": "h2",
+      "text": "Calling fields",
+      "id": "calling-fields"
+    },
+    {
+      "level": "h3",
+      "text": "Calling non-public fields",
+      "id": "calling-non-public-fields"
+    },
+    {
+      "level": "h2",
+      "text": "Calling constructors",
+      "id": "calling-constructors"
+    }
+  ],
+  "url": "llms-txt#running-java-code",
+  "links": []
+}

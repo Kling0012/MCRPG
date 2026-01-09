@@ -1,0 +1,46 @@
+{
+  "title": "Conditions",
+  "content": "{% tabs %}\n{% tab title=\"With one pattern\" %}\n\n{% tab title=\"With multiple patterns\" %}\n\n{% tab title=\"Property condition\" %}\n\n{% endtab %}\n{% endtabs %}\n\nSpecifying that a condition is `local` makes the condition only usable from within the script that it is defined in. This allows you to create condition that do not interfere with conditions from other addons or scripts.\n\n{% hint style=\"info\" %}\nLocal conditions are guaranteed to be parsed before other custom conditions, but not necessarily before conditions from other addons.\n{% endhint %}\n\n## Section `usable in`\n\nEach entry in this section should be either an imported class or a custom event (syntax: `custom event %string%`).\n\nThis condition will error if it is used outside of all the given events.\n\nCode in this section is executed whenever the condition is parsed. This section may be used to emit errors if the condition is used in an improper context.\n\nIf this section is included, you must also [`continue`](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/..#continue) if the effect was parsed successfully.\n\n{% hint style=\"info\" %}\nLocal variables created in this section are copied by-value to other sections.\n\nCode in this section is executed whenever the condition is checked. This section must [`continue`](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/..#continue) if the condition is met. The section may exit without continuing if the condition fails.",
+  "code_samples": [
+    {
+      "code": "[local] condition <pattern>:\n  usable in:\n    # events, optional\n  parse:\n    # code, optional\n  check:\n    # code, required",
+      "language": "unknown"
+    },
+    {
+      "code": "[local] condition:\n  usable in:\n    # events, optional\n  patterns:\n    # patterns, one per line\n  parse:\n    # code, optional\n  check:\n    # code, required",
+      "language": "unknown"
+    },
+    {
+      "code": "[local] <skript type> property condition <pattern>:\n  usable in:\n    # events, optional\n  parse:\n    # code, optional\n  check:\n    # code, required",
+      "language": "unknown"
+    },
+    {
+      "code": "condition example:\n  parse:\n    set {_test} to 1\n    continue\n  check:\n    # {_test} always starts at 1 here\n    add 1 to {_test}\n    # 2 is always broadcast\n    broadcast \"%{_test}%\"",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Flag `local`",
+      "id": "flag-`local`"
+    },
+    {
+      "level": "h2",
+      "text": "Section `usable in`",
+      "id": "section-`usable-in`"
+    },
+    {
+      "level": "h2",
+      "text": "Section `parse`",
+      "id": "section-`parse`"
+    },
+    {
+      "level": "h2",
+      "text": "Section `check`",
+      "id": "section-`check`"
+    }
+  ],
+  "url": "llms-txt#conditions",
+  "links": []
+}

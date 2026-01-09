@@ -8,6 +8,7 @@ import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillTree;
+import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.stats.calculator.StatCalculator;
@@ -16,7 +17,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * RPGコマンドハンドラー
@@ -39,7 +47,7 @@ import org.bukkit.entity.Player;
  * @author RPGPlugin Team
  * @version 1.0.0
  */
-public class RPGCommand implements CommandExecutor {
+public class RPGCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -105,7 +113,11 @@ public class RPGCommand implements CommandExecutor {
                 break;
 
             case "help":
-                showHelp(player);
+                if (args.length >= 2) {
+                    showCategoryHelp(player, args[1]);
+                } else {
+                    showHelp(player);
+                }
                 break;
 
             default:
@@ -345,9 +357,24 @@ private void handleSkillCommand(Player player) {
             return;
         }
 
+        // クールダウンチェック
+        if (!skillManager.checkCooldown(player, skillId)) {
+            player.sendMessage(ChatColor.RED + "クールダウン中です");
+            return;
+        }
+
         // スキル発動
-        // TODO: ActiveSkillExecutorを使用した発動処理
-        player.sendMessage(ChatColor.YELLOW + "スキル発動処理を実装中: " + skill.getColoredDisplayName());
+        ActiveSkillExecutor executor = RPGPlugin.getInstance().getActiveSkillExecutor();
+        if (executor == null) {
+            player.sendMessage(ChatColor.RED + "スキル実行システムが初期化されていません");
+            return;
+        }
+
+        boolean success = executor.execute(player, skill, level);
+        if (!success) {
+            // 詳細なエラーメッセージは executor.execute() 内で送信される
+            player.sendMessage(ChatColor.RED + "スキルの発動に失敗しました: " + skill.getColoredDisplayName());
+        }
     }
 
     /**
@@ -602,29 +629,314 @@ private void handleSkillCommand(Player player) {
      * @param player プレイヤー
      */
     private void showHelp(Player player) {
-        player.sendMessage(ChatColor.YELLOW + "=== ヘルプ ===");
-        player.sendMessage(ChatColor.GOLD + "--- 基本コマンド ---");
-        player.sendMessage(ChatColor.GRAY + "/rpg stats - ステータスGUIを表示");
-        player.sendMessage(ChatColor.GRAY + "/rpg skill - スキルGUIを表示");
-        player.sendMessage(ChatColor.GRAY + "/rpg balance - 残高を確認");
-        player.sendMessage(ChatColor.GOLD + "--- クラスコマンド ---");
-        player.sendMessage(ChatColor.GRAY + "/rpg class - クラスGUIを表示");
-        player.sendMessage(ChatColor.GRAY + "/rpg class list - クラス一覧を表示");
-        player.sendMessage(ChatColor.GRAY + "/rpg class <クラスID> - クラスを選択");
-        player.sendMessage(ChatColor.GOLD + "--- オークションコマンド ---");
-        player.sendMessage(ChatColor.GRAY + "/rpg auction list - オークション一覧");
-        player.sendMessage(ChatColor.GRAY + "/rpg auction bid <ID> <金額> - 入札");
-        player.sendMessage(ChatColor.GRAY + "/rpg auction create <価格> <秒数> - 出品");
-        player.sendMessage(ChatColor.GOLD + "--- トレードコマンド ---");
-        player.sendMessage(ChatColor.GRAY + "/rpg trade request <プレイヤー名> - トレードを申請");
-        player.sendMessage(ChatColor.GRAY + "/rpg trade accept - トレードを承認");
-        player.sendMessage(ChatColor.GRAY + "/rpg trade deny - トレードを拒否");
-        player.sendMessage(ChatColor.GOLD + "--- スキルコマンド ---");
-        player.sendMessage(ChatColor.GRAY + "/rpg cast <スキルID> - スキルを発動");
-        player.sendMessage(ChatColor.GOLD + "--- その他 ---");
-        player.sendMessage(ChatColor.GRAY + "/rpg help - このヘルプを表示");
+        player.sendMessage(ChatColor.DARK_GRAY + "========================================");
+        player.sendMessage(ChatColor.GOLD + "" + ChatColor.BOLD + "           RPGPlugin ヘルプ");
+        player.sendMessage(ChatColor.DARK_GRAY + "========================================");
+        player.sendMessage("");
+
+        // 基本コマンド
+        player.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "【基本コマンド】");
+        player.sendMessage(ChatColor.WHITE + "/rpg" + ChatColor.GRAY + " - メインメニューを表示");
+        player.sendMessage(ChatColor.WHITE + "/rpg help" + ChatColor.GRAY + " - このヘルプを表示");
+        player.sendMessage(ChatColor.WHITE + "/rpg stats" + ChatColor.GRAY + " - ステータスGUIを表示");
+        player.sendMessage(ChatColor.WHITE + "/rpg skill" + ChatColor.GRAY + " - スキルGUIを表示");
+        player.sendMessage(ChatColor.WHITE + "/rpg balance" + ChatColor.GRAY + " - 残高を確認");
+        player.sendMessage("");
+
+        // クラスコマンド
+        player.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "【クラスコマンド】");
+        player.sendMessage(ChatColor.WHITE + "/rpg class" + ChatColor.GRAY + " - クラスGUIを表示");
+        player.sendMessage(ChatColor.WHITE + "/rpg class list" + ChatColor.GRAY + " - クラス一覧を表示");
+        player.sendMessage(ChatColor.WHITE + "/rpg class <クラスID>" + ChatColor.GRAY + " - クラスを選択");
+        player.sendMessage("");
+
+        // スキルコマンド
+        player.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "【スキルコマンド】");
+        player.sendMessage(ChatColor.WHITE + "/rpg cast <スキルID>" + ChatColor.GRAY + " - スキルを発動");
+        player.sendMessage("");
+
+        // オークションコマンド
+        player.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "【オークションコマンド】");
+        player.sendMessage(ChatColor.WHITE + "/rpg auction list" + ChatColor.GRAY + " - オークション一覧");
+        player.sendMessage(ChatColor.WHITE + "/rpg auction info <ID>" + ChatColor.GRAY + " - 詳細表示");
+        player.sendMessage(ChatColor.WHITE + "/rpg auction bid <ID> <金額>" + ChatColor.GRAY + " - 入札");
+        player.sendMessage(ChatColor.WHITE + "/rpg auction create <価格> <秒数>" + ChatColor.GRAY + " - 出品");
+        player.sendMessage(ChatColor.WHITE + "/rpg auction cancel <ID>" + ChatColor.GRAY + " - キャンセル");
+        player.sendMessage("");
+
+        // トレードコマンド
+        player.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "【トレードコマンド】");
+        player.sendMessage(ChatColor.WHITE + "/rpg trade request <プレイヤー名>" + ChatColor.GRAY + " - トレード申請");
+        player.sendMessage(ChatColor.WHITE + "/rpg trade accept" + ChatColor.GRAY + " - トレード承認");
+        player.sendMessage(ChatColor.WHITE + "/rpg trade deny" + ChatColor.GRAY + " - トレード拒否");
+        player.sendMessage("");
+
+        // 管理者コマンド
         if (player.hasPermission("rpg.admin")) {
-            player.sendMessage(ChatColor.GRAY + "/rpg reload - 設定をリロード");
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "【管理者コマンド】");
+            player.sendMessage(ChatColor.WHITE + "/rpg reload" + ChatColor.GRAY + " - 設定をリロード");
+            player.sendMessage("");
         }
+
+        // ヒント
+        player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "ヒント: Tabキーでコマンド補完が利用できます");
+        player.sendMessage(ChatColor.DARK_GRAY + "========================================");
+    }
+
+    /**
+     * カテゴリ別ヘルプを表示します
+     *
+     * @param player プレイヤー
+     * @param category カテゴリ
+     */
+    @SuppressWarnings("unused")
+    private void showCategoryHelp(Player player, String category) {
+        switch (category.toLowerCase()) {
+            case "class":
+            case "クラス":
+                showClassHelp(player);
+                break;
+            case "auction":
+            case "オークション":
+                showAuctionHelp(player);
+                break;
+            case "trade":
+            case "トレード":
+                showTradeHelp(player);
+                break;
+            case "skill":
+            case "スキル":
+                showSkillHelp(player);
+                break;
+            default:
+                player.sendMessage(ChatColor.RED + "不明なカテゴリです: " + category);
+                player.sendMessage(ChatColor.GRAY + "使用法: /rpg help [category]");
+                break;
+        }
+    }
+
+    /**
+     * クラスコマンドのヘルプを表示します
+     *
+     * @param player プレイヤー
+     */
+    private void showClassHelp(Player player) {
+        player.sendMessage(ChatColor.YELLOW + "=== クラスコマンドヘルプ ===");
+        player.sendMessage(ChatColor.GOLD + "/rpg class" + ChatColor.GRAY + " - クラス選択GUIを開きます");
+        player.sendMessage(ChatColor.GOLD + "/rpg class list" + ChatColor.GRAY + " - 利用可能なクラスを表示します");
+        player.sendMessage(ChatColor.GOLD + "/rpg class <クラスID>" + ChatColor.GRAY + " - 指定したクラスに変更します");
+        player.sendMessage("");
+        player.sendMessage(ChatColor.WHITE + "利用可能なクラスID:");
+        com.example.rpgplugin.rpgclass.ClassManager classManager = RPGPlugin.getInstance().getClassManager();
+        if (classManager != null) {
+            for (com.example.rpgplugin.rpgclass.RPGClass rpgClass : classManager.getInitialClasses()) {
+                player.sendMessage(ChatColor.GRAY + "  - " + rpgClass.getId() + ": " + rpgClass.getDisplayName());
+            }
+        }
+    }
+
+    /**
+     * オークションコマンドのヘルプを表示します
+     *
+     * @param player プレイヤー
+     */
+    private void showAuctionHelp(Player player) {
+        player.sendMessage(ChatColor.YELLOW + "=== オークションコマンドヘルプ ===");
+        player.sendMessage(ChatColor.GOLD + "/rpg auction list" + ChatColor.GRAY + " - アクティブなオークション一覧");
+        player.sendMessage(ChatColor.GOLD + "/rpg auction info <ID>" + ChatColor.GRAY + " - オークション詳細を表示");
+        player.sendMessage(ChatColor.GOLD + "/rpg auction bid <ID> <金額>" + ChatColor.GRAY + " - 入札する");
+        player.sendMessage(ChatColor.GOLD + "/rpg auction create <価格> <秒数>" + ChatColor.GRAY + " - 手持ちアイテムを出品");
+        player.sendMessage(ChatColor.GOLD + "/rpg auction cancel <ID>" + ChatColor.GRAY + " - 自分の出品をキャンセル");
+        player.sendMessage("");
+        player.sendMessage(ChatColor.WHITE + "入札ルール:");
+        player.sendMessage(ChatColor.GRAY + "  • 開始価格以上である必要があります");
+        player.sendMessage(ChatColor.GRAY + "  • 現在の入札額の10%以上上乗せする必要があります");
+        player.sendMessage(ChatColor.GRAY + "  • 入札があると有効期限が+5秒延長されます");
+        player.sendMessage(ChatColor.GRAY + "  • 出品期間は30-180秒です");
+    }
+
+    /**
+     * スキルコマンドのヘルプを表示します
+     *
+     * @param player プレイヤー
+     */
+    private void showSkillHelp(Player player) {
+        player.sendMessage(ChatColor.YELLOW + "=== スキルコマンドヘルプ ===");
+        player.sendMessage(ChatColor.GOLD + "/rpg skill" + ChatColor.GRAY + " - スキルGUIを開きます");
+        player.sendMessage(ChatColor.GOLD + "/rpg cast <スキルID>" + ChatColor.GRAY + " - スキルを発動します");
+        player.sendMessage("");
+        player.sendMessage(ChatColor.WHITE + "発動条件:");
+        player.sendMessage(ChatColor.GRAY + "  • スキルを習得している必要があります");
+        player.sendMessage(ChatColor.GRAY + "  • クールダウン中ではない必要があります");
+        player.sendMessage(ChatColor.GRAY + "  • 十分なMPを持っている必要があります");
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 1) {
+            // 第一引数: サブコマンド
+            completions.addAll(getMainSubCommands(sender));
+        } else if (args.length >= 2) {
+            // 第二引数以降: サブコマンド固有の補完
+            String subCommand = args[0].toLowerCase();
+            completions.addAll(getSubCommandCompletions(sender, subCommand, args));
+        }
+
+        // 入力された文字列でフィルタリング
+        String lastArg = args[args.length - 1];
+        return completions.stream()
+                .filter(completion -> completion.toLowerCase().startsWith(lastArg.toLowerCase()))
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * メインサブコマンドリストを取得します
+     *
+     * @param sender コマンド送信者
+     * @return サブコマンドリスト
+     */
+    private List<String> getMainSubCommands(CommandSender sender) {
+        List<String> commands = new ArrayList<>();
+        commands.add("stats");
+        commands.add("skill");
+        commands.add("skills");
+        commands.add("cast");
+        commands.add("class");
+        commands.add("balance");
+        commands.add("auction");
+        commands.add("trade");
+        commands.add("help");
+        if (sender.hasPermission("rpg.admin")) {
+            commands.add("reload");
+        }
+        return commands;
+    }
+
+    /**
+     * サブコマンド固有の補完候補を取得します
+     *
+     * @param sender コマンド送信者
+     * @param subCommand サブコマンド
+     * @param args 引数配列
+     * @return 補完候補リスト
+     */
+    private List<String> getSubCommandCompletions(CommandSender sender, String subCommand, String[] args) {
+        switch (subCommand) {
+            case "cast":
+                return getCastCompletions(args);
+
+            case "class":
+                return getClassCompletions(args);
+
+            case "auction":
+                return getAuctionCompletions(args);
+
+            case "trade":
+                return getTradeCompletions(args);
+
+            case "help":
+                return getHelpCompletions(args);
+
+            default:
+                return Collections.emptyList();
+        }
+    }
+
+    /**
+     * castコマンドの補完候補を取得します
+     *
+     * @param args 引数配列
+     * @return 補完候補リスト
+     */
+    private List<String> getCastCompletions(String[] args) {
+        if (args.length == 2) {
+            // スキルID補完
+            SkillManager skillManager = RPGPlugin.getInstance().getSkillManager();
+            if (skillManager != null) {
+                return new ArrayList<>(skillManager.getAllSkillIds());
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * classコマンドの補完候補を取得します
+     *
+     * @param args 引数配列
+     * @return 補完候補リスト
+     */
+    private List<String> getClassCompletions(String[] args) {
+        if (args.length == 2) {
+            return Arrays.asList("list");
+        } else if (args.length == 3) {
+            // クラスID補完
+            com.example.rpgplugin.rpgclass.ClassManager classManager = RPGPlugin.getInstance().getClassManager();
+            if (classManager != null) {
+                return new ArrayList<>(classManager.getAllClassIds());
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * auctionコマンドの補完候補を取得します
+     *
+     * @param args 引数配列
+     * @return 補完候補リスト
+     */
+    private List<String> getAuctionCompletions(String[] args) {
+        if (args.length == 2) {
+            return Arrays.asList("list", "bid", "create", "cancel", "info");
+        } else if (args.length >= 3) {
+            String auctionSubCommand = args[1].toLowerCase();
+            if (auctionSubCommand.equals("bid") || auctionSubCommand.equals("cancel") || auctionSubCommand.equals("info")) {
+                // オークションID補完（アクティブなオークションのID）
+                com.example.rpgplugin.auction.AuctionManager auctionManager = RPGPlugin.getInstance().getAuctionManager();
+                if (auctionManager != null) {
+                    return auctionManager.getActiveAuctions().stream()
+                            .map(auction -> String.valueOf(auction.getId()))
+                            .collect(Collectors.toList());
+                }
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * tradeコマンドの補完候補を取得します
+     *
+     * @param args 引数配列
+     * @return 補完候補リスト
+     */
+    private List<String> getTradeCompletions(String[] args) {
+        if (args.length == 2) {
+            return Arrays.asList("request", "accept", "deny");
+        } else if (args.length == 3) {
+            String tradeSubCommand = args[1].toLowerCase();
+            if (tradeSubCommand.equals("request")) {
+                // プレイヤー名補完
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .collect(Collectors.toList());
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * helpコマンドの補完候補を取得します
+     *
+     * @param args 引数配列
+     * @return 補完候補リスト
+     */
+    private List<String> getHelpCompletions(String[] args) {
+        if (args.length == 2) {
+            // カテゴリ補完
+            return Arrays.asList("class", "auction", "trade", "skill");
+        }
+        return Collections.emptyList();
     }
 }

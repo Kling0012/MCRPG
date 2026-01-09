@@ -1,0 +1,58 @@
+{
+  "title": "Handling events",
+  "content": "## Listening to events\n\nYou may listen to any Bukkit-based event (including events added by other plugins) by referencing the imported class. For example, if you wanted to listen to [org.bukkit.event.entity.EnderDragonChangePhaseEvent](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/EnderDragonChangePhaseEvent.html):\n\n{% tabs %}\n{% tab title=\"example.sk\" %}\n\n{% endtab %}\n{% endtabs %}\n\n{% hint style=\"warning\" %}\nSome plugins use their own event handling system or do not pass their events through Bukkit's event executor (which is the case with some of Skript's internal events).\n\nIn order to listen to an event, it must extend [org.bukkit.event.Event](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/Event.html) and be executed by Bukkit's event executor.\n{% endhint %}\n\nYou may also listen to multiple events with the same handler. The events do not have to be related, but you should take appropriate precautions if you try to access methods that are available in one event but not in the other. For example, if you want to listen to both [org.bukkit.event.entity.ProjectileLaunchEvent](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/ProjectileLaunchEvent.html) and [org.bukkit.event.entity.ProjectileHitEvent](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/entity/ProjectileHitEvent.html)\n\n{% tabs %}\n{% tab title=\"example.sk\" %}\n\n{% endtab %}\n{% endtabs %}\n\n## Using the `event` expression\n\nskript-reflect exposes an `event` expression, allowing you to access event values using reflection.\n\n{% tabs %}\n{% tab title=\"Syntax\" %}\n\n{% tab title=\"example.sk\" %}\n\n{% endtab %}\n{% endtabs %}\n\n{% hint style=\"info\" %}\nThe `event` expression may also be used in normal Skript events.\n{% endhint %}\n\n## Setting a priority level\n\nThe priority level of an event may be set to control when a particular event handler is run relative to other event handlers.\n\n{% tabs %}\n{% tab title=\"example.sk\" %}\n\n{% endtab %}\n{% endtabs %}\n\nAny event priorities defined in [org.bukkit.event.EventPriority](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/event/EventPriority.html) may be used. Lower priority event handlers are run before higher priority event handlers.\n\n{% tabs %}\n{% tab title=\"Event Priorities\" %}\n\n{% endtab %}\n{% endtabs %}\n\n{% hint style=\"warning\" %}\n`highest` is the highest priority event handler you should use if you are modifying the contents of an event. If you only care about the final result of the event, use `monitor`.\n{% endhint %}\n\n## Handling cancelled events\n\nBy default, event handlers will not be called if an event is cancelled by a lower priority handler. This behavior can be changed by specifying that the handler should handle `all` events.\n\n{% tabs %}\n{% tab title=\"example.sk\" %}\n\n{% endtab %}\n{% endtabs %}",
+  "code_samples": [
+    {
+      "code": "import:\n  org.bukkit.event.entity.EnderDragonChangePhaseEvent\n\non EnderDragonChangePhaseEvent:\n  # your code",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n  org.bukkit.event.entity.ProjectileLaunchEvent\n  org.bukkit.event.entity.ProjectileHitEvent\n\non ProjectileLaunchEvent and ProjectileHitEvent:\n  # your code",
+      "language": "unknown"
+    },
+    {
+      "code": "[the] event",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n  org.bukkit.event.entity.EnderDragonChangePhaseEvent\n  org.bukkit.entity.EnderDragon$Phase as EnderDragonPhase\n\non EnderDragonChangePhaseEvent:\n  if event.getNewPhase() is EnderDragonPhase.CIRCLING:\n    event.setNewPhase(EnderDragonPhase.CHARGE_PLAYER)",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n  org.bukkit.event.entity.EnderDragonChangePhaseEvent\n\non EnderDragonChangePhaseEvent with priority highest:\n  # your code",
+      "language": "unknown"
+    },
+    {
+      "code": "lowest\nlow\nnormal\nhigh\nhighest\nmonitor",
+      "language": "unknown"
+    },
+    {
+      "code": "import:\n  org.bukkit.event.block.BlockBreakEvent\n\non all BlockBreakEvent:\n  uncancel event",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Listening to events",
+      "id": "listening-to-events"
+    },
+    {
+      "level": "h2",
+      "text": "Using the `event` expression",
+      "id": "using-the-`event`-expression"
+    },
+    {
+      "level": "h2",
+      "text": "Setting a priority level",
+      "id": "setting-a-priority-level"
+    },
+    {
+      "level": "h2",
+      "text": "Handling cancelled events",
+      "id": "handling-cancelled-events"
+    }
+  ],
+  "url": "llms-txt#handling-events",
+  "links": []
+}

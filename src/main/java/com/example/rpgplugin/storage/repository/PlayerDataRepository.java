@@ -153,8 +153,9 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
     @Override
     public void saveAll(List<PlayerData> players) throws SQLException {
         String sql = """
-            INSERT OR REPLACE INTO player_data (uuid, username, class_id, class_rank, class_history, first_join, last_login)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT OR REPLACE INTO player_data 
+            (uuid, username, class_id, class_rank, class_history, first_join, last_login, max_health, max_mana, current_mana, cost_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = dbManager.getConnection();
@@ -171,6 +172,10 @@ public class PlayerDataRepository implements IRepository<PlayerData, UUID> {
                     stmt.setString(5, player.getClassHistory());
                     stmt.setLong(6, player.getFirstJoin());
                     stmt.setLong(7, player.getLastLogin());
+                    stmt.setInt(8, player.getMaxHealth());
+                    stmt.setInt(9, player.getMaxMana());
+                    stmt.setInt(10, player.getCurrentMana());
+                    stmt.setString(11, player.getCostType());
 
                     stmt.addBatch();
                     stmt.clearParameters();

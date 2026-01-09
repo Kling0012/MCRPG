@@ -1,0 +1,37 @@
+{
+  "title": "Sections",
+  "content": "Sections are very similar to functions: they contain code, they (optionally) have some input variables and (optionally) give some output. One of the key differences being that sections can be created within a trigger.\n\n## Creating a section\n\n{% tabs %}\n{% tab title=\"Syntax\" %}\n\n{% endtab %}\n{% endtabs %}\n\nThe argument variables are a list of variables that represent the input of the section. Example: `with argument variables {_x}, {_y}`.\n\nFor section output, you have to use [return](https://tpgamesnl.gitbook.io/skript-reflect/custom-syntax/expressions#return).\n\nThe last expression is a variable in which the created section will be stored.\n\nLocal variables from before the creation of a section are available in the section itself, but won't modify the local variables from outside the section.\n\n{% tabs %}\n{% tab title=\"Syntax\" %}\n\n{% endtab %}\n{% endtabs %}\n\nThis effect will run the given section. If you run the section (a)sync, you can choose to wait for it to be done or not, by appending `and wait` or not.\n\n{% hint style=\"info\" %}\nNote that you can't get output from running an async section without waiting for it to return.\n{% endhint %}\n\nYou can specify arguments with this effect, for example like this: `with arguments {_a}, {_b}`.\n\nThe output of the section is stored in the result part: `and store result in {_result}`.\n\n{% tabs %}\n{% tab title=\"Example\" %}\n\n{% endtab %}\n{% endtabs %}\n\n{% hint style=\"info\" %}\nSections are very useful to use with [proxies](https://tpgamesnl.gitbook.io/skript-reflect/advanced/reflection/proxies), since you don't have to create functions for the proxy with sections.\n{% endhint %}",
+  "code_samples": [
+    {
+      "code": "create [new] section [with [arguments variables] %-objects%] (and store it|stored) in %objects%",
+      "language": "unknown"
+    },
+    {
+      "code": "run section %section% [(1¦sync|2¦async)] [with [arguments] %-objects%] [and store [the] result in %-objects%] [(2¦and wait)]",
+      "language": "unknown"
+    },
+    {
+      "code": "set {_i} to 2\ncreate new section with {_x} stored in {_section}:\n    return {_x} * {_i}\nrun section {_section} async with 3 and store result in {_result} and wait\nbroadcast \"Result: %{_result}%\" # shows 6",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Creating a section",
+      "id": "creating-a-section"
+    },
+    {
+      "level": "h2",
+      "text": "Running a section",
+      "id": "running-a-section"
+    },
+    {
+      "level": "h2",
+      "text": "Example",
+      "id": "example"
+    }
+  ],
+  "url": "llms-txt#sections",
+  "links": []
+}

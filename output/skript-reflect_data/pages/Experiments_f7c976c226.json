@@ -1,0 +1,24 @@
+{
+  "title": "Experiments",
+  "content": "{% hint style=\"danger\" %}\nThese features are experimental and are subject to change in the future!\n{% endhint %}\n\nIn order to enable experimental features, add the following section to your script:\n\n{% tabs %}\n{% tab title=\"Consent section\" %}\n\n{% endtab %}\n{% endtabs %}\n\nIndividual features may be enabled by adding the codename of the feature on new lines following the consent section.\n\n## `deferred-parsing`\n\nDeferred parsing allows you to prefix any line with `(parse[d] later)` to defer parsing until the first execution of the line. This allows you to circumvent issues where custom syntaxes are used before they are defined.\n\n{% hint style=\"danger\" %}\nThis should only be used when two custom syntaxes refer to each other. Other issues should be resolved by reordering custom syntax definitions and ensuring that libraries containing custom syntax load before other scripts, or by using the [preloading feature](#preloading).\n{% endhint %}\n\nWhen preloading is enabled in `config.yml`, custom syntax will be available from any scripts, independent of file names. Preloading is only available from Skript 2.5-alpha6+, using skript-reflect 2.2-alpha1 or above.\n\nThere is one case for which custom syntax can't be preloaded, that is when it has a `parse` section. `parse` sections can't be used in preloadable syntax, so to still allow for custom syntax to run code when being parsed, there are the `safe parse` sections. These sections have the same purpose as normal `parse` sections, with a few differences:\n\n* In safe parse sections\n  * Functions can't be used.\n  * Options (including computed options) can't be used.\n  * Some imports can't be used (if they contain options for example).\n\nBecause of these differences, custom syntax with `safe parse` sections are preloadable.\n\n{% hint style=\"warning\" %}\nBe careful when using custom syntax in `on script load` events, as the custom syntax might not have been fully parsed yet.\n{% endhint %}",
+  "code_samples": [
+    {
+      "code": "skript-reflect, I know what I'm doing:\n  I understand that the following features are experimental and may change in the future.\n  I have read about this at https://tpgamesnl.gitbook.io/skript-reflect/advanced/experiments",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "`deferred-parsing`",
+      "id": "`deferred-parsing`"
+    },
+    {
+      "level": "h2",
+      "text": "Preloading",
+      "id": "preloading"
+    }
+  ],
+  "url": "llms-txt#experiments",
+  "links": []
+}

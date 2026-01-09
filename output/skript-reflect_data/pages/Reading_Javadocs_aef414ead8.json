@@ -1,0 +1,29 @@
+{
+  "title": "Reading Javadocs",
+  "content": "Most public APIs and libraries offer documentation in the form of Javadocs. Javadocs outline what features of a library are publicly accessible to developers.\n\nHere are a few links to some commonly referenced Javadocs: [Java SE 8 Javadocs](https://docs.oracle.com/javase/8/docs/api/overview-summary.html), [Spigot Javadocs](https://hub.spigotmc.org/javadocs/spigot/overview-summary.html)\n\n## Fully qualified names\n\nA fully qualified name is composed of a class's package and name. On the Javadoc of a class, this may be found near the top of the page. Fully qualified names are used when [importing classes](https://tpgamesnl.gitbook.io/skript-reflect/basics/importing-classes).\n\n![The fully qualified name of this class is org.bukkit.entity.Player ](https://1452774296-files.gitbook.io/~/files/v0/b/gitbook-legacy-files/o/assets%2F-M9EtYI-5mJuHFlCVB2t%2Fsync%2Fe9a04fa5f98de95e16d613287a5a5df38df97f02.png?generation=1591552337382871\\&alt=media)\n\n![Classes may have an inheritance hierarchy which shows the fully qualified name of the class](https://1452774296-files.gitbook.io/~/files/v0/b/gitbook-legacy-files/o/assets%2F-M9EtYI-5mJuHFlCVB2t%2Fsync%2F1b494c971cbedd1357c5fbdf1314fc4fc585cbeb.png?generation=1591552344422954\\&alt=media)\n\nIf the name of the class contains a `.`, that is because the class is nested within another class. When referring to these classes, you must replace the `.` with a `$`.\n\n![The fully qualified name of this class is org.bukkit.Effect$Type](https://1452774296-files.gitbook.io/~/files/v0/b/gitbook-legacy-files/o/assets%2F-M9EtYI-5mJuHFlCVB2t%2Fsync%2F8299927223bd628d1f44c9e90f3ff14a0f54fa48.png?generation=1591552337311498\\&alt=media)\n\n{% hint style=\"info\" %}\nTypically, nested classes should be [imported under an alias](https://tpgamesnl.gitbook.io/skript-reflect/importing-classes#dealing-with-nested-classes)!\n{% endhint %}\n\nJavadocs do not describe everything available in a library. Most libraries include private classes, methods, fields, and constructors reserved for internal use. Using skript-reflect, these internal APIs are accessible just like any public API.\n\n{% hint style=\"warning\" %}\nUsually, private APIs are private for a reason! Make sure you know what you're doing before you start digging around!\n{% endhint %}\n\n### Built-in inspection\n\nskript-reflect has built-in tools for dumping all of the available members of an object. If you need a list of these members, including their return types and input parameters, you can use the [Members](https://tpgamesnl.gitbook.io/skript-reflect/utilities#members) expression. If you only need a list of names, you can use the [Member Names](https://tpgamesnl.gitbook.io/skript-reflect/utilities#member-names) expression.\n\nThe best way to learn about how a library works is to read the source code! Many libraries will have their source code easily available online, though you may have to resort to decompiling libraries that are not open source.\n\n[Craftbukkit source code](https://hub.spigotmc.org/stash/projects/SPIGOT/repos/craftbukkit/browse) [Online Java decompiler](http://www.javadecompilers.com/)",
+  "code_samples": [],
+  "headings": [
+    {
+      "level": "h2",
+      "text": "Fully qualified names",
+      "id": "fully-qualified-names"
+    },
+    {
+      "level": "h2",
+      "text": "Non-public APIs",
+      "id": "non-public-apis"
+    },
+    {
+      "level": "h3",
+      "text": "Built-in inspection",
+      "id": "built-in-inspection"
+    },
+    {
+      "level": "h3",
+      "text": "Source code",
+      "id": "source-code"
+    }
+  ],
+  "url": "llms-txt#reading-javadocs",
+  "links": []
+}

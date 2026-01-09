@@ -1,12 +1,19 @@
 package com.example.rpgplugin.player;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.player.config.DiminishConfig;
 import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.rpgclass.RPGClass;
+import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerExpChangeEvent;
+import org.bukkit.metadata.MetadataValue;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
+import java.io.File;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -47,12 +54,34 @@ public class ExpDiminisher {
     private final ClassManager classManager;
     private final Logger logger;
 
+    // グローバル減衰設定
+    private DiminishConfig diminishConfig;
+
+    /**
+     * 経験値ソースのメタデータキー
+     */
+    private static final NamespacedKey EXP_SOURCE_KEY = new NamespacedKey("rpgplugin", "exp_source");
+
     /**
      * 減衰除外キー
      */
     public static final String EXEMPTION_PLAYER_KILL = "player_kill";
     public static final String EXEMPTION_BOSS_MOB = "boss_mob";
     public static final String EXEMPTION_EVENT_REWARD = "event_reward";
+
+    /**
+     * 経験値ソース種別
+     */
+    public enum ExpSource {
+        /** 通常のモブ討伐 */
+        NORMAL,
+        /** プレイヤーキル */
+        PLAYER_KILL,
+        /** ボスモブ */
+        BOSS_MOB,
+        /** イベント報酬 */
+        EVENT_REWARD
+    }
 
     /**
      * コンストラクタ
@@ -66,6 +95,34 @@ public class ExpDiminisher {
         this.playerManager = playerManager;
         this.classManager = classManager;
         this.logger = plugin.getLogger();
+        this.diminishConfig = new DiminishConfig(logger);
+        loadConfig();
+    }
+
+    /**
+     * 減衰設定ファイルを読み込みます
+     */
+    public void loadConfig() {
+        File diminishFile = new File(plugin.getDataFolder(), "exp/diminish_config.yml");
+
+        // ファイルが存在しない場合はJARからコピー
+        if (!diminishFile.exists()) {
+            plugin.saveResource("exp/diminish_config.yml", false);
+            logger.info("Created default exp/diminish_config.yml from JAR.");
+        }
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(diminishFile);
+        diminishConfig.load(config);
+        logger.info("Loaded diminish_config.yml");
+    }
+
+    /**
+     * グローバル減衰設定を取得します
+     *
+     * @return DiminishConfig
+     */
+    public DiminishConfig getDiminishConfig() {
+        return diminishConfig;
     }
 
     /**
@@ -152,6 +209,9 @@ public class ExpDiminisher {
     /**
      * 除外条件に該当するか確認します
      *
+     * <p>プレイヤーのPersistentDataContainerに設定された経験値ソースを確認し、
+     * 設定で除外が有効な場合はtrueを返します。</p>
+     *
      * @param player プレイヤー
      * @param event  経験値イベント
      * @return 除外される場合はtrue
@@ -165,10 +225,96 @@ public class ExpDiminisher {
         boolean eventRewardsExempt = plugin.getConfigManager()
                 .getBoolean("main", "exp_diminish.exemptions.event_rewards", true);
 
-        // TODO: 実際の除外判定ロジックを実装
-        // 例: プレイヤーキル、ボスモブ、イベント報酬などの判定
+        // 経験値ソースを取得
+        ExpSource source = getExpSource(player);
+        if (source == null) {
+            source = ExpSource.NORMAL;
+        }
 
-        return false;
+        // ソースをクリーンアップ（次回のために）
+        clearExpSource(player);
+
+        // 除外判定
+        switch (source) {
+            case PLAYER_KILL:
+                return playerKillsExempt;
+            case BOSS_MOB:
+                return bossMobsExempt;
+            case EVENT_REWARD:
+                return eventRewardsExempt;
+            case NORMAL:
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * プレイヤーの経験値ソースを取得します
+     *
+     * @param player プレイヤー
+     * @return 経験値ソース、設定されていない場合はnull
+     */
+    private ExpSource getExpSource(Player player) {
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        String sourceName = pdc.get(EXP_SOURCE_KEY, PersistentDataType.STRING);
+        if (sourceName == null) {
+            return null;
+        }
+        try {
+            return ExpSource.valueOf(sourceName);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    /**
+     * プレイヤーの経験値ソースをクリアします
+     *
+     * @param player プレイヤー
+     */
+    private void clearExpSource(Player player) {
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        pdc.remove(EXP_SOURCE_KEY);
+    }
+
+    /**
+     * 減衰除外の経験値を付与します
+     *
+     * <p>このメソッドで付与した経験値は、経験値減衰の対象外となります。</p>
+     *
+     * <p>使用例:</p>
+     * <pre>{@code
+     * // プレイヤーキルによる経験値（除外設定が有効な場合）
+     * ExpDiminisher.grantExemptedExp(player, 100, ExpDiminisher.ExpSource.PLAYER_KILL);
+     *
+     * // ボス討伐による経験値
+     * ExpDiminisher.grantExemptedExp(player, 500, ExpDiminisher.ExpSource.BOSS_MOB);
+     *
+     * // イベント報酬としての経験値
+     * ExpDiminisher.grantExemptedExp(player, 1000, ExpDiminisher.ExpSource.EVENT_REWARD);
+     * }</pre>
+     *
+     * @param player プレイヤー
+     * @param amount  経験値量
+     * @param source  経験値ソース
+     */
+    public static void grantExemptedExp(Player player, int amount, ExpSource source) {
+        // 経験値ソースを設定
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        pdc.set(EXP_SOURCE_KEY, PersistentDataType.STRING, source.name());
+
+        // 経験値を付与（PlayerExpChangeEventが発生し、減衰判定で除外される）
+        player.giveExp(amount);
+    }
+
+    /**
+     * 減衰除外の経験値を付与します（ソース指定なし、イベント報酬として扱う）
+     *
+     * @param player プレイヤー
+     * @param amount  経験値量
+     */
+    public static void grantExemptedExp(Player player, int amount) {
+        grantExemptedExp(player, amount, ExpSource.EVENT_REWARD);
     }
 
     /**

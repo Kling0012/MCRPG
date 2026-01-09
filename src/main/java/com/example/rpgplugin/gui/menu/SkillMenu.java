@@ -73,8 +73,9 @@ public class SkillMenu {
         this.plugin = plugin;
         this.player = player;
         this.skillManager = plugin.getSkillManager();
-        this.playerClassId = skillManager.getPlayerManager().getRPGPlayer(player.getUniqueId()).getClassId();
-        this.skillTree = skillManager.getSkillTree(playerClassId);
+        RPGPlayer tempPlayer = skillManager.getPlayerManager().getRPGPlayer(player.getUniqueId());
+        this.playerClassId = tempPlayer != null ? tempPlayer.getClassId() : null;
+        this.skillTree = skillManager.getSkillTree(playerClassId != null ? playerClassId : "default");
         this.autoRefreshEnabled = autoRefresh;
 
         PlayerManager playerManager = plugin.getPlayerManager();
@@ -492,16 +493,24 @@ private boolean handleSkillClick(int slot, ItemStack item) {
         SkillManager.PlayerSkillData data = skillManager.getPlayerSkillData(player);
         int cost = skillTree.getCost(skill.getId());
         
-        // スキルポイントを消費
-        if (!data.useSkillPoint()) {
+        // スキルポイントチェック（消費前に確認のみ）
+        if (data.getSkillPoints() < cost) {
             player.sendMessage(ChatColor.RED + "スキルポイントが不足しています");
             return true;
         }
         
-        // スキルを習得
+        // スキルを習得（先に習得を試みる）
         boolean success = skillManager.acquireSkill(player, skill.getId(), 1);
+        
         if (success) {
+            // 習得成功時のみスキルポイントを消費
+            for (int i = 0; i < cost; i++) {
+                data.useSkillPoint();
+            }
             player.sendMessage(ChatColor.GREEN + "スキルを習得しました: " + skill.getColoredDisplayName() + ChatColor.GREEN + " (コスト: " + cost + "ポイント)");
+        } else {
+            // 習得失敗時はポイント消費なし
+            player.sendMessage(ChatColor.RED + "スキルの習得に失敗しました: " + skill.getColoredDisplayName());
         }
         
         return success;

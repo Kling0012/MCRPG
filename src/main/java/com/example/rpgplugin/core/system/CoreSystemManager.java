@@ -39,6 +39,7 @@ public class CoreSystemManager {
     // 設定システム
     private final YamlConfigManager configManager;
     private final ConfigWatcher configWatcher;
+    private final ResourceSetupManager resourceSetupManager;
 
     // 依存関係システム
     private final DependencyManager dependencyManager;
@@ -58,6 +59,7 @@ public class CoreSystemManager {
         this.plugin = plugin;
 
         // 初期化順序を考慮してインスタンス化
+        this.resourceSetupManager = new ResourceSetupManager(plugin);
         this.configManager = new YamlConfigManager(plugin);
         this.dependencyManager = new DependencyManager(plugin);
         this.storageManager = new StorageManager(plugin);
@@ -74,6 +76,10 @@ public class CoreSystemManager {
         plugin.getLogger().info("========================================");
         plugin.getLogger().info(" CoreSystemManager: 初期化を開始します");
         plugin.getLogger().info("========================================");
+
+        // 0. リソースのセットアップ
+        plugin.getLogger().info("[CoreSystem] リソースをセットアップ中...");
+        resourceSetupManager.setupAllResources();
 
         // 1. 設定マネージャーの初期化
         plugin.getLogger().info("[CoreSystem] 設定マネージャーを初期化中...");
@@ -151,6 +157,15 @@ public class CoreSystemManager {
      */
     public ConfigWatcher getConfigWatcher() {
         return configWatcher;
+    }
+
+    /**
+     * リソースセットアップマネージャーを取得する
+     *
+     * @return ResourceSetupManager インスタンス
+     */
+    public ResourceSetupManager getResourceSetupManager() {
+        return resourceSetupManager;
     }
 
     /**

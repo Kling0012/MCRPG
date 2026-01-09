@@ -6,6 +6,8 @@ import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.skill.SkillManager;
+import com.example.rpgplugin.skill.target.SkillTarget;
+import com.example.rpgplugin.skill.target.TargetSelector;
 import com.example.rpgplugin.stats.Stat;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
@@ -15,11 +17,25 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * アクティブスキル実行エグゼキューター
  *
  * <p>アクティブスキルの発動処理を行います。</p>
+ *
+ * <p>効果がないスキル（発動のみ）も許可します。</p>
+ * <ul>
+ *   <li>コスト消費: MP/HPを消費</li>
+ *   <li>クールダウン: クールダウンを設定</li>
+ *   <li>メッセージ: 発動成功メッセージを表示</li>
+ * </ul>
+ * <p>これは以下の用途で使用できます:</p>
+ * <ul>
+ *   <li>プレースホルダーとしてのスキル</li>
+ *   <li>他システム（クエスト等）から発火されるスキル</li>
+ *   <li>コスメティックなスキル</li>
+ * </ul>
  *
  * <p>設計原則:</p>
  * <ul>
@@ -74,10 +90,20 @@ public class ActiveSkillExecutor implements SkillExecutor {
             }
         }
 
-        // ダメージ計算
+        // ターゲットを取得（効果がないスキルでもターゲット選択を行う）
+        Collection<LivingEntity> targets = getTargets(player, skill);
+
+        // ダメージ計算と適用
+        int targetsHit = 0;
         if (skill.getDamage() != null) {
             double damage = calculateDamage(player, skill, level);
-            applyDamage(player, damage);
+
+            for (LivingEntity target : targets) {
+                if (isEnemy(target)) {
+                    target.damage(damage, player);
+                    targetsHit++;
+                }
+            }
         }
 
         // クールダウン設定
@@ -86,12 +112,65 @@ public class ActiveSkillExecutor implements SkillExecutor {
 
         // メッセージ送信
         if (isShowMessage("show_cast_success")) {
-            String costType = rpgPlayer.isManaCostType() ? "MP" : "HP";
-            player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level
-                    + ChatColor.GRAY + " (" + costType + "消費)");
+            StringBuilder message = new StringBuilder();
+            message.append(ChatColor.GREEN).append("スキルを発動しました: ")
+                    .append(skill.getColoredDisplayName()).append(" Lv.").append(level);
+
+            // コスト情報を追加
+            if (cost > 0) {
+                String costType = rpgPlayer.isManaCostType() ? "MP" : "HP";
+                message.append(ChatColor.GRAY).append(" (").append(costType).append("消費: ").append((int) cost).append(")");
+            }
+
+            // ターゲット情報を追加
+            if (targetsHit > 0) {
+                message.append(ChatColor.GRAY).append(" [対象: ").append(targetsHit).append("]");
+            } else if (!targets.isEmpty() && skill.getDamage() == null) {
+                // 効果なしスキルでターゲットがいる場合
+                message.append(ChatColor.GRAY).append(" [対象: ").append(targets.size()).append("]");
+            }
+
+            player.sendMessage(message.toString());
         }
 
         return true;
+    }
+
+    /**
+     * ターゲットを取得します
+     *
+     * @param player プレイヤー
+     * @param skill スキル
+     * @return ターゲットエンティティのコレクション
+     */
+    private Collection<LivingEntity> getTargets(Player player, Skill skill) {
+        // スキルにターゲット設定がある場合はそれを使用
+        SkillTarget skillTarget = skill.getSkillTarget();
+        if (skillTarget != null) {
+            List<Entity> candidates = TargetSelector.getNearbyEntities(
+                    player.getLocation(), 10.0); // 探索範囲10ブロック
+            List<Entity> selected = TargetSelector.selectTargets(player, skillTarget, candidates, null);
+
+            Collection<LivingEntity> targets = new java.util.ArrayList<>();
+            for (Entity entity : selected) {
+                if (entity instanceof LivingEntity) {
+                    targets.add((LivingEntity) entity);
+                }
+            }
+            return targets;
+        }
+
+        // デフォルト動作: 周囲のLivingEntityを取得
+        Collection<Entity> nearbyEntities = player.getWorld().getNearbyEntities(
+                player.getLocation(), 5, 5, 5);
+
+        Collection<LivingEntity> targets = new java.util.ArrayList<>();
+        for (Entity entity : nearbyEntities) {
+            if (entity instanceof LivingEntity && entity != player) {
+                targets.add((LivingEntity) entity);
+            }
+        }
+        return targets;
     }
 
     /**
@@ -125,33 +204,10 @@ public class ActiveSkillExecutor implements SkillExecutor {
     }
 
     /**
-     * ダメージを適用します
-     *
-     * @param player プレイヤー
-     * @param damage ダメージ
-     */
-    private void applyDamage(Player player, double damage) {
-        // ターゲット選択
-        Collection<Entity> nearbyEntities = player.getWorld().getNearbyEntities(
-                player.getLocation(), 5, 5, 5);
-
-        for (Entity entity : nearbyEntities) {
-            if (entity instanceof LivingEntity && entity != player) {
-                LivingEntity livingEntity = (LivingEntity) entity;
-
-                // 敵対的Mobのみにダメージを与える
-                if (isEnemy(livingEntity)) {
-                    livingEntity.damage(damage, player);
-                }
-            }
-        }
-    }
-
-    /**
      * エンティティが敵対的かチェックします
      *
      * @param entity エンティティ
-     * @return 敵対的場合はtrue
+     * @return 敵対的の場合はtrue
      */
     private boolean isEnemy(LivingEntity entity) {
         // プレイヤーではない場合
@@ -304,10 +360,18 @@ public class ActiveSkillExecutor implements SkillExecutor {
             }
         }
 
-        // ダメージ計算
+        // ターゲットを取得とダメージ適用
+        Collection<LivingEntity> targets = getTargets(player, skill);
+
+        // ダメージ計算と適用
         if (skill.getDamage() != null) {
             double damage = calculateDamage(player, skill, level);
-            applyDamage(player, damage);
+
+            for (LivingEntity target : targets) {
+                if (isEnemy(target)) {
+                    target.damage(damage, player);
+                }
+            }
         }
 
         // 指定コストタイプで消費

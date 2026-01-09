@@ -1,0 +1,73 @@
+{
+  "title": "Events",
+  "content": "{% tabs %}\n{% tab title=\"With one pattern\" %}\n\n{% tab title=\"With multiple patterns\" %}\n\n{% endtab %}\n{% endtabs %}\n\nSpecifying that an event is `local` makes the event only usable from within the script that it is defined in. This allows you to create events that do not interfere with events from other addons or scripts.\n\n{% hint style=\"info\" %}\nLocal events are guaranteed to be parsed before other custom events, but not necessarily before events from other addons.\n{% endhint %}\n\nThe string used in the trigger line represents the identifier of this custom event. This identifier should be used for [`calling the event`](#calling-the-event).\n\n### Option `event-values`\n\nThe event-values specified here will be available in the event, either as a default expression (`message \"Hello\"` without the need for `to player`) or as a normal event-value (`event-player` / `player`)\n\nCode in this section is executed whenever the event is parsed. This section may be used to emit errors if the effect is used in an improper context.\n\nIf this section is included, you must also [`continue`](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/..#continue) if the event was parsed successfully.\n\n{% hint style=\"info\" %}\nLocal variables created in this section are copied by-value to other sections.\n\nCode in this section is executed just before the event is called. This section may be used to stop the event from being called if certain conditions are met.\n\nIf this section is included, you must also [`continue`](https://tpgamesnl.gitbook.io/skript-reflect/advanced/custom-syntax/..#continue) if you want to event to be called.\n\n### Calling the event\n\nYou can get an instance of a custom event using the following expression:\n\nThe first argument should contain the name of the event you want to call. The second argument is a list variable, with each element of the following format: `{list::%type%} = %value%`. The third argument is almost the same, the only difference is that `%type%` is replaced with a string, which is just the index. The first list variable is for [the event-values](#option-event-values), while the second is for [the extra data](#extra-data).\n\nYou can then call it using the following effect:\n\nIf you want to check if an event has been cancelled, after you've called it, you can use the following condition:\n\nIf the event-values aren't enough for your desire, you can make use of the extra data feature. The syntax for adding event-values to a custom event is explained in [the event-values option](#option-event-values), and how to call an event with them is explained in [calling the event](#calling-the-event) In the event itself, you can get the extra data with the data expression:\n\nIn the syntax above, `%string%` is the index. This doesn't have to be plural, but can be.\n\n{% hint style=\"info\" %}\nIt may look fancier to create a custom expression instead of using extra data. To do so, you need to call `event.getData(%string%)` to get the data value. See the `usable in` sections in [effects](https://tpgamesnl.gitbook.io/skript-reflect/advanced/effects#section-usable-in), [conditions](https://tpgamesnl.gitbook.io/skript-reflect/advanced/conditions#section-usable-in) and [expressions](https://tpgamesnl.gitbook.io/skript-reflect/advanced/expressions#section-usable-in).\n{% endhint %}",
+  "code_samples": [
+    {
+      "code": "[local] [custom] event %string%:\n  pattern: # pattern, required\n  event-values: # list of types, optional\n  parse:\n    # code, optional\n  check:\n    # code, optional",
+      "language": "unknown"
+    },
+    {
+      "code": "[local] [custom] event %string%:\n  patterns:\n    # patterns, one per line, required\n  event-values: # list of types, optional\n  parse:\n    # code, optional\n  check:\n    # code, optional",
+      "language": "unknown"
+    },
+    {
+      "code": "event \"example\":\n  pattern: example\n  parse:\n    set {_test} to 1\n    continue\n  check:\n    # {_test} always starts at 1 here\n    add 1 to {_test}\n    # broadcasts 2\n    broadcast \"%{_test}%\"\n    continue",
+      "language": "unknown"
+    },
+    {
+      "code": "[a] [new] custom event %string% [(with|using) [[event-]values] %-objects%] [[and] [(with|using)] data %-objects%]",
+      "language": "unknown"
+    },
+    {
+      "code": "call [event] %events%",
+      "language": "unknown"
+    },
+    {
+      "code": "%events% (is|are) cancelled\n%events% (isn't|is not|aren't|are not) cancelled",
+      "language": "unknown"
+    },
+    {
+      "code": "[extra] [event(-| )]data %string%",
+      "language": "unknown"
+    }
+  ],
+  "headings": [
+    {
+      "level": "h3",
+      "text": "Flag `local`",
+      "id": "flag-`local`"
+    },
+    {
+      "level": "h3",
+      "text": "Event identifier",
+      "id": "event-identifier"
+    },
+    {
+      "level": "h3",
+      "text": "Option `event-values`",
+      "id": "option-`event-values`"
+    },
+    {
+      "level": "h3",
+      "text": "Section `parse`",
+      "id": "section-`parse`"
+    },
+    {
+      "level": "h3",
+      "text": "Section `check`",
+      "id": "section-`check`"
+    },
+    {
+      "level": "h3",
+      "text": "Calling the event",
+      "id": "calling-the-event"
+    },
+    {
+      "level": "h3",
+      "text": "Extra data",
+      "id": "extra-data"
+    }
+  ],
+  "url": "llms-txt#events",
+  "links": []
+}

@@ -4,7 +4,7 @@
 # 1. このファイルをコピーして skills/active/ ディレクトリに配置
 # 2. name, display_name, description を編集
 # 3. cost, cooldown, damage_formula 等をカスタマイズ
-# 4. 必要に応じて levels, requirements を調整
+# 4. 必要に応じて target, levels, requirements を調整
 
 # スキルID（一意である必要があります）
 name: "template_active_skill"
@@ -17,6 +17,18 @@ description: "説明をここに記述"
 
 # 最大レベル
 max_level: 5
+
+# ========================================
+# ターゲット設定
+# ========================================
+# ターゲットタイプ: self, self_plus_one, nearest_hostile, nearest_player,
+#                 nearest_entity, area_self, area_others
+# エンティティフィルタ: player_only, mob_only, all
+target:
+  type: nearest_hostile         # ターゲットタイプ
+  entity_filter: mob_only       # エンティティフィルタ（省略時はall）
+  max_targets: 5                # 最大ターゲット数（省略時は制限なし）
+  range: 10.0                   # 探索範囲（ブロック）
 
 # ========================================
 # レベル依存コスト設定（Phase11-2で追加）

@@ -1,6 +1,7 @@
 package com.example.rpgplugin.core.system;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.damage.DamageTracker;
 import com.example.rpgplugin.gui.menu.SkillMenuListener;
 import com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener;
 import com.example.rpgplugin.trade.TradeMenuListener;
@@ -21,6 +22,7 @@ import com.example.rpgplugin.currency.CurrencyManager;
  * <li>クラスメニュー（ClassMenuListener）の管理</li>
  * <li>トレードメニュー（TradeMenuListener）の管理</li>
  * <li>通貨GUI（CurrencyListener）の管理</li>
+ * <li>ダメージ追跡（DamageTracker）の管理</li>
  * </ul>
  *
  * <p>Single Responsibility: GUI関連リスナーの統合管理</p>
@@ -44,6 +46,9 @@ public class GUIManager {
     private final TradeMenuListener tradeMenuListener;
     private final CurrencyListener currencyListener;
 
+    // ダメージ追跡
+    private final DamageTracker damageTracker;
+
     /**
      * コンストラクタ
      *
@@ -60,6 +65,9 @@ public class GUIManager {
         TradeManager tradeManager = gameSystem.getTradeManager();
         CurrencyManager currencyManager = gameSystem.getCurrencyManager();
 
+        // ダメージ追跡システムを作成
+        this.damageTracker = new DamageTracker();
+
         // クラスメニュー関連のコンポーネントを作成
         ClassUpgrader classUpgrader = createClassUpgrader(classManager, playerManager);
         ClassMenu classMenu = createClassMenu(classManager, classUpgrader);
@@ -68,7 +76,7 @@ public class GUIManager {
         this.skillMenuListener = new SkillMenuListener(plugin);
         this.classMenuListener = new ClassMenuListener(classMenu, classManager, classUpgrader);
         this.tradeMenuListener = new TradeMenuListener(tradeManager);
-        this.currencyListener = new CurrencyListener(plugin, currencyManager);
+        this.currencyListener = new CurrencyListener(plugin, currencyManager, damageTracker);
     }
 
     /**
@@ -103,6 +111,12 @@ public class GUIManager {
         plugin.getLogger().info(" GUIManager: 初期化を開始します");
         plugin.getLogger().info("========================================");
 
+        // ダメージ追跡システムの登録（他のリスナーより先に登録）
+        plugin.getLogger().info("[GUISystem] ダメージ追跡システムを登録中...");
+        plugin.getServer().getPluginManager().registerEvents(
+            damageTracker, plugin
+        );
+
         // スキルメニューリスナーの登録
         plugin.getLogger().info("[GUISystem] スキルメニューリスナーを登録中...");
         plugin.getServer().getPluginManager().registerEvents(
@@ -129,7 +143,7 @@ public class GUIManager {
 
         plugin.getLogger().info("========================================");
         plugin.getLogger().info(" GUIManager: 初期化が完了しました");
-        plugin.getLogger().info(" 登録したリスナー数: 4");
+        plugin.getLogger().info(" 登録したリスナー数: 5");
         plugin.getLogger().info("========================================");
     }
 
@@ -181,5 +195,14 @@ public class GUIManager {
      */
     public CurrencyListener getCurrencyListener() {
         return currencyListener;
+    }
+
+    /**
+     * ダメージ追跡システムを取得します
+     *
+     * @return DamageTrackerインスタンス
+     */
+    public DamageTracker getDamageTracker() {
+        return damageTracker;
     }
 }

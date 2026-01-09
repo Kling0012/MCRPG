@@ -1,4 +1,4 @@
-name: RPGPlugin
+name: MCRPG
 version: '${project.version}'
 main: com.example.rpgplugin.RPGPlugin
 api-version: '1.20'
@@ -32,4 +32,7 @@ permissions:
     default: op
     children:
       rpg.use: true
+  rpgplugin.api:
+    description: Allows using RPG API commands (for Skript/Denizen integration)
+    default: false
 

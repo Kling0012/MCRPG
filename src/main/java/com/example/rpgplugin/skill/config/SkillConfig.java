@@ -59,7 +59,7 @@ public class SkillConfig {
         // スキルマネージャーに登録
         int successCount = 0;
         for (Skill skill : skills) {
-            if (skillManager.registerSkill(skill)) {
+            if (skill != null && skillManager.registerSkill(skill)) {
                 successCount++;
             }
         }

@@ -72,8 +72,15 @@ public class SKriptBridge {
      *   <li>can_upgrade_class &lt;player&gt; - クラスアップ可能か</li>
      *   <li>has_skill &lt;player&gt; &lt;skillId&gt; - スキル習得確認</li>
      *   <li>unlock_skill &lt;player&gt; &lt;skillId&gt; - スキル習得</li>
+     *   <li>unlock_skill_with_points &lt;player&gt; &lt;skillId&gt; - ポイント消費でスキル習得</li>
      *   <li>cast_skill &lt;player&gt; &lt;skillId&gt; - スキル使用</li>
      *   <li>get_skill_level &lt;player&gt; &lt;skillId&gt; - スキルレベル取得</li>
+     *   <li>get_skill_points &lt;player&gt; - スキルポイント取得</li>
+     *   <li>add_skill_points &lt;player&gt; &lt;amount&gt; - スキルポイント付与</li>
+     *   <li>get_available_points &lt;player&gt; - 利用可能ステータスポイント取得</li>
+     *   <li>add_stat_point &lt;player&gt; &lt;stat&gt; &lt;amount&gt; - ステータスポイント配分</li>
+     *   <li>try_change_class &lt;player&gt; &lt;classId&gt; - 条件チェック付きクラス変更</li>
+     *   <li>can_change_class &lt;player&gt; &lt;classId&gt; - クラス変更可能か確認</li>
      *   <li>get_gold &lt;player&gt; - ゴールド残高取得</li>
      *   <li>give_gold &lt;player&gt; &lt;amount&gt; - ゴールド付与</li>
      *   <li>take_gold &lt;player&gt; &lt;amount&gt; - ゴールド剥奪</li>
@@ -256,6 +263,41 @@ public class SKriptBridge {
                 }
                 return unlockSuccess;
 
+            case "unlock_skill_with_points":
+                if (targetPlayer == null || args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "使用法: rpg api unlock_skill_with_points <player> <skillId>");
+                    return false;
+                }
+                
+                // スキルポイントを消費してスキルを習得
+                RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(targetPlayer.getUniqueId());
+                if (rpgPlayer == null) {
+                    sender.sendMessage(ChatColor.RED + "プレイヤーデータが見つかりません");
+                    return false;
+                }
+                
+                // スキル存在確認
+                if (!api.hasSkill(targetPlayer, args[1])) {
+                    // スキルポイント確認（仮に1ポイント必要とする）
+                    if (rpgPlayer.getSkillPoints() < 1) {
+                        sender.sendMessage(ChatColor.RED + "スキルポイントが不足しています（必要: 1, 所持: " + rpgPlayer.getSkillPoints() + ")");
+                        return false;
+                    }
+                    
+                    // スキル習得＆ポイント消費
+                    boolean unlockWithPointsSuccess = api.unlockSkill(targetPlayer, args[1]);
+                    if (unlockWithPointsSuccess) {
+                        rpgPlayer.addSkillPoints(-1);  // 1ポイント消費
+                        sender.sendMessage(ChatColor.GREEN + "スキル " + args[1] + " をポイント消費で習得させました (残り: " + rpgPlayer.getSkillPoints() + ")");
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "スキルの習得に失敗しました");
+                    }
+                    return unlockWithPointsSuccess;
+                } else {
+                    sender.sendMessage(ChatColor.YELLOW + "そのスキルは既に習得済みです");
+                    return true;
+                }
+
             case "cast_skill":
                 if (targetPlayer == null || args.length < 2) {
                     sender.sendMessage(ChatColor.RED + "使用法: rpg api cast_skill <player> <skillId>");
@@ -276,6 +318,169 @@ public class SKriptBridge {
                 }
                 int skillLevel = api.getSkillLevel(targetPlayer, args[1]);
                 sender.sendMessage(ChatColor.GREEN + "スキルレベル: " + skillLevel);
+                return true;
+
+            case "get_skill_points":
+                if (targetPlayer == null) {
+                    sender.sendMessage(ChatColor.RED + "プレイヤーが指定されていません");
+                    return false;
+                }
+                RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(targetPlayer.getUniqueId());
+                if (rpgPlayer == null) {
+                    sender.sendMessage(ChatColor.RED + "プレイヤーデータが見つかりません");
+                    return false;
+                }
+                int skillPoints = rpgPlayer.getSkillPoints();
+                sender.sendMessage(ChatColor.GREEN + targetPlayer.getName() + " のスキルポイント: " + skillPoints);
+                return true;
+
+            case "add_skill_points":
+                if (targetPlayer == null || args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "使用法: rpg api add_skill_points <player> <amount>");
+                    return false;
+                }
+                try {
+                    int pointsToAdd = Integer.parseInt(args[1]);
+                    RPGPlayer rpgPlayer2 = plugin.getPlayerManager().getRPGPlayer(targetPlayer.getUniqueId());
+                    if (rpgPlayer2 == null) {
+                        sender.sendMessage(ChatColor.RED + "プレイヤーデータが見つかりません");
+                        return false;
+                    }
+                    rpgPlayer2.addSkillPoints(pointsToAdd);
+                    sender.sendMessage(ChatColor.GREEN + pointsToAdd + " スキルポイントを付与しました (合計: " + rpgPlayer2.getSkillPoints() + ")");
+                    return true;
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "ポイント数は整数で指定してください");
+                    return false;
+                }
+
+            case "get_available_points":
+                if (targetPlayer == null) {
+                    sender.sendMessage(ChatColor.RED + "プレイヤーが指定されていません");
+                    return false;
+                }
+                RPGPlayer rpgPlayer3 = plugin.getPlayerManager().getRPGPlayer(targetPlayer.getUniqueId());
+                if (rpgPlayer3 == null) {
+                    sender.sendMessage(ChatColor.RED + "プレイヤーデータが見つかりません");
+                    return false;
+                }
+                int availablePoints = rpgPlayer3.getAvailablePoints();
+                sender.sendMessage(ChatColor.GREEN + targetPlayer.getName() + " の利用可能ステータスポイント: " + availablePoints);
+                return true;
+
+            case "add_stat_point":
+                if (targetPlayer == null || args.length < 3) {
+                    sender.sendMessage(ChatColor.RED + "使用法: rpg api add_stat_point <player> <stat> <amount>");
+                    return false;
+                }
+                Stat statToAdd = parseStat(args[1]);
+                if (statToAdd == null) {
+                    sender.sendMessage(ChatColor.RED + "無効なステータス: " + args[1]);
+                    return false;
+                }
+                try {
+                    int pointsToAllocate = Integer.parseInt(args[2]);
+                    RPGPlayer rpgPlayer4 = plugin.getPlayerManager().getRPGPlayer(targetPlayer.getUniqueId());
+                    if (rpgPlayer4 == null) {
+                        sender.sendMessage(ChatColor.RED + "プレイヤーデータが見つかりません");
+                        return false;
+                    }
+                    
+                    // 利用可能ポイントをチェック
+                    if (rpgPlayer4.getAvailablePoints() < pointsToAllocate) {
+                        sender.sendMessage(ChatColor.RED + "ポイントが不足しています（必要: " + pointsToAllocate + ", 所持: " + rpgPlayer4.getAvailablePoints() + ")");
+                        return false;
+                    }
+                    
+                    // ポイントを配分
+                    int currentValue = rpgPlayer4.getBaseStat(statToAdd);
+                    rpgPlayer4.setBaseStat(statToAdd, currentValue + pointsToAllocate);
+                    rpgPlayer4.setAvailablePoints(rpgPlayer4.getAvailablePoints() - pointsToAllocate);
+                    
+                    sender.sendMessage(ChatColor.GREEN + statToAdd.getDisplayName() + " に " + pointsToAllocate + " ポイント配分しました");
+                    sender.sendMessage(ChatColor.GRAY + "新しい値: " + (currentValue + pointsToAllocate) + ", 残りポイント: " + rpgPlayer4.getAvailablePoints());
+                    return true;
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "ポイント数は整数で指定してください");
+                    return false;
+                }
+
+            case "try_change_class":
+                if (targetPlayer == null || args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "使用法: rpg api try_change_class <player> <classId>");
+                    return false;
+                }
+                
+                // クラス変更可能かチェック
+                String newClassId = args[1];
+                com.example.rpgplugin.rpgclass.ClassManager classManager = plugin.getClassManager();
+                if (classManager == null) {
+                    sender.sendMessage(ChatColor.RED + "クラスマネージャーが初期化されていません");
+                    return false;
+                }
+                
+                // 現在のクラスを確認
+                Optional<com.example.rpgplugin.rpgclass.RPGClass> currentClass = classManager.getPlayerClass(targetPlayer);
+                if (currentClass.isPresent()) {
+                    sender.sendMessage(ChatColor.RED + "既にクラス " + currentClass.get().getDisplayName() + " を選択済みです");
+                    sender.sendMessage(ChatColor.GRAY + "クラス変更は現在サポートされていません");
+                    return false;
+                }
+                
+                // クラスが存在するかチェック
+                Optional<com.example.rpgplugin.rpgclass.RPGClass> newClass = classManager.getClass(newClassId);
+                if (!newClass.isPresent()) {
+                    sender.sendMessage(ChatColor.RED + "クラスが見つかりません: " + newClassId);
+                    return false;
+                }
+                
+                // 初期クラスかチェック（条件チェック）
+                if (newClass.get().getRank() != 1) {
+                    sender.sendMessage(ChatColor.RED + "初期クラス以外は選択できません: " + newClassId);
+                    return false;
+                }
+                
+                // クラスを設定
+                boolean setClassSuccess = classManager.setPlayerClass(targetPlayer, newClassId);
+                if (setClassSuccess) {
+                    sender.sendMessage(ChatColor.GREEN + "クラスを " + newClass.get().getDisplayName() + " に変更しました");
+                } else {
+                    sender.sendMessage(ChatColor.RED + "クラスの設定に失敗しました");
+                }
+                return setClassSuccess;
+
+            case "can_change_class":
+                if (targetPlayer == null || args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "使用法: rpg api can_change_class <player> <classId>");
+                    return false;
+                }
+                
+                String targetClassId = args[1];
+                com.example.rpgplugin.rpgclass.ClassManager classManager2 = plugin.getClassManager();
+                if (classManager2 == null) {
+                    sender.sendMessage(ChatColor.RED + "クラスマネージャーが初期化されていません");
+                    return false;
+                }
+                
+                // 現在のクラス確認
+                Optional<com.example.rpgplugin.rpgclass.RPGClass> currentClass2 = classManager2.getPlayerClass(targetPlayer);
+                boolean canChange = !currentClass2.isPresent();  // クラス未選択のみ変更可能
+                
+                // ターゲットクラス存在確認
+                Optional<com.example.rpgplugin.rpgclass.RPGClass> targetClass = classManager2.getClass(targetClassId);
+                if (!targetClass.isPresent()) {
+                    canChange = false;
+                }
+                
+                // 初期クラス確認
+                if (targetClass.isPresent() && targetClass.get().getRank() != 1) {
+                    canChange = false;
+                }
+                
+                sender.sendMessage(ChatColor.GREEN + "クラス変更可能: " + (canChange ? "はい" : "いいえ"));
+                if (!canChange && currentClass2.isPresent()) {
+                    sender.sendMessage(ChatColor.GRAY + "理由: 既にクラス " + currentClass2.get().getDisplayName() + " を選択済み");
+                }
                 return true;
 
             // ==================== 経済操作 ====================
@@ -551,9 +756,10 @@ public class SKriptBridge {
         sender.sendMessage(ChatColor.YELLOW + "使用法: /rpg api <action> <args...>");
         sender.sendMessage(ChatColor.YELLOW + "アクション:");
         sender.sendMessage(ChatColor.WHITE + "  レベル: get_level, set_level");
-        sender.sendMessage(ChatColor.WHITE + "  ステータス: get_stat, set_stat");
-        sender.sendMessage(ChatColor.WHITE + "  クラス: get_class, set_class, upgrade_class, can_upgrade_class");
-        sender.sendMessage(ChatColor.WHITE + "  スキル: has_skill, unlock_skill, cast_skill, get_skill_level");
+        sender.sendMessage(ChatColor.WHITE + "  ステータス: get_stat, set_stat, get_available_points, add_stat_point");
+        sender.sendMessage(ChatColor.WHITE + "  クラス: get_class, set_class, try_change_class, can_change_class, upgrade_class, can_upgrade_class");
+        sender.sendMessage(ChatColor.WHITE + "  スキル: has_skill, unlock_skill, unlock_skill_with_points, cast_skill, get_skill_level");
+        sender.sendMessage(ChatColor.WHITE + "  スキル管理: get_skill_points, add_skill_points");
         sender.sendMessage(ChatColor.WHITE + "  スキル拡張: cast_at, cast_with_cost");
         sender.sendMessage(ChatColor.WHITE + "  ターゲット: get_target, set_target");
         sender.sendMessage(ChatColor.WHITE + "  範囲: get_entities_in_area");

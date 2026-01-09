@@ -519,7 +519,7 @@ class TargetingIntegrationTest {
      */
     private SkillTarget createConeTargetConfig(double angle, double range) {
         return new SkillTarget(
-                TargetType.AREA,
+                TargetType.AREA_SELF,
                 AreaShape.CONE,
                 null,
                 new SkillTarget.ConeConfig(angle, range),
@@ -533,7 +533,7 @@ class TargetingIntegrationTest {
      */
     private SkillTarget createRectTargetConfig(double width, double depth) {
         return new SkillTarget(
-                TargetType.AREA,
+                TargetType.AREA_SELF,
                 AreaShape.RECT,
                 null,
                 null,
@@ -547,7 +547,7 @@ class TargetingIntegrationTest {
      */
     private SkillTarget createCircleTargetConfig(double radius) {
         return new SkillTarget(
-                TargetType.AREA,
+                TargetType.AREA_SELF,
                 AreaShape.CIRCLE,
                 null,
                 null,

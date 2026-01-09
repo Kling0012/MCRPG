@@ -191,7 +191,7 @@ public class YamlConfigManager {
             String fullPath = path.isEmpty() ? key : path + "." + key;
             Object sourceValue = source.get(key);
 
-            if (sourceValue instanceof ConfigurationSection) {
+            if (sourceValue != null && sourceValue instanceof ConfigurationSection) {
                 // ネストされたセクション
                 if (target.contains(key)) {
                     mergeSections(target, source, fullPath);

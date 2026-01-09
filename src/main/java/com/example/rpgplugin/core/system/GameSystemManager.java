@@ -167,17 +167,13 @@ public class GameSystemManager {
     public void shutdown() {
         plugin.getLogger().info("[GameSystem] シャットダウンを開始します");
 
-        if (expManager != null) {
-            expManager.shutdown();
-        }
+        expManager.shutdown();
 
         // AuctionManagerにshutdownメソッドがないためスキップ
         // 必要に応じてAuctionManagerにshutdownメソッドを追加
 
-        if (tradeManager != null) {
-            // TradeManagerにshutdownメソッドがあるか確認
-            // tradeManager.shutdown();
-        }
+        // TradeManagerにshutdownメソッドがあるか確認
+        // tradeManager.shutdown();
 
         plugin.getLogger().info("[GameSystem] シャットダウンが完了しました");
     }

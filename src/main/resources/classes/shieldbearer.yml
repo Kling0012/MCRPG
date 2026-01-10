@@ -1,41 +1,80 @@
-# 大盾使いクラス設定
+# ============================================
+# RPGPlugin クラス設定: ShieldBearer (盾持ち)
+# ============================================
+# Fabled/SkillAPI 形式を参考に設計
+#
+# 基本クラス: 味方を守るタンククラス
+# ステータス成長: VIT (生命力), STR (力)
+# ============================================
+
+# 基本情報
 id: shieldbearer
 name: 大盾使い
 display_name: "&9大盾使い"
+prefix: "&9[盾]"
 description:
   - "&f重厚な盾で味方を守る防御特化クラス"
-  - "&fVITの成長が特に高い"
-rank: 1
-max_level: 50
-icon: SHIELD
+  - "&eVITの成長が特に高い"
+  - "&7基本クラス"
 
+# クラスグループ
+group: class
+
+# 最大レベル
+max_level: 50
+
+# ============================================
+# ステータス設定
+# ============================================
+health:
+  base: 120
+  scale: 12
+
+mana:
+  base: 40
+  scale: 4
+
+# ステータス成長
 stat_growth:
   auto:
-    vitality: 3
-    strength: 1
+    vitality: 3       # VIT: 最大HP、防御に影響
+    strength: 1       # STR: 物理ダメージに影響
   manual_points: 2
 
-next_rank:
-  class_id: shieldbearer_rank2
-  requirements:
-    - type: level
-      value: 20
-    - type: stat
-      stat: VITALITY
-      value: 60
-
-available_skills:
-  - fortify
-  - taunt
-  - shield_wall
-
+# クラス固有のステータスボーナス
 passive_bonuses:
-  - type: damage_reduction
-    value: 0.15
-  - type: health_bonus
-    value: 40
+  - type: defense
+    formula: "15 + Lv * 2"
+  - type: max_health
+    formula: "40 + Lv * 3"
   - type: knockback_resistance
-    value: 0.5
+    formula: "0.5"
+
+# ============================================
+# マナ回復
+# ============================================
+mana_regen: 1.5
+
+# ============================================
+# 経験値獲得方法
+# ============================================
+# MOB(1) + BLOCK_BREAK(2) + QUEST(32)
+exp_source: 35
+
+# ============================================
+# 使用可能スキル
+# ============================================
+available_skills:
+  - shield_bash
+  - taunt
+  - fortify
+  - shield_wall
+  - last_stand
+
+# ============================================
+# その他
+# ============================================
+icon: SHIELD
 
 exp_diminish:
   start_level: 30

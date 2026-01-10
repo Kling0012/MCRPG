@@ -1,20 +1,18 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Life Steal (ライフスティール)
 # ============================================
-# Fabled/SkillAPI 形式を参考に設計
-#
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# ライフスティールスキル
+# 与えたダメージの一部を回復する
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: life_steal
+name: ライフスティール
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&cライフスティール"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f与えたダメージの一部を回復する"
+  - "&e吸血効果"
 
 # 最大レベル
 max_level: 5
@@ -23,70 +21,68 @@ max_level: 5
 # カスタム変数
 # ============================================
 variables:
-  base_radius: 3.0
-  base_burn: 3.0
+  base_steal: 0.3        # 30% lifesteal at level 1
+  steal_per_level: 0.1   # +10% per level
+  base_damage: 25.0
 
 # ============================================
 # コスト設定
 # ============================================
 cost:
   type: mana
-  base: 25
+  base: 20
   per_level: 2
   min: 15
-  max: 50
+  max: 40
 
 # ============================================
 # クールダウン設定
 # ============================================
 cooldown:
-  base: 12.0
+  base: 10.0
   per_level: -0.5
-  min: 8.0
+  min: 6.0
 
 # ============================================
 # ダメージ計算
 # ============================================
 damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
-  base: 30.0
-  stat: INTELLIGENCE
+  formula: "BASE_DAMAGE + (Lv * 5) + (STR * 1.5) + (INT * 0.5)"
+  base: base_damage
 
 # ============================================
 # ターゲット設定
 # ============================================
 targeting:
-  type: sphere
-  sphere:
-    radius: 5.0             # 発射距離
+  type: nearest_hostile
+  range: 3.0
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 0
 
 # ============================================
-# 追加効果
+# ライフスティール効果
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# 吸血率（ダメージの何％を吸収する）
+lifesteal_percent: "base_steal + (Lv - 1) * steal_per_level"
 
 # ============================================
 # スキルツリー設定
 # ============================================
 skill_tree:
-  parent: none
+  parent: shield_bash
   unlock_requirements:
     - type: level
-      value: 1
+      value: 15
     - type: class
-      value: mage
-  cost: 1
+      value: warrior
+  cost: 3
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: REDSTONE_BLOCK
 
 available_classes:
-  - mage
+  - warrior
+  - assassin

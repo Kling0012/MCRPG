@@ -1,20 +1,20 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Backstab (バックスタブ)
 # ============================================
 # Fabled/SkillAPI 形式を参考に設計
 #
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# 暗殺者の攻撃スキル
+# 背後から攻撃すると追加ダメージ
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: backstab
+name: バックスタブ
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&5バックスタブ"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f背後から攻撃すると追加ダメージ"
+  - "&eステルス中はさらにダメージ増加"
 
 # 最大レベル
 max_level: 5
@@ -23,70 +23,69 @@ max_level: 5
 # カスタム変数
 # ============================================
 variables:
-  base_radius: 3.0
-  base_burn: 3.0
+  base_multiplier: 1.5
+  multiplier_per_level: 0.2
+  stealth_bonus: 0.5
 
 # ============================================
 # コスト設定
 # ============================================
 cost:
   type: mana
-  base: 25
-  per_level: 2
-  min: 15
-  max: 50
+  base: 15
+  per_level: 1
+  min: 10
+  max: 25
 
 # ============================================
 # クールダウン設定
 # ============================================
 cooldown:
-  base: 12.0
-  per_level: -0.5
-  min: 8.0
+  base: 6.0
+  per_level: -0.2
+  min: 4.0
 
 # ============================================
 # ダメージ計算
 # ============================================
 damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
-  base: 30.0
-  stat: INTELLIGENCE
+  formula: "BASE_DAMAGE + (Lv * 7) + (DEX * 1.5) + (INT * 0.5)"
+  base: 25.0
 
 # ============================================
 # ターゲット設定
 # ============================================
 targeting:
-  type: sphere
-  sphere:
-    radius: 5.0             # 発射距離
+  type: nearest_hostile
+  range: 2.0
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 0
 
 # ============================================
 # 追加効果
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# 背後攻撃ダメージ倍率
+backstab_multiplier: "base_multiplier + (Lv - 1) * multiplier_per_level"
+# ステルス中の追加倍率
+stealth_bonus: stealth_bonus
 
 # ============================================
 # スキルツリー設定
 # ============================================
 skill_tree:
-  parent: none
+  parent: stealth
   unlock_requirements:
     - type: level
-      value: 1
+      value: 5
     - type: class
-      value: mage
-  cost: 1
+      value: assassin
+  cost: 2
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: IRON_DAGGER
 
 available_classes:
-  - mage
+  - assassin

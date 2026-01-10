@@ -54,7 +54,27 @@ public enum TargetType {
     /**
      * 外部から指定されたターゲット
      */
-    EXTERNAL("external", "外部指定");
+    EXTERNAL("external", "外部指定"),
+
+    /**
+     * 直線上のターゲット（SkillAPI参考）
+     */
+    LINE("line", "直線"),
+
+    /**
+     * 扇状範囲のターゲット（SkillAPI参考）
+     */
+    CONE("cone", "扇状"),
+
+    /**
+     * 視線上のターゲット（SkillAPI参考）
+     */
+    LOOKING("looking", "視線上"),
+
+    /**
+     * 球形範囲のターゲット（SkillAPI参考）
+     */
+    SPHERE("sphere", "球形範囲");
 
     private final String id;
     private final String displayName;
@@ -118,7 +138,8 @@ public enum TargetType {
      * @return 範囲系の場合はtrue
      */
     public boolean isAreaType() {
-        return this == AREA_SELF || this == AREA_OTHERS;
+        return this == AREA_SELF || this == AREA_OTHERS
+                || this == CONE || this == SPHERE;
     }
 
     /**

@@ -1,40 +1,85 @@
-# 戦士クラス設定
+# ============================================
+# RPGPlugin クラス設定: Warrior (戦士)
+# ============================================
+# Fabled/SkillAPI 形式を参考に設計
+#
+# 基本クラス: 剣と盾で前線を守る近接クラス
+# ステータス成長: STR (力), VIT (生命力)
+# ============================================
+
+# 基本情報
 id: warrior
 name: 戦士
 display_name: "&c戦士"
+prefix: "&c[戦士]"
 description:
   - "&f剣と盾で前線を守る近接クラス"
-  - "&fSTRとVITが成長しやすい"
-rank: 1
-max_level: 50
-icon: IRON_SWORD
+  - "&eSTRとVITが成長しやすい"
+  - "&7基本クラス"
 
+# クラスグループ（professionで選択可能なグループ）
+group: class
+
+# 最大レベル
+max_level: 50
+
+# ============================================
+# ステータス設定
+# ============================================
+# Fabled形式のベース/スケール値
+# health-base: レベル1の時のHP
+# health-scale: レベル毎のHP増加量
+
+health:
+  base: 100
+  scale: 10
+
+mana:
+  base: 50
+  scale: 5
+
+# ステータス成長（レベルアップ時の自動上昇）
 stat_growth:
   auto:
-    strength: 2
-    vitality: 1
-  manual_points: 3
+    strength: 2      # STR: 物理ダメージに影響
+    vitality: 1      # VIT: 最大HP、防御に影響
+  manual_points: 3   # 手動振り分けポイント
 
-next_rank:
-  class_id: warrior_rank2
-  requirements:
-    - type: level
-      value: 20
-    - type: stat
-      stat: STRENGTH
-      value: 50
+# クラス固有のステータスボーナス（常時発動）
+passive_bonuses:
+  - type: physical_damage
+    formula: "10 + Lv * 2"
+  - type: defense
+    formula: "5 + Lv"
 
+# ============================================
+# マナ回復
+# ============================================
+mana_regen: 2.0
+
+# ============================================
+# 経験値獲得方法
+# ============================================
+# ビットフィールド形式（Fabled準拠）
+# MOB(1) + BLOCK_BREAK(2) + CRAFT(8) + QUEST(32)
+exp_source: 43
+
+# ============================================
+# 使用可能スキル
+# ============================================
 available_skills:
   - power_strike
   - shield_bash
   - battle_cry
+  - iron_skin
+  - execute
 
-passive_bonuses:
-  - type: damage_multiplier
-    value: 1.1
-  - type: health_bonus
-    value: 20
+# ============================================
+# その他
+# ============================================
+icon: IRON_SWORD
 
+# 経験値減衰（高レベルでの経験値取得量減少）
 exp_diminish:
   start_level: 30
   reduction_rate: 0.5

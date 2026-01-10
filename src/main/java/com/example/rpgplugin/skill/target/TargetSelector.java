@@ -91,6 +91,22 @@ public final class TargetSelector {
                 }
                 break;
 
+            case LINE:
+                selectLineTargets(caster, config, candidates, origin, direction, result);
+                break;
+
+            case CONE:
+                selectConeTargets(caster, config, candidates, origin, direction, result);
+                break;
+
+            case LOOKING:
+                selectLookingTargets(caster, config, candidates, origin, direction, result);
+                break;
+
+            case SPHERE:
+                selectSphereTargets(caster, config, candidates, origin, result);
+                break;
+
             default:
                 break;
         }
@@ -345,5 +361,215 @@ public final class TargetSelector {
             case MOB_ONLY -> !(entity instanceof Player);
             case ALL -> true;
         };
+    }
+
+    // ==================== 新規ターゲット選択メソッド ====================
+
+    /**
+     * 直線上のターゲットを選択します（SkillAPI参考）
+     *
+     * @param caster 発動者
+     * @param config ターゲット設定
+     * @param candidates 候補エンティティリスト
+     * @param origin 中心位置
+     * @param direction 方向ベクトル
+     * @param result 結果を追加するリスト
+     */
+    private static void selectLineTargets(Player caster, SkillTarget config,
+                                            List<Entity> candidates, Location origin,
+                                            Vector direction, List<Entity> result) {
+        List<Entity> filtered = filterByEntityType(candidates, config.getEntityTypeFilter(), caster);
+
+        // 直線の範囲を設定
+        double range = config.getRange();
+        double width = config.getLineWidth();
+
+        for (Entity entity : filtered) {
+            if (entity == null || entity.getLocation() == null) {
+                continue;
+            }
+
+            // 直線上か判定
+            if (isOnLine(entity.getLocation(), origin, direction, range, width)) {
+                result.add(entity);
+            }
+        }
+
+        // 最大ターゲット数を適用
+        int maxTargets = config.getMaxTargetsOrUnlimited();
+        if (result.size() > maxTargets) {
+            result.subList(0, maxTargets);
+        }
+    }
+
+    /**
+     * 扇状範囲のターゲットを選択します（SkillAPI参考）
+     *
+     * @param caster 発動者
+     * @param config ターゲット設定
+     * @param candidates 候補エンティティリスト
+     * @param origin 中心位置
+     * @param direction 方向ベクトル
+     * @param result 結果を追加するリスト
+     */
+    private static void selectConeTargets(Player caster, SkillTarget config,
+                                            List<Entity> candidates, Location origin,
+                                            Vector direction, List<Entity> result) {
+        List<Entity> filtered = filterByEntityType(candidates, config.getEntityTypeFilter(), caster);
+
+        // コーンの範囲を設定
+        double range = config.getRange();
+        double angle = config.getConeAngle();
+
+        for (Entity entity : filtered) {
+            if (entity == null || entity.getLocation() == null) {
+                continue;
+            }
+
+            // コーン内か判定
+            if (isInCone(entity.getLocation(), origin, direction, range, angle)) {
+                result.add(entity);
+            }
+        }
+
+        // 最大ターゲット数を適用
+        int maxTargets = config.getMaxTargetsOrUnlimited();
+        if (result.size() > maxTargets) {
+            result.subList(0, maxTargets);
+        }
+    }
+
+    /**
+     * 視線上のターゲットを選択します（SkillAPI参考）
+     *
+     * @param caster 発動者
+     * @param config ターゲット設定
+     * @param candidates 候補エンティティリスト
+     * @param origin 中心位置
+     * @param direction 方向ベクトル
+     * @param result 結果を追加するリスト
+     */
+    private static void selectLookingTargets(Player caster, SkillTarget config,
+                                              List<Entity> candidates, Location origin,
+                                              Vector direction, List<Entity> result) {
+        List<Entity> filtered = filterByEntityType(candidates, config.getEntityTypeFilter(), caster);
+
+        // 視線の範囲を設定
+        double range = config.getRange();
+        double width = config.getLineWidth();
+
+        // 視線上のエンティティを距離順に取得
+        List<Entity> lookingTargets = new ArrayList<>();
+        for (Entity entity : filtered) {
+            if (entity == null || entity.getLocation() == null) {
+                continue;
+            }
+
+            if (isOnLine(entity.getLocation(), origin, direction, range, width)) {
+                lookingTargets.add(entity);
+            }
+        }
+
+        // 距離でソート
+        lookingTargets.sort(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(origin)));
+
+        // 最大ターゲット数を適用
+        int maxTargets = config.getMaxTargetsOrUnlimited();
+        for (int i = 0; i < Math.min(lookingTargets.size(), maxTargets); i++) {
+            result.add(lookingTargets.get(i));
+        }
+    }
+
+    /**
+     * 球形範囲のターゲットを選択します（SkillAPI参考）
+     *
+     * @param caster 発動者
+     * @param config ターゲット設定
+     * @param candidates 候補エンティティリスト
+     * @param origin 中心位置
+     * @param result 結果を追加するリスト
+     */
+    private static void selectSphereTargets(Player caster, SkillTarget config,
+                                             List<Entity> candidates, Location origin,
+                                             List<Entity> result) {
+        List<Entity> filtered = filterByEntityType(candidates, config.getEntityTypeFilter(), caster);
+
+        // 球形の範囲を設定
+        double radius = config.getSphereRadius();
+
+        for (Entity entity : filtered) {
+            if (entity == null || entity.getLocation() == null) {
+                continue;
+            }
+
+            // 球形内か判定
+            if (entity.getLocation().distance(origin) <= radius) {
+                result.add(entity);
+            }
+        }
+
+        // 最大ターゲット数を適用
+        int maxTargets = config.getMaxTargetsOrUnlimited();
+        if (result.size() > maxTargets) {
+            result.subList(0, maxTargets);
+        }
+    }
+
+    /**
+     * エンティティが直線上にあるか判定します
+     *
+     * @param location エンティティの位置
+     * @param origin 始点
+     * @param direction 方向ベクトル
+     * @param range 範囲
+     * @param width 幅
+     * @return 直線上の場合はtrue
+     */
+    private static boolean isOnLine(Location location, Location origin,
+                                    Vector direction, double range, double width) {
+        // 始点からの距離チェック
+        double distance = location.distance(origin);
+        if (distance > range || distance < 0.5) {
+            return false;
+        }
+
+        // 直線からのずれを計算
+        Vector toEntity = location.toVector().subtract(origin.toVector());
+        double projection = toEntity.dot(direction.normalize());
+
+        if (projection < 0 || projection > range) {
+            return false;
+        }
+
+        Vector closestPoint = origin.toVector().add(direction.normalize().multiply(projection));
+        double perpendicularDistance = location.toVector().subtract(closestPoint).length();
+
+        return perpendicularDistance <= width;
+    }
+
+    /**
+     * エンティティがコーン内にあるか判定します
+     *
+     * @param location エンティティの位置
+     * @param origin 始点
+     * @param direction 方向ベクトル
+     * @param range 範囲
+     * @param angle 角度（度数法）
+     * @return コーン内の場合はtrue
+     */
+    private static boolean isInCone(Location location, Location origin,
+                                     Vector direction, double range, double angle) {
+        // 始点からの距離チェック
+        double distance = location.distance(origin);
+        if (distance > range || distance < 0.5) {
+            return false;
+        }
+
+        // 角度チェック
+        Vector toEntity = location.toVector().subtract(origin.toVector());
+        double dotProduct = toEntity.normalize().dot(direction.normalize());
+        double angleRad = Math.toRadians(angle);
+
+        return dotProduct >= Math.cos(angleRad / 2.0);
     }
 }

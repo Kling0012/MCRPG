@@ -1,20 +1,20 @@
 # ============================================
-# RPGPlugin クラス設定: Archer (弓使い)
+# RPGPlugin クラス設定: Assassin (暗殺者)
 # ============================================
 # Fabled/SkillAPI 形式を参考に設計
 #
-# 基本クラス: 遠距離物理攻撃を得意とするクラス
-# ステータス成長: DEX (敏捷), STR (力)
+# 基本クラス: 高い機動力とクリティカルダメージを持つクラス
+# ステータス成長: DEX (敏捷), INT (知力)
 # ============================================
 
 # 基本情報
-id: archer
-name: 弓使い
-display_name: "&a弓使い"
-prefix: "&a[弓]"
+id: assassin
+name: 暗殺者
+display_name: "&5暗殺者"
+prefix: "&5[暗]"
 description:
-  - "&f遠距離物理攻撃を得意とするクラス"
-  - "&eDEXとSTRが成長しやすい"
+  - "&f高い機動力とクリティカルダメージを持つクラス"
+  - "&eDEXとINTが成長しやすい"
   - "&7基本クラス"
 
 # クラスグループ
@@ -27,52 +27,54 @@ max_level: 50
 # ステータス設定
 # ============================================
 health:
-  base: 80
-  scale: 8
+  base: 70
+  scale: 7
 
 mana:
-  base: 60
-  scale: 6
+  base: 70
+  scale: 7
 
 # ステータス成長
 stat_growth:
   auto:
     dexterity: 2      # DEX: 命中率、回避率に影響
-    strength: 1       # STR: 物理ダメージに影響
+    intelligence: 1   # INT: スキルダメージに影響
   manual_points: 3
 
 # クラス固有のステータスボーナス
 passive_bonuses:
-  - type: physical_damage
-    formula: "8 + Lv * 1.5"
+  - type: crit_chance
+    formula: "5 + Lv * 0.5"
+  - type: crit_damage
+    formula: "150 + Lv * 5"
   - type: move_speed
-    formula: "0.1 + Lv * 0.01"
+    formula: "0.15 + Lv * 0.01"
 
 # ============================================
 # マナ回復
 # ============================================
-mana_regen: 2.0
+mana_regen: 2.5
 
 # ============================================
 # 経験値獲得方法
 # ============================================
-# MOB(1) + BLOCK_BREAK(2) + QUEST(32)
-exp_source: 35
+# MOB(1) + QUEST(32)
+exp_source: 33
 
 # ============================================
 # 使用可能スキル
 # ============================================
 available_skills:
-  - power_shot
-  - multi_shot
-  - explosive_arrow
-  - evasion
-  - aimed_shot
+  - backstab
+  - stealth
+  - poison_blade
+  - shadow_step
+  - assassinate
 
 # ============================================
 # その他
 # ============================================
-icon: BOW
+icon: DIAMOND_SWORD
 
 exp_diminish:
   start_level: 30

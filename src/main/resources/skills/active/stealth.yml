@@ -1,20 +1,20 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Stealth (ステルス)
 # ============================================
 # Fabled/SkillAPI 形式を参考に設計
 #
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# 暗殺者のスキル
+# 一定時間、姿を消す
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: stealth
+name: ステルス
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&5ステルス"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f一定時間、姿を消す"
+  - "&e攻撃すると解除される"
 
 # 最大レベル
 max_level: 5
@@ -23,53 +23,43 @@ max_level: 5
 # カスタム変数
 # ============================================
 variables:
-  base_radius: 3.0
-  base_burn: 3.0
+  base_duration: 3.0
+  duration_per_level: 1.0
 
 # ============================================
 # コスト設定
 # ============================================
 cost:
   type: mana
-  base: 25
+  base: 20
   per_level: 2
   min: 15
-  max: 50
+  max: 40
 
 # ============================================
 # クールダウン設定
 # ============================================
 cooldown:
-  base: 12.0
-  per_level: -0.5
-  min: 8.0
-
-# ============================================
-# ダメージ計算
-# ============================================
-damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
-  base: 30.0
-  stat: INTELLIGENCE
+  base: 20.0
+  per_level: -1.0
+  min: 10.0
 
 # ============================================
 # ターゲット設定
 # ============================================
 targeting:
-  type: sphere
-  sphere:
-    radius: 5.0             # 発射距離
+  type: self
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 0.5
 
 # ============================================
-# 追加効果
+# 効果設定
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# ステルス持続時間（秒）
+stealth_duration: "base_duration + (Lv - 1) * duration_per_level"
+# ステルス中の移動速度ボーナス（1.0で通常速）
+move_speed_modifier: "0.7 + Lv * 0.05"
 
 # ============================================
 # スキルツリー設定
@@ -80,13 +70,13 @@ skill_tree:
     - type: level
       value: 1
     - type: class
-      value: mage
+      value: assassin
   cost: 1
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: GRAY_DYE
 
 available_classes:
-  - mage
+  - assassin

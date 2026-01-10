@@ -1,20 +1,18 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Battle Cry (バトルクライ)
 # ============================================
-# Fabled/SkillAPI 形式を参考に設計
-#
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# バフスキル
+# 味方の攻撃力を一時的に上昇させる
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: battle_cry
+name: バトルクライ
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&cバトルクライ"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f味方の攻撃力を一時的に上昇させる"
+  - "&e範囲内の味方にバフを付与"
 
 # 最大レベル
 max_level: 5
@@ -23,34 +21,27 @@ max_level: 5
 # カスタム変数
 # ============================================
 variables:
-  base_radius: 3.0
-  base_burn: 3.0
+  base_buff: 10.0
+  buff_per_level: 3.0
+  buff_duration: 8.0
 
 # ============================================
 # コスト設定
 # ============================================
 cost:
   type: mana
-  base: 25
+  base: 30
   per_level: 2
-  min: 15
+  min: 20
   max: 50
 
 # ============================================
 # クールダウン設定
 # ============================================
 cooldown:
-  base: 12.0
-  per_level: -0.5
-  min: 8.0
-
-# ============================================
-# ダメージ計算
-# ============================================
-damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
   base: 30.0
-  stat: INTELLIGENCE
+  per_level: -2.0
+  min: 15.0
 
 # ============================================
 # ターゲット設定
@@ -58,35 +49,35 @@ damage:
 targeting:
   type: sphere
   sphere:
-    radius: 5.0             # 発射距離
+    radius: 8.0
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 0.5
 
 # ============================================
-# 追加効果
+# バフ効果
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# 物理ダメージ上昇（%）
+physical_damage_buff: "base_buff + (Lv - 1) * buff_per_level"
+# バフ持続時間（秒）
+buff_duration: buff_duration
 
 # ============================================
 # スキルツリー設定
 # ============================================
 skill_tree:
-  parent: none
+  parent: power_strike
   unlock_requirements:
     - type: level
-      value: 1
+      value: 10
     - type: class
-      value: mage
-  cost: 1
+      value: warrior
+  cost: 3
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: IRON_AXE
 
 available_classes:
-  - mage
+  - warrior

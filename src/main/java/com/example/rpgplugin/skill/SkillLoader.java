@@ -701,8 +701,65 @@ public class SkillLoader extends ConfigLoader {
             }
         }
 
+        // 汎用ターゲット設定（LINE, LOOKING, CONE, SPHERE用）
+        Double range = null;
+        Double lineWidth = null;
+        Double coneAngle = null;
+        Double sphereRadius = null;
+
+        if (targetSection.contains("range")) {
+            range = targetSection.getDouble("range");
+            validateRange(range, 0.1, 100.0, "target.range", fileName);
+        }
+
+        if (targetSection.contains("line_width")) {
+            lineWidth = targetSection.getDouble("line_width");
+            validateRange(lineWidth, 0.1, 50.0, "target.line_width", fileName);
+        }
+
+        if (targetSection.contains("cone_angle")) {
+            coneAngle = targetSection.getDouble("cone_angle");
+            validateRange(coneAngle, 1.0, 360.0, "target.cone_angle", fileName);
+        }
+
+        if (targetSection.contains("sphere_radius")) {
+            sphereRadius = targetSection.getDouble("sphere_radius");
+            validateRange(sphereRadius, 0.1, 100.0, "target.sphere_radius", fileName);
+        }
+
+        // sphereセクションからsphere_radiusを取得
+        if (targetSection.contains("sphere")) {
+            ConfigurationSection sphereSection = targetSection.getConfigurationSection("sphere");
+            if (sphereSection != null && sphereRadius == null) {
+                sphereRadius = sphereSection.getDouble("radius", 5.0);
+                validateRange(sphereRadius, 0.1, 100.0, "target.sphere.radius", fileName);
+            }
+        }
+
+        // EntityTypeFilterのパース
+        com.example.rpgplugin.skill.target.EntityTypeFilter entityTypeFilter =
+                com.example.rpgplugin.skill.target.EntityTypeFilter.ALL;
+        if (targetSection.contains("filter")) {
+            String filterStr = targetSection.getString("filter", "all").toLowerCase();
+            switch (filterStr) {
+                case "player", "players" -> entityTypeFilter =
+                        com.example.rpgplugin.skill.target.EntityTypeFilter.PLAYER_ONLY;
+                case "mob", "mobs", "hostile" -> entityTypeFilter =
+                        com.example.rpgplugin.skill.target.EntityTypeFilter.MOB_ONLY;
+                default -> entityTypeFilter =
+                        com.example.rpgplugin.skill.target.EntityTypeFilter.ALL;
+            }
+        }
+
+        // 最大ターゲット数
+        Integer maxTargets = null;
+        if (targetSection.contains("max_targets")) {
+            maxTargets = targetSection.getInt("max_targets");
+        }
+
         return new com.example.rpgplugin.skill.target.SkillTarget(
-                type, areaShape, singleTarget, cone, rect, circle);
+                type, areaShape, singleTarget, cone, rect, circle,
+                entityTypeFilter, maxTargets, range, lineWidth, coneAngle, sphereRadius);
     }
 
     /**

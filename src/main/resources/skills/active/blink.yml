@@ -1,92 +1,82 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Blink (ブリンク)
 # ============================================
-# Fabled/SkillAPI 形式を参考に設計
-#
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# テレポートスキル
+# 短距離を瞬間移動する
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: blink
+name: ブリンク
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&dブリンク"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f短距離を瞬間移動する"
+  - "&e視線方向にテレポート"
 
 # 最大レベル
-max_level: 5
+max_level: 3
 
 # ============================================
 # カスタム変数
 # ============================================
 variables:
-  base_radius: 3.0
-  base_burn: 3.0
+  base_distance: 8.0
+  distance_per_level: 2.0
 
 # ============================================
 # コスト設定
 # ============================================
 cost:
   type: mana
-  base: 25
-  per_level: 2
+  base: 20
+  per_level: 0
   min: 15
-  max: 50
+  max: 30
 
 # ============================================
 # クールダウン設定
 # ============================================
 cooldown:
-  base: 12.0
-  per_level: -0.5
-  min: 8.0
-
-# ============================================
-# ダメージ計算
-# ============================================
-damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
-  base: 30.0
-  stat: INTELLIGENCE
+  base: 8.0
+  per_level: -1.0
+  min: 5.0
 
 # ============================================
 # ターゲット設定
 # ============================================
 targeting:
-  type: sphere
-  sphere:
-    radius: 5.0             # 発射距離
+  type: self
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 0
 
 # ============================================
-# 追加効果
+# テレポート効果
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# テレポート距離（ブロック）
+teleport_distance: "base_distance + (Lv - 1) * distance_per_level"
+# パーティクル効果
+particle_effect: "PORTAL"
 
 # ============================================
 # スキルツリー設定
 # ============================================
 skill_tree:
-  parent: none
+  parent: stealth
   unlock_requirements:
     - type: level
-      value: 1
+      value: 10
     - type: class
-      value: mage
-  cost: 1
+      value: assassin
+  cost: 2
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: ENDER_PEARL
 
 available_classes:
+  - assassin
   - mage
+  - archer

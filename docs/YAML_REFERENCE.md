@@ -19,7 +19,7 @@
 id: skill_id              # 必須: 一意のスキルID
 name: スキル名            # 必須: スキル名
 display_name: "&eスキル名" # 必須: 表示名（カラーコード対応）
-type: active              # 必須: active または passive
+type: normal              # 必須: normal（active/passiveは廃止）
 max_level: 5              # 必須: 最大レベル
 ```
 
@@ -32,7 +32,7 @@ max_level: 5              # 必須: 最大レベル
 id: example_skill
 name: サンプルスキル
 display_name: "&e&lサンプルスキル"
-type: active
+type: normal              # active/passiveは廃止、normalのみ
 description:
   - "&c説明文1行目"
   - "&e説明文2行目"
@@ -73,10 +73,9 @@ damage:
 # ターゲット設定
 # ========================================
 targeting:
-  type: cone
-  cone:
-    angle: 90
-    range: 5.0
+  type: sphere
+  sphere:
+    radius: 5.0
 
 # ========================================
 # エフェクト設定
@@ -103,8 +102,8 @@ skill_tree:
 # ========================================
 icon_material: DIAMOND_SWORD
 available_classes:
-  - Warrior
-  - Knight
+  - warrior
+  - knight
 ```
 
 ---
@@ -118,7 +117,7 @@ available_classes:
 | `id` | String | ✓ | 一意のスキルID（小文字英数字と_） | `fireball` |
 | `name` | String | ✓ | スキル名（日本語可） | `ファイアボール` |
 | `display_name` | String | ✓ | GUI表示名（カラーコード対応） | `&cファイアボール` |
-| `type` | String | ✓ | `active` または `passive` | `active` |
+| `type` | String | ✓ | `normal`（active/passiveは廃止） | `normal` |
 | `description` | List<String> | - | 説明文（複数行可） | 见上表 |
 | `max_level` | Integer | ✓ | 最大スキルレベル | `10` |
 
@@ -310,46 +309,35 @@ damage:
 
 ## ターゲット設定
 
-### ターゲットタイプ
+### ターゲットタイプ一覧
 
-#### single（単体ターゲット）
+| タイプ | 説明 | YAML例 |
+|--------|----|----|
+| `self` | 自分自身 | `type: self` |
+| `self_plus_one` | 自分 + 近くのエンティティ1体 | `type: self_plus_one` |
+| `nearest_hostile` | 最も近い敵対的エンティティ | `type: nearest_hostile` |
+| `nearest_player` | 最も近いプレイヤー | `type: nearest_player` |
+| `nearest_entity` | 最も近いエンティティ | `type: nearest_entity` |
+| `area_self` | 範囲内の全エンティティ（自分含む） | `type: area_self` |
+| `area_others` | 範囲内の全エンティティ（自分除外） | `type: area_others` |
+| `sphere` | 球形範囲 | `type: sphere` |
+| `line` | 直線上のターゲット（SkillAPI参考） | `type: line` |
+| `cone` | 扇状範囲のターゲット（SkillAPI参考） | `type: cone` |
+| `looking` | 視線上のターゲット（SkillAPI参考） | `type: looking` |
+| `external` | 外部から指定されたターゲット | `type: external` |
 
-```yaml
-targeting:
-  type: single
-  range: 5.0           # ターゲット可能な距離
-```
+### 汎用ターゲット設定フィールド
 
-#### cone（コーン状範囲）
+| フィールド | 型 | 説明 | 適用ターゲットタイプ |
+|-----------|----|----|-------------------|
+| `range` | Double | 範囲（ブロック） | LINE, LOOKING, CONE |
+| `line_width` | Double | 直線の幅 | LINE, LOOKING |
+| `cone_angle` | Double | コーンの角度（度数法） | CONE |
+| `sphere_radius` | Double | 球形の半径 | SPHERE |
+| `filter` | String | エンティティフィルタ | 全タイプ |
+| `max_targets` | Integer | 最大ターゲット数 | 範囲系全般 |
 
-```yaml
-targeting:
-  type: cone
-  cone:
-    angle: 90          # コーンの角度（度数法）0-360
-    range: 5.0         # 範囲（ブロック）
-```
-
-#### sphere（球形範囲）
-
-```yaml
-targeting:
-  type: sphere
-  sphere:
-    radius: 3.0        # 半径（ブロック）
-    max_targets: 10    # 最大ターゲット数（省略可）
-```
-
-#### sector（扇形範囲）
-
-```yaml
-targeting:
-  type: sector
-  sector:
-    angle: 120         # 扇形の角度（度数法）
-    radius: 8.0        # 範囲（ブロック）
-    max_targets: 15    # 最大ターゲット数（省略可）
-```
+### ターゲット設定例
 
 #### self（自分自身）
 
@@ -358,28 +346,78 @@ targeting:
   type: self
 ```
 
-#### area（指定座標範囲）
-
-```yaml
-targeting:
-  type: area
-  area:
-    radius: 5.0
-    shape: circle      # circle, square
-```
-
-### ターゲットフィルター
+#### sphere（球形範囲）
 
 ```yaml
 targeting:
   type: sphere
+  sphere_radius: 5.0        # 汎用フィールド
+  # または
   sphere:
-    radius: 5.0
-  filters:
-    - type: hostile    # 敵対MOBのみ
-    - type: not_self   # 自分を除外
-    - type: alive      # 生きているエンティティのみ
+    radius: 5.0            # 従来の書き方（後方互換性）
+  max_targets: 10          # 最大ターゲット数
 ```
+
+#### line（直線範囲）
+
+```yaml
+targeting:
+  type: line
+  range: 15.0              # 範囲（ブロック）
+  line_width: 2.0          # 直線の幅
+  filter: hostile          # 敵対MOBのみ
+```
+
+#### cone（扇状範囲）
+
+```yaml
+targeting:
+  type: cone
+  range: 10.0              # 範囲（ブロック）
+  cone_angle: 90.0         # 角度（度数法）
+  # または
+  cone:
+    angle: 90.0            # 従来の書き方
+    range: 10.0
+  max_targets: 5
+```
+
+#### looking（視線範囲）
+
+```yaml
+targeting:
+  type: looking
+  range: 20.0              # 範囲（ブロック）
+  line_width: 1.5          # 直線の幅
+  filter: mobs             # MOBのみ
+```
+
+#### nearest_hostile（最も近い敵）
+
+```yaml
+targeting:
+  type: nearest_hostile
+  range: 8.0               # 探索範囲
+```
+
+#### area_self（自分を含む範囲）
+
+```yaml
+targeting:
+  type: area_self
+  sphere_radius: 6.0       # 範囲
+  filter: players          # プレイヤーのみ
+  max_targets: 8
+```
+
+### ターゲットフィルター
+
+| フィルタ値 | 説明 |
+|-----------|----|
+| `all` | 全エンティティ（デフォルト） |
+| `players` | プレイヤーのみ |
+| `mobs` | MOBのみ |
+| `hostile` | 敵対MOBのみ |
 
 ---
 
@@ -663,7 +701,7 @@ available_classes:
 id: string                   # 必須: スキルID
 name: string                 # 必須: スキル名
 display_name: string          # 必須: 表示名（カラーコード可）
-type: string                 # 必須: active|passive
+type: string                 # 必須: normal（active/passiveは廃止）
 description:                 # オプション: 説明文リスト
   - string
 max_level: integer           # 必須: 最大レベル
@@ -692,38 +730,36 @@ damage:                      # オプション（攻撃スキル）
   levels:                    # レベル別数式
     level: string
 
-# --- バフ効果 ---
-buff_effects:                # オプション（バフスキル）
-  duration:                  # 効果時間
-    formula: string
-    base: number
-    per_level: number
-  effects:                   # 効果リスト
-    - type: string           # movement_speed|attack_speed|stat_boost
-      stat: string           # stat_boost時のステータス
-      value: number
-      stack_type: string     # add|multiply
-  level_effects:             # レベル別効果
-    level:
-      - ...
+# --- パッシブ効果（発動型スキル以外の場合） ---
+# パッシブ効果はカスタムフィールドで定義
+# crit_chance: "5 + Lv * 0.5"
+# crit_damage: "150 + Lv * 5"
+# magic_defense: "10 + Lv * 2"
 
 # --- ターゲット設定 ---
 targeting:                   # 必須
-  type: string               # single|cone|sphere|sector|self|area
-  # typeごとのパラメータ
-  cone:                      # coneの場合
-    angle: number            # 角度（度）
-    range: number            # 範囲
-  sphere:                    # sphereの場合
-    radius: number           # 半径
-    max_targets: integer     # 最大ターゲット数
-  sector:                    # sectorの場合
-    angle: number            # 角度
-    radius: number           # 半径
-    max_targets: integer
+  type: string               # self|self_plus_one|nearest_hostile|nearest_player|
+                             # nearest_entity|area_self|area_others|sphere|
+                             # line|cone|looking|external
+  # 汎用ターゲット設定（LINE, LOOKING, CONE, SPHERE用）
+  range: number              # 範囲（ブロック）
+  line_width: number         # 直線の幅（LINE, LOOKING用）
+  cone_angle: number         # コーンの角度（度数法、CONE用）
+  sphere_radius: number      # 球形の半径（SPHERE用）
+  # 従来の範囲設定（後方互換性）
+  cone:
+    angle: number
+    range: number
+  sphere:
+    radius: number
+  rect:
+    width: number
+    depth: number
+  circle:
+    radius: number
   # その他
-  filters:                   # ターゲットフィルター
-    - type: string
+  filter: string             # all|players|mobs|hostile
+  max_targets: integer       # 最大ターゲット数
 
 # --- エフェクト設定 ---
 effects:                     # オプション

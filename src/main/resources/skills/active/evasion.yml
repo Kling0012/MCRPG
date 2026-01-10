@@ -1,20 +1,18 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Evasion (回避)
 # ============================================
-# Fabled/SkillAPI 形式を参考に設計
-#
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# バフスキル
+# 一時的に回避率を上昇させる
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: evasion
+name: 回避
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&a回避"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f一時的に回避率を上昇させる"
+  - "&eDEXに応じて回避率が増加"
 
 # 最大レベル
 max_level: 5
@@ -23,53 +21,45 @@ max_level: 5
 # カスタム変数
 # ============================================
 variables:
-  base_radius: 3.0
-  base_burn: 3.0
+  base_dodge: 20.0
+  dodge_per_level: 5.0
+  dodge_duration: 4.0
+  dodge_per_dex: 0.1
 
 # ============================================
 # コスト設定
 # ============================================
 cost:
   type: mana
-  base: 25
+  base: 20
   per_level: 2
   min: 15
-  max: 50
+  max: 35
 
 # ============================================
 # クールダウン設定
 # ============================================
 cooldown:
-  base: 12.0
-  per_level: -0.5
-  min: 8.0
-
-# ============================================
-# ダメージ計算
-# ============================================
-damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
-  base: 30.0
-  stat: INTELLIGENCE
+  base: 20.0
+  per_level: -1.0
+  min: 12.0
 
 # ============================================
 # ターゲット設定
 # ============================================
 targeting:
-  type: sphere
-  sphere:
-    radius: 5.0             # 発射距離
+  type: self
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 0.3
 
 # ============================================
-# 追加効果
+# バフ効果
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# 回避率（%）
+dodge_chance: "base_dodge + (Lv - 1) * dodge_per_level + (DEX * dodge_per_dex)"
+# バフ持続時間（秒）
+buff_duration: dodge_duration
 
 # ============================================
 # スキルツリー設定
@@ -78,15 +68,16 @@ skill_tree:
   parent: none
   unlock_requirements:
     - type: level
-      value: 1
+      value: 5
     - type: class
-      value: mage
-  cost: 1
+      value: archer
+  cost: 2
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: FEATHER
 
 available_classes:
-  - mage
+  - archer
+  - assassin

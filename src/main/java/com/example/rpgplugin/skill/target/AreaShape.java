@@ -34,7 +34,12 @@ public enum AreaShape {
     /**
      * 周囲円形範囲
      */
-    CIRCLE("circle", "円形");
+    CIRCLE("circle", "円形"),
+
+    /**
+     * 球形範囲（SkillAPI参考）
+     */
+    SPHERE("sphere", "球形");
 
     private final String id;
     private final String displayName;

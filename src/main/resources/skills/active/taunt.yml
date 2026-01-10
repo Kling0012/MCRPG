@@ -1,20 +1,18 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Taunt (挑発)
 # ============================================
-# Fabled/SkillAPI 形式を参考に設計
-#
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# タンクスキル
+# 敵の注意を引き、自分に向かわせる
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: taunt
+name: 挑発
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&7挑発"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f敵の注意を引き、自分に向かわせる"
+  - "&eVITに応じて持続時間が増加"
 
 # 最大レベル
 max_level: 5
@@ -23,18 +21,20 @@ max_level: 5
 # カスタム変数
 # ============================================
 variables:
-  base_radius: 3.0
-  base_burn: 3.0
+  base_duration: 3.0
+  duration_per_level: 0.5
+  duration_per_vit: 0.05
+  aggro_multiplier: 2.0
 
 # ============================================
 # コスト設定
 # ============================================
 cost:
   type: mana
-  base: 25
-  per_level: 2
-  min: 15
-  max: 50
+  base: 10
+  per_level: 1
+  min: 5
+  max: 20
 
 # ============================================
 # クールダウン設定
@@ -45,48 +45,43 @@ cooldown:
   min: 8.0
 
 # ============================================
-# ダメージ計算
-# ============================================
-damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
-  base: 30.0
-  stat: INTELLIGENCE
-
-# ============================================
 # ターゲット設定
 # ============================================
 targeting:
   type: sphere
   sphere:
-    radius: 5.0             # 発射距離
+    radius: 6.0
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 0.5
 
 # ============================================
-# 追加効果
+# 挑発効果
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# 挑発持続時間（秒）
+taunt_duration: "base_duration + (Lv - 1) * duration_per_level + (VIT * duration_per_vit)"
+# ヘイト増加倍率
+aggro_multiplier: aggro_multiplier
+# 挑発中の防御力ボーナス
+defense_bonus: "10 + Lv * 3"
 
 # ============================================
 # スキルツリー設定
 # ============================================
 skill_tree:
-  parent: none
+  parent: shield_bash
   unlock_requirements:
     - type: level
-      value: 1
+      value: 5
     - type: class
-      value: mage
-  cost: 1
+      value: shieldbearer
+  cost: 2
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: LEATHER_HELMET
 
 available_classes:
-  - mage
+  - warrior
+  - shieldbearer

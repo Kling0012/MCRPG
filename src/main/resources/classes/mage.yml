@@ -1,39 +1,78 @@
-# 魔法使いクラス設定
+# ============================================
+# RPGPlugin クラス設定: Mage (魔法使い)
+# ============================================
+# Fabled/SkillAPI 形式を参考に設計
+#
+# 基本クラス: 強力な魔法で敵を攻撃する遠距離クラス
+# ステータス成長: INT (知力), SPI (精神力)
+# ============================================
+
+# 基本情報
 id: mage
 name: 魔法使い
 display_name: "&b魔法使い"
+prefix: "&b[魔]"
 description:
   - "&f強力な魔法で敵を攻撃する遠距離クラス"
-  - "&fINTとSPIが成長しやすい"
-rank: 1
-max_level: 50
-icon: BLAZE_ROD
+  - "&eINTとSPIが成長しやすい"
+  - "&7基本クラス"
 
+# クラスグループ
+group: class
+
+# 最大レベル
+max_level: 50
+
+# ============================================
+# ステータス設定
+# ============================================
+health:
+  base: 60
+  scale: 6
+
+mana:
+  base: 100
+  scale: 10
+
+# ステータス成長
 stat_growth:
   auto:
-    intelligence: 2
-    spirit: 2
+    intelligence: 2  # INT: スキルダメージに影響
+    spirit: 2        # SPI: 最大MP、MP回復に影響
   manual_points: 3
 
-next_rank:
-  class_id: mage_rank2
-  requirements:
-    - type: level
-      value: 20
-    - type: stat
-      stat: INTELLIGENCE
-      value: 50
+# クラス固有のステータスボーナス
+passive_bonuses:
+  - type: skill_damage
+    formula: "15 + Lv * 3"
+  - type: mana_bonus
+    formula: "20 + Lv * 2"
 
+# ============================================
+# マナ回復
+# ============================================
+mana_regen: 3.0
+
+# ============================================
+# 経験値獲得方法
+# ============================================
+# MOB(1) + BLOCK_BREAK(2) + SMELT(256) + QUEST(32)
+exp_source: 291
+
+# ============================================
+# 使用可能スキル
+# ============================================
 available_skills:
   - fireball
   - ice_spike
+  - lightning_bolt
   - mana_shield
+  - meteor
 
-passive_bonuses:
-  - type: magic_damage_multiplier
-    value: 1.15
-  - type: mana_bonus
-    value: 30
+# ============================================
+# その他
+# ============================================
+icon: BLAZE_ROD
 
 exp_diminish:
   start_level: 30

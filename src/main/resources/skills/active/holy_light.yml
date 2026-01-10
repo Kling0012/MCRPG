@@ -1,20 +1,18 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Holy Light (ホーリーライト)
 # ============================================
-# Fabled/SkillAPI 形式を参考に設計
-#
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# 回復スキル
+# 自分または味方を回復する
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: holy_light
+name: ホーリーライト
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&eホーリーライト"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f自分または味方を回復する"
+  - "&eINTに応じて回復量が増加"
 
 # 最大レベル
 max_level: 5
@@ -23,8 +21,9 @@ max_level: 5
 # カスタム変数
 # ============================================
 variables:
-  base_radius: 3.0
-  base_burn: 3.0
+  base_heal: 30.0
+  heal_per_level: 10.0
+  heal_per_int: 1.5
 
 # ============================================
 # コスト設定
@@ -32,7 +31,7 @@ variables:
 cost:
   type: mana
   base: 25
-  per_level: 2
+  per_level: 3
   min: 15
   max: 50
 
@@ -45,31 +44,21 @@ cooldown:
   min: 8.0
 
 # ============================================
-# ダメージ計算
-# ============================================
-damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
-  base: 30.0
-  stat: INTELLIGENCE
-
-# ============================================
 # ターゲット設定
 # ============================================
 targeting:
-  type: sphere
-  sphere:
-    radius: 5.0             # 発射距離
+  type: self_plus_one
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 1.5
 
 # ============================================
-# 追加効果
+# 回復効果
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# 回復量計算
+heal: "base_heal + (Lv - 1) * heal_per_level + (INT * heal_per_int)"
+# 回復時のパーティクル効果
+particle_effect: "HEART"
 
 # ============================================
 # スキルツリー設定
@@ -78,15 +67,16 @@ skill_tree:
   parent: none
   unlock_requirements:
     - type: level
-      value: 1
+      value: 5
     - type: class
-      value: mage
-  cost: 1
+      value: warrior
+  cost: 2
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: GOLDEN_APPLE
 
 available_classes:
-  - mage
+  - warrior
+  - shieldbearer

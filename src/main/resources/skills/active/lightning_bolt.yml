@@ -1,20 +1,18 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Lightning Bolt (ライトニングボルト)
 # ============================================
-# Fabled/SkillAPI 形式を参考に設計
-#
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# 魔法スキル
+# 雷を落とし、対象にダメージとスタンを与える
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: lightning_bolt
+name: ライトニングボルト
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&eライトニングボルト"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f雷を落とし、対象にダメージとスタンを与える"
+  - "&eINTに応じてダメージが増加"
 
 # 最大レベル
 max_level: 5
@@ -23,70 +21,75 @@ max_level: 5
 # カスタム変数
 # ============================================
 variables:
-  base_radius: 3.0
-  base_burn: 3.0
+  base_stun: 0.5
+  stun_per_level: 0.2
+  chain_range: 4.0
 
 # ============================================
 # コスト設定
 # ============================================
 cost:
   type: mana
-  base: 25
-  per_level: 2
-  min: 15
-  max: 50
+  base: 30
+  per_level: 3
+  min: 20
+  max: 60
 
 # ============================================
 # クールダウン設定
 # ============================================
 cooldown:
-  base: 12.0
-  per_level: -0.5
+  base: 15.0
+  per_level: -1.0
   min: 8.0
 
 # ============================================
 # ダメージ計算
 # ============================================
 damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
-  base: 30.0
+  formula: "BASE_DAMAGE + (Lv * 10) + (INT * 2.5)"
+  base: 35.0
   stat: INTELLIGENCE
 
 # ============================================
 # ターゲット設定
 # ============================================
 targeting:
-  type: sphere
-  sphere:
-    radius: 5.0             # 発射距離
+  type: nearest_hostile
+  range: 20.0
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 1.0
 
 # ============================================
 # 追加効果
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# スタン時間（秒）
+stun_duration: "base_stun + (Lv - 1) * stun_per_level"
+# チェーン対象数（近くの敵にもダメージ）
+chain_targets: "1 + (Lv / 2)"
+# チェーンダメージ率（%）
+chain_damage_percent: 60.0
 
 # ============================================
 # スキルツリー設定
 # ============================================
 skill_tree:
-  parent: none
+  parent: ice_spike
   unlock_requirements:
     - type: level
-      value: 1
+      value: 15
+    - type: stat
+      stat: INTELLIGENCE
+      value: 40
     - type: class
       value: mage
-  cost: 1
+  cost: 3
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: LIGHTNING_ROD
 
 available_classes:
   - mage

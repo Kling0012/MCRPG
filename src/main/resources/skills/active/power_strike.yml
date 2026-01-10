@@ -1,56 +1,84 @@
-# パワーストライク（アクティブスキル）
+# ============================================
+# RPGPlugin スキル: Power Strike (パワーストライク)
+# ============================================
+# Fabled/SkillAPI 形式を参考に設計
+#
+# 戦士の基本攻撃スキル
+# 強力な一撃を放ち、ノックバックを与える
+# ============================================
 
-name: "power_strike"
-display_name: "§cパワーストライク"
-type: "ACTIVE"
-description: "強力な一撃を放つ"
+# 基本情報
+id: power_strike
+name: パワーストライク
+type: normal
+display_name: "&cパワーストライク"
+description:
+  - "&f強力な一撃を放つ"
+  - "&e敵にノックバックを与える"
 
-# スキルレベル
+# 最大レベル
 max_level: 5
 
-# マナコスト
-mana_cost: 10
+# ============================================
+# コスト設定
+# ============================================
+cost:
+  type: mana
+  base: 10
+  per_level: 1
+  min: 5
+  max: 30
 
-# クールダウン（秒）
-cooldown: 8
+# ============================================
+# クールダウン設定
+# ============================================
+cooldown:
+  base: 8.0
+  per_level: -0.3
+  min: 5.0
+
+# ============================================
+# ダメージ計算
+# ============================================
+# 使用可能な変数:
+#   BASE_DAMAGE: 基本ダメージ
+#   Lv: スキルレベル
+#   STRENGTH: 力ステータス
+damage:
+  formula: "BASE_DAMAGE + (Lv * 5) + (STR * 1.5)"
+  base: 20.0
+  stat: STRENGTH
+
+# ============================================
+# ターゲット設定
+# ============================================
+targeting:
+  type: nearest_hostile
+  range: 3.0
 
 # キャスト時間（秒）
 cast_time: 0
 
-# ダメージ計算式
-damage_formula: "BASE_DAMAGE + (LEVEL * 5) + (STRENGTH * 1.5)"
-
-# 基本ダメージ
-base_damage: 20
-
-# レベルごとの効果
-levels:
-  1:
-    damage_multiplier: 1.0
-    knockback: 0.5
-  2:
-    damage_multiplier: 1.2
-    knockback: 0.6
-  3:
-    damage_multiplier: 1.4
-    knockback: 0.7
-  4:
-    damage_multiplier: 1.6
-    knockback: 0.8
-  5:
-    damage_multiplier: 2.0
-    knockback: 1.0
-
-# 必要条件
-requirements:
-  level: 1
-  class: ["warrior"]
-
-# アンロックコスト
-unlock_cost: 0
-
+# ============================================
 # スキルツリー設定
+# ============================================
 skill_tree:
-  parent: none  # 前提スキル（noneで前提なし）
-  cost: 1       # スキルポイント消費量
-  icon: DIAMOND_SWORD  # GUIでの表示アイテム
+  parent: none
+  unlock_requirements:
+    - type: level
+      value: 1
+    - type: class
+      value: warrior
+  cost: 1
+
+# ============================================
+# その他の設定
+# ============================================
+icon_material: DIAMOND_SWORD
+
+# 使用可能なクラス（省略時は全クラスで使用可能）
+available_classes:
+  - warrior
+
+# ノックバック力（レベル依存）
+knockback: "0.5 + Lv * 0.1"

@@ -1,59 +1,62 @@
 # ============================================
-# RPGPlugin スキル: Critical Mastery (クリティカルマスタリー)
+# RPGPlugin スキル: Mana Shield (マナシールド)
 # ============================================
 # Fabled/SkillAPI 形式を参考に設計
 #
-# 常時発動型パッシブスキル
-# クリティカル率とダメージが増加する
+# 魔法使いの防御パッシブ
+# MPを消費してダメージを軽減する
 # ============================================
 
 # 基本情報
-id: critical_mastery
-name: クリティカルマスタリー
+id: mana_shield
+name: マナシールド
 type: normal
-display_name: "&eクリティカルマスタリー"
+display_name: "&bマナシールド"
 description:
-  - "&fクリティカル率とダメージが増加する"
+  - "&fMPを消費してダメージを軽減する"
   - "&eパッシブスキル（常時発動）"
 
 # 最大レベル
-max_level: 10
+max_level: 5
 
 # ============================================
 # カスタム変数
 # ============================================
 variables:
-  base_crit_chance: 5.0
-  base_crit_damage: 150.0
-  chance_per_level: 1.5
-  damage_per_level: 5.0
+  base_reduction: 0.15
+  reduction_per_level: 0.05
+  mana_cost_percent: 1.0
+  defense_bonus: 10.0
 
 # ============================================
 # パッシブ効果（コスト/クールダウンなしで常時発動）
 # ============================================
-# クリティカル率上昇（%）
-crit_chance: "base_crit_chance + (Lv - 1) * chance_per_level"
-# クリティカルダメージ上昇（%）
-crit_damage: "base_crit_damage + (Lv - 1) * damage_per_level"
+# 魔法防御力上昇
+magic_defense: "defense_bonus + Lv * 5"
+# ダメージ軽減率（0.0-1.0）
+damage_reduction: "base_reduction + (Lv - 1) * reduction_per_level"
+# 軽減時のMP消費率（ダメージの何％をMPで支払う）
+mana_cost_percent: mana_cost_percent
 
 # ============================================
 # スキルツリー設定
 # ============================================
 skill_tree:
-  parent: power_strike
+  parent: ice_spike
   unlock_requirements:
     - type: level
-      value: 5
+      value: 10
+    - type: stat
+      stat: INTELLIGENCE
+      value: 30
     - type: class
-      value: warrior
-  cost: 2
+      value: mage
+  cost: 3
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: GOLD_SWORD
+icon_material: PRISMARINE_CRYSTALS
 
-# 使用可能なクラス
 available_classes:
-  - warrior
-  - assassin
+  - mage

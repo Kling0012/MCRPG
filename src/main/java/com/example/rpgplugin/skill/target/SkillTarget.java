@@ -29,6 +29,12 @@ public class SkillTarget {
     private final EntityTypeFilter entityTypeFilter;
     private final Integer maxTargets;
 
+    // 汎用ターゲット設定（LINE, LOOKING, CONE, SPHERE用）
+    private final Double range;
+    private final Double lineWidth;
+    private final Double coneAngle;
+    private final Double sphereRadius;
+
     /**
      * コンストラクタ
      *
@@ -40,11 +46,16 @@ public class SkillTarget {
      * @param circle 円形範囲設定
      * @param entityTypeFilter エンティティタイプフィルタ
      * @param maxTargets 最大ターゲット数（nullで制限なし）
+     * @param range 汎用範囲（LINE, LOOKING用）
+     * @param lineWidth 直線の幅（LINE, LOOKING用）
+     * @param coneAngle コーンの角度（CONE用、度数法）
+     * @param sphereRadius 球形の半径（SPHERE用）
      */
     public SkillTarget(TargetType type, AreaShape areaShape,
                        SingleTargetConfig singleTarget, ConeConfig cone,
                        RectConfig rect, CircleConfig circle,
-                       EntityTypeFilter entityTypeFilter, Integer maxTargets) {
+                       EntityTypeFilter entityTypeFilter, Integer maxTargets,
+                       Double range, Double lineWidth, Double coneAngle, Double sphereRadius) {
         this.type = type != null ? type : TargetType.NEAREST_HOSTILE;
         this.areaShape = areaShape != null ? areaShape : AreaShape.SINGLE;
         this.singleTarget = singleTarget;
@@ -53,6 +64,10 @@ public class SkillTarget {
         this.circle = circle;
         this.entityTypeFilter = entityTypeFilter != null ? entityTypeFilter : EntityTypeFilter.ALL;
         this.maxTargets = maxTargets;
+        this.range = range;
+        this.lineWidth = lineWidth;
+        this.coneAngle = coneAngle;
+        this.sphereRadius = sphereRadius;
     }
 
     /**
@@ -61,7 +76,17 @@ public class SkillTarget {
     public SkillTarget(TargetType type, AreaShape areaShape,
                        SingleTargetConfig singleTarget, ConeConfig cone,
                        RectConfig rect, CircleConfig circle) {
-        this(type, areaShape, singleTarget, cone, rect, circle, EntityTypeFilter.ALL, null);
+        this(type, areaShape, singleTarget, cone, rect, circle, EntityTypeFilter.ALL, null, null, null, null, null);
+    }
+
+    /**
+     * 汎用コンストラクタ（LINE, LOOKING, CONE, SPHEMRE用）
+     */
+    public SkillTarget(TargetType type, Double range, Double lineWidth,
+                       Double coneAngle, Double sphereRadius,
+                       EntityTypeFilter entityTypeFilter, Integer maxTargets) {
+        this(type, AreaShape.SINGLE, null, null, null, null,
+                entityTypeFilter, maxTargets, range, lineWidth, coneAngle, sphereRadius);
     }
 
     /**
@@ -119,6 +144,65 @@ public class SkillTarget {
      */
     public int getMaxTargetsOrUnlimited() {
         return maxTargets != null ? maxTargets : Integer.MAX_VALUE;
+    }
+
+    // ==================== 汎用ターゲット設定ゲッター ====================
+
+    /**
+     * 汎用範囲を取得します（LINE, LOOKING用）
+     *
+     * @return 範囲（未設定の場合はデフォルト値）
+     */
+    public double getRange() {
+        if (range != null) {
+            return range;
+        }
+        // ConeConfigから取得を試みる
+        if (cone != null) {
+            return cone.getRange();
+        }
+        return 10.0; // デフォルト値
+    }
+
+    /**
+     * 直線の幅を取得します（LINE, LOOKING用）
+     *
+     * @return 幅（未設定の場合はデフォルト値）
+     */
+    public double getLineWidth() {
+        return lineWidth != null ? lineWidth : 2.0; // デフォルト値
+    }
+
+    /**
+     * コーンの角度を取得します（度数法）
+     *
+     * @return 角度（未設定の場合はConeConfigから取得、デフォルト60度）
+     */
+    public double getConeAngle() {
+        if (coneAngle != null) {
+            return coneAngle;
+        }
+        // ConeConfigから取得を試みる
+        if (cone != null) {
+            return cone.getAngle();
+        }
+        return 60.0; // デフォルト値
+    }
+
+    /**
+     * 球形の半径を取得します（SPHERE用）
+     *
+     * @return 半径（未設定の場合はデフォルト値）
+     */
+    public double getSphereRadius() {
+        if (sphereRadius != null) {
+            return sphereRadius;
+        }
+        // CircleConfigから取得を試みる
+        if (circle != null) {
+            return circle.getRadius();
+        }
+        return 5.0; // デフォルト値
     }
 
     /**

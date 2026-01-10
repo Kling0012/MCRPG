@@ -1,75 +1,67 @@
 # ============================================
-# RPGPlugin スキル: Fireball (ファイアボール)
+# RPGPlugin スキル: Shield Bash (シールドバッシュ)
 # ============================================
 # Fabled/SkillAPI 形式を参考に設計
 #
-# 魔法使いの基本攻撃魔法
-# 爆発するファイアボールを放つ
+# 戦士/盾持ちのCCスキル
+# 盾で敵を殴り、スタンさせる
 # ============================================
 
 # 基本情報
-id: fireball
-name: ファイアボール
+id: shield_bash
+name: シールドバッシュ
 type: normal
-display_name: "&6ファイアボール"
+display_name: "&7シールドバッシュ"
 description:
-  - "&f爆発するファイアボールを放つ"
-  - "&e範囲ダメージと炎効果"
+  - "&f盾で敵を殴り、スタンさせる"
+  - "&e短時間の行動不能を付与"
 
 # 最大レベル
 max_level: 5
-
-# ============================================
-# カスタム変数
-# ============================================
-variables:
-  base_radius: 3.0
-  base_burn: 3.0
 
 # ============================================
 # コスト設定
 # ============================================
 cost:
   type: mana
-  base: 25
-  per_level: 2
-  min: 15
-  max: 50
+  base: 15
+  per_level: 1
+  min: 10
+  max: 25
 
 # ============================================
 # クールダウン設定
 # ============================================
 cooldown:
-  base: 12.0
-  per_level: -0.5
-  min: 8.0
+  base: 10.0
+  per_level: -0.4
+  min: 6.0
 
 # ============================================
 # ダメージ計算
 # ============================================
 damage:
-  formula: "BASE_DAMAGE + (Lv * 8) + (INT * 2.0)"
-  base: 30.0
-  stat: INTELLIGENCE
+  formula: "BASE_DAMAGE + (Lv * 3) + (STR * 1.0)"
+  base: 15.0
+  stat: STRENGTH
 
 # ============================================
 # ターゲット設定
 # ============================================
 targeting:
-  type: sphere
-  sphere:
-    radius: 5.0             # 発射距離
+  type: nearest_hostile
+  range: 2.5
 
 # キャスト時間（秒）
-cast_time: 1
+cast_time: 0.3
 
 # ============================================
 # 追加効果
 # ============================================
-# 爆発半径
-explosion_radius: "base_radius + Lv * 0.4"
-# 炎効果の持続時間（秒）
-burn_duration: "base_burn + Lv"
+# スタン時間（秒）
+stun_duration: "1.0 + Lv * 0.2"
+# ノックバック力
+knockback: "0.8"
 
 # ============================================
 # スキルツリー設定
@@ -80,13 +72,14 @@ skill_tree:
     - type: level
       value: 1
     - type: class
-      value: mage
+      value: warrior
   cost: 1
 
 # ============================================
 # その他の設定
 # ============================================
-icon_material: BLAZE_ROD
+icon_material: SHIELD
 
 available_classes:
-  - mage
+  - warrior
+  - shieldbearer

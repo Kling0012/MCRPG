@@ -24,16 +24,14 @@ class DamageModifierTest {
     @Test
     @DisplayName("物理ダメージ計算: 基本ケース")
     void testCalculatePhysicalDamage_BaseCase() {
-        // Given: 基本ダメージ10、STR0、クラス倍率1.0、非クリティカル
+        // Given: 基本ダメージ10、STR0、クラス倍率1.0
         double baseDamage = 10.0;
         int strength = 0;
         double classMultiplier = 1.0;
-        boolean isCritical = false;
-        double critMultiplier = 1.5;
 
         // When: 物理ダメージ計算
         double result = DamageModifier.calculatePhysicalDamage(
-                baseDamage, strength, classMultiplier, isCritical, critMultiplier
+                baseDamage, strength, classMultiplier
         );
 
         // Then: 基本ダメージがそのまま返る
@@ -43,61 +41,55 @@ class DamageModifierTest {
     @Test
     @DisplayName("物理ダメージ計算: STR補正あり")
     void testCalculatePhysicalDamage_WithStrength() {
-        // Given: 基本ダメージ10、STR50、クラス倍率1.0、非クリティカル
+        // Given: 基本ダメージ10、STR50、クラス倍率1.0
         double baseDamage = 10.0;
         int strength = 50;
         double classMultiplier = 1.0;
-        boolean isCritical = false;
-        double critMultiplier = 1.5;
 
         // When: 物理ダメージ計算
         double result = DamageModifier.calculatePhysicalDamage(
-                baseDamage, strength, classMultiplier, isCritical, critMultiplier
+                baseDamage, strength, classMultiplier
         );
 
-        // Then: STR補正が適用される（基本ダメージ + STR * 0.1）
-        // 10 + (50 * 0.1) = 15
+        // Then: STR補正が適用される（基本ダメージ × (1 + STR/100)）
+        // 10 × (1 + 50/100) = 10 × 1.5 = 15
         assertThat(result).isEqualTo(15.0);
     }
 
     @Test
-    @DisplayName("物理ダメージ計算: クリティカルヒット")
-    void testCalculatePhysicalDamage_CriticalHit() {
-        // Given: 基本ダメージ10、STR0、クラス倍率1.0、クリティカル
+    @DisplayName("物理ダメージ計算: クラス倍率適用")
+    void testCalculatePhysicalDamage_WithClassMultiplier() {
+        // Given: 基本ダメージ10、STR0、クラス倍率2.0
         double baseDamage = 10.0;
         int strength = 0;
-        double classMultiplier = 1.0;
-        boolean isCritical = true;
-        double critMultiplier = 1.5;
+        double classMultiplier = 2.0;
 
         // When: 物理ダメージ計算
         double result = DamageModifier.calculatePhysicalDamage(
-                baseDamage, strength, classMultiplier, isCritical, critMultiplier
+                baseDamage, strength, classMultiplier
         );
 
-        // Then: クリティカル倍率が適用される
-        // 10 * 1.5 = 15
-        assertThat(result).isEqualTo(15.0);
+        // Then: クラス倍率が適用される
+        // 10 × 2.0 = 20
+        assertThat(result).isEqualTo(20.0);
     }
 
     @Test
     @DisplayName("物理ダメージ計算: 全補正適用")
     void testCalculatePhysicalDamage_AllModifiers() {
-        // Given: 基本ダメージ10、STR50、クラス倍率2.0、クリティカル
+        // Given: 基本ダメージ10、STR50、クラス倍率2.0
         double baseDamage = 10.0;
         int strength = 50;
         double classMultiplier = 2.0;
-        boolean isCritical = true;
-        double critMultiplier = 1.5;
 
         // When: 物理ダメージ計算
         double result = DamageModifier.calculatePhysicalDamage(
-                baseDamage, strength, classMultiplier, isCritical, critMultiplier
+                baseDamage, strength, classMultiplier
         );
 
         // Then: 全補正が適用される
-        // (10 + (50 * 0.1)) * 2.0 * 1.5 = 45
-        assertThat(result).isEqualTo(45.0);
+        // 10 × (1 + 50/100) × 2.0 = 10 × 1.5 × 2.0 = 30
+        assertThat(result).isEqualTo(30.0);
     }
 
     @Test
@@ -172,31 +164,5 @@ class DamageModifierTest {
 
         // Then: 0に丸められる（負のダメージは許容しない）
         assertThat(result).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("クリティカル倍率計算: DEX0")
-    void testCalculateCriticalMultiplier_ZeroDexterity() {
-        // Given: DEX0
-        int dexterity = 0;
-
-        // When: クリティカル倍率計算
-        double result = DamageModifier.calculateCriticalMultiplier(dexterity);
-
-        // Then: 基本倍率1.5
-        assertThat(result).isEqualTo(1.5);
-    }
-
-    @Test
-    @DisplayName("クリティカル倍率計算: DEX50")
-    void testCalculateCriticalMultiplier_FiftyDexterity() {
-        // Given: DEX50
-        int dexterity = 50;
-
-        // When: クリティカル倍率計算
-        double result = DamageModifier.calculateCriticalMultiplier(dexterity);
-
-        // Then: 基本倍率 + (DEX * 0.002) = 1.5 + 0.1 = 1.6
-        assertThat(result).isEqualTo(1.6);
     }
 }

@@ -197,7 +197,7 @@ class SkillExecutionIntegrationTest {
 
             Skill registeredSkill = skillManager.getSkill("slash");
             assertThat(registeredSkill.getId()).isEqualTo("slash");
-            assertThat(registeredSkill.getType()).isEqualTo(SkillType.ACTIVE);
+            assertThat(registeredSkill.getType()).isEqualTo(SkillType.NORMAL);
 
             // プレイヤーがスキルを習得していることを確認
             assertThat(skillManager.hasSkill(mockPlayer, "slash")).isTrue();
@@ -493,7 +493,7 @@ class SkillExecutionIntegrationTest {
                 "slash",
                 "斬撃",
                 "&6斬撃",
-                SkillType.ACTIVE,
+                SkillType.NORMAL,
                 java.util.List.of("&c鋭い斬撃を放つ"),
                 5,
                 3.0,  // デフォルトクールダウン
@@ -544,7 +544,7 @@ class SkillExecutionIntegrationTest {
                 "fireball",
                 "ファイアボール",
                 "&cファイアボール",
-                SkillType.ACTIVE,
+                SkillType.NORMAL,
                 java.util.List.of("&c扇状範囲に炎を放つ"),
                 5,
                 8.0,  // デフォルトクールダウン
@@ -583,7 +583,7 @@ class SkillExecutionIntegrationTest {
                 "magic_arrow",
                 "マジックアロー",
                 "&bマジックアロー",
-                SkillType.ACTIVE,
+                SkillType.NORMAL,
                 java.util.List.of("&b魔法の矢を放つ"),
                 10,
                 5.0,
@@ -626,7 +626,7 @@ class SkillExecutionIntegrationTest {
                 "power_strike",
                 "パワーストライク",
                 "&eパワーストライク",
-                SkillType.ACTIVE,
+                SkillType.NORMAL,
                 java.util.List.of("&e強力な一撃を放つ"),
                 10,
                 6.0,

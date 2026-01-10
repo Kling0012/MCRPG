@@ -52,13 +52,9 @@ public class VariableContext {
     /**
      * コンストラクタ
      *
-     * @param rpgPlayer RPGプレイヤー（ステータス取得用）
-     * @throws IllegalArgumentException 引数がnullの場合
+     * @param rpgPlayer RPGプレイヤー（ステータス取得用、null可）
      */
     public VariableContext(RPGPlayer rpgPlayer) {
-        if (rpgPlayer == null) {
-            throw new IllegalArgumentException("rpgPlayer cannot be null");
-        }
         this.rpgPlayer = rpgPlayer;
         this.customVariables = new ConcurrentHashMap<>();
         this.skillLevel = 1;
@@ -67,14 +63,10 @@ public class VariableContext {
     /**
      * コンストラクタ（スキルレベル指定）
      *
-     * @param rpgPlayer RPGプレイヤー（ステータス取得用）
+     * @param rpgPlayer RPGプレイヤー（ステータス取得用、null可）
      * @param skillLevel スキルレベル
-     * @throws IllegalArgumentException 引数がnullの場合
      */
     public VariableContext(RPGPlayer rpgPlayer, int skillLevel) {
-        if (rpgPlayer == null) {
-            throw new IllegalArgumentException("rpgPlayer cannot be null");
-        }
         this.rpgPlayer = rpgPlayer;
         this.customVariables = new ConcurrentHashMap<>();
         this.skillLevel = skillLevel;

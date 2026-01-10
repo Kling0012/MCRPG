@@ -23,23 +23,17 @@ public class SkillNode {
     private final Skill skill;
     private final SkillNode parent;
     private final List<SkillNode> children;
-    private final int row;
-    private final int column;
 
     /**
      * コンストラクタ
      *
      * @param skill スキル
      * @param parent 親ノード
-     * @param row GUI上の行位置
-     * @param column GUI上の列位置
      */
-    public SkillNode(Skill skill, SkillNode parent, int row, int column) {
+    public SkillNode(Skill skill, SkillNode parent) {
         this.skill = skill;
         this.parent = parent;
         this.children = new ArrayList<>();
-        this.row = row;
-        this.column = column;
     }
 
     /**
@@ -99,24 +93,6 @@ public class SkillNode {
     }
 
     /**
-     * GUI上の行位置を取得します
-     *
-     * @return 行位置
-     */
-    public int getRow() {
-        return row;
-    }
-
-    /**
-     * GUI上の列位置を取得します
-     *
-     * @return 列位置
-     */
-    public int getColumn() {
-        return column;
-    }
-
-    /**
      * 深さを取得します
      *
      * @return ルートからの深さ
@@ -132,8 +108,6 @@ public class SkillNode {
     public String toString() {
         return "SkillNode{" +
                 "skill=" + skill.getId() +
-                ", row=" + row +
-                ", column=" + column +
                 ", children=" + children.size() +
                 '}';
     }

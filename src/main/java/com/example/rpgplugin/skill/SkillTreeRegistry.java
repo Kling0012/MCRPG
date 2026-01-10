@@ -1,10 +1,7 @@
 package com.example.rpgplugin.skill;
 
-import org.bukkit.entity.Player;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * スキルツリーレジストリ
@@ -14,7 +11,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>設計原則:</p>
  * <ul>
  *   <li>SOLID-S: スキルツリーのキャッシュと管理に専念</li>
- *   <li>Observer: スキル追加時に登録済みリスナーに通知</li>
  *   <li>Singleton: クラスIDごとに単一のツリーを管理</li>
  * </ul>
  *
@@ -22,7 +18,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <ul>
  *   <li>クラスごとのスキルツリー構築・キャッシュ</li>
  *   <li>スキル追加時の自動ツリー更新</li>
- *   <li>GUIリフレッシュ通知機能</li>
  * </ul>
  *
  * @author RPGPlugin Team
@@ -38,22 +33,6 @@ public class SkillTreeRegistry {
 
     /** 登録済みスキル（全スキル） */
     private final Map<String, Skill> registeredSkills = new ConcurrentHashMap<>();
-
-    /** GUI更新リスナー */
-    private final List<TreeUpdateListener> listeners = new CopyOnWriteArrayList<>();
-
-    /**
-     * ツリー更新リスナー
-     */
-    @FunctionalInterface
-    public interface TreeUpdateListener {
-        /**
-         * ツリーが更新されたときに呼び出されます
-         *
-         * @param classId 更新されたクラスID
-         */
-        void onTreeUpdated(String classId);
-    }
 
     /**
      * スキルツリーを取得します
@@ -167,30 +146,7 @@ public class SkillTreeRegistry {
         return registeredSkills.size();
     }
 
-    /**
-     * GUI更新リスナーを登録します
-     *
-     * @param listener リスナー
-     */
-    public void addListener(TreeUpdateListener listener) {
-        listeners.add(listener);
-    }
 
-    /**
-     * GUI更新リスナーを削除します
-     *
-     * @param listener リスナー
-     */
-    public void removeListener(TreeUpdateListener listener) {
-        listeners.remove(listener);
-    }
-
-    /**
-     * リスナーをクリアします
-     */
-    public void clearListeners() {
-        listeners.clear();
-    }
 
     /**
      * キャッシュをクリアします
@@ -207,18 +163,13 @@ public class SkillTreeRegistry {
      */
     public void invalidateTree(String classId) {
         treeCache.remove(classId);
-        notifyListeners(classId);
     }
 
     /**
      * 全キャッシュを無効化します
      */
     public void invalidateAll() {
-        Set<String> classIds = new HashSet<>(treeCache.keySet());
         treeCache.clear();
-        for (String classId : classIds) {
-            notifyListeners(classId);
-        }
     }
 
     /**
@@ -233,23 +184,7 @@ public class SkillTreeRegistry {
         }
     }
 
-    /**
-     * リスナーに通知します
-     *
-     * @param classId 更新されたクラスID
-     */
-    private void notifyListeners(String classId) {
-        for (TreeUpdateListener listener : listeners) {
-            try {
-                listener.onTreeUpdated(classId);
-            } catch (Exception e) {
-                // リスナーの例外は無視して続行
-                java.util.logging.Logger.getLogger(SkillTreeRegistry.class.getName())
-                        .log(java.util.logging.Level.WARNING,
-                                "リスナー通知中に例外が発生しました: classId=" + classId, e);
-            }
-        }
-    }
+
 
     /**
      * クラスのスキルツリーを構築します
@@ -266,7 +201,7 @@ public class SkillTreeRegistry {
         // スキルノードを作成
         Map<String, SkillNode> nodeMap = new HashMap<>();
         for (Skill skill : classSkills) {
-            SkillNode node = new SkillNode(skill, null, 0, 0);
+            SkillNode node = new SkillNode(skill, null);
             nodeMap.put(skill.getId(), node);
         }
 
@@ -301,17 +236,5 @@ public class SkillTreeRegistry {
         }
 
         return tree;
-    }
-
-    /**
-     * プレイヤーの現在開いているGUIをリフレッシュする必要があるかチェックします
-     *
-     * @param player プレイヤー
-     * @param classId クラスID
-     * @return リフレッシュが必要な場合はtrue
-     */
-    public boolean needsRefresh(Player player, String classId) {
-        // 常に最新のツリーを使用するため、キャッシュが存在しない場合は再構築が必要
-        return !treeCache.containsKey(classId);
     }
 }

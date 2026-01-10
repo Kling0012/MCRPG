@@ -200,7 +200,7 @@ public SkillManager(RPGPlugin plugin, PlayerManager playerManager) {
     /**
  * スキルを登録します
  *
- * <p>登録時にスキルツリーレジストリにも追加し、GUIの自動更新を有効にします。</p>
+ * <p>登録時にスキルツリーレジストリにも追加し、ツリーの自動更新を有効にします。</p>
  *
  * @param skill 登録するスキル
  * @return 重複がある場合はfalse
@@ -217,7 +217,7 @@ public boolean registerSkill(Skill skill) {
     skills.put(skill.getId(), skill);
     plugin.getLogger().info("Skill registered: " + skill.getId());
 
-    // スキルツリーレジストリにも登録（GUI自動更新対応）
+    // スキルツリーレジストリにも登録（ツリー自動更新対応）
     treeRegistry.registerSkill(skill);
 
     return true;

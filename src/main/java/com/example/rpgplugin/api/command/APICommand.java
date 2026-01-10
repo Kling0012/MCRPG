@@ -134,7 +134,6 @@ public class APICommand implements CommandExecutor, TabCompleter {
                 "get_class", "set_class", "try_change_class", "can_change_class", "upgrade_class", "can_upgrade_class",
                 "has_skill", "unlock_skill", "unlock_skill_with_points", "cast_skill", "get_skill_level",
                 "get_skill_points", "add_skill_points",
-                "get_gold", "give_gold", "take_gold", "has_gold", "transfer_gold",
                 "calculate_damage"
         );
     }
@@ -209,12 +208,10 @@ public class APICommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.WHITE + "  クラス: get_class, set_class, try_change_class, can_change_class, upgrade_class, can_upgrade_class");
         sender.sendMessage(ChatColor.WHITE + "  スキル: has_skill, unlock_skill, unlock_skill_with_points, cast_skill, get_skill_level");
         sender.sendMessage(ChatColor.WHITE + "  スキル管理: get_skill_points, add_skill_points");
-        sender.sendMessage(ChatColor.WHITE + "  経済: get_gold, give_gold, take_gold, has_gold, transfer_gold");
         sender.sendMessage(ChatColor.WHITE + "  ダメージ: calculate_damage");
         sender.sendMessage("");
         sender.sendMessage(ChatColor.YELLOW + "使用例:");
         sender.sendMessage(ChatColor.WHITE + "  /rpg api get_level Steve");
-        sender.sendMessage(ChatColor.WHITE + "  /rpg api give_gold Steve 100");
         sender.sendMessage(ChatColor.WHITE + "  /rpg api cast_skill Steve fireball");
         sender.sendMessage(ChatColor.GOLD + "================================");
     }

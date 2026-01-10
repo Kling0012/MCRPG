@@ -9,12 +9,20 @@
 
 ## ドキュメント構成
 
-| ドキュメント | 説明 |
-|-------------|------|
-| **[APIリファレンス](API.md)** | 外部APIの完全なリファレンス（Java/SKript/Denizen） |
-| **[コマンドリファレンス](COMMANDS.md)** | すべてのコマンドと使用方法 |
-| **[システム仕様書](SPEC.md)** | システムアーキテクチャと仕様 |
-| **[チュートリアル](../TUTORIAL.md)** | サーバー管理者・プレイヤー・開発者向けガイド |
+| ドキュメント | 説明 | 対象 |
+|-------------|------|------|
+| **[クイックスタート](QUICKSTART.md)** | 5分で始める開発者向けガイド | 初心者開発者 |
+| **[SKriptチュートリアル](SKRIPT_TUTORIAL.md)** | SKript活用チュートリアル | 初心者開発者 |
+| **[PlaceholderAPIチュートリアル](PLACEHOLDER_TUTORIAL.md)** | プレースホルダー活用チュートリアル | 初心者開発者 |
+| **[APIリファレンス](API.md)** | 外部APIの完全なリファレンス（Java/SKript/Denizen） | 開発者 |
+| **[APIドキュメント](API_DOCUMENTATION.md)** | 詳細APIドキュメントとPhase11新機能 | 開発者 |
+| **[SKript統合ガイド](SKRIPT_INTEGRATION.md)** | ネイティブSKript式・条件・効果・イベント | 開発者 |
+| **[プレースホルダー](PLACEHOLDERS.md)** | PlaceholderAPI プレースホルダーリファレンス | 開発者 |
+| **[コマンドリファレンス](COMMANDS.md)** | すべてのコマンドと使用方法 | 管理者・プレイヤー |
+| **[システム仕様書](SPEC.md)** | システムアーキテクチャと仕様 | 開発者 |
+| **[スキルシステムV2](SKILL_SYSTEM_V2.md)** | スキルシステムの全体像 | 開発者 |
+| **[YAMLリファレンス](YAML_REFERENCE.md)** | スキル/クラスYAMLフォーマット | 開発者 |
+| **[チュートリアル](../TUTORIAL.md)** | サーバー管理者・プレイヤー・開発者向けガイド | 全員 |
 
 ---
 
@@ -43,6 +51,51 @@
 | クラス | `setClass(Player, String)` | クラス設定 |
 | スキル | `castSkill(Player, String)` | スキル発動 |
 | 経済 | `getGoldBalance(Player)` | 残高取得 |
+
+### SKriptネイティブ要素
+
+| カテゴリ | 構文 | 説明 |
+|---------|------|------|
+| 式 | `rpg level of %player%` | レベル取得 |
+| 式 | `rpg stat[e] %string% of %player%` | ステータス取得 |
+| 式 | `rpg class of %player%` | クラスID取得 |
+| 式 | `rpg skill level of %string% [from] %player%` | スキルレベル取得 |
+| 式 | `rpg gold of %player%` | ゴールド取得 |
+| 条件 | `%player% has [the] rpg skill [named] %string%` | スキル習得確認 |
+| 条件 | `%player% can upgrade [their] rpg class` | クラスアップ可否 |
+| 条件 | `%player% has %number% rpg gold` | ゴールド所持確認 |
+| 条件 | `%player%'s rpg stat[e] %string% is [at least] %number%` | ステータス比較 |
+| 条件 | `%player%'s rpg class is %string%` | クラス確認 |
+| 効果 | `give %number% rpg gold to %player%` | ゴールド付与 |
+| 効果 | `take %number% rpg gold from %player%` | ゴールド剥奪 |
+| 効果 | `unlock [the] rpg skill %string% [for] %player%` | スキル習得 |
+| 効果 | `make %player% cast [the] rpg skill %string%` | スキル発動 |
+| 効果 | `set [the] rpg class of %player% to %string%` | クラス設定 |
+| 効果 | `add %number% [to] rpg stat[e] %string% of %player%` | ステータス追加 |
+| イベント | `on rpg skill cast` | スキル発動イベント |
+| イベント | `on rpg skill cast [of] %string%` | 特定スキル発動イベント |
+
+### PlaceholderAPI プレースホルダー
+
+| カテゴリ | プレースホルダー | 説明 |
+|---------|-----------------|------|
+| 基本 | `%rpg_level%` | レベル |
+| ステータス | `%rpg_stat_STR%` | STR値 |
+| ステータス | `%rpg_stat_INT%` | INT値 |
+| ステータス | `%rpg_stat_SPI%` | SPI値 |
+| ステータス | `%rpg_stat_VIT%` | VIT値 |
+| ステータス | `%rpg_stat_DEX%` | DEX値 |
+| ステータス | `%rpg_stats%` | 全ステータス（フォーマット済み） |
+| クラス | `%rpg_class%` | クラスID |
+| クラス | `%rpg_class_name%` | クラス表示名 |
+| クラス | `%rpg_class_rank%` | クラスランク |
+| 経済 | `%rpg_gold%` | ゴールド残高 |
+| スキル | `%rpg_skill_points%` | スキルポイント |
+| スキル | `%rpg_available_points%` | 利用可能ステータスポイント |
+| スキル | `%rpg_skill_level_<skill>%` | スキルレベル |
+| HP/MP | `%rpg_max_hp%` | 最大HP |
+| HP/MP | `%rpg_max_mana%` | 最大MP |
+| HP/MP | `%rpg_mana%` | 現在MP |
 
 ### APIコマンド一覧（SKript/Denizen）
 
@@ -388,6 +441,16 @@ List<Entity> getTargetsInArea(Player caster, TargetType type, AreaShape shape);
 | | | Phase11機能統合 |
 | | | SKript/Denizen連携詳細追加 |
 | | | 索引拡張 |
+| 2026-01-09 | 1.1.0 | ネイティブSKript統合追加 |
+| | | PlaceholderAPI統合追加 |
+| | | SKRIPT_INTEGRATION.md作成 |
+| | | PLACEHOLDERS.md作成 |
+| | | INDEX更新 |
+| 2026-01-09 | 1.2.0 | 初心者開発者向けガイド追加 |
+| | | QUICKSTART.md作成 |
+| | | SKRIPT_TUTORIAL.md作成 |
+| | | PLACEHOLDER_TUTORIAL.md作成 |
+| | | INDEX更新 |
 
 ---
 

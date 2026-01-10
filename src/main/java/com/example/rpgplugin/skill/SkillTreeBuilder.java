@@ -108,7 +108,7 @@ public class SkillTreeBuilder {
         // ノードマップを作成
         Map<String, SkillNode> nodeMap = new HashMap<>();
         for (Skill skill : skills.values()) {
-            SkillNode node = new SkillNode(skill, null, 0, 0);
+            SkillNode node = new SkillNode(skill, null);
             nodeMap.put(skill.getId(), node);
         }
 

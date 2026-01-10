@@ -6,9 +6,6 @@ import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.damage.DamageManager;
-import com.example.rpgplugin.currency.CurrencyManager;
-import com.example.rpgplugin.auction.AuctionManager;
-import com.example.rpgplugin.trade.TradeManager;
 import com.example.rpgplugin.player.exp.ExpManager;
 import com.example.rpgplugin.core.system.CoreSystemManager;
 
@@ -21,7 +18,6 @@ import com.example.rpgplugin.core.system.CoreSystemManager;
  * - スキルシステム（SkillManager）
  * - クラスシステム（ClassManager）
  * - ダメージシステム（DamageManager）
- * - 経済システム（CurrencyManager, AuctionManager, TradeManager）
  * - 経験値システム（ExpManager）
  *
  * Single Responsibility: ゲームプレイ関連機能の統合管理
@@ -33,9 +29,6 @@ import com.example.rpgplugin.core.system.CoreSystemManager;
  * 4. SkillManager（スキル管理）
  * 5. DamageManager（ダメージ計算）
  * 6. ExpManager（経験値システム）
- * 7. CurrencyManager（通貨システム）
- * 8. TradeManager（トレードシステム）
- * 9. AuctionManager（オークションシステム）
  */
 public class GameSystemManager {
     private final RPGPlugin plugin;
@@ -61,11 +54,6 @@ public class GameSystemManager {
 
     // 経験値システム
     private final ExpManager expManager;
-
-    // 経済システム
-    private final CurrencyManager currencyManager;
-    private final TradeManager tradeManager;
-    private final AuctionManager auctionManager;
 
     /**
      * コンストラクタ
@@ -93,15 +81,6 @@ public class GameSystemManager {
         this.passiveSkillExecutor = new com.example.rpgplugin.skill.executor.PassiveSkillExecutor(plugin, skillManager, playerManager);
         // DamageManagerはPlayerManagerに依存するため、初期化順序を考慮して渡す
         this.damageManager = new DamageManager(plugin, playerManager);
-        this.currencyManager = new CurrencyManager(
-            coreSystem.getStorageManager().getPlayerCurrencyRepository(),
-            plugin.getLogger()
-        );
-        this.tradeManager = new TradeManager(plugin);
-        this.auctionManager = new AuctionManager(
-            plugin.getLogger(),
-            coreSystem.getStorageManager().getDatabaseManager()
-        );
     }
 
     /**
@@ -138,24 +117,6 @@ public class GameSystemManager {
         plugin.getLogger().info("[GameSystem] 経験値システムを初期化中...");
         expManager.initialize();
 
-        // 7. 通貨マネージャーの初期化
-        plugin.getLogger().info("[GameSystem] 通貨マネージャーを初期化中...");
-        // currencyManager は initialize() メソッドを持たない
-
-        // 8. トレードマネージャーの初期化
-        plugin.getLogger().info("[GameSystem] トレードマネージャーを初期化中...");
-        // TradeHistoryRepositoryは直接インスタンス化
-        com.example.rpgplugin.trade.repository.TradeHistoryRepository historyRepository =
-            new com.example.rpgplugin.trade.repository.TradeHistoryRepository(
-                coreSystem.getStorageManager().getDatabaseManager(),
-                plugin.getLogger()
-            );
-        tradeManager.initialize(historyRepository);
-
-        // 9. オークションマネージャーの初期化
-        plugin.getLogger().info("[GameSystem] オークションマネージャーを初期化中...");
-        auctionManager.loadActiveAuctions();
-
         plugin.getLogger().info("========================================");
         plugin.getLogger().info(" GameSystemManager: 初期化が完了しました");
         plugin.getLogger().info("========================================");
@@ -166,15 +127,7 @@ public class GameSystemManager {
      */
     public void shutdown() {
         plugin.getLogger().info("[GameSystem] シャットダウンを開始します");
-
         expManager.shutdown();
-
-        // AuctionManagerにshutdownメソッドがないためスキップ
-        // 必要に応じてAuctionManagerにshutdownメソッドを追加
-
-        // TradeManagerにshutdownメソッドがあるか確認
-        // tradeManager.shutdown();
-
         plugin.getLogger().info("[GameSystem] シャットダウンが完了しました");
     }
 
@@ -259,32 +212,5 @@ public class GameSystemManager {
      */
     public ExpManager getExpManager() {
         return expManager;
-    }
-
-    /**
-     * 通貨マネージャーを取得する
-     *
-     * @return CurrencyManager 通貨マネージャー
-     */
-    public CurrencyManager getCurrencyManager() {
-        return currencyManager;
-    }
-
-    /**
-     * トレードマネージャーを取得する
-     *
-     * @return TradeManager トレードマネージャー
-     */
-    public TradeManager getTradeManager() {
-        return tradeManager;
-    }
-
-    /**
-     * オークションマネージャーを取得する
-     *
-     * @return AuctionManager オークションマネージャー
-     */
-    public AuctionManager getAuctionManager() {
-        return auctionManager;
     }
 }

@@ -6,9 +6,7 @@ import com.example.rpgplugin.core.dependency.DependencyManager;
 import com.example.rpgplugin.core.module.ModuleManager;
 import com.example.rpgplugin.core.system.CoreSystemManager;
 import com.example.rpgplugin.core.system.GameSystemManager;
-import com.example.rpgplugin.core.system.GUIManager;
 import com.example.rpgplugin.core.system.ExternalSystemManager;
-import com.example.rpgplugin.gui.menu.SkillMenuListener;
 import com.example.rpgplugin.mythicmobs.MythicMobsManager;
 import com.example.rpgplugin.mythicmobs.config.MobDropConfig;
 import com.example.rpgplugin.mythicmobs.listener.MythicDeathListener;
@@ -42,11 +40,14 @@ public class RPGPlugin extends JavaPlugin {
 
     private static RPGPlugin instance;
 
-    // ファサードシステム（4個のフィールドのみ）
+    // ファサードシステム
     private CoreSystemManager coreSystem;
     private GameSystemManager gameSystem;
-    private GUIManager guiSystem;
     private ExternalSystemManager externalSystem;
+
+    // SKript・PlaceholderAPI連携
+    private com.example.rpgplugin.api.skript.RPGSkriptAddon skriptAddon;
+    private com.example.rpgplugin.api.placeholder.RPGPlaceholderExpansion placeholderExpansion;
 
     @Override
     public void onEnable() {
@@ -76,16 +77,15 @@ public class RPGPlugin extends JavaPlugin {
             // ゲームシステムの追加初期化
             setupGameSystemExtensions();
 
-            // 3. GUIシステムの初期化
-            guiSystem = new GUIManager(this, gameSystem);
-            guiSystem.initialize();
-
-            // 4. 外部システムの初期化
+            // 3. 外部システムの初期化
             externalSystem = new ExternalSystemManager(this, coreSystem.getStorageManager().getDatabaseManager().getConnectionPool());
             externalSystem.initialize();
 
             // 外部システムの追加初期化
             setupExternalSystemExtensions();
+
+            // 4. SKript・PlaceholderAPI連携
+            setupIntegrations();
 
             // 5. コマンド・リスナー登録
             registerCommands();
@@ -117,11 +117,6 @@ public class RPGPlugin extends JavaPlugin {
             // 外部システムのシャットダウン
             if (externalSystem != null) {
                 externalSystem.shutdown();
-            }
-
-            // GUIシステムのシャットダウン
-            if (guiSystem != null) {
-                guiSystem.shutdown();
             }
 
             // ゲームシステムのシャットダウン
@@ -346,6 +341,41 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
+     * SKript・PlaceholderAPIとの統合をセットアップします
+     */
+    private void setupIntegrations() {
+        getLogger().info("Setting up third-party integrations...");
+
+        // SKript連携
+        if (getServer().getPluginManager().getPlugin("Skript") != null) {
+            try {
+                skriptAddon = new com.example.rpgplugin.api.skript.RPGSkriptAddon(this);
+                skriptAddon.registerElements();
+                getLogger().info("Skript integration loaded successfully!");
+            } catch (Exception e) {
+                getLogger().warning("Failed to load Skript integration: " + e.getMessage());
+            }
+        } else {
+            getLogger().info("Skript not installed, skipping Skript integration.");
+        }
+
+        // PlaceholderAPI連携
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            try {
+                placeholderExpansion = new com.example.rpgplugin.api.placeholder.RPGPlaceholderExpansion(this);
+                placeholderExpansion.register();
+                getLogger().info("PlaceholderAPI integration loaded successfully!");
+            } catch (Exception e) {
+                getLogger().warning("Failed to load PlaceholderAPI integration: " + e.getMessage());
+            }
+        } else {
+            getLogger().info("PlaceholderAPI not installed, skipping PlaceholderAPI integration.");
+        }
+
+        getLogger().info("Third-party integrations setup complete!");
+    }
+
+    /**
      * モブドロップ設定を読み込み
      */
     private void loadMobDropConfigs() {
@@ -391,21 +421,6 @@ public class RPGPlugin extends JavaPlugin {
         }, 10L * 60L * 20L, 10L * 60L * 20L); // 10分 = 12000 ticks
 
         getLogger().info("Drop cleanup task started (runs every 10 minutes)");
-    }
-
-    /**
-     * 入札延長タスクスケジューラーを開始
-     */
-    private void startAuctionExpirationTask() {
-        // 5秒ごとに期限切れオークションをチェック
-        getServer().getScheduler().runTaskTimer(this, () -> {
-            com.example.rpgplugin.auction.AuctionManager auctionManager = gameSystem.getAuctionManager();
-            if (auctionManager != null) {
-                auctionManager.checkExpiredAuctions();
-            }
-        }, 5L * 20L, 5L * 20L); // 5秒 = 100 ticks (20 ticks/sec)
-
-        getLogger().info("Auction expiration checker started (runs every 5 seconds)");
     }
 
     /**
@@ -576,33 +591,6 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
-     * オークションマネージャーを取得します
-     *
-     * @return オークションマネージャー
-     */
-    public com.example.rpgplugin.auction.AuctionManager getAuctionManager() {
-        return gameSystem.getAuctionManager();
-    }
-
-    /**
-     * 通貨マネージャーを取得します
-     *
-     * @return CurrencyManagerインスタンス
-     */
-    public com.example.rpgplugin.currency.CurrencyManager getCurrencyManager() {
-        return gameSystem.getCurrencyManager();
-    }
-
-    /**
-     * トレードマネージャーを取得します
-     *
-     * @return TradeManagerインスタンス
-     */
-    public com.example.rpgplugin.trade.TradeManager getTradeManager() {
-        return gameSystem.getTradeManager();
-    }
-
-    /**
      * 経験値減衰マネージャーを取得します
      *
      * @return ExpDiminisherインスタンス
@@ -647,56 +635,6 @@ public class RPGPlugin extends JavaPlugin {
      */
     public PassiveSkillExecutor getPassiveSkillExecutor() {
         return gameSystem.getPassiveSkillExecutor();
-    }
-
-    // ====== GUIシステム ======
-
-    /**
-     * スキルメニューリスナーを取得します
-     *
-     * @return SkillMenuListenerインスタンス
-     */
-    public SkillMenuListener getSkillMenuListener() {
-        return guiSystem.getSkillMenuListener();
-    }
-
-    /**
-     * クラスメニューリスナーを取得します
-     *
-     * @return ClassMenuListenerインスタンス
-     */
-    public com.example.rpgplugin.gui.menu.rpgclass.ClassMenuListener getClassMenuListener() {
-        return guiSystem.getClassMenuListener();
-    }
-
-    /**
-     * トレードメニューリスナーを取得します
-     *
-     * @return TradeMenuListenerインスタンス
-     */
-    public com.example.rpgplugin.trade.TradeMenuListener getTradeMenuListener() {
-        return guiSystem.getTradeMenuListener();
-    }
-
-    /**
-     * 通貨リスナーを取得します
-     *
-     * @return CurrencyListenerインスタンス
-     */
-    public com.example.rpgplugin.currency.CurrencyListener getCurrencyListener() {
-        return guiSystem.getCurrencyListener();
-    }
-
-    /**
-     * ダメージ追跡システムを取得します
-     *
-     * <p>Paper 1.20.6で削除されたEntityDeathEvent.getKiller()の代替として、
-     * ダメージイベントを監視して最後にダメージを与えたプレイヤーを特定します。</p>
-     *
-     * @return DamageTrackerインスタンス
-     */
-    public com.example.rpgplugin.damage.DamageTracker getDamageTracker() {
-        return guiSystem.getDamageTracker();
     }
 
     // ====== 外部システム ======

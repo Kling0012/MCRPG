@@ -186,55 +186,6 @@ public interface RPGPluginAPI {
      */
     List<Skill> getSkillsForClass(String classId);
 
-    // ==================== 経済操作 ====================
-
-    /**
-     * ゴールド残高を取得します
-     *
-     * @param player プレイヤー
-     * @return ゴールド残高
-     */
-    double getGoldBalance(Player player);
-
-    /**
-     * ゴールドを入金します
-     *
-     * @param player プレイヤー
-     * @param amount 入金額
-     * @return 成功した場合はtrue
-     */
-    boolean depositGold(Player player, double amount);
-
-    /**
-     * ゴールドを出金します
-     *
-     * <p>残高が足りない場合は失敗します。</p>
-     *
-     * @param player プレイヤー
-     * @param amount 出金額
-     * @return 成功した場合はtrue
-     */
-    boolean withdrawGold(Player player, double amount);
-
-    /**
-     * ゴールド残高が足りているかチェックします
-     *
-     * @param player プレイヤー
-     * @param amount 必要な金額
-     * @return 足りている場合はtrue
-     */
-    boolean hasEnoughGold(Player player, double amount);
-
-    /**
-     * プレイヤー間でゴールドを転送します
-     *
-     * @param from 送金元プレイヤー
-     * @param to 送金先プレイヤー
-     * @param amount 送金額
-     * @return 成功した場合はtrue
-     */
-    boolean transferGold(Player from, Player to, double amount);
-
     // ==================== ダメージ計算 ====================
 
     /**

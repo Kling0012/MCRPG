@@ -1,7 +1,6 @@
 package com.example.rpgplugin.api;
 
 import com.example.rpgplugin.RPGPlugin;
-import com.example.rpgplugin.currency.CurrencyManager;
 import com.example.rpgplugin.damage.DamageModifier;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
@@ -46,7 +45,6 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
     private final ClassManager classManager;
     private final SkillManager skillManager;
     private final ActiveSkillExecutor activeSkillExecutor;
-    private final CurrencyManager currencyManager;
 
     /**
      * コンストラクタ
@@ -59,7 +57,6 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
         this.classManager = plugin.getClassManager();
         this.skillManager = plugin.getSkillManager();
         this.activeSkillExecutor = plugin.getActiveSkillExecutor();
-        this.currencyManager = plugin.getCurrencyManager();
     }
 
     // ==================== プレイヤーデータ取得 ====================
@@ -308,53 +305,6 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
         }
 
         return skillManager.getSkillsForClass(classId);
-    }
-
-    // ==================== 経済操作 ====================
-
-    @Override
-    public double getGoldBalance(Player player) {
-        if (player == null) {
-            return 0.0;
-        }
-
-        return currencyManager.getGoldBalance(player);
-    }
-
-    @Override
-    public boolean depositGold(Player player, double amount) {
-        if (player == null || amount <= 0) {
-            return false;
-        }
-
-        return currencyManager.depositGold(player, amount);
-    }
-
-    @Override
-    public boolean withdrawGold(Player player, double amount) {
-        if (player == null || amount <= 0) {
-            return false;
-        }
-
-        return currencyManager.withdrawGold(player, amount);
-    }
-
-    @Override
-    public boolean hasEnoughGold(Player player, double amount) {
-        if (player == null || amount < 0) {
-            return false;
-        }
-
-        return currencyManager.hasEnoughGold(player, amount);
-    }
-
-    @Override
-    public boolean transferGold(Player from, Player to, double amount) {
-        if (from == null || to == null || amount <= 0) {
-            return false;
-        }
-
-        return currencyManager.transferGold(from, to, amount);
     }
 
     // ==================== ダメージ計算 ====================

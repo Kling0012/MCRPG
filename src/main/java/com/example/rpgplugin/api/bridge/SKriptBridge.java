@@ -81,11 +81,6 @@ public class SKriptBridge {
      *   <li>add_stat_point &lt;player&gt; &lt;stat&gt; &lt;amount&gt; - ステータスポイント配分</li>
      *   <li>try_change_class &lt;player&gt; &lt;classId&gt; - 条件チェック付きクラス変更</li>
      *   <li>can_change_class &lt;player&gt; &lt;classId&gt; - クラス変更可能か確認</li>
-     *   <li>get_gold &lt;player&gt; - ゴールド残高取得</li>
-     *   <li>give_gold &lt;player&gt; &lt;amount&gt; - ゴールド付与</li>
-     *   <li>take_gold &lt;player&gt; &lt;amount&gt; - ゴールド剥奪</li>
-     *   <li>has_gold &lt;player&gt; &lt;amount&gt; - ゴールド所持確認</li>
-     *   <li>transfer_gold &lt;from&gt; &lt;to&gt; &lt;amount&gt; - ゴールド転送</li>
      *   <li>calculate_damage &lt;attacker&gt; &lt;target&gt; - ダメージ計算</li>
      *   <li>get_target &lt;player&gt; - 最後のターゲット取得</li>
      *   <li>set_target &lt;player&gt; &lt;entityId&gt; - ターゲット設定</li>
@@ -490,94 +485,6 @@ public class SKriptBridge {
                 }
                 return true;
 
-            // ==================== 経済操作 ====================
-            case "get_gold":
-                if (targetPlayer == null) {
-                    sender.sendMessage(ChatColor.RED + "プレイヤーが指定されていません");
-                    return false;
-                }
-                double gold = api.getGoldBalance(targetPlayer);
-                sender.sendMessage(ChatColor.GREEN + targetPlayer.getName() + " のゴールド: " + String.format("%.2f", gold) + "G");
-                return true;
-
-            case "give_gold":
-                if (targetPlayer == null || args.length < 2) {
-                    sender.sendMessage(ChatColor.RED + "使用法: rpg api give_gold <player> <amount>");
-                    return false;
-                }
-                try {
-                    double amount = Double.parseDouble(args[1]);
-                    boolean depositSuccess = api.depositGold(targetPlayer, amount);
-                    if (depositSuccess) {
-                        sender.sendMessage(ChatColor.GREEN + String.format("%.2f", amount) + "G を付与しました");
-                    } else {
-                        sender.sendMessage(ChatColor.RED + "ゴールドの付与に失敗しました");
-                    }
-                    return depositSuccess;
-                } catch (NumberFormatException e) {
-                    sender.sendMessage(ChatColor.RED + "金額は数値で指定してください");
-                    return false;
-                }
-
-            case "take_gold":
-                if (targetPlayer == null || args.length < 2) {
-                    sender.sendMessage(ChatColor.RED + "使用法: rpg api take_gold <player> <amount>");
-                    return false;
-                }
-                try {
-                    double amount = Double.parseDouble(args[1]);
-                    boolean withdrawSuccess = api.withdrawGold(targetPlayer, amount);
-                    if (withdrawSuccess) {
-                        sender.sendMessage(ChatColor.GREEN + String.format("%.2f", amount) + "G を剥奪しました");
-                    } else {
-                        sender.sendMessage(ChatColor.RED + "ゴールドが足りません");
-                    }
-                    return withdrawSuccess;
-                } catch (NumberFormatException e) {
-                    sender.sendMessage(ChatColor.RED + "金額は数値で指定してください");
-                    return false;
-                }
-
-            case "has_gold":
-                if (targetPlayer == null || args.length < 2) {
-                    sender.sendMessage(ChatColor.RED + "使用法: rpg api has_gold <player> <amount>");
-                    return false;
-                }
-                try {
-                    double amount = Double.parseDouble(args[1]);
-                    boolean hasEnough = api.hasEnoughGold(targetPlayer, amount);
-                    sender.sendMessage(ChatColor.GREEN + "ゴールド所持: " + (hasEnough ? "はい" : "いいえ"));
-                    return true;
-                } catch (NumberFormatException e) {
-                    sender.sendMessage(ChatColor.RED + "金額は数値で指定してください");
-                    return false;
-                }
-
-            case "transfer_gold":
-                if (args.length < 3) {
-                    sender.sendMessage(ChatColor.RED + "使用法: rpg api transfer_gold <from> <to> <amount>");
-                    return false;
-                }
-                Player fromPlayer = Bukkit.getPlayer(args[0]);
-                Player toPlayer = Bukkit.getPlayer(args[1]);
-                if (fromPlayer == null || toPlayer == null) {
-                    sender.sendMessage(ChatColor.RED + "プレイヤーが見つかりません");
-                    return false;
-                }
-                try {
-                    double amount = Double.parseDouble(args[2]);
-                    boolean transferSuccess = api.transferGold(fromPlayer, toPlayer, amount);
-                    if (transferSuccess) {
-                        sender.sendMessage(ChatColor.GREEN + String.format("%.2f", amount) + "G を転送しました");
-                    } else {
-                        sender.sendMessage(ChatColor.RED + "転送に失敗しました");
-                    }
-                    return transferSuccess;
-                } catch (NumberFormatException e) {
-                    sender.sendMessage(ChatColor.RED + "金額は数値で指定してください");
-                    return false;
-                }
-
             // ==================== ダメージ計算 ====================
             case "calculate_damage":
                 if (targetPlayer == null || args.length < 2) {
@@ -770,7 +677,6 @@ public class SKriptBridge {
         sender.sendMessage(ChatColor.WHITE + "  スキル拡張: cast_at, cast_with_cost");
         sender.sendMessage(ChatColor.WHITE + "  ターゲット: get_target, set_target");
         sender.sendMessage(ChatColor.WHITE + "  範囲: get_entities_in_area");
-        sender.sendMessage(ChatColor.WHITE + "  経済: get_gold, give_gold, take_gold, has_gold, transfer_gold");
         sender.sendMessage(ChatColor.WHITE + "  ダメージ: calculate_damage");
         sender.sendMessage(ChatColor.GOLD + "================================");
     }

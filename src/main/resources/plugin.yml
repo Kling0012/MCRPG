@@ -23,6 +23,12 @@ commands:
     usage: /rpg <subcommand>
     aliases: [rp]
 
+  rpgadmin:
+    description: Admin RPG command for reloading
+    usage: /rpgadmin <subcommand>
+    aliases: [rpga, rpgadm]
+    permission: rpgplugin.admin
+
 permissions:
   rpg.use:
     description: Allows using RPG commands

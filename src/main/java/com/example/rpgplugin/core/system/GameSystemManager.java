@@ -55,6 +55,10 @@ public class GameSystemManager {
     // 経験値システム
     private final ExpManager expManager;
 
+    // ローダー（リロード用）
+    private final com.example.rpgplugin.rpgclass.ClassLoader classLoader;
+    private final com.example.rpgplugin.skill.SkillLoader skillLoader;
+
     /**
      * コンストラクタ
      *
@@ -81,6 +85,10 @@ public class GameSystemManager {
         this.passiveSkillExecutor = new com.example.rpgplugin.skill.executor.PassiveSkillExecutor(plugin, skillManager, playerManager);
         // DamageManagerはPlayerManagerに依存するため、初期化順序を考慮して渡す
         this.damageManager = new DamageManager(plugin, playerManager);
+
+        // 4. ローダー（リロード用）
+        this.classLoader = new com.example.rpgplugin.rpgclass.ClassLoader(plugin, playerManager);
+        this.skillLoader = new com.example.rpgplugin.skill.SkillLoader(plugin);
     }
 
     /**
@@ -212,5 +220,23 @@ public class GameSystemManager {
      */
     public ExpManager getExpManager() {
         return expManager;
+    }
+
+    /**
+     * クラスローダーを取得する
+     *
+     * @return ClassLoader クラスローダー
+     */
+    public com.example.rpgplugin.rpgclass.ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    /**
+     * スキルローダーを取得する
+     *
+     * @return SkillLoader スキルローダー
+     */
+    public com.example.rpgplugin.skill.SkillLoader getSkillLoader() {
+        return skillLoader;
     }
 }

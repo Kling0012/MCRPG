@@ -25,6 +25,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * RPGプラグイン メインクラス
@@ -195,10 +196,11 @@ public class RPGPlugin extends JavaPlugin {
             configWatcher.addDirectoryListener("classes", path -> {
                 try {
                     getLogger().info("[HotReload] Class file modified: " + path.getFileName());
-                    ClassLoader classLoader = new ClassLoader(this, gameSystem.getPlayerManager());
+                    com.example.rpgplugin.rpgclass.ClassLoader classLoader = gameSystem.getClassLoader();
                     Map<String, RPGClass> classes = classLoader.loadAllClasses();
-                    gameSystem.getClassManager().registerAll(classes);
-                    getLogger().info("[HotReload] Reloaded " + classes.size() + " classes.");
+                    ClassManager.ReloadResult result = gameSystem.getClassManager().reloadWithCleanup(classes);
+                    getLogger().info("[HotReload] Reloaded " + result.getLoadedClassCount() + " classes." +
+                        (result.hasRemovedClasses() ? " Removed: " + result.getRemovedClasses().size() : ""));
                 } catch (Exception e) {
                     getLogger().warning("[HotReload] Failed to reload classes: " + e.getMessage());
                 }
@@ -212,10 +214,10 @@ public class RPGPlugin extends JavaPlugin {
             configWatcher.watchDirectory("skills/passive");
 
             configWatcher.addDirectoryListener("skills/active", path -> {
-                reloadSkills();
+                reloadSkillsWithCleanup();
             });
             configWatcher.addDirectoryListener("skills/passive", path -> {
-                reloadSkills();
+                reloadSkillsWithCleanup();
             });
         }
 
@@ -263,13 +265,30 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
-     * スキルをリロードするヘルパーメソッド
+     * スキルをリロードするヘルパーメソッド（旧互換）
      */
     private void reloadSkills() {
         try {
             SkillConfig skillConfig = gameSystem.getSkillConfig();
             int count = skillConfig.reloadSkills();
             getLogger().info("[HotReload] Reloaded " + count + " skills.");
+        } catch (Exception e) {
+            getLogger().warning("[HotReload] Failed to reload skills: " + e.getMessage());
+        }
+    }
+
+    /**
+     * スキルをクリーンアップ付きでリロードするヘルパーメソッド
+     */
+    private void reloadSkillsWithCleanup() {
+        try {
+            com.example.rpgplugin.skill.SkillLoader skillLoader = gameSystem.getSkillLoader();
+            var newSkills = skillLoader.loadAllSkills();
+            var newSkillMap = newSkills.stream()
+                    .collect(Collectors.toMap(s -> s.getId(), s -> s));
+            SkillManager.ReloadResult result = gameSystem.getSkillManager().reloadWithCleanup(newSkillMap);
+            getLogger().info("[HotReload] Reloaded " + result.getLoadedSkillCount() + " skills." +
+                    (result.hasRemovedSkills() ? " Removed: " + result.getRemovedSkills().size() : ""));
         } catch (Exception e) {
             getLogger().warning("[HotReload] Failed to reload skills: " + e.getMessage());
         }
@@ -469,6 +488,19 @@ public class RPGPlugin extends JavaPlugin {
             RPGCommand rpgCommand = new RPGCommand();
             getCommand("rpg").setExecutor(rpgCommand);
             getCommand("rpg").setTabCompleter(rpgCommand);
+
+            // RPG管理コマンド
+            com.example.rpgplugin.command.RPGAdminCommand adminCommand =
+                new com.example.rpgplugin.command.RPGAdminCommand(
+                    this,
+                    gameSystem.getClassManager(),
+                    gameSystem.getSkillManager(),
+                    gameSystem.getClassLoader(),
+                    gameSystem.getSkillLoader()
+                );
+            getCommand("rpgadmin").setExecutor(adminCommand);
+            getCommand("rpgadmin").setTabCompleter(adminCommand);
+
             getLogger().info("Commands registered.");
         } catch (Exception e) {
             getLogger().warning("Failed to register commands: " + e.getMessage());

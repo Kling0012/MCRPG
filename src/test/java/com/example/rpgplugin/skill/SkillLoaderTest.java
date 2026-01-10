@@ -93,7 +93,6 @@ class SkillLoaderTest {
         assertEquals(8.0, skill.getCooldown());
         assertEquals(10, skill.getManaCost());
         assertNotNull(skill.getDamage());
-        assertTrue(skill.isActive());
     }
 
     /**
@@ -551,8 +550,7 @@ class SkillLoaderTest {
 
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
-        assertFalse(skill.isActive());
-        assertTrue(skill.isPassive());
+        // パッシブ/アクティブの区別を廃止したため、テストを削除
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.example.rpgplugin.player;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.stats.Stat;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -31,6 +32,7 @@ import org.bukkit.event.player.PlayerLevelChangeEvent;
  * <ol>
  *   <li>自動配分: 各ステータス+2（クラス成長設定に基づく）</li>
  *   <li>手動配分ポイント: +3ポイント獲得</li>
+ *   <li>スキルポイント: +1ポイント獲得</li>
  *   <li>通知メッセージ表示</li>
  * </ol>
  *
@@ -132,6 +134,7 @@ public class VanillaExpHandler implements Listener {
      * <ol>
      *   <li>自動配分: 各ステータス+2</li>
      *   <li>手動配分ポイント: +3</li>
+     *   <li>スキルポイント: +1</li>
      *   <li>メッセージ通知</li>
      * </ol>
      *
@@ -153,10 +156,17 @@ public class VanillaExpHandler implements Listener {
         // 2. 手動配分ポイント: +3
         rpgPlayer.addAvailablePoints(MANUAL_ALLOCATE_POINTS);
 
-        // 3. StatManagerの総レベルを更新
+        // 3. スキルポイント: +1
+        SkillManager skillManager = plugin.getSkillManager();
+        if (skillManager != null) {
+            SkillManager.PlayerSkillData skillData = skillManager.getPlayerSkillData(player.getUniqueId());
+            skillData.addSkillPoints(1);
+        }
+
+        // 4. StatManagerの総レベルを更新
         rpgPlayer.getStatManager().setTotalLevel(newLevel);
 
-        // 4. メッセージ通知
+        // 5. メッセージ通知
         sendLevelUpMessage(rpgPlayer, newLevel);
     }
 
@@ -179,6 +189,14 @@ public class VanillaExpHandler implements Listener {
         player.sendMessage("");
         player.sendMessage("§a自動配分: §f全ステータス +" + AUTO_ALLOCATE_POINTS);
         player.sendMessage("§b手動配分ポイント: §f+" + MANUAL_ALLOCATE_POINTS + " (残り: §e" + rpgPlayer.getAvailablePoints() + "§f)");
+
+        // スキルポイント表示
+        SkillManager skillManager = plugin.getSkillManager();
+        if (skillManager != null) {
+            int skillPoints = skillManager.getPlayerSkillData(player.getUniqueId()).getSkillPoints();
+            player.sendMessage("§dスキルポイント: §f+1 (残り: §e" + skillPoints + "§f)");
+        }
+
         player.sendMessage("§7§o/rpg stats §r§7でステータスを確認できます");
         player.sendMessage("§6§l================================");
 

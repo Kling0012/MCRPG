@@ -216,7 +216,7 @@ public class PassiveSkillExecutor implements SkillExecutor {
             int level = entry.getValue();
 
             Skill skill = skillManager.getSkill(skillId);
-            if (skill != null && skill.isPassive() && skill.getId() != null) {
+            if (skill != null && skill.getId() != null) {
                 applyPassive(player, skill, level);
             }
         }

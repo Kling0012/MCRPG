@@ -24,34 +24,23 @@ public class DamageModifier {
     /**
      * 物理ダメージを計算
      *
-     * <p>計算式: 基本ダメージ × (1 + STR/100) × クリティカル倍率</p>
+     * <p>計算式: 基本ダメージ × (1 + STR/100) × クラス倍率</p>
      *
      * @param baseDamage     基本ダメージ
      * @param strength       STR値
      * @param classMultiplier クラス倍率（オプション）
-     * @param isCritical     クリティカルヒットかどうか
-     * @param critMultiplier クリティカル倍率
      * @return 計算後の物理ダメージ
      */
     public static double calculatePhysicalDamage(
             double baseDamage,
             int strength,
-            double classMultiplier,
-            boolean isCritical,
-            double critMultiplier) {
+            double classMultiplier) {
 
         // STRによるダメージボーナス
         double strMultiplier = 1.0 + (strength / 100.0);
 
         // 基本計算
-        double damage = baseDamage * strMultiplier * classMultiplier;
-
-        // クリティカル補正
-        if (isCritical) {
-            damage *= critMultiplier;
-        }
-
-        return damage;
+        return baseDamage * strMultiplier * classMultiplier;
     }
 
     /**
@@ -116,58 +105,7 @@ public class DamageModifier {
         return damage - cutAmount;
     }
 
-    /**
-     * クリティカル率を計算
-     *
-     * <p>計算式: 基礎率(5%) + DEX/50</p>
-     *
-     * @param dexterity DEX値
-     * @return クリティカル率（0.0〜1.0）
-     */
-    public static double calculateCriticalRate(int dexterity) {
-        double baseRate = 0.05; // 基礎率5%
-        double dexBonus = dexterity / 50.0;
 
-        return Math.min(1.0, baseRate + dexBonus); // 最大100%
-    }
-
-    /**
-     * クリティカル倍率を計算
-     *
-     * <p>計算式: 1.5 + DEX * 0.002</p>
-     *
-     * @param dexterity DEX値
-     * @return クリティカル倍率
-     */
-    public static double calculateCriticalMultiplier(int dexterity) {
-        double baseMultiplier = 1.5;
-        double dexBonus = dexterity * 0.002;
-
-        return baseMultiplier + dexBonus;
-    }
-
-    /**
-     * クリティカルヒットかどうかを判定
-     *
-     * @param dexterity DEX値
-     * @return クリティカルヒットならtrue
-     */
-    public static boolean isCriticalHit(int dexterity) {
-        double criticalRate = calculateCriticalRate(dexterity);
-        return Math.random() < criticalRate;
-    }
-
-    /**
-     * プレイヤーのステータスに基づいてクリティカル判定
-     *
-     * @param player プレイヤー
-     * @param stats  プレイヤーのステータスマップ
-     * @return クリティカルヒットならtrue
-     */
-    public static boolean isCriticalHit(Player player, Map<Stat, Integer> stats) {
-        int dexterity = stats.getOrDefault(Stat.DEXTERITY, 0);
-        return isCriticalHit(dexterity);
-    }
 
     /**
      * ダメージを整数に丸める

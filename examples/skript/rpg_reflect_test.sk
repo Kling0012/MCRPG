@@ -1,0 +1,330 @@
+# ============================================
+# RPGPlugin Skript Reflect テストスクリプト
+# ============================================
+#
+# このファイルは、Skript Reflectを使用してRPGPluginのAPIにアクセスする例です。
+#
+# セットアップ:
+# 1. RPGPlugin.jar をサーバーのpluginsフォルダに配置
+# 2. Skript.jar をサーバーのpluginsフォルダに配置
+# 3. skript-reflect.jar をサーバーのpluginsフォルダに配置
+# 4. サーバーを再起動
+# 5. このファイルを plugins/Skript/scripts/ に配置
+# 6. /skript reload を実行
+#
+# ============================================
+
+# ============================================
+# 基本動作テスト
+# ============================================
+
+# プラグインが読み込まれているか確認
+command /rpgtest:
+    trigger:
+        send "&e========== RPGPlugin テスト ==========" to player
+        set {_plugin} = plugin "RPGPlugin"
+        if {_plugin} is null:
+            send "&cRPGPluginが見つかりません" to player
+            stop
+        send "&aRPGPluginは正常に動作しています" to player
+
+        # 静的メソッドをテスト
+        set {_static} = RPGPlugin.getInstance()
+        if {_static} is null:
+            send "&cgetInstance()がnullを返しました" to player
+        else:
+            send "&agetInstance()成功: %{_static}%" to player
+        send "&e=====================================" to player
+
+# ============================================
+# ステータス確認テスト
+# ============================================
+
+command /teststats:
+    trigger:
+        set {_plugin} = RPGPlugin.getInstance()
+        set {_pm} = {_plugin}.getPlayerManager()
+        set {_rpgPlayer} = {_pm}.getRPGPlayer(player's uuid)
+
+        if {_rpgPlayer} is null:
+            send "&cRPGデータが読み込まれていません" to player
+            stop
+
+        send "&e========== ステータス ==========" to player
+
+        # Stat列挙型を取得
+        set {_strStat} = java import "com.example.rpgplugin.stat.Stat".STRENGTH
+        set {_intStat} = java import "com.example.rpgplugin.stat.Stat".INTELLIGENCE
+        set {_vitStat} = java import "com.example.rpgplugin.stat.Stat".VITALITY
+        set {_dexStat} = java import "com.example.rpgplugin.stat.Stat".DEXTERITY
+        set {_spiStat} = java import "com.example.rpgplugin.stat.Stat".SPIRIT
+
+        # 各ステータスを取得
+        set {_str} = {_rpgPlayer}.getBaseStat({_strStat})
+        set {_int} = {_rpgPlayer}.getBaseStat({_intStat})
+        set {_vit} = {_rpgPlayer}.getBaseStat({_vitStat})
+        set {_dex} = {_rpgPlayer}.getBaseStat({_dexStat})
+        set {_spi} = {_rpgPlayer}.getBaseStat({_spiStat})
+
+        send "&cSTR: &f%{_str}%" to player
+        send "&aINT: &f%{_int}%" to player
+        send "&dVIT: &f%{_vit}%" to player
+        send "&eDEX: &f%{_dex}%" to player
+        send "&bSPI: &f%{_spi}%" to player
+
+        # 振りポイント
+        set {_points} = {_rpgPlayer}.getAvailablePoints()
+        send "&6振りポイント: &f%{_points}%" to player
+
+        send "&e=================================" to player
+
+# ============================================
+# ステータス設定テスト
+# ============================================
+
+command /setstattest <text> <number>:
+    permission: rpg.admin
+    trigger:
+        set {_plugin} = RPGPlugin.getInstance()
+        set {_pm} = {_plugin}.getPlayerManager()
+        set {_rpgPlayer} = {_pm}.getRPGPlayer(player's uuid)
+
+        if {_rpgPlayer} is null:
+            send "&cRPGデータが読み込まれていません" to player
+            stop
+
+        # ステータス名をStat列挙型に変換
+        set {_statName} = arg-1
+        if {_statName} is "STR" or "STRENGTH":
+            set {_stat} = java import "com.example.rpgplugin.stat.Stat".STRENGTH
+        else if {_statName} is "INT" or "INTELLIGENCE":
+            set {_stat} = java import "com.example.rpgplugin.stat.Stat".INTELLIGENCE
+        else if {_statName} is "VIT" or "VITALITY":
+            set {_stat} = java import "com.example.rpgplugin.stat.Stat".VITALITY
+        else if {_statName} is "DEX" or "DEXTERITY":
+            set {_stat} = java import "com.example.rpgplugin.stat.Stat".DEXTERITY
+        else if {_statName} is "SPI" or "SPIRIT":
+            set {_stat} = java import "com.example.rpgplugin.stat.Stat".SPIRIT
+        else:
+            send "&c無効なステータス名です: STR, INT, VIT, DEX, SPI" to player
+            stop
+
+        # 設定前の値を取得
+        set {_old} = {_rpgPlayer}.getBaseStat({_stat})
+
+        # ステータスを設定
+        {_rpgPlayer}.setBaseStat({_stat}, arg-2)
+
+        # 設定後の値を取得
+        set {_new} = {_rpgPlayer}.getBaseStat({_stat})
+
+        send "&a%arg-1%: %{_old}% -> %{_new}%" to player
+
+# ============================================
+# クラス情報テスト
+# ============================================
+
+command /testclass:
+    trigger:
+        set {_plugin} = RPGPlugin.getInstance()
+        set {_pm} = {_plugin}.getPlayerManager()
+        set {_rpgPlayer} = {_pm}.getRPGPlayer(player's uuid)
+
+        if {_rpgPlayer} is null:
+            send "&cRPGデータが読み込まれていません" to player
+            stop
+
+        set {_classId} = {_rpgPlayer}.getClassId()
+        set {_classRank} = {_rpgPlayer}.getClassRank()
+
+        send "&e========== クラス情報 ==========" to player
+        if {_classId} is set:
+            send "&fクラス: &a%{_classId}%" to player
+            send "&fランク: &eRank %{_classRank}%" to player
+        else:
+            send "&cクラス未所属です" to player
+        send "&e=================================" to player
+
+# ============================================
+# スキル習得テスト
+# ============================================
+
+command /testskill <text>:
+    permission: rpg.admin
+    trigger:
+        set {_plugin} = RPGPlugin.getInstance()
+        set {_pm} = {_plugin}.getPlayerManager()
+        set {_rpgPlayer} = {_pm}.getRPGPlayer(player's uuid)
+
+        if {_rpgPlayer} is null:
+            send "&cRPGデータが読み込まれていません" to player
+            stop
+
+        # スキル習得
+        set {_success} = {_rpgPlayer}.acquireSkill(arg-1, 1)
+
+        if {_success}:
+            send "&aスキル「%arg-1%」を習得しました" to player
+        else:
+            send "&cスキル「%arg-1%」の習得に失敗しました" to player
+            send "&7(スキルが存在しない可能性があります)" to player
+
+# ============================================
+# スキル習得確認テスト
+# ============================================
+
+command /hasskilltest <text>:
+    trigger:
+        set {_plugin} = RPGPlugin.getInstance()
+        set {_pm} = {_plugin}.getPlayerManager()
+        set {_rpgPlayer} = {_pm}.getRPGPlayer(player's uuid)
+
+        if {_rpgPlayer} is null:
+            send "&cRPGデータが読み込まれていません" to player
+            stop
+
+        # スキル習得チェック
+        set {_hasSkill} = {_rpgPlayer}.hasSkill(arg-1)
+
+        if {_hasSkill}:
+            set {_level} = {_rpgPlayer}.getSkillLevel(arg-1)
+            send "&aスキル「%arg-1%」は習得済みです (Lv.%{_level}%)" to player
+        else:
+            send "&cスキル「%arg-1%」は未習得です" to player
+
+# ============================================
+# マナ操作テスト
+# ============================================
+
+command /testmana:
+    trigger:
+        set {_plugin} = RPGPlugin.getInstance()
+        set {_pm} = {_plugin}.getPlayerManager()
+        set {_rpgPlayer} = {_pm}.getRPGPlayer(player's uuid)
+
+        if {_rpgPlayer} is null:
+            send "&cRPGデータが読み込まれていません" to player
+            stop
+
+        set {_current} = {_rpgPlayer}.getCurrentMana()
+        set {_max} = {_rpgPlayer}.getMaxMana()
+        set {_ratio} = {_rpgPlayer}.getManaRatio()
+
+        send "&b========== マナ ==========" to player
+        send "&f現在: &3%{_current}%&f/&3%{_max}%" to player
+        send "&f割合: &3%{_ratio}%%%" to player
+
+        if {_rpgPlayer}.isFullMana():
+            send "&aマナは満タンです" to player
+        else if {_rpgPlayer}.isEmptyMana():
+            send "&cマナが空です" to player
+
+        send "&b=========================" to player
+
+# ============================================
+# イベントテスト
+# ============================================
+
+# モブを倒した時にステータスを表示
+on death of entity:
+    if attacker is player:
+        set {_plugin} = RPGPlugin.getInstance()
+        set {_pm} = {_plugin}.getPlayerManager()
+        set {_rpgPlayer} = {_pm}.getRPGPlayer(attacker's uuid)
+
+        if {_rpgPlayer} is not null:
+            set {_classId} = {_rpgPlayer}.getClassId()
+            if {_classId} is set:
+                send "&a[%{_classId}%] &f%victim%を倒した！" to attacker
+            else:
+                send "&a[NoClass] &f%victim%を倒した！" to attacker
+
+# ============================================
+# まとめテスト - 全機能確認
+# ============================================
+
+command /rpgcheckall:
+    trigger:
+        send "&e=========================================" to player
+        send "&e         RPGPlugin 機能チェック" to player
+        send "&e=========================================" to player
+
+        # 1. プラグインチェック
+        set {_plugin} = RPGPlugin.getInstance()
+        if {_plugin} is null:
+            send "&c[✗] プラグインインスタンス" to player
+            stop
+        send "&a[✓] プラグインインスタンス" to player
+
+        # 2. PlayerManagerチェック
+        set {_pm} = {_plugin}.getPlayerManager()
+        if {_pm} is null:
+            send "&c[✗] PlayerManager" to player
+            stop
+        send "&a[✓] PlayerManager" to player
+
+        # 3. RPGPlayerチェック
+        set {_rpgPlayer} = {_pm}.getRPGPlayer(player's uuid)
+        if {_rpgPlayer} is null:
+            send "&c[✗] RPGPlayer (データ未ロード)" to player
+            stop
+        send "&a[✓] RPGPlayer" to player
+
+        # 4. ステータスチェック
+        set {_strStat} = java import "com.example.rpgplugin.stat.Stat".STRENGTH
+        set {_str} = {_rpgPlayer}.getBaseStat({_strStat})
+        send "&a[✓] ステータス取得 (STR: %{_str}%)" to player
+
+        # 5. クラスチェック
+        set {_classId} = {_rpgPlayer}.getClassId()
+        send "&a[✓] クラス情報 (%{_classId} ? "未所属"%)" to player
+
+        # 6. マナチェック
+        set {_mana} = {_rpgPlayer}.getCurrentMana()
+        send "&a[✓] マナ情報 (現在: %{_mana}%)" to player
+
+        # 7. スキルマネージャーチェック
+        set {_skm} = {_plugin}.getSkillManager()
+        if {_skm} is null:
+            send "&c[✗] SkillManager" to player
+        else:
+            send "&a[✓] SkillManager" to player
+
+        # 8. クラスマネージャーチェック
+        set {_cm} = {_plugin}.getClassManager()
+        if {_cm} is null:
+            send "&c[✗] ClassManager" to player
+        else:
+            send "&a[✓] ClassManager" to player
+
+        send "&e=========================================" to player
+        send "&a           全チェック完了！" to player
+        send "&e=========================================" to player
+
+# ============================================
+# ヘルプ
+# ============================================
+
+command /rpgskript:
+    trigger:
+        send "&e========== RPGPlugin Skript Reflect コマンド ==========" to player
+        send ""
+        send "&6基本テスト:" to player
+        send "&f  /rpgtest         - プラグイン動作確認" to player
+        send "&f  /teststats       - ステータス表示" to player
+        send "&f  /rpgcheckall     - 全機能チェック" to player
+        send ""
+        send "&6ステータス操作:" to player
+        send "&f  /setstattest <stat> <value> - ステータス設定" to player
+        send ""
+        send "&6クラス:" to player
+        send "&f  /testclass       - クラス情報表示" to player
+        send ""
+        send "&6スキル:" to player
+        send "&f  /testskill <id>       - スキル習得" to player
+        send "&f  /hasskilltest <id>     - スキル習得確認" to player
+        send ""
+        send "&6マナ:" to player
+        send "&f  /testmana        - マナ情報表示" to player
+        send ""
+        send "&e===================================================" to player

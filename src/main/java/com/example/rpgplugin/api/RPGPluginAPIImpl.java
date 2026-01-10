@@ -155,6 +155,24 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
     }
 
     @Override
+    public boolean changeClass(Player player, String classId) {
+        if (player == null || classId == null || classId.isEmpty()) {
+            return false;
+        }
+
+        return classManager.changeClass(player, classId, 0);
+    }
+
+    @Override
+    public boolean changeClass(Player player, String classId, int level) {
+        if (player == null || classId == null || classId.isEmpty()) {
+            return false;
+        }
+
+        return classManager.changeClass(player, classId, level);
+    }
+
+    @Override
     public boolean upgradeClassRank(Player player) {
         if (player == null) {
             return false;
@@ -326,7 +344,7 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
 
         // 基本ダメージをステータスに基づいて計算
         double baseDamage = 1.0;
-        double physicalDamage = DamageModifier.calculatePhysicalDamage(baseDamage, strength, 1.0, false, 1.5);
+        double physicalDamage = DamageModifier.calculatePhysicalDamage(baseDamage, strength, 1.0);
         double magicDamage = DamageModifier.calculateMagicDamage(baseDamage, intelligence, 1.0);
 
         // 物理と魔法の高い方を使用
@@ -350,7 +368,7 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
         // ステータスに基づいてダメージを補正
         switch (stat) {
             case STRENGTH:
-                return DamageModifier.calculatePhysicalDamage(baseDamage, statValue, 1.0, false, 1.5);
+                return DamageModifier.calculatePhysicalDamage(baseDamage, statValue, 1.0);
             case INTELLIGENCE:
                 return DamageModifier.calculateMagicDamage(baseDamage, statValue, 1.0);
             default:

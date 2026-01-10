@@ -6,9 +6,6 @@
 |-----------|----------|------|
 | プレイヤーデータ | SQLite | 50-150人対応、ACID保証 |
 | クラス・スキル設定 | YAML | ホットリロード、人間可読 |
-| 独自通貨 | SQLite | トランザクション必要 |
-| オークション | SQLite | 複雑クエリ、同時実行制御 |
-| トレード履歴 | SQLite | 監査用 |
 | キャッシュ層 | ConcurrentHashMap | 高速アクセス |
 
 ## 最終データベーススキーマ
@@ -57,62 +54,6 @@ CREATE TABLE player_skills (
 );
 ```
 
-### 独自通貨（ゴールド）
-```sql
-CREATE TABLE player_currency (
-    uuid VARCHAR(36) PRIMARY KEY,
-    gold_balance REAL DEFAULT 0.0,
-    total_earned REAL DEFAULT 0.0,
-    total_spent REAL DEFAULT 0.0,
-    FOREIGN KEY (uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
-);
-```
-
-### オークション（入札システム）
-```sql
-CREATE TABLE auction_listings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    seller_uuid VARCHAR(36) NOT NULL,
-    item_data TEXT NOT NULL,            -- シリアライズされたItemStack
-    starting_price REAL NOT NULL,       -- 最低価格
-    current_bid REAL,                   -- 現在の最高入札
-    current_bidder VARCHAR(36),         -- 最高入札者UUID
-    duration_seconds INTEGER NOT NULL,  -- 30-180秒
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    expires_at DATETIME NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (seller_uuid) REFERENCES player_data(uuid)
-);
-```
-
-### 入札履歴
-```sql
-CREATE TABLE auction_bids (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    auction_id INTEGER NOT NULL,
-    bidder_uuid VARCHAR(36) NOT NULL,
-    bid_amount REAL NOT NULL,
-    bid_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (auction_id) REFERENCES auction_listings(id) ON DELETE CASCADE
-);
-```
-
-### トレード履歴
-```sql
-CREATE TABLE trade_history (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    player1_uuid VARCHAR(36) NOT NULL,
-    player2_uuid VARCHAR(36) NOT NULL,
-    player1_items TEXT,                 -- シリアライズされたアイテム
-    player2_items TEXT,
-    gold_amount1 REAL DEFAULT 0.0,
-    gold_amount2 REAL DEFAULT 0.0,
-    trade_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (player1_uuid) REFERENCES player_data(uuid),
-    FOREIGN KEY (player2_uuid) REFERENCES player_data(uuid)
-);
-```
-
 ### MythicMobsドロップ記録
 ```sql
 CREATE TABLE mythic_drops (
@@ -146,9 +87,6 @@ CREATE TABLE class_history (
 ```sql
 CREATE INDEX idx_player_stats_uuid ON player_stats(uuid);
 CREATE INDEX idx_player_skills_uuid ON player_skills(uuid);
-CREATE INDEX idx_auction_active ON auction_listings(is_active, expires_at);
-CREATE INDEX idx_auction_seller ON auction_listings(seller_uuid);
-CREATE INDEX idx_auction_bids ON auction_bids(auction_id);
 CREATE INDEX idx_mythic_drops_player ON mythic_drops(player_uuid, is_claimed);
 ```
 

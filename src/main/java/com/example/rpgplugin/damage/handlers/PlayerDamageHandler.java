@@ -137,11 +137,6 @@ public class PlayerDamageHandler {
         EntityDamageEvent.DamageCause cause = event.getCause();
         boolean isPhysical = isPhysicalDamage(cause);
 
-        // クリティカル判定
-        boolean isCritical = DamageModifier.isCriticalHit(player, stats);
-        int dexterity = stats.getOrDefault(Stat.DEXTERITY, 0);
-        double critMultiplier = DamageModifier.calculateCriticalMultiplier(dexterity);
-
         // クラス倍率（将来的に実装、現在は1.0固定）
         double classMultiplier = 1.0;
 
@@ -153,9 +148,7 @@ public class PlayerDamageHandler {
             calculatedDamage = DamageModifier.calculatePhysicalDamage(
                     baseDamage,
                     strength,
-                    classMultiplier,
-                    isCritical,
-                    critMultiplier
+                    classMultiplier
             );
         } else {
             // 魔法ダメージ計算
@@ -180,12 +173,7 @@ public class PlayerDamageHandler {
 
         // ログ出力
         if (DEBUG) {
-            logDamage(player, target, baseDamage, finalDamage, isCritical, stats);
-        }
-
-        // クリティカルエフェクト（将来的に実装）
-        if (isCritical) {
-            showCriticalEffect(player, target);
+            logDamage(player, target, baseDamage, finalDamage, stats);
         }
 
         return finalDamage;
@@ -206,48 +194,25 @@ public class PlayerDamageHandler {
     }
 
     /**
-     * クリティカルエフェクトを表示
-     *
-     * @param player 攻撃者
-     * @param target ターゲット
-     */
-    private void showCriticalEffect(Player player, Entity target) {
-        // ターゲットの頭上にパーティクル表示
-        target.getWorld().spawnParticle(
-                org.bukkit.Particle.FLAME,
-                target.getLocation().add(0, 2, 0),
-                10,
-                0.5, 0.5, 0.5,
-                0.05
-        );
-
-        // プレイヤーにメッセージ送信
-        player.sendMessage("§6✨ クリティカルヒット！ ✨");
-    }
-
-    /**
      * ダメージログを出力
      *
      * @param attacker      攻撃者
      * @param target        ターゲット
      * @param baseDamage    基本ダメージ
      * @param finalDamage   最終ダメージ
-     * @param isCritical    クリティカルかどうか
      * @param stats         ステータス
      */
     private void logDamage(Player attacker, Entity target,
                           double baseDamage, int finalDamage,
-                          boolean isCritical, Map<Stat, Integer> stats) {
-        String critStr = isCritical ? " [CRITICAL!]" : "";
+                          Map<Stat, Integer> stats) {
         logger.info(String.format(
-                "[Damage] %s->%s: Base=%.1f, STR=%d, INT=%d, Final=%d%s",
+                "[Damage] %s->%s: Base=%.1f, STR=%d, INT=%d, Final=%d",
                 attacker.getName(),
                 target.getName(),
                 baseDamage,
                 stats.getOrDefault(Stat.STRENGTH, 0),
                 stats.getOrDefault(Stat.INTELLIGENCE, 0),
-                finalDamage,
-                critStr
+                finalDamage
         ));
     }
 

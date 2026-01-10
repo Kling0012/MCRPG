@@ -146,6 +146,15 @@ public class SkillManager {
             }
         }
 
+        /**
+         * スキルを削除します
+         *
+         * @param skillId スキルID
+         */
+        public void removeSkill(String skillId) {
+            acquiredSkills.remove(skillId);
+        }
+
         public Map<String, Long> getCooldowns() {
             return new HashMap<>(cooldowns);
         }

@@ -256,6 +256,9 @@ public class SkillLoader extends ConfigLoader {
         int cost = section.getInt("cost", 1);
         validateRange(cost, 0, 100, "skill_tree.cost", fileName);
 
+        // GUI表示用アイコン
+        String icon = section.getString("icon", null);
+
         // 習得要件
         List<Skill.UnlockRequirement> requirements = new ArrayList<>();
         if (section.contains("unlock_requirements")) {
@@ -273,7 +276,7 @@ public class SkillLoader extends ConfigLoader {
             }
         }
 
-        return new Skill.SkillTreeConfig(parent, requirements, cost);
+        return new Skill.SkillTreeConfig(parent, requirements, cost, icon);
     }
 
     /**
@@ -627,7 +630,8 @@ public class SkillLoader extends ConfigLoader {
         // ターゲットタイプのパース
         String typeStr = targetSection.getString("type", "nearest_hostile");
         com.example.rpgplugin.skill.target.TargetType type =
-                com.example.rpgplugin.skill.target.TargetType.fromId(typeStr);
+                com.example.rpgplugin.skill.target.TargetType.fromId(typeStr)
+                .orElse(com.example.rpgplugin.skill.target.TargetType.NEAREST_HOSTILE);
         if (type == null) {
             getLogger().warning("無効なtarget.type: " + typeStr + " (" + fileName + ")");
             type = com.example.rpgplugin.skill.target.TargetType.NEAREST_HOSTILE;
@@ -636,7 +640,8 @@ public class SkillLoader extends ConfigLoader {
         // 範囲形状のパース
         String shapeStr = targetSection.getString("area_shape", "single");
         com.example.rpgplugin.skill.target.AreaShape areaShape =
-                com.example.rpgplugin.skill.target.AreaShape.fromId(shapeStr);
+                com.example.rpgplugin.skill.target.AreaShape.fromId(shapeStr)
+                .orElse(com.example.rpgplugin.skill.target.AreaShape.SINGLE);
         if (areaShape == null) {
             getLogger().warning("無効なtarget.area_shape: " + shapeStr + " (" + fileName + ")");
             areaShape = com.example.rpgplugin.skill.target.AreaShape.SINGLE;

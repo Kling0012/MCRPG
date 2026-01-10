@@ -227,12 +227,6 @@ public class PlayerManager implements Listener {
         if (rpgPlayer != null) {
             savePlayer(uuid);
 
-            // 通貨データもアンロード
-            var currencyManager = plugin.getCurrencyManager();
-            if (currencyManager != null) {
-                currencyManager.unloadPlayerCurrency(uuid);
-            }
-
             logger.fine("Unloaded player: " + rpgPlayer.getUsername());
         }
     }

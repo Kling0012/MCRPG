@@ -1,19 +1,23 @@
 package com.example.rpgplugin.api.skript.conditions;
 
+import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.player.PlayerManager;
+import com.example.rpgplugin.player.RPGPlayer;
+import com.example.rpgplugin.stats.Stat;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
 import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
-import ch.njol.skript.log.SkriptLogger;
 import ch.njol.util.Kleenean;
-import com.example.rpgplugin.RPGPlugin;
-import com.example.rpgplugin.api.RPGPluginAPI;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * プレイヤーのRPGステータスが指定値以上か判定するSKript条件
+ * player's rpg stat is at least 条件
+ *
+ * <p>プレイヤーのステータスが指定値以上かチェックします。</p>
  *
  * <p>構文:</p>
  * <pre>
@@ -21,17 +25,8 @@ import org.jetbrains.annotations.Nullable;
  * rpg stat[e] %string% of %player% is [at least] %number%
  * </pre>
  *
- * <p>使用例:</p>
- * <pre>
- * if player's rpg stat "STR" is at least 50:
- *     send "STRが50以上です！"
- *
- * if rpg stat "VITALITY" of player is at least 100:
- *     send "体力が高いです！"
- * </pre>
- *
  * @author RPGPlugin Team
- * @version 1.0.0
+ * @version 1.0.1
  */
 public class CondRPGStatAbove extends Condition {
 
@@ -42,91 +37,71 @@ public class CondRPGStatAbove extends Condition {
         );
     }
 
-    private Expression<Player> playerExpr;
-    private Expression<String> statExpr;
-    private Expression<Number> valueExpr;
-    private boolean negate;
+    private Expression<Player> player;
+    private Expression<String> statName;
+    private Expression<Number> value;
 
     @Override
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
         if (matchedPattern == 0) {
-            this.playerExpr = (Expression<Player>) exprs[0];
-            this.statExpr = (Expression<String>) exprs[1];
-            this.valueExpr = (Expression<Number>) exprs[2];
+            player = (Expression<Player>) exprs[0];
+            statName = (Expression<String>) exprs[1];
+            value = (Expression<Number>) exprs[2];
         } else {
-            this.statExpr = (Expression<String>) exprs[0];
-            this.playerExpr = (Expression<Player>) exprs[1];
-            this.valueExpr = (Expression<Number>) exprs[2];
+            statName = (Expression<String>) exprs[0];
+            player = (Expression<Player>) exprs[1];
+            value = (Expression<Number>) exprs[2];
         }
-        setNegated(parseResult.hasNegative);
-        this.negate = parseResult.hasNegative;
         return true;
     }
 
     @Override
-    public boolean check(Event e) {
-        Player player = playerExpr.getSingle(e);
-        String statStr = statExpr.getSingle(e);
-        Number value = valueExpr.getSingle(e);
+    public boolean check(@NotNull Event e) {
+        Player p = player.getSingle(e);
+        String name = statName.getSingle(e);
+        Number val = value.getSingle(e);
 
-        if (player == null || statStr == null || value == null) {
-            return negate;
+        if (p == null || name == null || val == null) {
+            return false;
         }
 
-        com.example.rpgplugin.stats.Stat stat = parseStat(statStr);
+        Stat stat = parseStat(name);
         if (stat == null) {
-            SkriptLogger.error("Unknown stat type: " + statStr);
-            return negate;
+            return false;
         }
 
-        try {
-            RPGPlugin plugin = RPGPlugin.getInstance();
-            if (plugin == null || !plugin.isEnabled()) {
-                SkriptLogger.error("RPGPlugin is not enabled");
-                return negate;
-            }
-
-            RPGPluginAPI api = plugin.getAPI();
-            int statValue = api.getStat(player, stat);
-            return (statValue >= value.intValue()) != negate;
-        } catch (Exception ex) {
-            SkriptLogger.error("Error checking RPG stat: " + ex.getMessage());
-            return negate;
+        RPGPlugin plugin = RPGPlugin.getInstance();
+        if (plugin == null) {
+            return false;
         }
+
+        PlayerManager pm = plugin.getPlayerManager();
+        RPGPlayer rpgPlayer = pm.getRPGPlayer(p.getUniqueId());
+
+        if (rpgPlayer == null) {
+            return false;
+        }
+
+        int statValue = rpgPlayer.getStatManager().getFinalStat(stat);
+        return statValue >= val.intValue();
     }
 
     /**
-     * Stat文字列を解析します
+     * ステータス名をStat列挙型に変換
      */
-    private com.example.rpgplugin.stats.Stat parseStat(String statStr) {
-        if (statStr == null) {
-            return null;
-        }
-
-        String upper = statStr.toUpperCase();
-
-        switch (upper) {
-            case "STR":
-                return com.example.rpgplugin.stats.Stat.STRENGTH;
-            case "INT":
-                return com.example.rpgplugin.stats.Stat.INTELLIGENCE;
-            case "SPI":
-                return com.example.rpgplugin.stats.Stat.SPIRIT;
-            case "VIT":
-                return com.example.rpgplugin.stats.Stat.VITALITY;
-            case "DEX":
-                return com.example.rpgplugin.stats.Stat.DEXTERITY;
-            default:
-                try {
-                    return com.example.rpgplugin.stats.Stat.valueOf(upper);
-                } catch (IllegalArgumentException e) {
-                    return null;
-                }
-        }
+    private Stat parseStat(String name) {
+        return switch (name.toUpperCase()) {
+            case "STR", "STRENGTH" -> Stat.STRENGTH;
+            case "INT", "INTELLIGENCE" -> Stat.INTELLIGENCE;
+            case "SPI", "SPIRIT" -> Stat.SPIRIT;
+            case "VIT", "VITALITY" -> Stat.VITALITY;
+            case "DEX", "DEXTERITY" -> Stat.DEXTERITY;
+            default -> null;
+        };
     }
 
     @Override
-    public String toString(@Nullable Event e, boolean debug) {
-        return playerExpr.toString(e, debug) + "'s rpg stat " + statExpr.toString(e, debug) + " is at least " + valueExpr.toString(e, debug);
+    public String toString(@NotNull Event e, boolean debug) {
+        return player.toString(e, debug) + "'s rpg stat " + statName.toString(e, debug) + " is at least " + value.toString(e, debug);
     }
 }

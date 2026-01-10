@@ -12,11 +12,8 @@
 | ドキュメント | 説明 | 対象 |
 |-------------|------|------|
 | **[クイックスタート](QUICKSTART.md)** | 5分で始める開発者向けガイド | 初心者開発者 |
-| **[SKriptチュートリアル](SKRIPT_TUTORIAL.md)** | SKript活用チュートリアル | 初心者開発者 |
 | **[PlaceholderAPIチュートリアル](PLACEHOLDER_TUTORIAL.md)** | プレースホルダー活用チュートリアル | 初心者開発者 |
-| **[APIリファレンス](API.md)** | 外部APIの完全なリファレンス（Java/SKript/Denizen） | 開発者 |
 | **[APIドキュメント](API_DOCUMENTATION.md)** | 詳細APIドキュメントとPhase11新機能 | 開発者 |
-| **[SKript統合ガイド](SKRIPT_INTEGRATION.md)** | ネイティブSKript式・条件・効果・イベント | 開発者 |
 | **[プレースホルダー](PLACEHOLDERS.md)** | PlaceholderAPI プレースホルダーリファレンス | 開発者 |
 | **[コマンドリファレンス](COMMANDS.md)** | すべてのコマンドと使用方法 | 管理者・プレイヤー |
 | **[システム仕様書](SPEC.md)** | システムアーキテクチャと仕様 | 開発者 |
@@ -33,13 +30,11 @@
 | コマンド | 説明 |
 |---------|------|
 | `/rpg` | メインメニュー |
-| `/rpg stats` | ステータスGUI |
-| `/rpg skill` | スキルGUI |
+| `/rpg stats` | ステータス情報表示（PlaceholderAPI連携） |
+| `/rpg skill` | スキル情報表示（PlaceholderAPI連携） |
 | `/rpg cast <ID>` | スキル発動 |
-| `/rpg class [ID]` | クラス管理 |
-| `/rpg balance` | 残高確認 |
-| `/rpg auction` | オークション |
-| `/rpg trade` | トレード |
+| `/rpg class list` | クラス一覧表示 |
+| `/rpg class <ID>` | クラス選択 |
 | `/rpg reload` | 設定リロード(OP) |
 
 ### API主要メソッド（Java）
@@ -50,30 +45,6 @@
 | ステータス | `getStat(Player, Stat)` | ステータス取得 |
 | クラス | `setClass(Player, String)` | クラス設定 |
 | スキル | `castSkill(Player, String)` | スキル発動 |
-| 経済 | `getGoldBalance(Player)` | 残高取得 |
-
-### SKriptネイティブ要素
-
-| カテゴリ | 構文 | 説明 |
-|---------|------|------|
-| 式 | `rpg level of %player%` | レベル取得 |
-| 式 | `rpg stat[e] %string% of %player%` | ステータス取得 |
-| 式 | `rpg class of %player%` | クラスID取得 |
-| 式 | `rpg skill level of %string% [from] %player%` | スキルレベル取得 |
-| 式 | `rpg gold of %player%` | ゴールド取得 |
-| 条件 | `%player% has [the] rpg skill [named] %string%` | スキル習得確認 |
-| 条件 | `%player% can upgrade [their] rpg class` | クラスアップ可否 |
-| 条件 | `%player% has %number% rpg gold` | ゴールド所持確認 |
-| 条件 | `%player%'s rpg stat[e] %string% is [at least] %number%` | ステータス比較 |
-| 条件 | `%player%'s rpg class is %string%` | クラス確認 |
-| 効果 | `give %number% rpg gold to %player%` | ゴールド付与 |
-| 効果 | `take %number% rpg gold from %player%` | ゴールド剥奪 |
-| 効果 | `unlock [the] rpg skill %string% [for] %player%` | スキル習得 |
-| 効果 | `make %player% cast [the] rpg skill %string%` | スキル発動 |
-| 効果 | `set [the] rpg class of %player% to %string%` | クラス設定 |
-| 効果 | `add %number% [to] rpg stat[e] %string% of %player%` | ステータス追加 |
-| イベント | `on rpg skill cast` | スキル発動イベント |
-| イベント | `on rpg skill cast [of] %string%` | 特定スキル発動イベント |
 
 ### PlaceholderAPI プレースホルダー
 
@@ -85,41 +56,14 @@
 | ステータス | `%rpg_stat_SPI%` | SPI値 |
 | ステータス | `%rpg_stat_VIT%` | VIT値 |
 | ステータス | `%rpg_stat_DEX%` | DEX値 |
-| ステータス | `%rpg_stats%` | 全ステータス（フォーマット済み） |
+| ステータス | `%rpg_available_points%` | 利用可能ステータスポイント |
 | クラス | `%rpg_class%` | クラスID |
 | クラス | `%rpg_class_name%` | クラス表示名 |
 | クラス | `%rpg_class_rank%` | クラスランク |
-| 経済 | `%rpg_gold%` | ゴールド残高 |
-| スキル | `%rpg_skill_points%` | スキルポイント |
-| スキル | `%rpg_available_points%` | 利用可能ステータスポイント |
 | スキル | `%rpg_skill_level_<skill>%` | スキルレベル |
 | HP/MP | `%rpg_max_hp%` | 最大HP |
 | HP/MP | `%rpg_max_mana%` | 最大MP |
 | HP/MP | `%rpg_mana%` | 現在MP |
-
-### APIコマンド一覧（SKript/Denizen）
-
-| アクション | 説明 |
-|-----------|------|
-| `get_level` | レベル取得 |
-| `set_level` | レベル設定 |
-| `get_stat` | ステータス取得 |
-| `set_stat` | ステータス設定 |
-| `get_class` | クラス取得 |
-| `set_class` | クラス設定 |
-| `upgrade_class` | クラスアップ |
-| `has_skill` | スキル習得確認 |
-| `unlock_skill` | スキル習得 |
-| `cast_skill` | スキル発動 |
-| `get_skill_level` | スキルレベル取得 |
-| `get_gold` | ゴールド取得 |
-| `give_gold` | ゴールド付与 |
-| `take_gold` | ゴールド剥奪 |
-| `has_gold` | ゴールド所持確認 |
-| `transfer_gold` | ゴールド転送 |
-| `calculate_damage` | ダメージ計算 |
-| `cast_at` | ターゲット指定スキル |
-| `get_entities_in_area` | 範囲エンティティ取得 |
 
 ---
 
@@ -180,13 +124,9 @@ List<Entity> getTargetsInArea(Player caster, TargetType type, AreaShape shape);
 |------|------|------|
 | アーキテクチャ | システム設計 | SPEC |
 | API | 外部連携インターフェース | API |
-| APIコマンド | SKript/Denizen連携コマンド | API |
 | アクティブスキル | 手動発動スキル | SPEC |
-| アイテム入札 | オークションシステム | COMMANDS |
-| アクション | RPG APIコマンドの種類 | API |
 | エンティティフィルター | ターゲット選択フィルター | SPEC |
 | 演算子 | 数式の演算子 | SPEC |
-| オークション | アイテム入札システム | COMMANDS |
 | 依存関係 | プラグイン依存 | SPEC |
 | オフラインプレイヤー | L2キャッシュ | SPEC |
 
@@ -224,7 +164,6 @@ List<Entity> getTargetsInArea(Player caster, TargetType type, AreaShape shape);
 | データベース | SQLite永続化 | SPEC |
 | デバフ | 状態異常効果 | SPEC |
 | デバッグモード | 詳細ログ出力 | TUTORIAL |
-| トレード | プレイヤー間取引 | COMMANDS |
 | Tab補完 | コマンド補完 | COMMANDS |
 | ターゲットタイプ | cone/sphere/sector/self/area | SPEC |
 | ターゲットフィルター | hostile/not_self/alive | SPEC |
@@ -271,7 +210,6 @@ List<Entity> getTargetsInArea(Player caster, TargetType type, AreaShape shape);
 | リロード | 設定再読み込み | COMMANDS, SPEC |
 | レベルアップ | ステータスポイント付与 | SPEC |
 | レベル依存パラメータ | cost/cooldown/damage | SPEC |
-| 連携 | SKript/Denizen連携 | API |
 
 ### わ行
 
@@ -294,7 +232,6 @@ List<Entity> getTargetsInArea(Player caster, TargetType type, AreaShape shape);
 │  + getStatManager(): StatManager                            │
 │  + getClassManager(): ClassManager                          │
 │  + getSkillManager(): SkillManager                          │
-│  + getCurrencyManager(): CurrencyManager                    │
 └─────────────────────────────────────────────────────────────┘
                            │
            ┌───────────────┼───────────────┐
@@ -417,8 +354,6 @@ List<Entity> getTargetsInArea(Player caster, TargetType type, AreaShape shape);
 | パッシブスキル | 常時効果が発動するスキル |
 | クラス | プレイヤーの役割（戦士、魔法使いなど） |
 | ランクアップ | クラスの上位版への変更 |
-| ゴールド | プラグイン内の通貨 |
-| オークション | アイテム入札システム |
 | ホットリロード | 再起動なしで設定を反映 |
 | ダメージ修正 | ダメージに補正をかける仕組み |
 | スキルツリー | スキルの習得条件関係 |

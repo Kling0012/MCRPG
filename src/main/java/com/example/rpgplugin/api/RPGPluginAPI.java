@@ -113,6 +113,31 @@ public interface RPGPluginAPI {
     boolean setClass(Player player, String classId);
 
     /**
+     * プレイヤーのクラスを変更します
+     *
+     * <p>条件チェックを行わず、即座にクラスを変更します。
+     * 変更時にレベルを0にリセットし、職業固有のステータスボーナスを再計算します。</p>
+     *
+     * @param player  プレイヤー
+     * @param classId 新しいクラスID
+     *return 成功した場合はtrue
+     */
+    boolean changeClass(Player player, String classId);
+
+    /**
+     * プレイヤーのクラスを変更します（レベル指定）
+     *
+     * <p>条件チェックを行わず、即座にクラスを変更します。
+     * 変更時に指定されたレベルを設定し、職業固有のステータスボーナスを再計算します。</p>
+     *
+     * @param player  プレイヤー
+     * @param classId 新しいクラスID
+     * @param level   設定するレベル（0以下の場合は0）
+     *return 成功した場合はtrue
+     */
+    boolean changeClass(Player player, String classId, int level);
+
+    /**
      * クラスをランクアップします
      *
      * <p>現在のクラスの上位クラスがある場合にランクアップします。</p>

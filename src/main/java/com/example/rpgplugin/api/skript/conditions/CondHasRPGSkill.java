@@ -1,41 +1,31 @@
 package com.example.rpgplugin.api.skript.conditions;
 
+import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.player.PlayerManager;
+import com.example.rpgplugin.player.RPGPlayer;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
 import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Condition;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.SkriptParser;
-import ch.njol.skript.log.SkriptLogger;
 import ch.njol.util.Kleenean;
-import com.example.rpgplugin.RPGPlugin;
-import com.example.rpgplugin.api.RPGPluginAPI;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * プレイヤーがRPGスキルを習得しているか判定するSKript条件
+ * player has rpg skill 条件
+ *
+ * <p>プレイヤーがスキルを習得しているかチェックします。</p>
  *
  * <p>構文:</p>
  * <pre>
- * %player% has [the] rpg skill %skill%
- * %player% has [the] rpg skill [named] %skill%
- * %player%'s rpg skill[s] (contain|includes) %skill%
- * </pre>
- *
- * <p>使用例:</p>
- * <pre>
- * if player has rpg skill "fireball":
- *     send "ファイアボールを習得済みです！"
- *
- * if player has rpg skill named "power_strike":
- *     execute player command "cast power_strike"
- *
- * if player's rpg skills includes "heal":
- *     send "ヒールが使用可能です"
+ * %player% has [the] rpg skill [named] %string%
+ * %player%'s rpg skill[s] (contain|includes) %string%
  * </pre>
  *
  * @author RPGPlugin Team
- * @version 1.0.0
+ * @version 1.0.1
  */
 public class CondHasRPGSkill extends Condition {
 
@@ -46,42 +36,38 @@ public class CondHasRPGSkill extends Condition {
         );
     }
 
-    private Expression<Player> playerExpr;
-    private Expression<String> skillExpr;
+    private Expression<Player> player;
+    private Expression<String> skillId;
 
     @Override
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
-        this.playerExpr = (Expression<Player>) exprs[0];
-        this.skillExpr = (Expression<String>) exprs[1];
+        player = (Expression<Player>) exprs[0];
+        skillId = (Expression<String>) exprs[1];
         return true;
     }
 
     @Override
-    public boolean check(Event e) {
-        Player player = playerExpr.getSingle(e);
-        String skillId = skillExpr.getSingle(e);
+    public boolean check(@NotNull Event e) {
+        Player p = player.getSingle(e);
+        String skill = skillId.getSingle(e);
 
-        if (player == null || skillId == null) {
+        if (p == null || skill == null) {
             return false;
         }
 
-        try {
-            RPGPlugin plugin = RPGPlugin.getInstance();
-            if (plugin == null || !plugin.isEnabled()) {
-                SkriptLogger.error("RPGPlugin is not enabled");
-                return false;
-            }
-
-            RPGPluginAPI api = plugin.getAPI();
-            return api.hasSkill(player, skillId);
-        } catch (Exception ex) {
-            SkriptLogger.error("Error checking RPG skill: " + ex.getMessage());
+        RPGPlugin plugin = RPGPlugin.getInstance();
+        if (plugin == null) {
             return false;
         }
+
+        PlayerManager pm = plugin.getPlayerManager();
+        RPGPlayer rpgPlayer = pm.getRPGPlayer(p.getUniqueId());
+
+        return rpgPlayer != null && rpgPlayer.hasSkill(skill);
     }
 
     @Override
-    public String toString(@Nullable Event e, boolean debug) {
-        return playerExpr.toString(e, debug) + " has rpg skill " + skillExpr.toString(e, debug);
+    public String toString(@NotNull Event e, boolean debug) {
+        return player.toString(e, debug) + " has rpg skill " + skillId.toString(e, debug);
     }
 }

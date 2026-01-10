@@ -46,14 +46,9 @@
 - [x] ダメージ計算基盤
   - StatCalculator（ステータス→パラメータ変換）(`stats/calculator/StatCalculator.java`)
 
-- [x] ステータス振りGUI
-  - StatMenu実装 (`gui/menu/StatMenu.java`)
-  - 左クリック+、右クリック-
-  - StatMenuListener (`gui/menu/StatMenuListener.java`)
-
 **成果物**:
 - ✅ バニラレベルアップで自動+2、手動3ポイント獲得
-- ✅ `/rpg stats` コマンドでGUIオープン
+- ✅ `/rpg stats` コマンドでステータス情報表示（PlaceholderAPI連携）
 - ✅ ダメージ計算基盤完成
 
 ---
@@ -105,16 +100,11 @@
     - ItemRequirement (`rpgclass/requirements/ItemRequirement.java`)
     - QuestRequirement (`rpgclass/requirements/QuestRequirement.java`)
 
-- [x] GUI実装
-  - ClassMenu（クラス選択GUI）(`gui/menu/rpgclass/ClassMenu.java`)
-  - ClassMenuListener (`gui/menu/rpgclass/ClassMenuListener.java`)
-  - InventoryHolderパターン
-
 **成果物**:
 - ✅ 4初期クラス実装（戦士、大盾使い、魔法使い、弓使い）
 - ✅ 各クラスRank1-6のテンプレート用意
-- ✅ `/rpg class` コマンドでクラス選択GUI
-- ✅ `/rpg api upgrade_class` コマンドで外部からクラスアップ
+- ✅ `/rpg class list` コマンドでクラス一覧表示
+- ✅ `/rpg class <ID>` コマンドでクラス選択
 
 ---
 
@@ -145,69 +135,27 @@
   - 条件付き発動
   - PassiveSkillExecutor (`skill/executor/PassiveSkillExecutor.java`)
 
-- [x] スキルGUI
-  - SkillMenu (`gui/menu/SkillMenu.java`)
-  - SkillMenuListener (`gui/menu/SkillMenuListener.java`)
-
 **成果物**:
 - ✅ 共通スキルプール実装（10-15種類）
 - ✅ 各クラスで3-5個のスキルを選択
-- ✅ `/rpg skill` コマンドでスキルツリーGUI
-- ✅ `/rpg api cast_skill` コマンドで外部から発動
+- ✅ `/rpg skill` コマンドでスキル情報表示（PlaceholderAPI連携）
+- ✅ `/rpg cast <スキルID>` コマンドでスキル発動
 
 ---
 
-## フェーズ6: 経済・オークションシステム（1-2週間） ✅ **実装完了**
+## フェーズ6: スキップ（経済・オークションは未実装）
 
 **優先度: 中**
 
-- [x] 独自通貨システム（重要）
-  - CurrencyManager (`currency/CurrencyManager.java`)
-  - CurrencyListener (`currency/CurrencyListener.java`)
-  - PlayerCurrency (`storage/models/PlayerCurrency.java`)
-  - PlayerCurrencyRepository (`storage/repository/PlayerCurrencyRepository.java`)
-  - 通貨入手方法実装
-
-- [x] オークション（重要）
-  - AuctionManager (`auction/AuctionManager.java`)
-  - BiddingSystem（入札10%上乗せ、30-180秒、+5秒延長）(`auction/BiddingSystem.java`)
-  - Auction (`auction/Auction.java`)
-  - AuctionListing (`auction/AuctionListing.java`)
-  - 手数料システム
-  - AuctionCommand (`auction/AuctionCommand.java`)
-
-- [x] GUI（オプション）
-  - AuctionMenu（出品一覧）
-
-**成果物**:
-- ✅ 独自通貨「ゴールド」実装
-- ✅ オークションシステム完全動作
-- ✅ `/rpg auction` コマンド群
+経済システム（通貨）、オークションシステムは実装対象外。
 
 ---
 
-## フェーズ7: トレード・GUI（1週間） ✅ **実装完了**
+## フェーズ7: スキップ（トレード・GUIは未実装）
 
 **優先度: 中**
 
-- [x] トレードシステム（重要）
-  - TradeManager (`trade/TradeManager.java`)
-  - TradeSession (`trade/TradeSession.java`)
-  - TradeInventory（トレードGUI）(`trade/TradeInventory.java`)
-  - TradeMenuListener (`trade/TradeMenuListener.java`)
-  - TradeHistoryRepository (`trade/repository/TradeHistoryRepository.java`)
-  - TradeOffer (`trade/model/TradeOffer.java`)
-  - TradeParty (`trade/model/TradeParty.java`)
-
-- [x] GUI追加
-  - ステータス振りGUI（✅ 実装済み）
-  - スキルツリーGUI（✅ 実装済み）
-  - トレードGUI（✅ 実装済み）
-
-**成果物**:
-- ✅ プレイヤー間トレード実装
-- ✅ `/rpg trade request <player>` コマンド
-- ✅ トレードGUI完全動作
+トレードシステム、GUIシステムは実装対象外。
 
 ---
 
@@ -243,26 +191,12 @@
   - RPGPluginAPIImpl (`api/RPGPluginAPIImpl.java`)
   - 全メソッド実装
 
-- [x] SKriptブリッジ（重要）
-  - SKriptBridge (`api/bridge/SKriptBridge.java`)
-  - SKript用コマンド実装
-
-- [x] Denizenブリッジ（重要）
-  - DenizenBridge (`api/bridge/DenizenBridge.java`)
-  - Denizenタグ実装
-
-- [x] APIコマンド（重要）
-  - APICommand (`api/command/APICommand.java`)
-
-- [x] テンプレート用意（重要）
-  - クラステンプレート（melee, ranged, magic）
-  - スキルテンプレート（active, passive）
+- [x] PlaceholderAPI連携
+  - RPGPlaceholderExpansion (`api/placeholder/RPGPlaceholderExpansion.java`)
 
 **成果物**:
 - ✅ 外部プラグインからアクセス可能なAPI
-- ✅ SKriptサンプルスクリプト
-- ✅ Denizenサンプルスクリプト
-- ✅ クラス・スキル作成テンプレート
+- ✅ PlaceholderAPIによるプレイヤー情報表示
 
 ---
 
@@ -291,8 +225,6 @@
   - APIドキュメント (`docs/API_DOCUMENTATION.md`)
   - MockBukkit導入ガイド (`docs/MOCKBUKKIT_INTEGRATION_GUIDE.md`)
   - Phase10-2実装レポート (`docs/PHASE10-2_IMPLEMENTATION_REPORT.md`)
-  - ~~Wiki作成~~（未実装）
-  - ~~SKript/Denizen連携ガイド~~（一部実装）
 
 **成果物**:
 - ✅ 経験値減衰機能実装
@@ -313,16 +245,10 @@
 ### フェーズ4-5完了時点（週9） ✅ **完了**
 - ✅ クラスシステム完全動作（4クラス、Rank6）
 - ✅ スキルシステム実装（共通スキルプール）
-- ✅ GUIメニュー完成（ステータス、クラス、スキルツリー）
-- ✅ 基本的なRPG体験可能
 
-### フェーズ6-8完了時点（週11） ✅ **完了**
-- ✅ 独自通貨システム
-- ✅ オークション・トレードシステム
+### フェーズ8-10完了時点（週12） ✅ **完了**
 - ✅ MythicMobs連携
-
-### フェーズ9-10完了時点（週12） ✅ **完了**
-- ✅ 外部API完全実装（SKript/Denizen）
+- ✅ PlaceholderAPI連携
 - ✅ 経験値減衰
 - ✅ 全機能実装
 - ✅ テスト完了（構造検証ベース）

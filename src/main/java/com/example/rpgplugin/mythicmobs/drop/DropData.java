@@ -277,7 +277,7 @@ public class DropData implements Serializable {
                         }
                     }
                 }
-            } catch (IllegalArgumentException | NumberFormatException e) {
+            } catch (IllegalArgumentException e) {
                 java.util.logging.Logger.getLogger("DropData")
                         .warning("Failed to parse field: " + key + " = " + value);
             }

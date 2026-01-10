@@ -1,8 +1,24 @@
-# SKript ネイティブ統合ガイド
+# SKript 連携ガイド
 
 > **作業ブランチ**: main
-> **最終更新**: 2026-01-09
-> **バージョン**: 1.0.0
+> **最終更新**: 2026-01-10
+> **バージョン**: 1.0.1
+
+---
+
+## ⚠️ 移行のお知らせ
+
+RPGPlugin 1.0.1より、SKript連携は**Skript Reflect**アドオンを使用する方式に変更されました。
+
+従来のネイティブSKript構文（`rpg level of player` 等）は廃止されました。
+
+**新しい連携方法については、[SKRIPT_REFLECT.md](SKRIPT_REFLECT.md)を参照してください。**
+
+---
+
+## 概要
+
+RPGPluginは**Skript Reflect**アドオンを使用して、Skriptスクリプトから直接Javaメソッドを呼び出すことができます。
 
 ---
 

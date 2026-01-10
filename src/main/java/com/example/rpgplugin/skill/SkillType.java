@@ -5,7 +5,7 @@ import org.bukkit.ChatColor;
 /**
  * スキルタイプを表す列挙型
  *
- * <p>スキルをアクティブとパッシブに分類し、各タイプの表示名と色を管理します。</p>
+ * <p>パッシブ/アクティブの区分を廃止し、全てのスキルを統一的に扱います。</p>
  *
  * <p>設計原則:</p>
  * <ul>
@@ -15,25 +15,17 @@ import org.bukkit.ChatColor;
  * </ul>
  *
  * @author RPGPlugin Team
- * @version 1.0.0
+ * @version 2.0.0
  */
 public enum SkillType {
 
     /**
-     * アクティブスキル
+     * 通常スキル
      *
-     * <p>プレイヤーが手動で発動するスキルです。</p>
-     * <p>クールダウンとMP消費があります。</p>
+     * <p>全てのスキルを統一的に扱います。</p>
+     * <p>発動形式（アクティブ/パッシブ）はYAML設定で管理します。</p>
      */
-    ACTIVE("active", "アクティブ", ChatColor.GOLD, "手動発動・クールダウンあり"),
-
-    /**
-     * パッシブスキル
-     *
-     * <p>常時発動しているスキルです。</p>
-     * <p>特定条件で自動的に効果を発揮します。</p>
-     */
-    PASSIVE("passive", "パッシブ", ChatColor.GREEN, "常時発動・自動効果");
+    NORMAL("normal", "スキル", ChatColor.GOLD, "通常スキル");
 
     private final String id;
     private final String displayName;
@@ -104,6 +96,7 @@ public enum SkillType {
      * IDからSkillTypeを取得します
      *
      * <p>大文字小文字を区別しません。</p>
+     * <p>active/passiveは互換性のためnormalにマッピングされます。</p>
      *
      * @param id スキルタイプID
      * @return 対応するSkillType、見つからない場合はnull
@@ -111,6 +104,11 @@ public enum SkillType {
     public static SkillType fromId(String id) {
         if (id == null) {
             return null;
+        }
+
+        // 互換性のためactive/passiveはnormalにマッピング
+        if ("active".equalsIgnoreCase(id) || "passive".equalsIgnoreCase(id)) {
+            return NORMAL;
         }
 
         for (SkillType type : values()) {

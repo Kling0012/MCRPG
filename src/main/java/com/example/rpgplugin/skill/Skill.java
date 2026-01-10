@@ -99,11 +99,13 @@ public class Skill {
         private final String parent;
         private final List<UnlockRequirement> unlockRequirements;
         private final int cost;
+        private final String icon;  // GUI表示用アイコン名
 
-        public SkillTreeConfig(String parent, List<UnlockRequirement> unlockRequirements, int cost) {
+        public SkillTreeConfig(String parent, List<UnlockRequirement> unlockRequirements, int cost, String icon) {
             this.parent = parent;
             this.unlockRequirements = unlockRequirements != null ? unlockRequirements : new ArrayList<>();
             this.cost = cost;
+            this.icon = icon;
         }
 
         public String getParent() {
@@ -116,6 +118,10 @@ public class Skill {
 
         public int getCost() {
             return cost;
+        }
+
+        public String getIcon() {
+            return icon;
         }
     }
 

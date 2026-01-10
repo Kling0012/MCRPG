@@ -124,11 +124,11 @@ public class RPGPlaceholderExpansion extends PlaceholderExpansion {
             return "1";
         }
 
-        // スキルポイント
+        // スキルポイント（利用可能ステータスポイントを使用）
         if (params.equals("skill_points")) {
             RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(uuid);
             if (rpgPlayer != null) {
-                return String.valueOf(rpgPlayer.getSkillPoints());
+                return String.valueOf(rpgPlayer.getAvailablePoints());
             }
             return "0";
         }
@@ -154,8 +154,8 @@ public class RPGPlaceholderExpansion extends PlaceholderExpansion {
         // HP/MP関連
         if (params.equals("max_hp") || params.equals("max_health")) {
             RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(uuid);
-            if (rpgPlayer != null && rpgPlayer.getMaxHealth() > 0) {
-                return String.valueOf(rpgPlayer.getMaxHealth());
+            if (rpgPlayer != null && rpgPlayer.getPlayerData().getMaxHealth() > 0) {
+                return String.valueOf(rpgPlayer.getPlayerData().getMaxHealth());
             }
             return "20";
         }

@@ -1,20 +1,24 @@
 package com.example.rpgplugin.api.skript.expressions;
 
+import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.player.PlayerManager;
+import com.example.rpgplugin.player.RPGPlayer;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.util.SimpleExpression;
-import ch.njol.skript.log.SkriptLogger;
 import ch.njol.util.Kleenean;
-import com.example.rpgplugin.RPGPlugin;
-import com.example.rpgplugin.api.RPGPluginAPI;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.jetbrains.annotations.Nullable;
 
 /**
- * RPGプレイヤーのクラスを取得するSKript式
+ * rpg class of player 式
+ *
+ * <p>プレイヤーのクラスIDを取得します。</p>
  *
  * <p>構文:</p>
  * <pre>
@@ -23,34 +27,52 @@ import org.jetbrains.annotations.Nullable;
  * %player%'s rpg class
  * </pre>
  *
- * <p>使用例:</p>
- * <pre>
- * set {_class} to rpg class of player
- * send "クラス: %{_class}%" to player
- *
- * if rpg class of player is "warrior":
- *     send "あなたは戦士です！"
- * </pre>
- *
  * @author RPGPlugin Team
- * @version 1.0.0
+ * @version 1.0.1
  */
 public class ExprRPGClass extends SimpleExpression<String> {
 
     static {
-        Skript.registerExpression(ExprRPGClass.class, String.class,
-                ExpressionType.SIMPLE,
+        Skript.registerExpression(ExprRPGClass.class, String.class, ExpressionType.COMBINED,
                 "[the] rpg class of %player%",
                 "[the] rpg class of %player%'s",
                 "%player%'s rpg class"
         );
     }
 
-    private Expression<Player> playerExpr;
+    private Expression<Player> player;
 
     @Override
-    public Class<? extends String> getReturnType() {
-        return String.class;
+    public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
+        player = (Expression<Player>) exprs[0];
+        return true;
+    }
+
+    @Override
+    protected String[] get(Event e) {
+        Player p = player.getSingle(e);
+        if (p == null) {
+            return new String[0];
+        }
+
+        RPGPlugin plugin = RPGPlugin.getInstance();
+        if (plugin == null) {
+            return new String[0];
+        }
+
+        PlayerManager pm = plugin.getPlayerManager();
+        RPGPlayer rpgPlayer = pm.getRPGPlayer(p.getUniqueId());
+
+        if (rpgPlayer == null) {
+            return new String[0];
+        }
+
+        String classId = rpgPlayer.getClassId();
+        if (classId == null || classId.isEmpty()) {
+            return new String[0];
+        }
+
+        return new String[]{classId};
     }
 
     @Override
@@ -59,40 +81,12 @@ public class ExprRPGClass extends SimpleExpression<String> {
     }
 
     @Override
-    public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
-        this.playerExpr = (Expression<Player>) exprs[0];
-        return true;
-    }
-
-    @Override
-    @Nullable
-    protected String[] get(Event e) {
-        Player player = playerExpr.getSingle(e);
-        if (player == null) {
-            return new String[0];
-        }
-
-        try {
-            RPGPlugin plugin = RPGPlugin.getInstance();
-            if (plugin == null || !plugin.isEnabled()) {
-                SkriptLogger.error("RPGPlugin is not enabled");
-                return new String[0];
-            }
-
-            RPGPluginAPI api = plugin.getAPI();
-            String classId = api.getClassId(player);
-            if (classId == null) {
-                return new String[]{"None"};
-            }
-            return new String[]{classId};
-        } catch (Exception ex) {
-            SkriptLogger.error("Error getting RPG class: " + ex.getMessage());
-            return new String[0];
-        }
+    public Class<? extends String> getReturnType() {
+        return String.class;
     }
 
     @Override
     public String toString(@Nullable Event e, boolean debug) {
-        return "rpg class of " + playerExpr.toString(e, debug);
+        return "rpg class of " + player.toString(e, debug);
     }
 }

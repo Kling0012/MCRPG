@@ -13,20 +13,19 @@ import ch.njol.skript.lang.SkriptEvent;
 import ch.njol.skript.lang.SkriptParser;
 
 /**
- * on rpg skill cast イベント
+ * on rpg skill damage イベント
  *
- * <p>スキル発動時にトリガーされます。</p>
+ * <p>スキルでダメージを与えた時にトリガーされます。</p>
  *
  * <p>構文:</p>
  * <pre>
- * on rpg skill cast:
+ * on rpg skill damage:
  *     set {_p} to event-player
  *     set {_skill} to event-skill
- *     set {_id} to event-skill-id
- *     set {_lvl} to event-skill-level
+ *     set {_dmg} to event-damage
  *     set {_target} to event-target
  *
- * on rpg skill cast [of] %string%:
+ * on rpg skill damage [of] %string%:
  *     # 特定スキルのみ
  * </pre>
  *
@@ -36,20 +35,21 @@ import ch.njol.skript.lang.SkriptParser;
  *   <li>event-skill-id - スキルID（文字列）</li>
  *   <li>event-skill - スキルオブジェクト</li>
  *   <li>event-skill-level - スキルレベル（数値）</li>
- *   <li>event-target - ターゲットエンティティ（存在する場合）</li>
+ *   <li>event-target - ダメージを受けたエンティティ</li>
+ *   <li>event-damage - 与えたダメージ（数値）</li>
  * </ul>
  *
  * @author RPGPlugin Team
  * @version 1.0.1
  */
-public class EvtRPGSkillCast extends SkriptEvent {
+public class EvtRPGSkillDamage extends SkriptEvent {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
     static {
-        Skript.registerEvent("RPGSkillCast", EvtRPGSkillCast.class, RPGSkillCastEvent.class,
-                "on rpg skill cast",
-                "on rpg skill cast [of] %string%"
+        Skript.registerEvent("RPGSkillDamage", EvtRPGSkillDamage.class, RPGSkillDamageEvent.class,
+                "on rpg skill damage",
+                "on rpg skill damage [of] %string%"
         );
 
         // イベント式の登録は別途 ExprEventXXX クラスで行います
@@ -74,8 +74,8 @@ public class EvtRPGSkillCast extends SkriptEvent {
         if (targetSkill == null) {
             return true;
         }
-        if (e instanceof RPGSkillCastEvent) {
-            return targetSkill.equals(((RPGSkillCastEvent) e).getSkillId());
+        if (e instanceof RPGSkillDamageEvent) {
+            return targetSkill.equals(((RPGSkillDamageEvent) e).getSkillId());
         }
         return false;
     }
@@ -83,28 +83,30 @@ public class EvtRPGSkillCast extends SkriptEvent {
     @Override
     public String toString(@NotNull Event e, boolean debug) {
         if (skillId != null) {
-            return "on rpg skill cast of " + skillId.toString(e, debug);
+            return "on rpg skill damage of " + skillId.toString(e, debug);
         }
-        return "on rpg skill cast";
+        return "on rpg skill damage";
     }
 
     /**
-     * RPGスキル発動イベント
+     * RPGスキルダメージイベント
      */
-    public static class RPGSkillCastEvent extends Event {
+    public static class RPGSkillDamageEvent extends Event {
 
         private final Player player;
         private final String skillId;
         private final Skill skill;
         private final int skillLevel;
         private final Entity target;
+        private final double damage;
 
-        public RPGSkillCastEvent(Player player, String skillId, Skill skill, int skillLevel, Entity target) {
+        public RPGSkillDamageEvent(Player player, String skillId, Skill skill, int skillLevel, Entity target, double damage) {
             this.player = player;
             this.skillId = skillId;
             this.skill = skill;
             this.skillLevel = skillLevel;
             this.target = target;
+            this.damage = damage;
         }
 
         @Override
@@ -130,6 +132,10 @@ public class EvtRPGSkillCast extends SkriptEvent {
 
         public Entity getTarget() {
             return target;
+        }
+
+        public double getDamage() {
+            return damage;
         }
     }
 }

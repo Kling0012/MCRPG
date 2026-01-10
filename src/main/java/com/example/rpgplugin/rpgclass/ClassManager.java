@@ -312,6 +312,71 @@ public class ClassManager {
     }
 
     /**
+     * プレイヤーのクラスを変更します
+     *
+     * <p>条件チェックを行わず、即座にクラスを変更します。
+     * 変更時にレベルを0にリセットし、職業固有のステータスボーナスを再計算します。</p>
+     *
+     * @param player  プレイヤー
+     * @param classId 新しいクラスID
+     * @param level   設定するレベル（0以下の場合は0）
+     *return 成功した場合はtrue
+     */
+    public boolean changeClass(Player player, String classId, int level) {
+        if (player == null || classId == null) {
+            return false;
+        }
+
+        if (!classes.containsKey(classId)) {
+            logger.warning("Class not found: " + classId);
+            return false;
+        }
+
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer == null) {
+            logger.warning("RPGPlayer not found: " + player.getName());
+            return false;
+        }
+
+        String oldClassId = rpgPlayer.getClassId();
+
+        // 履歴に追加（永続化）
+        if (oldClassId != null && !oldClassId.equals(classId)) {
+            rpgPlayer.addClassToHistory(oldClassId);
+        }
+
+        // クラスIDを設定
+        rpgPlayer.setClassId(classId);
+
+        // レベルを設定（0以下の場合は0）
+        int newLevel = Math.max(0, level);
+        player.setLevel(newLevel);
+
+        // ステータスボーナスを再計算
+        // TODO: StatManagerで職業固有のステータスボーナスを再計算する処理を実装
+        // 現在は基本実装のみ
+
+        logger.info("[ClassManager] Changed player class: " + player.getName() +
+                    " from " + (oldClassId != null ? oldClassId : "none") +
+                    " to " + classId + " (level: " + newLevel + ")");
+
+        return true;
+    }
+
+    /**
+     * プレイヤーのクラスを変更します（レベル0）
+     *
+     * <p>レベルを0にリセットしてクラスを変更します。</p>
+     *
+     * @param player  プレイヤー
+     * @param classId 新しいクラスID
+     * @return 成功した場合はtrue
+     */
+    public boolean changeClass(Player player, String classId) {
+        return changeClass(player, classId, 0);
+    }
+
+    /**
      * クラスアップ結果
      */
     public static class ClassUpResult {

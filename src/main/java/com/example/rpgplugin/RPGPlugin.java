@@ -1,5 +1,6 @@
 package com.example.rpgplugin;
 
+import com.example.rpgplugin.api.command.APICommand;
 import com.example.rpgplugin.core.config.ConfigWatcher;
 import com.example.rpgplugin.core.config.YamlConfigManager;
 import com.example.rpgplugin.core.dependency.DependencyManager;
@@ -21,6 +22,8 @@ import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
 import com.example.rpgplugin.skill.executor.PassiveSkillExecutor;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.storage.StorageManager;
+import org.bukkit.ChatColor;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -45,8 +48,7 @@ public class RPGPlugin extends JavaPlugin {
     private GameSystemManager gameSystem;
     private ExternalSystemManager externalSystem;
 
-    // SKript・PlaceholderAPI連携
-    private com.example.rpgplugin.api.skript.RPGSkriptAddon skriptAddon;
+    // PlaceholderAPI連携
     private com.example.rpgplugin.api.placeholder.RPGPlaceholderExpansion placeholderExpansion;
 
     @Override
@@ -84,7 +86,7 @@ public class RPGPlugin extends JavaPlugin {
             // 外部システムの追加初期化
             setupExternalSystemExtensions();
 
-            // 4. SKript・PlaceholderAPI連携
+            // 4. PlaceholderAPI連携
             setupIntegrations();
 
             // 5. コマンド・リスナー登録
@@ -314,9 +316,6 @@ public class RPGPlugin extends JavaPlugin {
         // 自動保存タスクを開始
         startAutoSaveTask();
 
-        // オークション期限切れチェックタスクを開始
-        startAuctionExpirationTask();
-
         getLogger().info("Game system extensions setup complete!");
     }
 
@@ -341,23 +340,10 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
-     * SKript・PlaceholderAPIとの統合をセットアップします
+     * 外部プラグインとの統合をセットアップします
      */
     private void setupIntegrations() {
         getLogger().info("Setting up third-party integrations...");
-
-        // SKript連携
-        if (getServer().getPluginManager().getPlugin("Skript") != null) {
-            try {
-                skriptAddon = new com.example.rpgplugin.api.skript.RPGSkriptAddon(this);
-                skriptAddon.registerElements();
-                getLogger().info("Skript integration loaded successfully!");
-            } catch (Exception e) {
-                getLogger().warning("Failed to load Skript integration: " + e.getMessage());
-            }
-        } else {
-            getLogger().info("Skript not installed, skipping Skript integration.");
-        }
 
         // PlaceholderAPI連携
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -371,6 +357,13 @@ public class RPGPlugin extends JavaPlugin {
         } else {
             getLogger().info("PlaceholderAPI not installed, skipping PlaceholderAPI integration.");
         }
+
+        // Skript連携
+if (getServer().getPluginManager().getPlugin("Skript") != null) {
+    getLogger().info("Skript detected - use Skript Reflect for direct API access. See /rpgapi");
+} else {
+    getLogger().info("Skript not installed.");
+}
 
         getLogger().info("Third-party integrations setup complete!");
     }
@@ -466,9 +459,22 @@ public class RPGPlugin extends JavaPlugin {
      */
     private void registerCommands() {
         try {
+            // メインRPGコマンド
             RPGCommand rpgCommand = new RPGCommand();
             getCommand("rpg").setExecutor(rpgCommand);
             getCommand("rpg").setTabCompleter(rpgCommand);
+
+            // APIコマンド（Skript Reflectヘルプ用）
+APICommand apiCommand = new APICommand(this);
+PluginCommand apiCmd = getCommand("rpgapi");
+if (apiCmd != null) {
+    apiCmd.setExecutor(apiCommand);
+    apiCmd.setTabCompleter(apiCommand);
+    getLogger().info("API command registered for Skript Reflect.");
+} else {
+    getLogger().warning("API command 'rpgapi' not found in plugin.yml");
+}
+
             getLogger().info("Commands registered.");
         } catch (Exception e) {
             getLogger().warning("Failed to register commands: " + e.getMessage());
@@ -476,16 +482,17 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
-     * リスナーを登録します
-     */
-    private void registerListeners() {
-        try {
-            getServer().getPluginManager().registerEvents(new RPGListener(), this);
-            getLogger().info("Listeners registered.");
-        } catch (Exception e) {
-            getLogger().warning("Failed to register listeners: " + e.getMessage());
-        }
+ * リスナーを登録します
+ */
+private void registerListeners() {
+    try {
+        getServer().getPluginManager().registerEvents(new RPGListener(), this);
+        getServer().getPluginManager().registerEvents(new com.example.rpgplugin.gui.SkillTreeGUIListener(), this);
+        getLogger().info("Listeners registered.");
+    } catch (Exception e) {
+        getLogger().warning("Failed to register listeners: " + e.getMessage());
     }
+}
 
     /**
      * プラグインインスタンスを取得します

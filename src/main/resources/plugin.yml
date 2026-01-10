@@ -2,17 +2,15 @@ name: MCRPG
 version: '${project.version}'
 main: com.example.rpgplugin.RPGPlugin
 api-version: '1.20'
-author: YourName
-description: A Minecraft RPG plugin
-
-# 依存プラグイン
-depend:
-  - Vault
-  - MythicMobs
+author: RPGPlugin Team
+description: A Minecraft RPG plugin with stats, classes, and skills
 
 # オプション依存（あれば機能拡張）
 softdepend:
   - PlaceholderAPI
+  - Vault
+  - MythicMobs
+  - Skript
 
 # プラグインが読み込まれる前にロードする必要があるプラグイン
 loadbefore: []
@@ -22,6 +20,12 @@ commands:
     description: Main RPG command
     usage: /rpg <subcommand>
     aliases: [rp]
+
+  rpgapi:
+    description: RPG API command for external scripts
+    usage: /rpgapi <action> <args...>
+    aliases: [rpg api]
+    permission: rpgplugin.api
 
 permissions:
   rpg.use:
@@ -35,4 +39,3 @@ permissions:
   rpgplugin.api:
     description: Allows using RPG API commands (for Skript/Denizen integration)
     default: false
-

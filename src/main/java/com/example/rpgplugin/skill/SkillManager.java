@@ -473,10 +473,7 @@ public boolean registerSkill(Skill skill) {
             return SkillExecutionResult.failure("スキルレベルが0です");
         }
 
-        // アクティブスキルチェック
-        if (!skill.isActive()) {
-            return SkillExecutionResult.failure("このスキルはアクティブスキルではありません");
-        }
+        // パッシブ/アクティブの区別を廃止したため、チェックを削除
 
         // クールダウンチェック
         if (config.shouldApplyCooldown() && !checkCooldown(player, skillId)) {

@@ -635,24 +635,7 @@ public class Skill {
     }
 
     /**
-     * アクティブスキルかチェックします
-     *
-     * @return アクティブスキルの場合はtrue
-     */
-    public boolean isActive() {
-        return type == SkillType.ACTIVE;
-    }
 
-    /**
-     * パッシブスキルかチェックします
-     *
-     * @return パッシブスキルの場合はtrue
-     */
-    public boolean isPassive() {
-        return type == SkillType.PASSIVE;
-    }
-
-/**
      * カスタム変数定義リストを取得します
      *
      * @return カスタム変数定義リスト

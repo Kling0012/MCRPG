@@ -226,10 +226,7 @@ private void handleSkillCommand(Player player) {
             return;
         }
 
-        if (!skill.isActive()) {
-            player.sendMessage(ChatColor.RED + "このスキルは手動発動できません: " + skill.getColoredDisplayName());
-            return;
-        }
+        // パッシブ/アクティブの区別を廃止したため、チェックを削除
 
         // 習得チェック
         int level = skillManager.getSkillLevel(player, skillId);

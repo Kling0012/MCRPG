@@ -53,3 +53,9 @@ requirements:
 
 # アンロックコスト
 unlock_cost: 100
+
+# スキルツリー設定
+skill_tree:
+  parent: power_strike  # 前提スキル（パワーストライク習得後に解放）
+  cost: 2               # スキルポイント消費量
+  icon: IRON_SWORD      # GUIでの表示アイテム

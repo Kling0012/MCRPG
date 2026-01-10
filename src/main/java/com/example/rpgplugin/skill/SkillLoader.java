@@ -178,8 +178,13 @@ public class SkillLoader extends ConfigLoader {
                 skillTree = parseSkillTreeConfig(config.getConfigurationSection("skill_tree"), file.getName());
             }
 
-            // アイコン素材
-            String iconMaterial = config.getString("icon_material", "DIAMOND_SWORD");
+            // アイコン素材（skill_tree.iconが優先、なければicon_material）
+            String iconMaterial = "DIAMOND_SWORD";
+            if (skillTree != null && skillTree.getIcon() != null) {
+                iconMaterial = skillTree.getIcon();
+            } else if (config.contains("icon_material")) {
+                iconMaterial = config.getString("icon_material", "DIAMOND_SWORD");
+            }
 
             // 利用可能なクラス
             List<String> availableClasses = config.getStringList("available_classes");

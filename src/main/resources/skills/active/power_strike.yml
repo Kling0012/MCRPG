@@ -48,3 +48,9 @@ requirements:
 
 # アンロックコスト
 unlock_cost: 0
+
+# スキルツリー設定
+skill_tree:
+  parent: none  # 前提スキル（noneで前提なし）
+  cost: 1       # スキルポイント消費量
+  icon: DIAMOND_SWORD  # GUIでの表示アイテム

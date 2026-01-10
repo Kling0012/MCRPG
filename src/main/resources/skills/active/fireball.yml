@@ -56,3 +56,9 @@ requirements:
 
 # アンロックコスト
 unlock_cost: 0
+
+# スキルツリー設定
+skill_tree:
+  parent: none  # 前提スキル（noneで前提なし）
+  cost: 1       # スキルポイント消費量
+  icon: BLAZE_ROD  # GUIでの表示アイテム

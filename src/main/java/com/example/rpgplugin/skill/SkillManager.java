@@ -952,7 +952,7 @@ public boolean registerSkill(Skill skill) {
             }
 
             int playerRemovedCount = 0;
-            java.util.Iterator<Map.Entry<String, Integer>> iterator = skillData.skills.entrySet().iterator();
+            java.util.Iterator<Map.Entry<String, Integer>> iterator = skillData.acquiredSkills.entrySet().iterator();
 
             while (iterator.hasNext()) {
                 Map.Entry<String, Integer> entry = iterator.next();

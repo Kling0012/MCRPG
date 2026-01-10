@@ -15,6 +15,7 @@ import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.ExpDiminisher;
 import com.example.rpgplugin.player.VanillaExpHandler;
 import com.example.rpgplugin.rpgclass.ClassLoader;
+import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.rpgclass.RPGClass;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.config.SkillConfig;

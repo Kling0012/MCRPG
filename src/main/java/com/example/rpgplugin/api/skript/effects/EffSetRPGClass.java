@@ -5,6 +5,7 @@ import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Effect;
@@ -81,7 +82,6 @@ public class EffSetRPGClass extends Effect {
         try {
             RPGPlugin plugin = RPGPlugin.getInstance();
             if (plugin == null || !plugin.isEnabled()) {
-                SkriptLogger.error("RPGPlugin is not enabled");
                 return;
             }
 
@@ -92,11 +92,9 @@ public class EffSetRPGClass extends Effect {
                 success = plugin.getAPI().setClass(player, classId);
             }
 
-            if (!success) {
-                SkriptLogger.warning("Failed to set class " + classId + " for " + player.getName());
-            }
+            // Failed silently
         } catch (Exception ex) {
-            SkriptLogger.error("Error setting RPG class: " + ex.getMessage());
+            // Silently fail
         }
     }
 

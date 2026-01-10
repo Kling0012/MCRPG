@@ -9,6 +9,7 @@ import com.example.rpgplugin.gui.SkillTreeGUI;
 import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -164,7 +165,7 @@ private void handleSkillCommand(Player player) {
     
     // プレイヤーのクラスを取得
     String classId = null;
-    var rpgPlayer = plugin.getPlayerManager().getRPGPlayer(player);
+    var rpgPlayer = plugin.getPlayerManager().getRPGPlayer(player.getUniqueId());
     if (rpgPlayer != null) {
         classId = rpgPlayer.getClassId();
     }

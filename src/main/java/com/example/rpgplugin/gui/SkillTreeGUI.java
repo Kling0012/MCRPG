@@ -6,6 +6,7 @@ import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillNode;
 import com.example.rpgplugin.skill.SkillTree;
+import com.example.rpgplugin.skill.SkillType;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -64,7 +65,7 @@ public class SkillTreeGUI {
         this.classId = classId != null ? classId : getDefaultClassId();
 
         SkillManager skillManager = plugin.getSkillManager();
-        this.skillTree = skillManager.getTree(this.classId);
+        this.skillTree = skillManager.getTreeRegistry().getTree(this.classId);
 
         if (this.skillTree == null) {
             player.sendMessage(ChatColor.RED + "スキルツリーが見つかりません: " + this.classId);
@@ -78,7 +79,7 @@ public class SkillTreeGUI {
      */
     private String getDefaultClassId() {
         // プレイヤーの現在のクラスを使用、なければ"warrior"
-        RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(player);
+        RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(player.getUniqueId());
         if (rpgPlayer != null && rpgPlayer.getClassId() != null) {
             return rpgPlayer.getClassId();
         }
@@ -184,7 +185,7 @@ public class SkillTreeGUI {
             return;
         }
 
-        List<SkillNode> allNodes = new ArrayList<>(skillTree.getAllNodes());
+        List<SkillNode> allNodes = new ArrayList<>(skillTree.getAllNodes().values());
 
         // 親スキルがないものを先頭に、それ以外を親子順にソート
         allNodes.sort(new SkillNodeComparator(skillTree));
@@ -238,7 +239,9 @@ public class SkillTreeGUI {
 
         // 説明
         lore.add("");
-        lore.add(ChatColor.WHITE + skill.getDescription());
+        for (String line : skill.getDescription()) {
+            lore.add(ChatColor.WHITE + line);
+        }
 
         // 前提スキル表示
         if (!node.isRoot()) {
@@ -319,13 +322,16 @@ public class SkillTreeGUI {
      * @return マテリアル
      */
     private Material getIconMaterial(Skill skill) {
-        Material iconMaterial = skill.getIconMaterial();
-        if (iconMaterial != null) {
-            return iconMaterial;
+        String iconMaterialStr = skill.getIconMaterial();
+        if (iconMaterialStr != null && !iconMaterialStr.isEmpty()) {
+            Material iconMaterial = Material.matchMaterial(iconMaterialStr);
+            if (iconMaterial != null) {
+                return iconMaterial;
+            }
         }
 
-        // デフォルトアイコン
-        if (skill.isActive()) {
+        // デフォルトアイコン（ターゲットが必要なスキルは武器、それ以外は本）
+        if (skill.getSkillTarget() != null) {
             return Material.DIAMOND_SWORD;
         } else {
             return Material.ENCHANTED_BOOK;
@@ -509,7 +515,7 @@ public class SkillTreeGUI {
     public void refreshGUI() {
         if (player.getOpenInventory() != null) {
             Inventory topInventory = player.getOpenInventory().getTopInventory();
-            if (topInventory != null && INVENTORY_TITLE.equals(topInventory.getTitle())) {
+            if (topInventory != null && INVENTORY_TITLE.equals(player.getOpenInventory().getTitle())) {
                 // インベントリを再構成
                 topInventory.clear();
                 setupDecoration(topInventory);
@@ -557,7 +563,7 @@ public class SkillTreeGUI {
             return null;
         }
 
-        List<SkillNode> allNodes = new ArrayList<>(skillTree.getAllNodes());
+        List<SkillNode> allNodes = new ArrayList<>(skillTree.getAllNodes().values());
         allNodes.sort(new SkillNodeComparator(skillTree));
 
         int index = slot - SKILL_DISPLAY_START;

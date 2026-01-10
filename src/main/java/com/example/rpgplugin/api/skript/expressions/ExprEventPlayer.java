@@ -1,12 +1,10 @@
 package com.example.rpgplugin.api.skript.expressions;
 
-import ch.njol.skript.ScriptLoader;
 import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.util.SimpleExpression;
-import ch.njol.skript.log.SkriptLogger;
 import ch.njol.util.Kleenean;
 import com.example.rpgplugin.api.skript.events.EvtRPGSkillCast;
 import org.bukkit.entity.Player;
@@ -59,10 +57,6 @@ public class ExprEventPlayer extends SimpleExpression<Player> {
 
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
-		if (!ScriptLoader.isCurrentEvent(EvtRPGSkillCast.RPGSkillCastEvent.class)) {
-			SkriptLogger.error("The event-player expression can only be used in a rpg skill cast event.");
-			return false;
-		}
 		return true;
 	}
 

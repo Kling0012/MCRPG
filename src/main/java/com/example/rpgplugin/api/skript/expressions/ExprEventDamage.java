@@ -1,12 +1,10 @@
 package com.example.rpgplugin.api.skript.expressions;
 
-import ch.njol.skript.ScriptLoader;
 import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.util.SimpleExpression;
-import ch.njol.skript.log.SkriptLogger;
 import ch.njol.util.Kleenean;
 import com.example.rpgplugin.api.skript.events.EvtRPGSkillCast;
 import org.bukkit.event.Event;
@@ -65,10 +63,6 @@ public class ExprEventDamage extends SimpleExpression<Number> {
 
 	@Override
 	public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
-		if (!ScriptLoader.isCurrentEvent(EvtRPGSkillCast.RPGSkillCastEvent.class)) {
-			SkriptLogger.error("The event-damage expression can only be used in a rpg skill event.");
-			return false;
-		}
 		return true;
 	}
 
@@ -77,7 +71,6 @@ public class ExprEventDamage extends SimpleExpression<Number> {
 	protected Number[] get(Event e) {
 		// TODO: RPGSkillCastEventにダメージ値を追加するか、別のダメージイベントを作成する
 		// 現時点では0を返す
-		SkriptLogger.warn("event-damage is not yet implemented. Will be available in future versions.");
 		return new Number[]{0};
 	}
 

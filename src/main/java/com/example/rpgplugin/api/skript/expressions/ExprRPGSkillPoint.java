@@ -6,7 +6,6 @@ import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.util.SimpleExpression;
-import ch.njol.skript.log.SkriptLogger;
 import ch.njol.util.Kleenean;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.api.RPGPluginAPI;
@@ -91,7 +90,6 @@ public class ExprRPGSkillPoint extends SimpleExpression<Number> {
         try {
             RPGPlugin plugin = RPGPlugin.getInstance();
             if (plugin == null || !plugin.isEnabled()) {
-                SkriptLogger.error("RPGPlugin is not enabled");
                 return new Integer[0];
             }
 
@@ -99,7 +97,6 @@ public class ExprRPGSkillPoint extends SimpleExpression<Number> {
             int points = api.getSkillPoints(player);
             return new Number[]{points};
         } catch (Exception ex) {
-            SkriptLogger.error("Error getting RPG skill point: " + ex.getMessage());
             return new Integer[0];
         }
     }
@@ -131,7 +128,6 @@ public class ExprRPGSkillPoint extends SimpleExpression<Number> {
         try {
             RPGPlugin plugin = RPGPlugin.getInstance();
             if (plugin == null || !plugin.isEnabled()) {
-                SkriptLogger.error("RPGPlugin is not enabled");
                 return;
             }
 
@@ -152,7 +148,7 @@ public class ExprRPGSkillPoint extends SimpleExpression<Number> {
                     break;
             }
         } catch (Exception ex) {
-            SkriptLogger.error("Error changing RPG skill point: " + ex.getMessage());
+            // Silently fail
         }
     }
 

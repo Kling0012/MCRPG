@@ -327,11 +327,7 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
             return false;
         }
 
-        // アクティブスキルのみ実行可能
-        if (skill.getType() != com.example.rpgplugin.skill.SkillType.ACTIVE) {
-            player.sendMessage("§cこのスキルはアクティブスキルではありません: " + skillId);
-            return false;
-        }
+        // パッシブ/アクティブの区別を廃止したため、チェックを削除
 
         // クールダウンチェック
         if (!skillManager.checkCooldown(player, skillId)) {
@@ -475,11 +471,7 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
             return false;
         }
 
-        // アクティブスキルのみ実行可能
-        if (skill.getType() != com.example.rpgplugin.skill.SkillType.ACTIVE) {
-            player.sendMessage("§cこのスキルはアクティブスキルではありません: " + skillId);
-            return false;
-        }
+        // パッシブ/アクティブの区別を廃止したため、チェックを削除
 
         // ターゲットを設定
         setTargetedEntity(player, target);
@@ -515,11 +507,7 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
             return false;
         }
 
-        // アクティブスキルのみ実行可能
-        if (skill.getType() != com.example.rpgplugin.skill.SkillType.ACTIVE) {
-            player.sendMessage("§cこのスキルはアクティブスキルではありません: " + skillId);
-            return false;
-        }
+        // パッシブ/アクティブの区別を廃止したため、チェックを削除
 
         // クールダウンチェック
         if (!skillManager.checkCooldown(player, skillId)) {

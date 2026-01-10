@@ -101,6 +101,38 @@ public interface RPGPluginAPI {
      */
     void addStatPoints(Player player, int points);
 
+    /**
+     * スキルポイントを取得します
+     *
+     * @param player プレイヤー
+     * @return 現在のスキルポイント
+     */
+    int getSkillPoints(Player player);
+
+    /**
+     * スキルポイントを設定します
+     *
+     * @param player プレイヤー
+     * @param points 設定するポイント数
+     */
+    void setSkillPoints(Player player, int points);
+
+    /**
+     * 属性ポイント（ステータス配分ポイント）を取得します
+     *
+     * @param player プレイヤー
+     * @return 現在の属性ポイント
+     */
+    int getAttrPoints(Player player);
+
+    /**
+     * 属性ポイント（ステータス配分ポイント）を設定します
+     *
+     * @param player プレイヤー
+     * @param points 設定するポイント数
+     */
+    void setAttrPoints(Player player, int points);
+
     // ==================== クラス操作 ====================
 
     /**

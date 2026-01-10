@@ -21,7 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  *
  * <p>登録される機能:</p>
  * <ul>
- *   <li>式: rpg level, rpg stat, rpg class, rpg skill</li>
+ *   <li>式: rpg level, rpg stat, rpg class, rpg skill, rpg skill point, rpg attr point</li>
  *   <li>条件: has rpg skill, can upgrade rpg class, rpg stat above, is rpg class</li>
  *   <li>効果: unlock rpg skill, cast rpg skill, set rpg class, modify rpg stat</li>
  *   <li>イベント: on rpg skill cast</li>
@@ -31,6 +31,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  * <pre>
  * # 式の使用
  * set {_level} to rpg level of player
+ * set {_skillPoints} to rpg skill point of player
+ * set {_attrPoints} to rpg attr point of player
  *
  * # 条件の使用
  * if player has rpg skill "fireball":
@@ -39,6 +41,10 @@ import org.bukkit.plugin.java.JavaPlugin;
  * # 効果の使用
  * unlock rpg skill "power_strike" for player
  * make player cast rpg skill "fireball"
+ *
+ * # ポイント操作
+ * add 1 to rpg skill point of player
+ * set rpg attr point of player to 5
  *
  * # イベントの使用
  * on rpg skill cast:
@@ -129,6 +135,22 @@ public class RPGSkriptAddon {
                 "[the] rpg skill level of %string% [from] %player%",
                 "[the] rpg skill level of %player%'s %string%",
                 "%player%'s rpg skill level for %string%"
+        );
+
+        // ExprRPGSkillPoint - rpg skill point of %player%
+        Skript.registerExpression(ExprRPGSkillPoint.class, Number.class,
+                ExpressionType.SIMPLE,
+                "[the] rpg skill point of %player%",
+                "[the] rpg skill point of %player%'s",
+                "%player%'s rpg skill point"
+        );
+
+        // ExprRPGAttrPoint - rpg attr[ibute] point of %player%
+        Skript.registerExpression(ExprRPGAttrPoint.class, Number.class,
+                ExpressionType.SIMPLE,
+                "[the] rpg attr[ibute] point of %player%",
+                "[the] rpg attr[ibute] point of %player%'s",
+                "%player%'s rpg attr[ibute] point"
         );
     }
 

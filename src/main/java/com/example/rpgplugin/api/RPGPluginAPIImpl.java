@@ -143,6 +143,54 @@ public class RPGPluginAPIImpl implements RPGPluginAPI {
         rpgPlayer.addAvailablePoints(points);
     }
 
+    @Override
+    public int getSkillPoints(Player player) {
+        if (player == null) {
+            return 0;
+        }
+
+        var data = skillManager.getPlayerSkillData(player);
+        return data.getSkillPoints();
+    }
+
+    @Override
+    public void setSkillPoints(Player player, int points) {
+        if (player == null) {
+            return;
+        }
+
+        var data = skillManager.getPlayerSkillData(player);
+        data.setSkillPoints(Math.max(0, points));
+    }
+
+    @Override
+    public int getAttrPoints(Player player) {
+        if (player == null) {
+            return 0;
+        }
+
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer == null) {
+            return 0;
+        }
+
+        return rpgPlayer.getAvailablePoints();
+    }
+
+    @Override
+    public void setAttrPoints(Player player, int points) {
+        if (player == null) {
+            return;
+        }
+
+        RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+        if (rpgPlayer == null) {
+            return;
+        }
+
+        rpgPlayer.setAvailablePoints(Math.max(0, points));
+    }
+
     // ==================== クラス操作 ====================
 
     @Override

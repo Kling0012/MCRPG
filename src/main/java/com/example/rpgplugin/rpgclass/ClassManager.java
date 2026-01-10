@@ -303,6 +303,111 @@ public class ClassManager {
     }
 
     /**
+     * クラスをリロードし、削除されたクラスのプレイヤーデータをクリーンアップ
+     *
+     * <p>このメソッドは以下の処理を行います:</p>
+     * <ul>
+     *   <li>現在のクラスと新しいクラスを比較</li>
+     *   <li>削除されたクラスを検出</li>
+     *   <li>削除されたクラスを使用しているプレイヤーのクラスを解除</li>
+     *   <li>新しいクラスマップを適用</li>
+     * </ul>
+     *
+     * @param newClasses 新しいクラスマップ
+     * @return リロード結果（削除されたクラス数、影響を受けたプレイヤー数）
+     */
+    public ReloadResult reloadWithCleanup(Map<String, RPGClass> newClasses) {
+        Set<String> oldClassIds = new HashSet<>(classes.keySet());
+        Set<String> newClassIds = new HashSet<>(newClasses.keySet());
+
+        // 削除されたクラスを検出
+        Set<String> removedClasses = new HashSet<>(oldClassIds);
+        removedClasses.removeAll(newClassIds);
+
+        int affectedPlayers = 0;
+
+        // 削除されたクラスを使用しているプレイヤーをクリーンアップ
+        if (!removedClasses.isEmpty()) {
+            logger.info("Detected " + removedClasses.size() + " removed classes: " + removedClasses);
+
+            for (String removedClass : removedClasses) {
+                affectedPlayers += clearPlayersWithClass(removedClass);
+                logger.warning("Removed class: " + removedClass + " (affected " + affectedPlayers + " players)");
+            }
+        }
+
+        // 新しいクラスマップを適用
+        classes.clear();
+        classes.putAll(newClasses);
+
+        logger.info("Reloaded " + classes.size() + " classes (removed: " + removedClasses.size() + ", affected players: " + affectedPlayers + ")");
+
+        return new ReloadResult(newClasses.size(), removedClasses, affectedPlayers);
+    }
+
+    /**
+     * 指定したクラスを使用している全プレイヤーのクラスを解除
+     *
+     * @param classId クラスID
+     * @return 影響を受けたプレイヤー数
+     */
+    private int clearPlayersWithClass(String classId) {
+        int count = 0;
+
+        // オンラインプレイヤーを確認
+        for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+            if (rpgPlayer != null && classId.equals(rpgPlayer.getClassId())) {
+                rpgPlayer.setClassId(null);
+                player.sendMessage("§c[YAML更新] あなたの職業「" + classId + "」は削除されました。再度職業を選択してください。");
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    /**
+     * リロード結果
+     */
+    public static class ReloadResult {
+        private final int loadedClassCount;
+        private final Set<String> removedClasses;
+        private final int affectedPlayerCount;
+
+        public ReloadResult(int loadedClassCount, Set<String> removedClasses, int affectedPlayerCount) {
+            this.loadedClassCount = loadedClassCount;
+            this.removedClasses = new HashSet<>(removedClasses);
+            this.affectedPlayerCount = affectedPlayerCount;
+        }
+
+        public int getLoadedClassCount() {
+            return loadedClassCount;
+        }
+
+        public Set<String> getRemovedClasses() {
+            return new HashSet<>(removedClasses);
+        }
+
+        public int getAffectedPlayerCount() {
+            return affectedPlayerCount;
+        }
+
+        public boolean hasRemovedClasses() {
+            return !removedClasses.isEmpty();
+        }
+
+        @Override
+        public String toString() {
+            return "ReloadResult{" +
+                    "loaded=" + loadedClassCount +
+                    ", removed=" + removedClasses.size() +
+                    ", affected=" + affectedPlayerCount +
+                    '}';
+        }
+    }
+
+    /**
      * クラス数を取得
      *
      * @return クラス数

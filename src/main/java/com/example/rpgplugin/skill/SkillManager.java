@@ -880,4 +880,160 @@ public boolean registerSkill(Skill skill) {
     public PlayerManager getPlayerManager() {
         return playerManager;
     }
+
+    /**
+     * スキルをリロードし、削除されたスキルのプレイヤーデータをクリーンアップ
+     *
+     * <p>このメソッドは以下の処理を行います:</p>
+     * <ul>
+     *   <li>現在のスキルと新しいスキルを比較</li>
+     *   <li>削除されたスキルを検出</li>
+     *   <li>削除されたスキルを解放しているプレイヤーのスキルデータを削除</li>
+     *   <li>新しいスキルマップを適用</li>
+     *   <li>スキルツリーキャッシュを無効化</li>
+     * </ul>
+     *
+     * @param newSkills 新しいスキルマップ
+     * @return リロード結果（削除されたスキル数、影響を受けたプレイヤー数）
+     */
+    public ReloadResult reloadWithCleanup(Map<String, Skill> newSkills) {
+        Set<String> oldSkillIds = new HashSet<>(skills.keySet());
+        Set<String> newSkillIds = new HashSet<>(newSkills.keySet());
+
+        // 削除されたスキルを検出
+        Set<String> removedSkills = new HashSet<>(oldSkillIds);
+        removedSkills.removeAll(newSkillIds);
+
+        int affectedPlayers = 0;
+        int totalSkillsRemoved = 0;
+
+        // 削除されたスキルを使用しているプレイヤーをクリーンアップ
+        if (!removedSkills.isEmpty()) {
+            LOGGER.info("Detected " + removedSkills.size() + " removed skills: " + removedSkills);
+
+            CleanupSummary summary = clearRemovedSkillsFromPlayers(removedSkills);
+            affectedPlayers = summary.affectedPlayers;
+            totalSkillsRemoved = summary.totalSkillsRemoved;
+
+            LOGGER.warning("Removed skills: " + removedSkills +
+                    " (affected " + affectedPlayers + " players, " + totalSkillsRemoved + " skill entries)");
+        }
+
+        // 新しいスキルマップを適用
+        skills.clear();
+        skills.putAll(newSkills);
+
+        // スキルツリーキャッシュを全て無効化
+        treeRegistry.invalidateAll();
+
+        LOGGER.info("Reloaded " + skills.size() + " skills (removed: " + removedSkills.size() +
+                ", affected players: " + affectedPlayers + ")");
+
+        return new ReloadResult(newSkills.size(), removedSkills, affectedPlayers, totalSkillsRemoved);
+    }
+
+    /**
+     * 指定したスキルを解放しているプレイヤーからスキルデータを削除
+     *
+     * @param removedSkillIds 削除されたスキルIDセット
+     * @return クリーンアップサマリー
+     */
+    private CleanupSummary clearRemovedSkillsFromPlayers(Set<String> removedSkillIds) {
+        int affectedPlayers = 0;
+        int totalSkillsRemoved = 0;
+
+        // オンラインプレイヤーを確認
+        for (org.bukkit.entity.Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            RPGPlayer rpgPlayer = playerManager.getRPGPlayer(player.getUniqueId());
+            if (rpgPlayer == null) {
+                continue;
+            }
+
+            PlayerSkillData skillData = playerSkills.get(player.getUniqueId());
+            if (skillData == null) {
+                continue;
+            }
+
+            int playerRemovedCount = 0;
+            java.util.Iterator<Map.Entry<String, Integer>> iterator = skillData.skills.entrySet().iterator();
+
+            while (iterator.hasNext()) {
+                Map.Entry<String, Integer> entry = iterator.next();
+                if (removedSkillIds.contains(entry.getKey())) {
+                    iterator.remove();
+                    playerRemovedCount++;
+                    totalSkillsRemoved++;
+                }
+            }
+
+            if (playerRemovedCount > 0) {
+                affectedPlayers++;
+                player.sendMessage("§c[YAML更新] " + playerRemovedCount +
+                        "個のスキルが削除されました: " + removedSkillIds);
+            }
+        }
+
+        return new CleanupSummary(affectedPlayers, totalSkillsRemoved);
+    }
+
+    /**
+     * クリーンアップサマリー
+     */
+    private static class CleanupSummary {
+        private final int affectedPlayers;
+        private final int totalSkillsRemoved;
+
+        CleanupSummary(int affectedPlayers, int totalSkillsRemoved) {
+            this.affectedPlayers = affectedPlayers;
+            this.totalSkillsRemoved = totalSkillsRemoved;
+        }
+    }
+
+    /**
+     * スキルリロード結果
+     */
+    public static class ReloadResult {
+        private final int loadedSkillCount;
+        private final Set<String> removedSkills;
+        private final int affectedPlayerCount;
+        private final int totalSkillsRemoved;
+
+        public ReloadResult(int loadedSkillCount, Set<String> removedSkills,
+                           int affectedPlayerCount, int totalSkillsRemoved) {
+            this.loadedSkillCount = loadedSkillCount;
+            this.removedSkills = new HashSet<>(removedSkills);
+            this.affectedPlayerCount = affectedPlayerCount;
+            this.totalSkillsRemoved = totalSkillsRemoved;
+        }
+
+        public int getLoadedSkillCount() {
+            return loadedSkillCount;
+        }
+
+        public Set<String> getRemovedSkills() {
+            return new HashSet<>(removedSkills);
+        }
+
+        public int getAffectedPlayerCount() {
+            return affectedPlayerCount;
+        }
+
+        public int getTotalSkillsRemoved() {
+            return totalSkillsRemoved;
+        }
+
+        public boolean hasRemovedSkills() {
+            return !removedSkills.isEmpty();
+        }
+
+        @Override
+        public String toString() {
+            return "ReloadResult{" +
+                    "loaded=" + loadedSkillCount +
+                    ", removed=" + removedSkills.size() +
+                    ", affected=" + affectedPlayerCount +
+                    ", totalSkillsRemoved=" + totalSkillsRemoved +
+                    '}';
+        }
+    }
 }

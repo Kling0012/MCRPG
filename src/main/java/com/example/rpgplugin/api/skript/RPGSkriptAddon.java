@@ -9,7 +9,7 @@ import com.example.rpgplugin.RPGPlugin;
  *
  * <p>登録される要素:</p>
  * <ul>
- *   <li>Expressions: rpg level, rpg stat, rpg class, rpg skill level</li>
+ *   <li>Expressions: rpg level, rpg stat, rpg class, rpg skill level, rpg skill point, rpg attr point</li>
  *   <li>Conditions: has rpg skill, can upgrade rpg class, rpg stat is at least, rpg class is</li>
  *   <li>Effects: unlock rpg skill, cast rpg skill, set rpg class, add/set/remove rpg stat</li>
  *   <li>Events: on rpg skill cast, on rpg skill damage</li>
@@ -22,6 +22,8 @@ import com.example.rpgplugin.RPGPlugin;
  * set {_str} to rpg stat "str" of player
  * set {_class} to rpg class of player
  * set {_skilllvl} to rpg skill level "fireball" of player
+ * set {_skillPoints} to rpg skill point of player
+ * set {_attrPoints} to rpg attr point of player
  *
  * # Conditions
  * if player has rpg skill "fireball":
@@ -43,6 +45,10 @@ import com.example.rpgplugin.RPGPlugin;
  * add 5 to rpg stat "str" of player
  * set rpg stat "int" of player to 20
  * remove 3 from rpg stat "dex" of player
+ *
+ * # Point operations
+ * add 1 to rpg skill point of player
+ * set rpg attr point of player to 5
  *
  * # Events
  * on rpg skill cast:
@@ -81,12 +87,13 @@ public class RPGSkriptAddon {
         }
 
         try {
-            // Expressionsはstatic初期化子で自動登録されるため、
-            // クラスをロードするだけで登録されます
+            // Expressions (auto-registered via static initialization)
             Class.forName("com.example.rpgplugin.api.skript.expressions.ExprRPGLevel");
             Class.forName("com.example.rpgplugin.api.skript.expressions.ExprRPGStat");
             Class.forName("com.example.rpgplugin.api.skript.expressions.ExprRPGClass");
             Class.forName("com.example.rpgplugin.api.skript.expressions.ExprRPGSkillLevel");
+            Class.forName("com.example.rpgplugin.api.skript.expressions.ExprRPGSkillPoint");
+            Class.forName("com.example.rpgplugin.api.skript.expressions.ExprRPGAttrPoint");
 
             // Conditions
             Class.forName("com.example.rpgplugin.api.skript.conditions.CondHasRPGSkill");
@@ -105,7 +112,7 @@ public class RPGSkriptAddon {
             Class.forName("com.example.rpgplugin.api.skript.events.EvtRPGSkillDamage");
 
             plugin.getLogger().info("Skript integration loaded successfully!");
-            plugin.getLogger().info("Registered: 4 expressions, 4 conditions, 4 effects, 2 events");
+            plugin.getLogger().info("Registered: 6 expressions, 4 conditions, 4 effects, 2 events");
 
         } catch (ClassNotFoundException e) {
             plugin.getLogger().warning("Failed to load Skript elements: " + e.getMessage());

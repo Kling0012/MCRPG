@@ -4,9 +4,11 @@ import com.example.rpgplugin.rpgclass.requirements.ItemRequirement;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.storage.models.PlayerData;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -143,7 +145,11 @@ public class ClassUpgrader {
 
         for (ItemStack item : player.getInventory().getContents()) {
             if (item != null && item.hasItemMeta()) {
-                String displayName = item.getItemMeta().getDisplayName();
+                ItemMeta meta = item.getItemMeta();
+                String displayName = null;
+                if (meta.hasDisplayName()) {
+                    displayName = PlainTextComponentSerializer.plainText().serialize(meta.displayName());
+                }
                 if (displayName != null && displayName.equals(itemName)) {
                     int stackAmount = item.getAmount();
                     if (stackAmount <= remaining) {

@@ -3,7 +3,6 @@ package com.example.rpgplugin.skill;
 import org.bukkit.entity.Entity;
 import org.bukkit.Location;
 
-import java.util.List;
 import java.util.Map;
 
 /**

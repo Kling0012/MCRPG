@@ -1,6 +1,5 @@
 package com.example.rpgplugin.rpgclass.requirements;
 
-import com.example.rpgplugin.player.PlayerManager;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -10,17 +9,14 @@ import org.bukkit.configuration.ConfigurationSection;
 public class LevelRequirement implements ClassRequirement {
 
     private final int requiredLevel;
-    private final PlayerManager playerManager;
 
     /**
      * コンストラクタ
      *
      * @param requiredLevel 必要レベル
-     * @param playerManager プレイヤーマネージャー
      */
-    public LevelRequirement(int requiredLevel, PlayerManager playerManager) {
+    public LevelRequirement(int requiredLevel) {
         this.requiredLevel = Math.max(1, requiredLevel);
-        this.playerManager = playerManager;
     }
 
     @Override
@@ -56,12 +52,11 @@ public class LevelRequirement implements ClassRequirement {
     /**
      * ConfigurationSectionからパース
      *
-     * @param section        設定セクション
-     * @param playerManager  プレイヤーマネージャー
+     * @param section 設定セクション
      * @return LevelRequirementインスタンス
      */
-    public static LevelRequirement parse(ConfigurationSection section, PlayerManager playerManager) {
+    public static LevelRequirement parse(ConfigurationSection section) {
         int level = section.getInt("value", 1);
-        return new LevelRequirement(level, playerManager);
+        return new LevelRequirement(level);
     }
 }

@@ -1,20 +1,18 @@
 package com.example.rpgplugin.api.skript.expressions;
 
+import com.example.rpgplugin.api.skript.events.EvtRPGSkillCast.RPGSkillCastEvent;
+
 import ch.njol.skript.Skript;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.skript.lang.util.SimpleExpression;
 import ch.njol.util.Kleenean;
-import com.example.rpgplugin.api.skript.events.EvtRPGSkillCast;
 import org.bukkit.event.Event;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * スキル発動イベントのダメージ値を取得するSKript式
- *
- * <p>注意: 現在の実装では、RPGSkillCastEventはダメージ値を直接含んでいません。
- * ダメージ計算は別途行われる必要があります。</p>
  *
  * <p>構文:</p>
  * <pre>
@@ -24,22 +22,21 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>使用可能なイベント:</p>
  * <ul>
- *   <li>on rpg skill cast (将来実装予定)</li>
- *   <li>on rpg skill damage (将来実装予定)</li>
+ *   <li>on rpg skill cast</li>
  * </ul>
  *
  * <p>使用例:</p>
  * <pre>
- * on rpg skill damage:
+ * on rpg skill cast:
  *     send "%event-damage% ダメージを与えた！" to event-player
  *
- * on rpg skill damage:
+ * on rpg skill cast:
  *     if event-damage > 100:
  *         send "クリティカルヒット！" to all players
  * </pre>
  *
  * @author RPGPlugin Team
- * @version 1.0.0
+ * @version 1.1.0
  */
 public class ExprEventDamage extends SimpleExpression<Number> {
 
@@ -69,8 +66,9 @@ public class ExprEventDamage extends SimpleExpression<Number> {
 	@Override
 	@Nullable
 	protected Number[] get(Event e) {
-		// TODO: RPGSkillCastEventにダメージ値を追加するか、別のダメージイベントを作成する
-		// 現時点では0を返す
+		if (e instanceof RPGSkillCastEvent) {
+			return new Number[]{((RPGSkillCastEvent) e).getDamage()};
+		}
 		return new Number[]{0};
 	}
 

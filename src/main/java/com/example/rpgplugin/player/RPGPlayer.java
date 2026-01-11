@@ -4,6 +4,7 @@ import com.example.rpgplugin.stats.ManaManager;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.storage.models.PlayerData;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -258,7 +259,7 @@ public class RPGPlayer {
             if (player != null) {
                 double baseMaxHealth = 20.0;
                 double newMaxHealth = baseMaxHealth + modifier;
-                player.setMaxHealth(newMaxHealth);
+                player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(newMaxHealth);
             }
         }
     }

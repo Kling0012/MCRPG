@@ -1,7 +1,6 @@
 package com.example.rpgplugin.mythicmobs.drop;
 
 import com.example.rpgplugin.storage.models.Serializable;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 

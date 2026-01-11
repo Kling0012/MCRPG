@@ -1,8 +1,10 @@
 package com.example.rpgplugin.rpgclass.requirements;
 
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 /**
  * アイテム要件を表すクラス
@@ -37,7 +39,11 @@ public class ItemRequirement implements ClassRequirement {
         int count = 0;
         for (ItemStack item : player.getInventory().getContents()) {
             if (item != null && item.hasItemMeta()) {
-                String displayName = item.getItemMeta().getDisplayName();
+                ItemMeta meta = item.getItemMeta();
+                String displayName = null;
+                if (meta.hasDisplayName()) {
+                    displayName = PlainTextComponentSerializer.plainText().serialize(meta.displayName());
+                }
                 if (displayName != null && displayName.equals(itemName)) {
                     count += item.getAmount();
                 }

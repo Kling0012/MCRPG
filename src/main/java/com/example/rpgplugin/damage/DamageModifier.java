@@ -1,11 +1,5 @@
 package com.example.rpgplugin.damage;
 
-import com.example.rpgplugin.stats.Stat;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-
-import java.util.Map;
-
 /**
  * ダメージ修正を適用するユーティリティクラス
  *

@@ -42,6 +42,7 @@ public class CondIsRPGClass extends Condition {
     private Expression<String> classId;
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
         player = (Expression<Player>) exprs[0];
         classId = (Expression<String>) exprs[1];

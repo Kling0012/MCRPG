@@ -90,22 +90,6 @@ public class StatModifier {
     }
 
     /**
-     * コピーコンストラクタ
-     *
-     * <p>IDを引き継ぐため、同じ修正値として扱われます。</p>
-     *
-     * @param other コピー元
-     */
-    private StatModifier(StatModifier other) {
-        this.id = other.id;
-        this.source = other.source;
-        this.type = other.type;
-        this.value = other.value;
-        this.duration = other.duration;
-        this.creationTime = other.creationTime;
-    }
-
-    /**
      * 修正元を取得します
      *
      * @return 修正元
@@ -241,7 +225,6 @@ public class StatModifier {
      * @return コピーされた修正値
      */
     public StatModifier withValue(double newValue) {
-        StatModifier copy = new StatModifier(this);
         return new StatModifier(source, type, newValue, duration);
     }
 

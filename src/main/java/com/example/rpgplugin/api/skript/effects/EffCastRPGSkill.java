@@ -74,6 +74,7 @@ public class EffCastRPGSkill extends Effect {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
         if (matchedPattern == 2) {
             skillId = (Expression<String>) exprs[0];

@@ -49,3 +49,7 @@ Thumbs.db
 /dist/
 /nbdist/
 /.nb-gradle/
+
+# External tools and utilities
+/tools/
+warn.json

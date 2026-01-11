@@ -42,6 +42,7 @@ public class CondRPGStatAbove extends Condition {
     private Expression<Number> value;
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
         if (matchedPattern == 0) {
             player = (Expression<Player>) exprs[0];

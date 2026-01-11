@@ -2,7 +2,6 @@ package com.example.rpgplugin.rpgclass;
 
 import com.example.rpgplugin.rpgclass.growth.StatGrowth;
 import com.example.rpgplugin.rpgclass.requirements.ClassRequirement;
-import com.example.rpgplugin.stats.Stat;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;

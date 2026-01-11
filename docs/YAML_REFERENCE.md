@@ -336,6 +336,28 @@ damage:
 | `sphere_radius` | Double | 球形の半径 | SPHERE |
 | `filter` | String | エンティティフィルタ | 全タイプ |
 | `max_targets` | Integer | 最大ターゲット数 | 範囲系全般 |
+| `group` | String | グループフィルタ（敵味方） | 全タイプ |
+| `wall` | Boolean | 壁を透過するか | 全タイプ |
+| `random` | Boolean | ランダム順序で選択 | 範囲系全般 |
+| `caster` | Boolean | キャスターを含める | 全タイプ |
+
+### グループフィルタ（group）
+
+| フィルタ値 | 説明 |
+|-----------|----|
+| `both` | 敵味方両方（デフォルト） |
+| `enemy` | 敵対的エンティティのみ（PvPなしの場合: MOBのみ） |
+| `ally` | 味方のみ（PvPなしの場合: プレイヤーのみ） |
+
+> **注意**: 本プロジェクトはPvPを行わない設定のため、`enemy` はMOBのみ、`ally` はプレイヤーのみを対象とします。
+
+### その他のターゲットオプション
+
+| フィールド | 型 | デフォルト | 説明 |
+|-----------|----|----------|------|
+| `wall` | Boolean | `false` | `true`で壁を透過してターゲット選択 |
+| `random` | Boolean | `false` | `true`で範囲内のターゲットをランダムに選択 |
+| `caster` | Boolean | `false` | `true`でフィルタに関係なくキャスター自身を含める |
 
 ### ターゲット設定例
 
@@ -408,6 +430,72 @@ targeting:
   sphere_radius: 6.0       # 範囲
   filter: players          # プレイヤーのみ
   max_targets: 8
+```
+
+#### 敵のみを対象（グループフィルタ）
+
+```yaml
+targeting:
+  type: sphere
+  sphere_radius: 8.0
+  group: enemy             # MOBのみ（PvPなし環境）
+  max_targets: 5
+```
+
+#### 味方のみを対象（ヒールスキル等）
+
+```yaml
+targeting:
+  type: area_others
+  sphere_radius: 10.0
+  group: ally              # プレイヤーのみ（PvPなし環境）
+  max_targets: 4
+```
+
+#### 壁を透過する範囲攻撃
+
+```yaml
+targeting:
+  type: cone
+  range: 15.0
+  cone_angle: 60.0
+  wall: true               # 壁を透過
+  group: enemy
+  max_targets: 10
+```
+
+#### ランダムにターゲットを選択
+
+```yaml
+targeting:
+  type: sphere
+  sphere_radius: 6.0
+  random: true             # 範囲内からランダムに選択
+  max_targets: 3
+```
+
+#### キャスターを含める
+
+```yaml
+targeting:
+  type: area_others
+  sphere_radius: 5.0
+  caster: true             # フィルタに関係なくキャスターを含む
+  group: enemy             # 敵 + キャスター
+```
+
+#### 複合フィルタ例
+
+```yaml
+targeting:
+  type: cone
+  range: 12.0
+  cone_angle: 90.0
+  group: enemy
+  wall: false              # 壁で遮断
+  random: true            # ランダムに選択
+  max_targets: 5
+  filter: hostile         # 敵対MOBのみ
 ```
 
 ### ターゲットフィルター
@@ -760,6 +848,10 @@ targeting:                   # 必須
   # その他
   filter: string             # all|players|mobs|hostile
   max_targets: integer       # 最大ターゲット数
+  group: string              # both|enemy|ally（グループフィルタ）
+  wall: boolean              # 壁を透過するか（デフォルト: false）
+  random: boolean            # ランダム順序（デフォルト: false）
+  caster: boolean            # キャスターを含める（デフォルト: false）
 
 # --- エフェクト設定 ---
 effects:                     # オプション

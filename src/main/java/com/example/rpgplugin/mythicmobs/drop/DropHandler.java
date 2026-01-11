@@ -2,21 +2,21 @@ package com.example.rpgplugin.mythicmobs.drop;
 
 import com.example.rpgplugin.mythicmobs.config.MobDropConfig;
 import com.example.rpgplugin.storage.database.ConnectionPool;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.bukkit.util.io.BukkitObjectInputStream;
 
 import java.io.ByteArrayOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -45,11 +45,6 @@ public class DropHandler {
 
     private final DropRepository dropRepository;
     private final Logger logger;
-
-    // NBTタグキー
-    private static final String NBT_DROP_OWNER = "rpg_drop_owner";
-    private static final String NBT_DROP_EXPIRE = "rpg_drop_expire";
-    private static final String NBT_DROP_ID = "rpg_drop_id";
 
     /**
      * コンストラクタ
@@ -97,9 +92,9 @@ public class DropHandler {
 
                 // プレイヤーに通知
                 if (dropItem.isExclusive()) {
-                    player.sendMessage(ChatColor.GOLD + "【独占ドロップ】" +
-                            ChatColor.YELLOW + itemStack.getType().name() +
-                            ChatColor.GRAY + " (" + dropItem.getExpirationSeconds() + "秒間)");
+                    player.sendMessage(Component.text("【独占ドロップ】" +
+                            itemStack.getType().name() +
+                            " (" + dropItem.getExpirationSeconds() + "秒間)", NamedTextColor.GOLD));
                 }
 
                 logger.info("[Drop] " + player.getName() + " got " + itemStack.getType().name() +
@@ -127,9 +122,8 @@ public class DropHandler {
 
         // 独占ドロップの場合は表示名を設定
         if (dropItem.isExclusive()) {
-            String displayName = ChatColor.GOLD + "【独占】" +
-                    ChatColor.YELLOW + player.getName() + "のドロップ";
-            meta.setDisplayName(displayName);
+            Component displayName = MiniMessage.miniMessage().deserialize("<gold>【独占】<yellow>" + player.getName() + "のドロップ");
+            meta.displayName(displayName);
         }
 
         // カスタムNBTタグはPaper APIを使用
@@ -142,13 +136,13 @@ public class DropHandler {
             int minutes = (int) (remainingSeconds / 60);
             int seconds = (int) (remainingSeconds % 60);
 
-            List<String> lore = List.of(
-                    ChatColor.GRAY + "所有者: " + ChatColor.WHITE + player.getName(),
-                    ChatColor.GRAY + "期限: " + ChatColor.WHITE + String.format("%d分%d秒", minutes, seconds),
-                    "",
-                    ChatColor.RED + "期限切れ後は誰でも取得可能"
+            List<Component> lore = List.of(
+                    MiniMessage.miniMessage().deserialize("<gray>所有者: <white>" + player.getName()),
+                    MiniMessage.miniMessage().deserialize("<gray>期限: <white>" + String.format("%d分%d秒", minutes, seconds)),
+                    Component.empty(),
+                    MiniMessage.miniMessage().deserialize("<red>期限切れ後は誰でも取得可能")
             );
-            meta.setLore(lore);
+            meta.lore(lore);
         }
 
         itemStack.setItemMeta(meta);
@@ -246,16 +240,18 @@ public class DropHandler {
             return true;
         }
 
-        List<String> lore = meta.getLore();
+        List<Component> lore = meta.lore();
         if (lore == null || lore.isEmpty()) {
             return true;
         }
 
         // 独占ドロップチェック
         // Loreに「所有者: XXX」が含まれているか確認
-        for (String line : lore) {
-            if (line.contains("所有者:")) {
-                String ownerName = ChatColor.stripColor(line).replace("所有者: ", "").trim();
+        for (Component line : lore) {
+            String plainText = PlainTextComponentSerializer.plainText().serialize(line);
+            if (plainText.contains("所有者:")) {
+                // MiniMessageタグを削除して所有者名を抽出
+                String ownerName = plainText.replaceAll("<[^>]+>", "").replace("所有者: ", "").trim();
                 return player.getName().equals(ownerName);
             }
         }
@@ -279,15 +275,16 @@ public class DropHandler {
             return false;
         }
 
-        List<String> lore = meta.getLore();
+        List<Component> lore = meta.lore();
         if (lore == null) {
             return false;
         }
 
         // 独占ドロップでない場合は期限なし
         boolean hasOwner = false;
-        for (String line : lore) {
-            if (line.contains("所有者:")) {
+        for (Component line : lore) {
+            String plainText = PlainTextComponentSerializer.plainText().serialize(line);
+            if (plainText.contains("所有者:")) {
                 hasOwner = true;
                 break;
             }

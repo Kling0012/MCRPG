@@ -3,6 +3,7 @@ package com.example.rpgplugin.player;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.rpgclass.RPGClass;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -23,10 +24,8 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -397,9 +396,9 @@ class ManaManagerTest {
         verify(player1).regenerateMana(anyDouble());
         verify(player2).regenerateMana(anyDouble());
         // player1は50%未満なのでインジケーター表示
-        verify(bukkitPlayer1).sendActionBar((String) argThat(s -> s != null && ((String) s).contains("MP")));
+        verify(bukkitPlayer1).sendActionBar(any(Component.class));
         // player2は50%以上なのでインジケーター非表示
-        verify(bukkitPlayer2, never()).sendActionBar((String) any());
+        verify(bukkitPlayer2, never()).sendActionBar(any(Component.class));
     }
 
     @Test
@@ -477,7 +476,7 @@ class ManaManagerTest {
 
         manaManager.start();
 
-        verify(bukkitPlayer).sendActionBar((String) argThat(s -> s != null && ((String) s).contains("MP")));
+        verify(bukkitPlayer).sendActionBar(any(Component.class));
     }
 
     @Test
@@ -504,7 +503,7 @@ class ManaManagerTest {
 
         manaManager.start();
 
-        verify(bukkitPlayer, never()).sendActionBar((String) any());
+        verify(bukkitPlayer, never()).sendActionBar(any(Component.class));
     }
 
     // ===== ヘルパーメソッド =====

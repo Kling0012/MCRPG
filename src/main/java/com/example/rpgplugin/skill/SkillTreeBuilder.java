@@ -1,7 +1,5 @@
 package com.example.rpgplugin.skill;
 
-import org.bukkit.ChatColor;
-
 import java.util.*;
 import java.util.logging.Logger;
 

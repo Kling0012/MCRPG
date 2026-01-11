@@ -73,6 +73,7 @@ public class ExprRPGAttrPoint extends SimpleExpression<Number> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
         this.playerExpr = (Expression<Player>) exprs[0];
         return true;

@@ -29,6 +29,15 @@ public class SkillTarget {
     private final EntityTypeFilter entityTypeFilter;
     private final Integer maxTargets;
 
+    // グループフィルタ（敵味方フィルタ、SkillAPI参考）
+    private final TargetGroupFilter groupFilter;
+    // 壁を通すかどうか（SkillAPI参考）
+    private final boolean throughWall;
+    // ランダム順序（SkillAPI参考）
+    private final boolean randomOrder;
+    // フィルタ無視でキャスターを含める（SkillAPI参考）
+    private final boolean includeCaster;
+
     // 汎用ターゲット設定（LINE, LOOKING, CONE, SPHERE用）
     private final Double range;
     private final Double lineWidth;
@@ -46,6 +55,10 @@ public class SkillTarget {
      * @param circle 円形範囲設定
      * @param entityTypeFilter エンティティタイプフィルタ
      * @param maxTargets 最大ターゲット数（nullで制限なし）
+     * @param groupFilter グループフィルタ（敵味方フィルタ）
+     * @param throughWall 壁を通すかどうか
+     * @param randomOrder ランダム順序
+     * @param includeCaster フィルタ無視でキャスターを含める
      * @param range 汎用範囲（LINE, LOOKING用）
      * @param lineWidth 直線の幅（LINE, LOOKING用）
      * @param coneAngle コーンの角度（CONE用、度数法）
@@ -55,6 +68,8 @@ public class SkillTarget {
                        SingleTargetConfig singleTarget, ConeConfig cone,
                        RectConfig rect, CircleConfig circle,
                        EntityTypeFilter entityTypeFilter, Integer maxTargets,
+                       TargetGroupFilter groupFilter, boolean throughWall,
+                       boolean randomOrder, boolean includeCaster,
                        Double range, Double lineWidth, Double coneAngle, Double sphereRadius) {
         this.type = type != null ? type : TargetType.NEAREST_HOSTILE;
         this.areaShape = areaShape != null ? areaShape : AreaShape.SINGLE;
@@ -64,6 +79,10 @@ public class SkillTarget {
         this.circle = circle;
         this.entityTypeFilter = entityTypeFilter != null ? entityTypeFilter : EntityTypeFilter.ALL;
         this.maxTargets = maxTargets;
+        this.groupFilter = groupFilter != null ? groupFilter : TargetGroupFilter.BOTH;
+        this.throughWall = throughWall;
+        this.randomOrder = randomOrder;
+        this.includeCaster = includeCaster;
         this.range = range;
         this.lineWidth = lineWidth;
         this.coneAngle = coneAngle;
@@ -72,21 +91,39 @@ public class SkillTarget {
 
     /**
      * レガシーコンストラクタ（後方互換性）
+     * <p>注意: グループフィルタはBOTH（敵味方両方）がデフォルトです。</p>
      */
     public SkillTarget(TargetType type, AreaShape areaShape,
                        SingleTargetConfig singleTarget, ConeConfig cone,
                        RectConfig rect, CircleConfig circle) {
-        this(type, areaShape, singleTarget, cone, rect, circle, EntityTypeFilter.ALL, null, null, null, null, null);
+        this(type, areaShape, singleTarget, cone, rect, circle,
+                EntityTypeFilter.ALL, null, TargetGroupFilter.BOTH, false, false, false,
+                null, null, null, null);
     }
 
     /**
-     * 汎用コンストラクタ（LINE, LOOKING, CONE, SPHEMRE用）
+     * 汎用コンストラクタ（LINE, LOOKING, CONE, SPHERE用）
      */
     public SkillTarget(TargetType type, Double range, Double lineWidth,
                        Double coneAngle, Double sphereRadius,
                        EntityTypeFilter entityTypeFilter, Integer maxTargets) {
         this(type, AreaShape.SINGLE, null, null, null, null,
-                entityTypeFilter, maxTargets, range, lineWidth, coneAngle, sphereRadius);
+                entityTypeFilter, maxTargets, TargetGroupFilter.BOTH, false, false, false,
+                range, lineWidth, coneAngle, sphereRadius);
+    }
+
+    /**
+     * 拡張コンストラクタ（グループフィルタ、壁、ランダム対応）
+     */
+    public SkillTarget(TargetType type, AreaShape areaShape,
+                       SingleTargetConfig singleTarget, ConeConfig cone,
+                       RectConfig rect, CircleConfig circle,
+                       EntityTypeFilter entityTypeFilter, Integer maxTargets,
+                       TargetGroupFilter groupFilter, boolean throughWall,
+                       boolean randomOrder, boolean includeCaster) {
+        this(type, areaShape, singleTarget, cone, rect, circle,
+                entityTypeFilter, maxTargets, groupFilter, throughWall, randomOrder, includeCaster,
+                null, null, null, null);
     }
 
     /**
@@ -144,6 +181,44 @@ public class SkillTarget {
      */
     public int getMaxTargetsOrUnlimited() {
         return maxTargets != null ? maxTargets : Integer.MAX_VALUE;
+    }
+
+    // ==================== グループフィルタ・壁判定ゲッター ====================
+
+    /**
+     * グループフィルタを取得します
+     *
+     * @return グループフィルタ（敵味方フィルタ）
+     */
+    public TargetGroupFilter getGroupFilter() {
+        return groupFilter;
+    }
+
+    /**
+     * 壁を通すかどうかを取得します
+     *
+     * @return 壁を通す場合はtrue
+     */
+    public boolean isThroughWall() {
+        return throughWall;
+    }
+
+    /**
+     * ランダム順序でターゲットを選択するかを取得します
+     *
+     * @return ランダム順序の場合はtrue
+     */
+    public boolean isRandomOrder() {
+        return randomOrder;
+    }
+
+    /**
+     * フィルタ無視でキャスターを含めるかを取得します
+     *
+     * @return キャスターを含める場合はtrue
+     */
+    public boolean isIncludeCaster() {
+        return includeCaster;
     }
 
     // ==================== 汎用ターゲット設定ゲッター ====================

@@ -42,12 +42,8 @@ public class FormulaEvaluator {
 
     /** キャッシュされた数式情報 */
     private static class CachedExpression {
-        final String expression;
-        final long createdAt;
-
         CachedExpression(String expression) {
-            this.expression = expression;
-            this.createdAt = System.currentTimeMillis();
+            // プレースホルダー: 将来的なキャッシュ拡張用
         }
     }
 

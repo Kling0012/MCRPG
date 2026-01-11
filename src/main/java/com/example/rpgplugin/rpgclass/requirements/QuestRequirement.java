@@ -2,9 +2,6 @@ package com.example.rpgplugin.rpgclass.requirements;
 
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.Bukkit;
-
-import java.util.UUID;
 
 /**
  * クエスト要件を表すクラス
@@ -71,10 +68,7 @@ public class QuestRequirement implements ClassRequirement {
         try {
             // BetonQuest APIを使用
             Class<?> bqClass = Class.forName("pl.betoncraft.betonquest.BetonQuest");
-            Object instance = bqClass.getMethod("getInstance").invoke(null);
-
-            Class<?> playerIDClass = Class.forName("pl.betoncraft.betonquest.api.Objective");
-            UUID playerUUID = player.getUniqueId();
+            bqClass.getMethod("getInstance").invoke(null);
 
             // 具体的な実装はBetonQuestのバージョンによる
             return false;

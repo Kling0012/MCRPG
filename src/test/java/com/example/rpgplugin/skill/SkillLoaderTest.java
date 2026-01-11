@@ -1,14 +1,12 @@
 package com.example.rpgplugin.skill;
 
 import com.example.rpgplugin.RPGPlugin;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -361,7 +359,7 @@ class SkillLoaderTest {
 
         Files.writeString(invalidFile, invalidYaml);
 
-        List<Skill> skills = loader.loadAllSkills();
+        loader.loadAllSkills();
 
         // 無効な数式は読み込まれない（またはnullとして扱われる）
         // 実装に応じて適切に検証
@@ -549,7 +547,6 @@ class SkillLoaderTest {
         List<Skill> skills = loader.loadAllSkills();
 
         assertFalse(skills.isEmpty());
-        Skill skill = skills.get(0);
         // パッシブ/アクティブの区別を廃止したため、テストを削除
     }
 

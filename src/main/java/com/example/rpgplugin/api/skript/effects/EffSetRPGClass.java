@@ -1,10 +1,7 @@
 package com.example.rpgplugin.api.skript.effects;
 
 import com.example.rpgplugin.RPGPlugin;
-import com.example.rpgplugin.player.PlayerManager;
-import com.example.rpgplugin.player.RPGPlayer;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import ch.njol.skript.Skript;
@@ -85,11 +82,10 @@ public class EffSetRPGClass extends Effect {
                 return;
             }
 
-            boolean success;
             if (hasLevel) {
-                success = plugin.getAPI().changeClass(player, classId, level);
+                plugin.getAPI().changeClass(player, classId, level);
             } else {
-                success = plugin.getAPI().setClass(player, classId);
+                plugin.getAPI().setClass(player, classId);
             }
 
             // Failed silently

@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -108,11 +107,10 @@ public class ResourceSetupManager {
         // JAR内のテンプレートファイルをコピー
         boolean success = true;
 
-        // スキルテンプレート
-        success &= copyResourceFromJar("templates/skills/active_skill_template.yml",
-                new File(skillsTemplateDir, "active_skill_template.yml"));
-        success &= copyResourceFromJar("templates/skills/passive_skill_template.yml",
-                new File(skillsTemplateDir, "passive_skill_template.yml"));
+        // スキルテンプレート（V5コンポーネント形式）
+        // V5ではアクティブ/パッシブの区別はトリガー类型で表現するため、単一テンプレートを使用
+        success &= copyResourceFromJar("templates/skills/skill_template.yml",
+                new File(skillsTemplateDir, "skill_template.yml"));
 
         // クラステンプレート
         success &= copyResourceFromJar("templates/classes/melee_template.yml",
@@ -272,15 +270,57 @@ public class ResourceSetupManager {
 
                 このディレクトリには、サーバーで使用するスキル定義ファイルを配置します。
 
+                ## V5 コンポーネントシステム
+
+                V5形式では、スキルは「コンポーネント」の組み合わせで定義されます。
+
+                ### スキルタイプの違い（トリガーで表現）
+
+                V5システムでは、アクティブ/パッシブの区別は**トリガー種類**で表現します：
+
+                - **アクティブスキル**: `trigger: CAST` を使用（手動発動）
+                  ```yaml
+                  components:
+                    - type: trigger
+                      component_id: CAST
+                      children:
+                        - type: mechanic
+                          component_id: DAMAGE
+                  ```
+
+                - **パッシブスキル**: イベントトリガーを使用（自動発動）
+                  ```yaml
+                  components:
+                    - type: trigger
+                      component_id: PHYSICAL_DEALT  # 攻撃時に発動
+                      children:
+                        - type: mechanic
+                          component_id: DAMAGE
+                  ```
+
+                ### 利用可能なトリガー
+
+                - `CAST`: スキル使用時に即時実行（アクティブスキル用）
+                - `CROUCH`: スニーク時
+                - `LAND`: 着地時
+                - `DEATH`: 死亡時
+                - `KILL`: エンティキル時
+                - `PHYSICAL_DEALT`: 物理ダメージを与えた時
+                - `PHYSICAL_TAKEN`: 物理ダメージを受けた時
+                - `LAUNCH`: 投射物発射時
+                - `ENVIRONMENTAL`: 環境ダメージ時
+
                 ## ディレクトリ構造
 
-                - `active/`  : アクティブスキル（手動発動するスキル）
-                - `passive/` : パッシブスキル（常時発動するスキル）
+                - `active/`  : アクティブスキルを配置（推奨、任意）
+                - `passive/` : パッシブスキルを配置（推奨、任意）
+
+                ※ どちらのディレクトリも読み込まれます。整理のための分類です。
 
                 ## スキルの追加方法
 
-                1. `templates/` ディレクトリにあるテンプレートをコピーします
-                2. スキルID、表示名、パラメータを編集します
+                1. `templates/skills/skill_template.yml` をコピーします
+                2. スキルID、表示名、コンポーネントを編集します
                 3. このディレクトリ（active または passive）に配置します
                 4. `/rpg reload` コマンドでリロードします
 
@@ -291,7 +331,7 @@ public class ResourceSetupManager {
 
                 ## テンプレートの場所
 
-                テンプレートファイルは `plugins/MCRPG/templates/skills/` にあります。
+                テンプレートファイルは `plugins/MCRPG/templates/skills/skill_template.yml` にあります。
                 """;
 
         java.nio.file.Files.writeString(file.toPath(), content);

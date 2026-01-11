@@ -171,3 +171,101 @@ When adding new features or making changes:
 3. **Document Integration**: Clearly explain how new code connects with existing systems in design documents
 4. **Maintain Modularity**: Keep components small and focused
 5. **Write Tests**: Ensure all code is testable and covered by tests
+
+---
+
+## RPGPlugin Project Specifics
+
+### プロジェクト概要
+
+Minecraft Java RPG Plugin - Paper API 1.20.6対応のRPGシステムプラグイン
+
+### コアシステム
+
+| システム | 説明 | 場所 |
+|---------|------|------|
+| **Component System V5** | コンポーネントベースのスキルシステム | `skill/component/` |
+| **Class System** | クラス・ジョブシステム | `rpgclass/` |
+| **Stat System** | ステータス管理 | `stats/` |
+| **Skill System** | スキル実行・管理 | `skill/` |
+| **Damage System** | ダメージ計算・修正 | `damage/` |
+| **Storage** | データ永続化 | `storage/` |
+
+### V5 コンポーネントシステム
+
+スキルは以下のコンポーネントタイプで構成されます：
+
+- **Trigger**: `CAST`, `CROUCH`, `LAND`, `DEATH`, `KILL`, `PHYSICAL_DEALT`, `PHYSICAL_TAKEN`, `LAUNCH`, `ENVIRONMENTAL`
+- **Target**: `SELF`, `SINGLE`, `CONE`, `SPHERE`, `SECTOR`, `AREA`, `LINE`, `NEAREST_HOSTILE`
+- **Condition**: `health`, `chance`, `mana`, `biome`, `class`, `time`, `armor`, `fire`, `water`, `combat`, `potion`, `status`, `tool`, `event`
+- **Mechanic**: `damage`, `heal`, `push`, `fire`, `message`, `potion`, `lightning`, `sound`, `command`, `explosion`, `speed`, `particle`, `launch`, `delay`, `cleanse`, `channel`
+- **Cost**: `MANA`, `HP`, `STAMINA`, `ITEM`
+- **Cooldown**: `COOLDOWN`
+- **Filter**: `entity_type`, `group`
+
+### 外部ディレクトリ構造（plugins/MCRPG/）
+
+```
+plugins/MCRPG/
+├── config.yml              # メイン設定
+├── skills/
+│   ├── active/            # アクティブスキル（trigger: CAST）
+│   ├── passive/           # パッシブスキル（イベントトリガー）
+│   └── README.txt
+├── classes/               # クラス定義YAML
+├── templates/
+│   ├── skills/
+│   │   └── skill_template.yml  # V5テンプレート（単一）
+│   └── classes/           # クラステンプレート
+├── mobs/                  # MythicMobs連携
+├── exp/                   # 経験値設定
+└── data/
+    └── database.db        # SQLiteデータベース
+```
+
+### 関連修正チェックリスト
+
+システム修正時に必ず確認する関連箇所：
+
+#### 1. コンポーネント追加時
+- [ ] `ComponentRegistry.java` にコンポーネントを登録
+- [ ] `SkillLoader.java` の `parseComponent()` にタイプを追加
+- [ ] `SkillLoader.java` の `parseComponentSettings()` にキーを除外追加
+- [ ] YAMLテンプレート `skill_template.yml` に説明を追加
+- [ ] `COMPONENT_SYSTEM_V5.md` ドキュメント更新
+- [ ] テストケース追加
+
+#### 2. テンプレートファイル変更時
+- [ ] `ResourceSetupManager.java` の `copyResourceFromJar()` パス確認
+- [ ] README.txt 内容の更新（`createSkillsReadme()`, `createClassesReadme()`）
+- [ ] `docs/YAML_REFERENCE.md` 更新
+- [ ] YAMLエディタ（tools/yaml-editor）のスキーマ更新
+
+#### 3. ローダー変更時
+- [ ] YAMLキー変更ならテンプレートファイル更新
+- [ ] 新しい必須フィールドならバリデーション更新
+- [ ] オプションフィールドならデフォルト値確認
+
+#### 4. ドキュメント更新時
+- [ ] `docs/COMPONENT_SYSTEM_V5.md` - コンポーネント仕様
+- [ ] `docs/YAML_REFERENCE.md` - YAML形式リファレンス
+- [ ] MemoryMCP に重要な変更を保存
+
+### 参照ドキュメント
+
+| ドキュメント | 説明 |
+|------------|------|
+| `COMPONENT_SYSTEM_V5.md` | V5コンポーネントシステム完全リファレンス |
+| `YAML_REFERENCE.md` | YAML形式詳細仕様 |
+| `SKRIPT_REFLECT.md` | Skript連携手引き |
+| `API_DOCUMENTATION.md` | Java APIドキュメント |
+
+### 重要なクラス
+
+| クラス | 説明 |
+|-------|------|
+| `ResourceSetupManager` | 外部ディレクトリ・テンプレート作成 |
+| `ComponentRegistry` | コンポーネントのファクトリレジストリ |
+| `SkillLoader` | スキルYAMLローダー |
+| `ClassLoader` | クラスYAMLローダー |
+| `ConsistencyValidator` | クラス・スキル整合性検証 |

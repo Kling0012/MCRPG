@@ -97,7 +97,6 @@ public class YamlConfigManager {
             return false;
         }
 
-        FileConfiguration oldConfig = configs.get(name);
         FileConfiguration newConfig = loader.loadYaml(file);
 
         if (newConfig == null) {

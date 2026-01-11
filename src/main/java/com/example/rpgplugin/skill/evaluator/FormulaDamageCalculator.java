@@ -1,7 +1,6 @@
 package com.example.rpgplugin.skill.evaluator;
 
 import com.example.rpgplugin.player.RPGPlayer;
-import com.example.rpgplugin.stats.Stat;
 
 import java.util.Map;
 import java.util.logging.Logger;

@@ -189,7 +189,7 @@ public class DependencyManager {
 
             if (registered) {
                 logger.info("PlaceholderAPI hooked successfully:");
-                logger.info("  Version: " + papiPlugin.getDescription().getVersion());
+                logger.info("  Version: " + papiPlugin.getPluginMeta().getVersion());
                 logger.info("  Expansion: RPGPlugin v" + placeholderHook.getVersion());
                 logger.info("  Identifier: %" + placeholderHook.getIdentifier() + "_<param>%");
                 return true;

@@ -39,6 +39,7 @@ public class CondCanUpgradeRPGClass extends Condition {
     private Expression<Player> player;
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
         player = (Expression<Player>) exprs[0];
         return true;

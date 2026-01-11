@@ -591,7 +591,8 @@ class TargetingIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 (Skill.FormulaDamageConfig) null,
                 (Skill.TargetingConfig) null,
-                skillTarget
+                skillTarget,
+                null  // componentEffect
         );
     }
 
@@ -630,7 +631,8 @@ class TargetingIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 (Skill.FormulaDamageConfig) null,
                 (Skill.TargetingConfig) null,
-                skillTarget
+                skillTarget,
+                null  // componentEffect
         );
     }
 
@@ -666,13 +668,6 @@ class TargetingIntegrationTest {
             entities.add(entity);
         }
         return entities;
-    }
-
-    /**
-     * モックエンティティリストを作成（X座標のみ、他はデフォルト）
-     */
-    private List<Entity> createMockEntities(double[] xCoords) {
-        return createMockEntities(xCoords, new double[xCoords.length]);
     }
 
     /**

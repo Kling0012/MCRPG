@@ -1,7 +1,6 @@
 package com.example.rpgplugin.stats;
 
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**

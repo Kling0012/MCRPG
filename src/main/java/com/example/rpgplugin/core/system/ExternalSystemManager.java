@@ -39,7 +39,6 @@ import com.example.rpgplugin.storage.database.ConnectionPool;
 public class ExternalSystemManager {
 
     private final RPGPlugin plugin;
-    private final ConnectionPool connectionPool;
 
     // MythicMobs連携
     private final MythicMobsManager mythicMobsManager;
@@ -56,7 +55,6 @@ public class ExternalSystemManager {
      */
     public ExternalSystemManager(RPGPlugin plugin, ConnectionPool connectionPool) {
         this.plugin = plugin;
-        this.connectionPool = connectionPool;
 
         // MythicMobs連携の初期化
         MythicMobsHook mythicMobsHook = new MythicMobsHook(plugin);

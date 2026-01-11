@@ -1,7 +1,5 @@
 package com.example.rpgplugin.stats;
 
-import org.bukkit.ChatColor;
-
 /**
  * ステータス種別を表す列挙型
  *
@@ -26,7 +24,7 @@ public enum Stat {
      * <p>物理攻撃力に影響します。</p>
      * <p>近距離武器のダメージ計算に使用されます。</p>
      */
-    STRENGTH("STR", "筋力", ChatColor.RED, "物理攻撃力に影響"),
+    STRENGTH("STR", "筋力", "<red>", "物理攻撃力に影響"),
 
     /**
      * 知力（INT）
@@ -34,7 +32,7 @@ public enum Stat {
      * <p>魔法攻撃力に影響します。</p>
      * <p>魔法スキルのダメージ計算に使用されます。</p>
      */
-    INTELLIGENCE("INT", "知力", ChatColor.BLUE, "魔法攻撃力に影響"),
+    INTELLIGENCE("INT", "知力", "<blue>", "魔法攻撃力に影響"),
 
     /**
      * 精神（SPI）
@@ -42,7 +40,7 @@ public enum Stat {
      * <p>MP回復・魔法防御に影響します。</p>
      * <p>MPの自然回復速度と魔法耐性に使用されます。</p>
      */
-    SPIRIT("SPI", "精神", ChatColor.LIGHT_PURPLE, "MP回復・魔法防御に影響"),
+    SPIRIT("SPI", "精神", "<light_purple>", "MP回復・魔法防御に影響"),
 
     /**
      * 生命力（VIT）
@@ -50,7 +48,7 @@ public enum Stat {
      * <p>HP・防御力に影響します。</p>
      * <p>最大HPと物理防御力に使用されます。</p>
      */
-    VITALITY("VIT", "体力", ChatColor.GREEN, "HP・防御力に影響"),
+    VITALITY("VIT", "体力", "<green>", "HP・防御力に影響"),
 
     /**
      * 器用さ（DEX）
@@ -58,11 +56,11 @@ public enum Stat {
      * <p>命中率・クリティカルに影響します。</p>
      * <p>攻撃の命中率とクリティカル率に使用されます。</p>
      */
-    DEXTERITY("DEX", "器用さ", ChatColor.AQUA, "命中率・クリティカルに影響");
+    DEXTERITY("DEX", "器用さ", "<aqua>", "命中率・クリティカルに影響");
 
     private final String shortName;
     private final String displayName;
-    private final ChatColor color;
+    private final String colorTag;
     private final String description;
 
     /**
@@ -70,13 +68,13 @@ public enum Stat {
      *
      * @param shortName 短縮名（3文字）
      * @param displayName 表示名
-     * @param color チャットカラー
+     * @param colorTag MiniMessageカラータグ
      * @param description 説明文
      */
-    Stat(String shortName, String displayName, ChatColor color, String description) {
+    Stat(String shortName, String displayName, String colorTag, String description) {
         this.shortName = shortName;
         this.displayName = displayName;
-        this.color = color;
+        this.colorTag = colorTag;
         this.description = description;
     }
 
@@ -103,12 +101,12 @@ public enum Stat {
     }
 
     /**
-     * チャットカラーを取得します
+     * MiniMessageカラータグを取得します
      *
-     * @return チャットカラー
+     * @return MiniMessageカラータグ
      */
-    public ChatColor getColor() {
-        return color;
+    public String getColorTag() {
+        return colorTag;
     }
 
     /**
@@ -123,23 +121,23 @@ public enum Stat {
     /**
      * カラー付きの表示名を取得します
      *
-     * <p>例: "§c筋力"</p>
+     * <p>例: "&c筋力"（旧形式）→ "<red>筋力"（新形式）</p>
      *
-     * @return カラー付き表示名
+     * @return MiniMessage形式のカラー付き表示名
      */
     public String getColoredName() {
-        return color + displayName;
+        return colorTag + displayName;
     }
 
     /**
      * カラー付きの短縮名を取得します
      *
-     * <p>例: "§cSTR"</p>
+     * <p>例: "&cSTR"（旧形式）→ "<red>STR"（新形式）</p>
      *
-     * @return カラー付き短縮名
+     * @return MiniMessage形式のカラー付き短縮名
      */
     public String getColoredShortName() {
-        return color + shortName;
+        return colorTag + shortName;
     }
 
     /**

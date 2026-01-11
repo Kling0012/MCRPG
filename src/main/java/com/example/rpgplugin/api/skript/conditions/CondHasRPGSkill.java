@@ -40,6 +40,7 @@ public class CondHasRPGSkill extends Condition {
     private Expression<String> skillId;
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean init(Expression<?>[] exprs, int matchedPattern, Kleenean isDelayed, SkriptParser.ParseResult parseResult) {
         player = (Expression<Player>) exprs[0];
         skillId = (Expression<String>) exprs[1];

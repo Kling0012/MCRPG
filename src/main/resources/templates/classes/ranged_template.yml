@@ -24,7 +24,9 @@ max_level: 50
 # GUI用アイコン
 icon: BOW
 
+# ============================================
 # ステータス成長
+# ============================================
 stat_growth:
   # 自動成長（レベルアップ時に自動付与）
   auto:
@@ -36,7 +38,9 @@ stat_growth:
   # 手動配分ポイント（レベルアップ時に付与）
   manual_points: 3
 
-# 次のランククラス（省略可能）
+# ============================================
+# 次のランク（直線パターン）
+# ============================================
 next_rank:
   # 次のランクのクラスID
   class_id: template_ranged_rank2
@@ -48,7 +52,9 @@ next_rank:
       stat: DEXTERITY
       value: 50
 
+# ============================================
 # 分岐ランク（省略可能、複数可能）
+# ============================================
 alternative_ranks:
   # 上位クラスID
   sniper:
@@ -59,23 +65,48 @@ alternative_ranks:
         class_id: template_ranged
         min_rank: 1
 
-# 使用可能なスキル（skills/ ディレクトリのskillIdを指定）
+# ============================================
+# 使用可能なスキル
+# ============================================
+# skills/ ディレクトリのskillIdを指定
 available_skills:
   - power_shot
   - multi_shot
 
-# パッシブボーナス（省略可能）
+# ============================================
+# パッシブボーナス
+# ============================================
+# typeの種類:
+#   damage_multiplier       : ダメージ倍率
+#   damage_reduction        : 被ダメージ軽減率
+#   health_bonus            : HPボーナス
+#   defense_bonus           : 防御ボーナス
+#   crit_rate_bonus         : クリティカル率ボーナス
+#   crit_damage_bonus       : クリティカルダメージボーナス
+#   magic_damage_multiplier : 魔法ダメージ倍率
+#   mp_bonus                : MPボーナス
+#   mp_regen_bonus          : MP回復ボーナス
+#   threat_multiplier       : 威脈値倍率
+#   range_bonus             : 射程ボーナス
+#   block_bonus             : ブロックボーナス
 passive_bonuses:
   - type: damage_multiplier       # ダメージ倍率
     value: 1.15                   # 15%増
-  - type: critical_rate_bonus     # クリティカル率ボーナス
+  - type: crit_rate_bonus         # クリティカル率ボーナス
     value: 0.1                    # +10%
   - type: range_bonus             # 射程ボーナス
     value: 1.2                    # +20%射程
 
-# 経験値減衰設定（省略可能）
+# ============================================
+# 経験値減衰設定
+# ============================================
 exp_diminish:
   # 減衰開始レベル
   start_level: 30
   # 獲得経験値の減衰率（0.5 = 50%）
   reduction_rate: 0.5
+
+# ============================================
+# MP回復量/秒
+# ============================================
+mana_regen: 1.0

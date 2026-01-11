@@ -7,7 +7,9 @@ import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.damage.DamageManager;
 import com.example.rpgplugin.player.exp.ExpManager;
-import com.example.rpgplugin.core.system.CoreSystemManager;
+import com.example.rpgplugin.core.validation.ConsistencyValidator;
+
+import java.util.Map;
 
 /**
  * ゲームシステムの統合マネージャー（ファサード）
@@ -32,7 +34,6 @@ import com.example.rpgplugin.core.system.CoreSystemManager;
  */
 public class GameSystemManager {
     private final RPGPlugin plugin;
-    private final CoreSystemManager coreSystem;
 
     // プレイヤーシステム
     private final PlayerManager playerManager;
@@ -59,6 +60,9 @@ public class GameSystemManager {
     private final com.example.rpgplugin.rpgclass.ClassLoader classLoader;
     private final com.example.rpgplugin.skill.SkillLoader skillLoader;
 
+    // 整合性検証
+    private final ConsistencyValidator consistencyValidator;
+
     /**
      * コンストラクタ
      *
@@ -67,7 +71,6 @@ public class GameSystemManager {
      */
     public GameSystemManager(RPGPlugin plugin, CoreSystemManager coreSystem) {
         this.plugin = plugin;
-        this.coreSystem = coreSystem;
 
         // 依存関係を考慮してインスタンス化
         // 1. PlayerManager（最初に初期化）
@@ -89,6 +92,9 @@ public class GameSystemManager {
         // 4. ローダー（リロード用）
         this.classLoader = new com.example.rpgplugin.rpgclass.ClassLoader(plugin, playerManager);
         this.skillLoader = new com.example.rpgplugin.skill.SkillLoader(plugin);
+
+        // 5. 整合性検証
+        this.consistencyValidator = new ConsistencyValidator(plugin.getLogger());
     }
 
     /**
@@ -238,5 +244,34 @@ public class GameSystemManager {
      */
     public com.example.rpgplugin.skill.SkillLoader getSkillLoader() {
         return skillLoader;
+    }
+
+    /**
+     * 整合性検証クラスを取得します
+     *
+     * @return ConsistencyValidator 整合性検証クラス
+     */
+    public ConsistencyValidator getConsistencyValidator() {
+        return consistencyValidator;
+    }
+
+    /**
+     * クラスとスキルの整合性を検証します
+     *
+     * <p>以下を検証します:</p>
+     * <ul>
+     *   <li>Class.availableSkillsとSkill.availableClassesの双方向整合性</li>
+     *   <li>存在しないスキル/クラスの参照チェック</li>
+     * </ul>
+     *
+     * @return 検証結果
+     */
+    public ConsistencyValidator.ValidationResult validateConsistency() {
+        Map<String, com.example.rpgplugin.rpgclass.RPGClass> classes = new java.util.HashMap<>();
+        classManager.getAllClasses().forEach(c -> classes.put(c.getId(), c));
+
+        Map<String, com.example.rpgplugin.skill.Skill> skills = skillManager.getAllSkills();
+
+        return consistencyValidator.validate(classes, skills);
     }
 }

@@ -467,9 +467,8 @@ public class StatManager {
         for (Stat stat : Stat.values()) {
             int base = getBaseStat(stat);
             int finalValue = getFinalStat(stat);
-            sb.append(String.format("%s%s§r: %d (基本: %d)",
-                    stat.getColor(),
-                    stat.getDisplayName(),
+            sb.append(String.format("%s: %d (基本: %d)",
+                    stat.getColoredName(),
                     finalValue,
                     base));
 

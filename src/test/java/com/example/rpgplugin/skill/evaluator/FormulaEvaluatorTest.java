@@ -512,7 +512,7 @@ class FormulaEvaluatorTest {
     @DisplayName("タブと改行を含む数式テスト")
     void testTabAndNewline() throws Exception {
         // 式内の空白はパーサーにより処理される
-        double result = evaluator.evaluateWithContext("2 +\t3\n", context);
+        evaluator.evaluateWithContext("2 +\t3\n", context);
         // 実装に依存
     }
 }

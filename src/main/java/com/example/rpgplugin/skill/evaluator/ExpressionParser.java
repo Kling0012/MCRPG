@@ -2,7 +2,6 @@ package com.example.rpgplugin.skill.evaluator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * 数式パーサー
@@ -27,8 +26,6 @@ import java.util.logging.Logger;
  * @version 1.0.0
  */
 public class ExpressionParser {
-
-    private static final Logger LOGGER = Logger.getLogger(ExpressionParser.class.getName());
 
     /** トークンの種別 */
     private enum TokenType {
@@ -360,19 +357,6 @@ public class ExpressionParser {
     private Token currentToken() {
         if (tokenIndex < tokens.size()) {
             return tokens.get(tokenIndex);
-        }
-        return new Token(TokenType.EOF, "", -1);
-    }
-
-    /**
-     * 次のトークンを取得します
-     *
-     * @return 次のトークン
-     */
-    private Token peekToken() {
-        int nextIndex = tokenIndex + 1;
-        if (nextIndex < tokens.size()) {
-            return tokens.get(nextIndex);
         }
         return new Token(TokenType.EOF, "", -1);
     }

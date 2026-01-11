@@ -180,7 +180,6 @@ public class DamageManager implements Listener {
 
         // 環境ダメージ（落下、火傷、毒など）への対応
         // 将来的に実装
-        Player player = (Player) target;
 
         // 特定のダメージタイプには補正を適用しない
         switch (event.getCause()) {

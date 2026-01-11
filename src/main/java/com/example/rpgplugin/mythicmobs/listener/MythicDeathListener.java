@@ -2,13 +2,15 @@ package com.example.rpgplugin.mythicmobs.listener;
 
 import com.example.rpgplugin.mythicmobs.MythicMobsManager;
 import io.lumine.mythic.bukkit.events.MythicMobDeathEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
@@ -79,25 +81,29 @@ public class MythicDeathListener implements Listener {
     }
 
     /**
-     * プレイヤーアイテムピックアップイベントハンドラー
+     * エンティティアイテムピックアップイベントハンドラー
      *
      * <p>独占ドロップの所有者チェックを行います。</p>
      *
-     * @param event プレイヤーピックアップイベント
+     * @param event エンティティピックアップイベント
      */
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+    public void onEntityPickupItem(EntityPickupItemEvent event) {
         if (!mythicMobsManager.isAvailable()) {
             return;
         }
 
-        Player player = event.getPlayer();
+        Entity entity = event.getEntity();
+        if (!(entity instanceof Player player)) {
+            return;
+        }
+
         ItemStack item = event.getItem().getItemStack();
 
         // ピックアップ可能か確認
         if (!mythicMobsManager.getDropHandler().canPickup(player, item)) {
             event.setCancelled(true);
-            player.sendMessage(org.bukkit.ChatColor.RED + "このアイテムは拾えません！");
+            player.sendMessage(Component.text("このアイテムは拾えません！", NamedTextColor.RED));
         }
     }
 

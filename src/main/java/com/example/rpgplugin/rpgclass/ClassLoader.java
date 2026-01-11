@@ -9,7 +9,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -19,7 +18,6 @@ import java.util.logging.Logger;
  */
 public class ClassLoader {
 
-    private final RPGPlugin plugin;
     private final Logger logger;
     private final File classesDirectory;
     private final PlayerManager playerManager;
@@ -31,7 +29,6 @@ public class ClassLoader {
      * @param playerManager プレイヤーマネージャー
      */
     public ClassLoader(RPGPlugin plugin, PlayerManager playerManager) {
-        this.plugin = plugin;
         this.logger = plugin.getLogger();
         this.playerManager = playerManager;
         this.classesDirectory = new File(plugin.getDataFolder(), "classes");
@@ -159,6 +156,7 @@ public class ClassLoader {
         skills.forEach(builder::addAvailableSkill);
 
         // パッシブボーナス
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> passiveList = (List<Map<String, Object>>) (Object) config.getMapList("passive_bonuses");
         for (Map<String, Object> passiveMap : passiveList) {
             ConfigurationSection passiveSection = createSectionFromMap(passiveMap);
@@ -191,6 +189,7 @@ public class ClassLoader {
             return requirements;
         }
 
+        @SuppressWarnings("unchecked")
         List<Map<String, Object>> requirementList = (List<Map<String, Object>>) (Object) section.getMapList("requirements");
         if (requirementList.isEmpty()) {
             // 単一の要件として処理
@@ -228,7 +227,7 @@ public class ClassLoader {
 
         switch (type) {
             case "level":
-                return LevelRequirement.parse(section, playerManager);
+                return LevelRequirement.parse(section);
 
             case "stat":
                 return StatRequirement.parse(section, playerManager);

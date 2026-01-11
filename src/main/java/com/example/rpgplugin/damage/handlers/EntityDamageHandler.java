@@ -4,6 +4,8 @@ import com.example.rpgplugin.damage.DamageModifier;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.stats.Stat;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -130,11 +132,7 @@ public class EntityDamageHandler {
      */
     private void showDamageIndicator(Player player, int damage) {
         // アクションバーに表示
-        String message = String.format("§c↗ %d", damage);
-        player.spigot().sendMessage(
-                net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                new net.md_5.bungee.api.chat.TextComponent(message)
-        );
+        player.sendActionBar(Component.text("↗ " + damage, NamedTextColor.RED));
     }
 
     /**

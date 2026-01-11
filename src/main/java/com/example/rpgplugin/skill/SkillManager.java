@@ -3,16 +3,14 @@ package com.example.rpgplugin.skill;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.player.PlayerManager;
-import com.example.rpgplugin.skill.evaluator.FormulaDamageCalculator;
 import com.example.rpgplugin.skill.evaluator.FormulaEvaluator;
-import com.example.rpgplugin.skill.target.ShapeCalculator;
 import com.example.rpgplugin.skill.target.TargetSelector;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.Location;
-import org.bukkit.util.Vector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -350,7 +348,7 @@ public boolean registerSkill(Skill skill) {
     public boolean acquireSkill(Player player, String skillId, int level) {
         Skill skill = getSkill(skillId);
         if (skill == null) {
-            player.sendMessage(ChatColor.RED + "スキルが見つかりません: " + skillId);
+            player.sendMessage(Component.text("スキルが見つかりません: " + skillId, NamedTextColor.RED));
             return false;
         }
 
@@ -358,17 +356,17 @@ public boolean registerSkill(Skill skill) {
         int currentLevel = data.getSkillLevel(skillId);
 
         if (currentLevel > 0 && level <= currentLevel) {
-            player.sendMessage(ChatColor.RED + "既に higher level を習得しています");
+            player.sendMessage(Component.text("既に higher level を習得しています", NamedTextColor.RED));
             return false;
         }
 
         if (level > skill.getMaxLevel()) {
-            player.sendMessage(ChatColor.RED + "最大レベルを超えています: " + skill.getMaxLevel());
+            player.sendMessage(Component.text("最大レベルを超えています: " + skill.getMaxLevel(), NamedTextColor.RED));
             return false;
         }
 
         data.setSkillLevel(skillId, level);
-        player.sendMessage(ChatColor.GREEN + "スキルを習得しました: " + skill.getColoredDisplayName() + " Lv." + level);
+        player.sendMessage(Component.text("スキルを習得しました: " + skill.getColoredDisplayName() + " Lv." + level, NamedTextColor.GREEN));
         return true;
     }
 
@@ -382,7 +380,7 @@ public boolean registerSkill(Skill skill) {
     public boolean upgradeSkill(Player player, String skillId) {
         Skill skill = getSkill(skillId);
         if (skill == null) {
-            player.sendMessage(ChatColor.RED + "スキルが見つかりません: " + skillId);
+            player.sendMessage(Component.text("スキルが見つかりません: " + skillId, NamedTextColor.RED));
             return false;
         }
 
@@ -390,17 +388,17 @@ public boolean registerSkill(Skill skill) {
         int currentLevel = data.getSkillLevel(skillId);
 
         if (currentLevel == 0) {
-            player.sendMessage(ChatColor.RED + "まずスキルを習得してください");
+            player.sendMessage(Component.text("まずスキルを習得してください", NamedTextColor.RED));
             return false;
         }
 
         if (currentLevel >= skill.getMaxLevel()) {
-            player.sendMessage(ChatColor.RED + "既に最大レベルに達しています");
+            player.sendMessage(Component.text("既に最大レベルに達しています", NamedTextColor.RED));
             return false;
         }
 
         data.setSkillLevel(skillId, currentLevel + 1);
-        player.sendMessage(ChatColor.GREEN + "スキルを強化しました: " + skill.getColoredDisplayName() + " Lv." + (currentLevel + 1));
+        player.sendMessage(Component.text("スキルを強化しました: " + skill.getColoredDisplayName() + " Lv." + (currentLevel + 1), NamedTextColor.GREEN));
         return true;
     }
 
@@ -424,7 +422,7 @@ public boolean registerSkill(Skill skill) {
 
         if (currentTime - lastCast < cooldownMs) {
             long remainingSeconds = ((cooldownMs - (currentTime - lastCast)) / 1000) + 1;
-            player.sendMessage(ChatColor.RED + "クールダウン中です: 残り " + remainingSeconds + " 秒");
+            player.sendMessage(Component.text("クールダウン中です: 残り " + remainingSeconds + " 秒", NamedTextColor.RED));
             return false;
         }
 
@@ -532,10 +530,10 @@ public boolean registerSkill(Skill skill) {
 
         // 成功メッセージ
         if (targetsHit > 0) {
-            player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level
-                    + ChatColor.GRAY + " (ダメージ: " + String.format("%.1f", damage) + ", ターゲット: " + targetsHit + ")");
+            player.sendMessage(Component.text("スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level
+                    + " (ダメージ: " + String.format("%.1f", damage) + ", ターゲット: " + targetsHit + ")", NamedTextColor.GREEN));
         } else {
-            player.sendMessage(ChatColor.GREEN + "スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level);
+            player.sendMessage(Component.text("スキルを発動しました: " + skill.getColoredDisplayName() + " Lv." + level, NamedTextColor.GREEN));
         }
 
         return SkillExecutionResult.successWithCost(damage, targetsHit, costConsumed);
@@ -768,9 +766,6 @@ public boolean registerSkill(Skill skill) {
         if (skillTarget == null) {
             return new ArrayList<>();
         }
-
-        Location origin = player.getLocation();
-        Vector direction = player.getLocation().getDirection();
 
         // 候補エンティティを収集
         List<Entity> candidates = getCandidateEntities(player, skillTarget);

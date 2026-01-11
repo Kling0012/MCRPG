@@ -7,10 +7,10 @@ import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatModifier;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
@@ -104,7 +104,7 @@ public class PassiveSkillExecutor implements SkillExecutor {
     @Override
     public boolean execute(Player player, Skill skill, int level) {
         // パッシブスキルは手動発動しない
-        player.sendMessage(ChatColor.RED + "パッシブスキルは手動発動できません: " + skill.getColoredDisplayName());
+        player.sendMessage(Component.text("パッシブスキルは手動発動できません: " + skill.getColoredDisplayName(), NamedTextColor.RED));
         return false;
     }
 
@@ -153,12 +153,7 @@ public class PassiveSkillExecutor implements SkillExecutor {
             }
         }
 
-        // ポーション効果を適用
-        if (potionEffect != null) {
-            player.addPotionEffect(potionEffect);
-        }
-
-        player.sendMessage(ChatColor.GREEN + "パッシブスキルを適用しました: " + skill.getColoredDisplayName() + " Lv." + level);
+        player.sendMessage(Component.text("パッシブスキルを適用しました: " + skill.getColoredDisplayName() + " Lv." + level, NamedTextColor.GREEN));
         return true;
     }
 
@@ -194,7 +189,7 @@ public class PassiveSkillExecutor implements SkillExecutor {
             player.removePotionEffect(effect.getPotionEffect().getType());
         }
 
-        player.sendMessage(ChatColor.YELLOW + "パッシブスキルを削除しました: " + effect.getSkill().getColoredDisplayName());
+        player.sendMessage(Component.text("パッシブスキルを削除しました: " + effect.getSkill().getColoredDisplayName(), NamedTextColor.YELLOW));
     }
 
     /**

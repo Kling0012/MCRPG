@@ -1,7 +1,7 @@
 package com.example.rpgplugin.api.command;
 
-import com.example.rpgplugin.RPGPlugin;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -9,8 +9,6 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -23,19 +21,14 @@ import java.util.List;
  * <p>Skript Reflect 2.6+対応</p>
  *
  * @author RPGPlugin Team
- * @version 1.0.1
+ * @version 1.0.2
  */
 public class APICommand implements CommandExecutor, TabCompleter {
 
-    private final RPGPlugin plugin;
-
     /**
      * コンストラクタ
-     *
-     * @param plugin プラグインインスタンス
      */
-    public APICommand(RPGPlugin plugin) {
-        this.plugin = plugin;
+    public APICommand() {
     }
 
     @Override
@@ -43,7 +36,7 @@ public class APICommand implements CommandExecutor, TabCompleter {
         // 権限チェック - コンソールまたは権限を持つプレイヤーのみ
         if (sender instanceof Player player) {
             if (!player.hasPermission("rpgplugin.api")) {
-                player.sendMessage(ChatColor.RED + "このコマンドは一般ユーザーは使用できません");
+                sender.sendMessage(Component.text("このコマンドは一般ユーザーは使用できません", NamedTextColor.RED));
                 return true;
             }
         }
@@ -75,16 +68,16 @@ public class APICommand implements CommandExecutor, TabCompleter {
      * @param sender 送信先
      */
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.GOLD + "===== RPGPlugin API (Skript Reflect) =====");
-        sender.sendMessage(ChatColor.YELLOW + "Skript Reflectを使用して直接Javaメソッドを呼び出します。");
-        sender.sendMessage("");
-        sender.sendMessage(ChatColor.GREEN + "基本構文:");
-        sender.sendMessage(ChatColor.WHITE + "  set {_plugin} = RPGPlugin.getInstance()");
-        sender.sendMessage(ChatColor.WHITE + "  set {_pm} = {_plugin}.getPlayerManager()");
-        sender.sendMessage(ChatColor.WHITE + "  set {_rpgPlayer} = {_pm}.getRPGPlayer(player's uuid)");
-        sender.sendMessage("");
-        sender.sendMessage(ChatColor.GREEN + "ドキュメント:");
-        sender.sendMessage(ChatColor.WHITE + "  docs/SKRIPT_REFLECT.md");
-        sender.sendMessage(ChatColor.GOLD + "===========================================");
+        sender.sendMessage(Component.text("===== RPGPlugin API (Skript Reflect) =====", NamedTextColor.GOLD));
+        sender.sendMessage(Component.text("Skript Reflectを使用して直接Javaメソッドを呼び出します。", NamedTextColor.YELLOW));
+        sender.sendMessage(Component.empty());
+        sender.sendMessage(Component.text("基本構文:", NamedTextColor.GREEN));
+        sender.sendMessage(Component.text("  set {_plugin} = RPGPlugin.getInstance()", NamedTextColor.WHITE));
+        sender.sendMessage(Component.text("  set {_pm} = {_plugin}.getPlayerManager()", NamedTextColor.WHITE));
+        sender.sendMessage(Component.text("  set {_rpgPlayer} = {_pm}.getRPGPlayer(player's uuid)", NamedTextColor.WHITE));
+        sender.sendMessage(Component.empty());
+        sender.sendMessage(Component.text("ドキュメント:", NamedTextColor.GREEN));
+        sender.sendMessage(Component.text("  docs/SKRIPT_REFLECT.md", NamedTextColor.WHITE));
+        sender.sendMessage(Component.text("===========================================", NamedTextColor.GOLD));
     }
 }

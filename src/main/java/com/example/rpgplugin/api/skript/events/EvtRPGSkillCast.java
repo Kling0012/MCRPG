@@ -37,6 +37,7 @@ import ch.njol.skript.lang.SkriptParser;
  *   <li>event-skill - スキルオブジェクト</li>
  *   <li>event-skill-level - スキルレベル（数値）</li>
  *   <li>event-target - ターゲットエンティティ（存在する場合）</li>
+ *   <li>event-damage - 計算されたダメージ値（ダメージスキルの場合）</li>
  * </ul>
  *
  * @author RPGPlugin Team
@@ -58,6 +59,7 @@ public class EvtRPGSkillCast extends SkriptEvent {
     private Literal<String> skillId;
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean init(Literal<?>[] args, int matchedPattern, SkriptParser.ParseResult parseResult) {
         if (matchedPattern == 1) {
             skillId = (Literal<String>) args[0];
@@ -98,13 +100,19 @@ public class EvtRPGSkillCast extends SkriptEvent {
         private final Skill skill;
         private final int skillLevel;
         private final Entity target;
+        private final double damage;
 
         public RPGSkillCastEvent(Player player, String skillId, Skill skill, int skillLevel, Entity target) {
+            this(player, skillId, skill, skillLevel, target, 0.0);
+        }
+
+        public RPGSkillCastEvent(Player player, String skillId, Skill skill, int skillLevel, Entity target, double damage) {
             this.player = player;
             this.skillId = skillId;
             this.skill = skill;
             this.skillLevel = skillLevel;
             this.target = target;
+            this.damage = damage;
         }
 
         @Override
@@ -130,6 +138,15 @@ public class EvtRPGSkillCast extends SkriptEvent {
 
         public Entity getTarget() {
             return target;
+        }
+
+        /**
+         * スキルで与えるダメージ値を取得します
+         *
+         * @return ダメージ値（ダメージを与えないスキルの場合は0）
+         */
+        public double getDamage() {
+            return damage;
         }
     }
 }

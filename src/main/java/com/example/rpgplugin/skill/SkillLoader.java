@@ -2,9 +2,14 @@ package com.example.rpgplugin.skill;
 
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.core.config.ConfigLoader;
+import com.example.rpgplugin.skill.component.*;
+import com.example.rpgplugin.skill.component.trigger.ComponentRegistry;
+import com.example.rpgplugin.skill.component.trigger.Trigger;
+import com.example.rpgplugin.skill.component.trigger.TriggerHandler;
+import com.example.rpgplugin.skill.component.trigger.TriggerSettings;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.LivingEntity;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -193,12 +198,18 @@ public class SkillLoader extends ConfigLoader {
             double cooldownFallback = config.getDouble("cooldown", 0.0);
             int manaCostFallback = config.getInt("mana_cost", 0);
 
+            // コンポーネントベーススキルシステムのパース
+            SkillEffect componentEffect = null;
+            if (config.contains("components")) {
+                componentEffect = parseComponents(config.getConfigurationSection("components"), id);
+            }
+
             // Phase11-6+11-4統合: 新コンストラクタを使用して全設定を渡す
             return new Skill(id, name, displayName, type, description, maxLevel,
                     cooldownFallback, manaCostFallback,
                     cooldownParameter, costParameter, costType,
                     damage, skillTree, iconMaterial, availableClasses,
-                    variables, formulaDamage, targeting, skillTarget);
+                    variables, formulaDamage, targeting, skillTarget, componentEffect);
 
         } catch (Exception e) {
             getLogger().log(Level.WARNING, "スキルのパースに失敗しました: " + file.getName(), e);
@@ -757,9 +768,37 @@ public class SkillLoader extends ConfigLoader {
             maxTargets = targetSection.getInt("max_targets");
         }
 
+        // グループフィルタ（敵味方フィルタ、SkillAPI参考）
+        // デフォルトはBOTH（既存のスキル定義との互換性維持のため）
+        com.example.rpgplugin.skill.target.TargetGroupFilter groupFilter =
+                com.example.rpgplugin.skill.target.TargetGroupFilter.BOTH;
+        if (targetSection.contains("group")) {
+            String groupStr = targetSection.getString("group", "both").toLowerCase();
+            groupFilter = com.example.rpgplugin.skill.target.TargetGroupFilter.fromId(groupStr);
+        }
+
+        // 壁を通すかどうか（SkillAPI参考）
+        boolean throughWall = false;
+        if (targetSection.contains("wall")) {
+            throughWall = targetSection.getBoolean("wall", false);
+        }
+
+        // ランダム順序（SkillAPI参考）
+        boolean randomOrder = false;
+        if (targetSection.contains("random")) {
+            randomOrder = targetSection.getBoolean("random", false);
+        }
+
+        // フィルタ無視でキャスターを含める（SkillAPI参考）
+        boolean includeCaster = false;
+        if (targetSection.contains("caster")) {
+            includeCaster = targetSection.getBoolean("caster", false);
+        }
+
         return new com.example.rpgplugin.skill.target.SkillTarget(
                 type, areaShape, singleTarget, cone, rect, circle,
-                entityTypeFilter, maxTargets, range, lineWidth, coneAngle, sphereRadius);
+                entityTypeFilter, maxTargets, groupFilter, throughWall, randomOrder, includeCaster,
+                range, lineWidth, coneAngle, sphereRadius);
     }
 
     /**
@@ -769,5 +808,261 @@ public class SkillLoader extends ConfigLoader {
      */
     public File getSkillsDirectory() {
         return new File(plugin.getDataFolder(), "skills");
+    }
+
+    /**
+     * コンポーネントベーススキルシステムをパースします
+     *
+     * <p>YAML構造例:</p>
+     * <pre>
+     * components:
+     *   - trigger: CAST
+     *     children:
+     *       - target: SPHERE
+     *         children:
+     *         - filter: entity_type
+     *           type: PLAYER
+     *         - mechanic: damage
+     *           value: "5 + level * 2"
+     * </pre>
+     *
+     * @param section コンポーネントセクション
+     * @param skillId スキルID
+     * @return スキルエフェクト
+     */
+    private SkillEffect parseComponents(ConfigurationSection section, String skillId) {
+        if (section == null) {
+            return null;
+        }
+
+        // 配置ルールのバリデーション
+        com.example.rpgplugin.skill.component.placement.SkillValidator validator =
+                new com.example.rpgplugin.skill.component.placement.SkillValidator(getLogger());
+        if (!validator.validate(skillId, section)) {
+            getLogger().warning("スキル " + skillId + " のコンポーネント配置バリデーションに失敗しました");
+            // バリデーション失敗時も続行（警告のみ）
+        }
+
+        SkillEffect effect = new SkillEffect(skillId);
+
+        // トリガーをパースしてTriggerManagerに登録
+        if (section.getList("triggers") != null) {
+            List<?> triggerList = section.getList("triggers");
+            for (Object triggerObj : triggerList) {
+                if (triggerObj instanceof ConfigurationSection) {
+                    TriggerHandler handler = parseTriggerComponent((ConfigurationSection) triggerObj, skillId);
+                    if (handler != null) {
+                        // TriggerManagerにスキルエフェクトを登録
+                        com.example.rpgplugin.skill.component.trigger.TriggerManager.getInstance()
+                                .registerSkill(skillId, effect);
+                    }
+                }
+            }
+        }
+
+        // コンポーネントリストをパース
+        if (section.getList("components") != null) {
+            List<?> componentList = section.getList("components");
+            for (Object componentObj : componentList) {
+                if (componentObj instanceof ConfigurationSection) {
+                    EffectComponent component = parseComponent((ConfigurationSection) componentObj, skillId);
+                    if (component != null) {
+                        effect.addComponent(component);
+                    }
+                }
+            }
+        }
+
+        return effect;
+    }
+
+    /**
+     * 単一のコンポーネントをパースします
+     *
+     * @param section コンポーネントセクション
+     * @param skillId スキルID
+     * @return エフェクトコンポーネント
+     */
+    private EffectComponent parseComponent(ConfigurationSection section, String skillId) {
+        String type = null;
+        String key = null;
+
+        // コンポーネントタイプのチェック（トリガーは別途処理）
+        if (section.contains("condition")) {
+            type = "condition";
+            key = section.getString("condition");
+        } else if (section.contains("filter")) {
+            type = "filter";
+            key = section.getString("filter");
+        } else if (section.contains("mechanic")) {
+            type = "mechanic";
+            key = section.getString("mechanic");
+        } else if (section.contains("target")) {
+            type = "target";
+            key = section.getString("target");
+        } else if (section.contains("cost")) {
+            type = "cost";
+            key = section.getString("cost");
+        } else if (section.contains("cooldown")) {
+            type = "cooldown";
+            key = section.getString("cooldown");
+        } else {
+            getLogger().warning("コンポーネントタイプが指定されていません: " + skillId);
+            return null;
+        }
+
+        EffectComponent component = null;
+        ComponentSettings settings = parseComponentSettings(section);
+
+        switch (type) {
+            case "condition":
+                component = ComponentRegistry.createCondition(key);
+                break;
+            case "filter":
+                component = ComponentRegistry.createFilter(key);
+                break;
+            case "mechanic":
+                component = ComponentRegistry.createMechanic(key);
+                break;
+            case "target":
+                component = ComponentRegistry.createTarget(key);
+                break;
+            case "cost":
+                component = ComponentRegistry.createCost(key);
+                break;
+            case "cooldown":
+                component = ComponentRegistry.createCooldown(key);
+                break;
+        }
+
+        if (component == null) {
+            getLogger().warning("不明なコンポーネント: type=" + type + ", key=" + key + ", skillId=" + skillId);
+            return null;
+        }
+
+        // 設定を適用
+        if (component.getSettings() != null) {
+            component.getSettings().putAll(settings);
+        }
+
+        // 子コンポーネントを再帰的にパース（components または children キーをサポート）
+        String childKey = section.contains("components") ? "components" : "children";
+        if (section.contains(childKey)) {
+            List<?> childList = section.getList(childKey);
+            if (childList != null) {
+                for (Object childObj : childList) {
+                    if (childObj instanceof ConfigurationSection) {
+                        EffectComponent child = parseComponent((ConfigurationSection) childObj, skillId);
+                        if (child != null) {
+                            component.addChild(child);
+                        }
+                    }
+                }
+            }
+        }
+
+        return component;
+    }
+
+    /**
+     * トリガーコンポーネントをパースします
+     *
+     * @param section トリガーセクション
+     * @param skillId スキルID
+     * @return トリガーハンドラー
+     */
+    private TriggerHandler parseTriggerComponent(ConfigurationSection section, String skillId) {
+        String key = section.getString("trigger");
+        if (key == null) {
+            getLogger().warning("トリガーキーが指定されていません: " + skillId);
+            return null;
+        }
+
+        Trigger<?> trigger = ComponentRegistry.createTrigger(key);
+        if (trigger == null) {
+            getLogger().warning("不明なトリガー: " + key);
+            return null;
+        }
+
+        // TriggerSettingsを作成
+        TriggerSettings triggerSettings = new TriggerSettings();
+
+        // セクションから設定を読み込み
+        for (String settingKey : section.getKeys(false)) {
+            if ("trigger".equals(settingKey) || "components".equals(settingKey) || "duration".equals(settingKey)) {
+                continue;
+            }
+            Object value = section.get(settingKey);
+            if (value != null) {
+                triggerSettings.put(settingKey, value);
+            }
+        }
+
+        // 効果時間をパース
+        int duration = section.getInt("duration", 0);
+
+        // ルートコンポーネントを作成（子コンポーネント用）
+        EffectComponent rootComponent = new EffectComponent("trigger_root") {
+            @Override
+            public ComponentType getType() {
+                return ComponentType.MECHANIC;
+            }
+
+            @Override
+            public boolean execute(LivingEntity caster, int level, List<org.bukkit.entity.LivingEntity> targets) {
+                return executeChildren(caster, level, targets);
+            }
+        };
+
+        // 子コンポーネントをパースしてルートに追加
+        if (section.contains("components")) {
+            List<?> childList = section.getList("components");
+            if (childList != null) {
+                for (Object childObj : childList) {
+                    if (childObj instanceof ConfigurationSection) {
+                        EffectComponent child = parseComponent((ConfigurationSection) childObj, skillId);
+                        if (child != null) {
+                            rootComponent.addChild(child);
+                        }
+                    }
+                }
+            }
+        }
+
+        TriggerHandler handler = new TriggerHandler(
+                skillId,
+                trigger,
+                triggerSettings,
+                rootComponent,
+                duration
+        );
+
+        return handler;
+    }
+
+    /**
+     * コンポーネント設定をパースします
+     *
+     * @param section セクション
+     * @return コンポーネント設定
+     */
+    private ComponentSettings parseComponentSettings(ConfigurationSection section) {
+        ComponentSettings settings = new ComponentSettings();
+
+        for (String key : section.getKeys(false)) {
+            // 除外するキー（コンポーネントタイプ識別子）
+            if ("trigger".equals(key) || "condition".equals(key) || "mechanic".equals(key)
+                    || "target".equals(key) || "cost".equals(key) || "cooldown".equals(key)
+                    || "components".equals(key) || "skill_id".equals(key)) {
+                continue;
+            }
+
+            Object value = section.get(key);
+            if (value != null) {
+                settings.put(key, value);
+            }
+        }
+
+        return settings;
     }
 }

@@ -6,8 +6,10 @@ import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillNode;
 import com.example.rpgplugin.skill.SkillTree;
-import com.example.rpgplugin.skill.SkillType;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -46,7 +48,8 @@ public class SkillTreeGUI {
     private static final int INFO_ITEM_SLOT = 49;     // 情報アイテム位置（最下行中央）
 
     // GUI識別用タイトル
-    private static final String INVENTORY_TITLE = "スキルツリー";
+    private static final Component INVENTORY_TITLE = Component.text("スキルツリー");
+    private static final String INVENTORY_TITLE_PLAIN = "スキルツリー"; // 互換性のため残す
 
     // プレイヤーごとのGUIインスタンス管理
     private static final Map<UUID, SkillTreeGUI> openGuis = new HashMap<>();
@@ -68,7 +71,7 @@ public class SkillTreeGUI {
         this.skillTree = skillManager.getTreeRegistry().getTree(this.classId);
 
         if (this.skillTree == null) {
-            player.sendMessage(ChatColor.RED + "スキルツリーが見つかりません: " + this.classId);
+            player.sendMessage(Component.text("スキルツリーが見つかりません: " + this.classId, NamedTextColor.RED));
         }
     }
 
@@ -91,7 +94,7 @@ public class SkillTreeGUI {
      */
     public void open() {
         if (skillTree == null) {
-            player.sendMessage(ChatColor.RED + "スキルツリーが利用できません");
+            player.sendMessage(Component.text("スキルツリーが利用できません", NamedTextColor.RED));
             return;
         }
 
@@ -163,14 +166,14 @@ public class SkillTreeGUI {
 
         List<String> lore = new ArrayList<>();
         lore.add("");
-        lore.add(ChatColor.YELLOW + "残りスキルポイント: " + ChatColor.GREEN + skillPoints);
+        lore.add("<yellow>残りスキルポイント: <green>" + skillPoints);
         lore.add("");
-        lore.add(ChatColor.GRAY + "左クリック: スキル習得/レベルアップ");
-        lore.add(ChatColor.GRAY + "右クリック: スキル解除/レベルダウン");
+        lore.add("<gray>左クリック: スキル習得/レベルアップ");
+        lore.add("<gray>右クリック: スキル解除/レベルダウン");
 
         return createItem(
             Material.ENCHANTED_BOOK,
-            ChatColor.GOLD + "スキルポイント",
+            "<gold>スキルポイント",
             lore
         );
     }
@@ -223,24 +226,24 @@ public class SkillTreeGUI {
 
         // レベル表示
         if (currentLevel == 0) {
-            lore.add(ChatColor.GRAY + "未習得");
+            lore.add("<gray>未習得");
             lore.add("");
         } else {
-            lore.add(ChatColor.GREEN + "レベル: " + ChatColor.GOLD + currentLevel + ChatColor.GRAY + " / " + maxLevel);
+            lore.add("<green>レベル: <gold>" + currentLevel + "<gray> / " + maxLevel);
             lore.add("");
         }
 
         // コスト表示
         if (currentLevel < maxLevel) {
-            lore.add(ChatColor.YELLOW + "習得コスト: " + ChatColor.AQUA + cost + " SP");
+            lore.add("<yellow>習得コスト: <aqua>" + cost + " SP");
         } else {
-            lore.add(ChatColor.GRAY + "最大レベルに達しています");
+            lore.add("<gray>最大レベルに達しています");
         }
 
         // 説明
         lore.add("");
         for (String line : skill.getDescription()) {
-            lore.add(ChatColor.WHITE + line);
+            lore.add("<white>" + line);
         }
 
         // 前提スキル表示
@@ -253,9 +256,9 @@ public class SkillTreeGUI {
 
                 int parentLevel = getCurrentSkillLevel(parentId);
                 if (parentLevel > 0) {
-                    lore.add(ChatColor.GREEN + "前提: " + parentName + " (習得済み)");
+                    lore.add("<green>前提: " + parentName + " (習得済み)");
                 } else {
-                    lore.add(ChatColor.RED + "前提: " + parentName + " (未習得)");
+                    lore.add("<red>前提: " + parentName + " (未習得)");
                 }
             }
         }
@@ -263,9 +266,9 @@ public class SkillTreeGUI {
         // 習得可能状態
         lore.add("");
         if (canAcquireSkill(node)) {
-            lore.add(ChatColor.GREEN + "▶ 習得可能");
+            lore.add("<green>▶ 習得可能");
         } else {
-            lore.add(ChatColor.RED + "✖ 習得条件を満たしていません");
+            lore.add("<red>✖ 習得条件を満たしていません");
         }
 
         return createItem(iconMaterial, displayName, lore);
@@ -279,13 +282,13 @@ public class SkillTreeGUI {
     private void setupInfoItem(Inventory inventory) {
         List<String> lore = new ArrayList<>();
         lore.add("");
-        lore.add(ChatColor.YELLOW + "現在のクラス: " + ChatColor.WHITE + classId);
+        lore.add("<yellow>現在のクラス: <white>" + classId);
         lore.add("");
-        lore.add(ChatColor.GRAY + "クリックでGUIを閉じる");
+        lore.add("<gray>クリックでGUIを閉じる");
 
         ItemStack infoItem = createItem(
             Material.BARRIER,
-            ChatColor.RED + "閉じる",
+            "<red>閉じる",
             lore
         );
 
@@ -305,9 +308,13 @@ public class SkillTreeGUI {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(name);
+            meta.displayName(Component.text(name));
             if (lore != null && !lore.isEmpty()) {
-                meta.setLore(lore);
+                List<Component> loreComponents = new ArrayList<>();
+                for (String line : lore) {
+                    loreComponents.add(MiniMessage.miniMessage().deserialize(line));
+                }
+                meta.lore(loreComponents);
             }
             item.setItemMeta(meta);
         }
@@ -417,7 +424,7 @@ public class SkillTreeGUI {
         Skill skill = skillManager.getSkill(skillId);
 
         if (skill == null) {
-            player.sendMessage(ChatColor.RED + "スキルが見つかりません: " + skillId);
+            player.sendMessage(Component.text("スキルが見つかりません: " + skillId, NamedTextColor.RED));
             return false;
         }
 
@@ -427,14 +434,14 @@ public class SkillTreeGUI {
 
         // スキルポイントチェック
         if (availablePoints < cost) {
-            player.sendMessage(ChatColor.RED + "スキルポイントが足りません（必要: " + cost + "、所持: " + availablePoints + "）");
+            player.sendMessage(Component.text("スキルポイントが足りません（必要: " + cost + "、所持: " + availablePoints + "）", NamedTextColor.RED));
             return false;
         }
 
         // 習得条件チェック
         SkillNode node = skillTree.getNode(skillId);
         if (node != null && !canAcquireSkill(node)) {
-            player.sendMessage(ChatColor.RED + "習得条件を満たしていません");
+            player.sendMessage(Component.text("習得条件を満たしていません", NamedTextColor.RED));
             return false;
         }
 
@@ -442,14 +449,14 @@ public class SkillTreeGUI {
         if (currentLevel == 0) {
             // 新規習得
             if (skillManager.acquireSkill(player, skillId, 1)) {
-                player.sendMessage(ChatColor.GREEN + "スキルを習得しました: " + skill.getColoredDisplayName());
+                player.sendMessage(Component.text("スキルを習得しました: " + skill.getColoredDisplayName(), NamedTextColor.GREEN));
                 refreshGUI();
                 return true;
             }
         } else {
             // レベルアップ
             if (currentLevel >= skill.getMaxLevel()) {
-                player.sendMessage(ChatColor.RED + "既に最大レベルに達しています");
+                player.sendMessage(Component.text("既に最大レベルに達しています", NamedTextColor.RED));
                 return false;
             }
             if (skillManager.upgradeSkill(player, skillId)) {
@@ -472,14 +479,14 @@ public class SkillTreeGUI {
         Skill skill = skillManager.getSkill(skillId);
 
         if (skill == null) {
-            player.sendMessage(ChatColor.RED + "スキルが見つかりません: " + skillId);
+            player.sendMessage(Component.text("スキルが見つかりません: " + skillId, NamedTextColor.RED));
             return false;
         }
 
         int currentLevel = getCurrentSkillLevel(skillId);
 
         if (currentLevel == 0) {
-            player.sendMessage(ChatColor.RED + "このスキルは習得していません");
+            player.sendMessage(Component.text("このスキルは習得していません", NamedTextColor.RED));
             return false;
         }
 
@@ -488,7 +495,7 @@ public class SkillTreeGUI {
         if (node != null && !node.isLeaf()) {
             for (SkillNode child : node.getChildren()) {
                 if (getCurrentSkillLevel(child.getSkill().getId()) > 0) {
-                    player.sendMessage(ChatColor.RED + "子スキルを先に解除してください");
+                    player.sendMessage(Component.text("子スキルを先に解除してください", NamedTextColor.RED));
                     return false;
                 }
             }
@@ -498,11 +505,11 @@ public class SkillTreeGUI {
         if (currentLevel == 1) {
             // 完全に削除
             skillManager.getPlayerSkillData(player).removeSkill(skillId);
-            player.sendMessage(ChatColor.YELLOW + "スキルを解除しました: " + skill.getColoredDisplayName());
+            player.sendMessage(Component.text("スキルを解除しました: " + skill.getColoredDisplayName(), NamedTextColor.YELLOW));
         } else {
             // レベルダウン
             skillManager.getPlayerSkillData(player).setSkillLevel(skillId, currentLevel - 1);
-            player.sendMessage(ChatColor.YELLOW + "スキルレベルを下げました: " + skill.getColoredDisplayName() + " Lv." + (currentLevel - 1));
+            player.sendMessage(Component.text("スキルレベルを下げました: " + skill.getColoredDisplayName() + " Lv." + (currentLevel - 1), NamedTextColor.YELLOW));
         }
 
         refreshGUI();
@@ -515,7 +522,8 @@ public class SkillTreeGUI {
     public void refreshGUI() {
         if (player.getOpenInventory() != null) {
             Inventory topInventory = player.getOpenInventory().getTopInventory();
-            if (topInventory != null && INVENTORY_TITLE.equals(player.getOpenInventory().getTitle())) {
+            String title = PlainTextComponentSerializer.plainText().serialize(player.getOpenInventory().title());
+            if (topInventory != null && INVENTORY_TITLE_PLAIN.equals(title)) {
                 // インベントリを再構成
                 topInventory.clear();
                 setupDecoration(topInventory);

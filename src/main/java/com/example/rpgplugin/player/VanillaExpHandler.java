@@ -3,6 +3,10 @@ package com.example.rpgplugin.player;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.stats.Stat;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.title.Title;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -202,13 +206,19 @@ public class VanillaExpHandler implements Listener {
 
         // タイトル表示（オプション）
         if (plugin.getConfigManager().getBoolean("main", "level_up.show_title", true)) {
-            player.sendTitle(
-                "§6§lLEVEL UP!",
-                "§eレベル " + newLevel,
-                10,  // フェードイン
-                40,  // 表示時間
-                10   // フェードアウト
+            Component titleText = Component.text("LEVEL UP!", NamedTextColor.GOLD)
+                    .decorate(TextDecoration.BOLD);
+            Component subtitleText = Component.text("レベル " + newLevel, NamedTextColor.YELLOW);
+            Title title = Title.title(
+                    titleText,
+                    subtitleText,
+                    Title.Times.times(
+                            java.time.Duration.ofMillis(500),   // フェードイン (10 ticks)
+                            java.time.Duration.ofMillis(2000),  // 表示時間 (40 ticks)
+                            java.time.Duration.ofMillis(500)    // フェードアウト (10 ticks)
+                    )
             );
+            player.showTitle(title);
         }
 
         // サウンド効果（オプション）

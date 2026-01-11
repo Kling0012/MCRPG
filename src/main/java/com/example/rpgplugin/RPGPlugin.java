@@ -14,7 +14,6 @@ import com.example.rpgplugin.mythicmobs.listener.MythicDeathListener;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.ExpDiminisher;
 import com.example.rpgplugin.player.VanillaExpHandler;
-import com.example.rpgplugin.rpgclass.ClassLoader;
 import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.rpgclass.RPGClass;
 import com.example.rpgplugin.skill.SkillManager;
@@ -23,7 +22,6 @@ import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
 import com.example.rpgplugin.skill.executor.PassiveSkillExecutor;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.storage.StorageManager;
-import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -57,7 +55,7 @@ public class RPGPlugin extends JavaPlugin {
     public void onEnable() {
         getLogger().info("========================================");
         getLogger().info(" RPGPlugin is starting...");
-        getLogger().info(" Version: " + getDescription().getVersion());
+        getLogger().info(" Version: " + getPluginMeta().getVersion());
         getLogger().info("========================================");
 
         try {
@@ -268,19 +266,6 @@ public class RPGPlugin extends JavaPlugin {
     }
 
     /**
-     * スキルをリロードするヘルパーメソッド（旧互換）
-     */
-    private void reloadSkills() {
-        try {
-            SkillConfig skillConfig = gameSystem.getSkillConfig();
-            int count = skillConfig.reloadSkills();
-            getLogger().info("[HotReload] Reloaded " + count + " skills.");
-        } catch (Exception e) {
-            getLogger().warning("[HotReload] Failed to reload skills: " + e.getMessage());
-        }
-    }
-
-    /**
      * スキルをクリーンアップ付きでリロードするヘルパーメソッド
      */
     private void reloadSkillsWithCleanup() {
@@ -485,7 +470,7 @@ if (getServer().getPluginManager().getPlugin("Skript") != null) {
             getCommand("rpg").setTabCompleter(rpgCommand);
 
             // APIコマンド（Skript Reflectヘルプ用）
-            APICommand apiCommand = new APICommand(this);
+            APICommand apiCommand = new APICommand();
             PluginCommand apiCmd = getCommand("rpgapi");
             if (apiCmd != null) {
                 apiCmd.setExecutor(apiCommand);

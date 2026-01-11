@@ -1,7 +1,5 @@
 package com.example.rpgplugin.skill;
 
-import org.bukkit.ChatColor;
-
 /**
  * スキルタイプを表す列挙型
  *
@@ -25,11 +23,11 @@ public enum SkillType {
      * <p>全てのスキルを統一的に扱います。</p>
      * <p>発動形式（アクティブ/パッシブ）はYAML設定で管理します。</p>
      */
-    NORMAL("normal", "スキル", ChatColor.GOLD, "通常スキル");
+    NORMAL("normal", "スキル", "<gold>", "通常スキル");
 
     private final String id;
     private final String displayName;
-    private final ChatColor color;
+    private final String colorTag;
     private final String description;
 
     /**
@@ -37,13 +35,13 @@ public enum SkillType {
      *
      * @param id スキルタイプID
      * @param displayName 表示名
-     * @param color チャットカラー
+     * @param colorTag MiniMessageカラータグ
      * @param description 説明文
      */
-    SkillType(String id, String displayName, ChatColor color, String description) {
+    SkillType(String id, String displayName, String colorTag, String description) {
         this.id = id;
         this.displayName = displayName;
-        this.color = color;
+        this.colorTag = colorTag;
         this.description = description;
     }
 
@@ -66,12 +64,12 @@ public enum SkillType {
     }
 
     /**
-     * チャットカラーを取得します
+     * MiniMessageカラータグを取得します
      *
-     * @return チャットカラー
+     * @return MiniMessageカラータグ
      */
-    public ChatColor getColor() {
-        return color;
+    public String getColorTag() {
+        return colorTag;
     }
 
     /**
@@ -86,10 +84,10 @@ public enum SkillType {
     /**
      * カラー付きの表示名を取得します
      *
-     * @return カラー付き表示名
+     * @return MiniMessage形式のカラー付き表示名
      */
     public String getColoredName() {
-        return color + displayName;
+        return colorTag + displayName;
     }
 
     /**

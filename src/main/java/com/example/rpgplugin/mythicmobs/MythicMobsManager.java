@@ -4,8 +4,6 @@ import com.example.rpgplugin.core.dependency.MythicMobsHook;
 import com.example.rpgplugin.mythicmobs.config.MobDropConfig;
 import com.example.rpgplugin.mythicmobs.drop.DropHandler;
 import com.example.rpgplugin.storage.database.ConnectionPool;
-import io.lumine.mythic.api.mobs.MythicMob;
-import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -40,7 +38,6 @@ import java.util.logging.Logger;
  */
 public class MythicMobsManager {
 
-    private final JavaPlugin plugin;
     private final MythicMobsHook mythicMobsHook;
     private final DropHandler dropHandler;
     private final Logger logger;
@@ -56,7 +53,6 @@ public class MythicMobsManager {
      * @param connectionPool データベースコネクションプール
      */
     public MythicMobsManager(JavaPlugin plugin, MythicMobsHook mythicMobsHook, ConnectionPool connectionPool) {
-        this.plugin = plugin;
         this.mythicMobsHook = mythicMobsHook;
         this.logger = plugin.getLogger();
         this.dropHandler = new DropHandler(connectionPool, logger);

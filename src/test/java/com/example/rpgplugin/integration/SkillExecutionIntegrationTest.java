@@ -473,11 +473,9 @@ class SkillExecutionIntegrationTest {
 
         // コスト設定（レベル依存パラメータ）
         LevelDependentParameter costParam = new LevelDependentParameter(5.0, 1.0, 0.0, 10.0);
-        Skill.CostConfig costConfig = new Skill.CostConfig(SkillCostType.MANA, costParam);
 
         // クールダウン設定
         LevelDependentParameter cooldownParam = new LevelDependentParameter(3.0, -0.2, 2.0, null);
-        Skill.CooldownConfig cooldownConfig = new Skill.CooldownConfig(cooldownParam);
 
         // ターゲット設定
         SkillTarget skillTarget = new SkillTarget(
@@ -508,7 +506,8 @@ class SkillExecutionIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 (Skill.FormulaDamageConfig) null,
                 (Skill.TargetingConfig) null,
-                skillTarget
+                skillTarget,
+                null  // componentEffect
         );
     }
 
@@ -559,7 +558,8 @@ class SkillExecutionIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 (Skill.FormulaDamageConfig) null,
                 (Skill.TargetingConfig) null,
-                skillTarget
+                skillTarget,
+                null  // componentEffect
         );
     }
 
@@ -598,7 +598,8 @@ class SkillExecutionIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 formulaDamage,
                 (Skill.TargetingConfig) null,
-                (com.example.rpgplugin.skill.target.SkillTarget) null
+                (com.example.rpgplugin.skill.target.SkillTarget) null,
+                null  // componentEffect
         );
     }
 
@@ -641,7 +642,8 @@ class SkillExecutionIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 formulaDamage,
                 (Skill.TargetingConfig) null,
-                (com.example.rpgplugin.skill.target.SkillTarget) null
+                (com.example.rpgplugin.skill.target.SkillTarget) null,
+                null  // componentEffect
         );
     }
 }

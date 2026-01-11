@@ -534,7 +534,8 @@ class ManaCostIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 (Skill.FormulaDamageConfig) null,
                 (Skill.TargetingConfig) null,
-                (com.example.rpgplugin.skill.target.SkillTarget) null
+                (com.example.rpgplugin.skill.target.SkillTarget) null,
+                null  // componentEffect
         );
     }
 
@@ -571,7 +572,8 @@ class ManaCostIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 (Skill.FormulaDamageConfig) null,
                 (Skill.TargetingConfig) null,
-                (com.example.rpgplugin.skill.target.SkillTarget) null
+                (com.example.rpgplugin.skill.target.SkillTarget) null,
+                null  // componentEffect
         );
     }
 
@@ -608,7 +610,8 @@ class ManaCostIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 (Skill.FormulaDamageConfig) null,
                 (Skill.TargetingConfig) null,
-                (com.example.rpgplugin.skill.target.SkillTarget) null
+                (com.example.rpgplugin.skill.target.SkillTarget) null,
+                null  // componentEffect
         );
     }
 
@@ -645,7 +648,8 @@ class ManaCostIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 (Skill.FormulaDamageConfig) null,
                 (Skill.TargetingConfig) null,
-                (com.example.rpgplugin.skill.target.SkillTarget) null
+                (com.example.rpgplugin.skill.target.SkillTarget) null,
+                null  // componentEffect
         );
     }
 
@@ -682,7 +686,8 @@ class ManaCostIntegrationTest {
                 (java.util.List<Skill.VariableDefinition>) null,
                 (Skill.FormulaDamageConfig) null,
                 (Skill.TargetingConfig) null,
-                (com.example.rpgplugin.skill.target.SkillTarget) null
+                (com.example.rpgplugin.skill.target.SkillTarget) null,
+                null  // componentEffect
         );
     }
 }

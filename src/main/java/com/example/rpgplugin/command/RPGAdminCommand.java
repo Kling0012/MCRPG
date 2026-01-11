@@ -9,12 +9,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -40,7 +36,6 @@ import java.util.stream.Collectors;
  */
 public class RPGAdminCommand implements CommandExecutor, TabCompleter {
 
-    private final RPGPlugin plugin;
     private final Logger logger;
     private final ClassManager classManager;
     private final SkillManager skillManager;
@@ -58,7 +53,6 @@ public class RPGAdminCommand implements CommandExecutor, TabCompleter {
      */
     public RPGAdminCommand(RPGPlugin plugin, ClassManager classManager, SkillManager skillManager,
                           ClassLoader classLoader, SkillLoader skillLoader) {
-        this.plugin = plugin;
         this.logger = plugin.getLogger();
         this.classManager = classManager;
         this.skillManager = skillManager;

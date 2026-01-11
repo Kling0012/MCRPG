@@ -1,151 +1,244 @@
 # ============================================
-# RPGPlugin スキル テンプレート
+# RPGPlugin スキル テンプレート (v5 コンポーネント形式)
 # ============================================
+#
+# これはv5形式のテンプレートです
+# フローエディタで作成したスキルと同じ構造を使用します
 #
 # 使用方法:
 # 1. このファイルをコピーして skills/ ディレクトリに配置
 # 2. ファイル名と id, name, display_name を編集
-# 3. 必要なセクションをカスタマイズ（不要なセクションは削除可）
+# 3. 必要なコンポーネントを追加・修正
 #
-# アクティブ/パッシブの区別は廃止されました。
-# スキルの性質は設定内容で決まります:
-# - コスト/クールダウン/ターゲット/ダメージを持つ → 発動型スキル
-# - ステータスボーナスを持つ → 常時発動型スキル
-# - 両方を持つ → ハイブリッドスキル
+# ============================================
 
-# ============================================
 # 基本情報
-# ============================================
-# スキルID（一意である必要があります）
 id: template_skill
-# スキル名（内部識別用）
 name: テンプレートスキル
-# スキルタイプ（現在はnormalのみ、active/passiveは廃止）
 type: normal
-# 表示名（カラーコード使用可能、§または&）
 display_name: "&eテンプレートスキル"
-# 説明（リスト形式、カラー使用可）
 description:
   - "&aスキルの説明をここに記述"
   - "&e複数行可能"
 
-# 最大レベル
 max_level: 5
 
-# ============================================
 # カスタム変数（数式で使用可能）
-# ============================================
-# 数式内で参照できる独自変数を定義
 variables:
   base_value: 10.0
   scale_factor: 1.5
 
 # ============================================
-# コスト設定（発動型スキル用）
+# コンポーネントベーススキルシステム
 # ============================================
-cost:
-  type: mana                    # コストタイプ: mana または hp
-  base: 20                      # 基本コスト（Lv1時の値）
-  per_level: 2                  # レベル毎の変化量（負の値で減少）
-  min: 5                        # 最低コスト（オプション）
-  max: 100                      # 最大コスト（オプション）
-
-# ============================================
-# クールダウン設定（発動型スキル用）
-# ============================================
-cooldown:
-  base: 10.0                    # 基本CD（Lv1時の値、秒）
-  per_level: -0.5              # レベル毎の変化量（負の値で減少）
-  min: 3.0                      # 最低CD（オプション）
-
-# ============================================
-# ダメージ計算（攻撃スキル用）
-# ============================================
-# 使用可能な変数:
-#   BASE_DAMAGE: 基本ダメージ
-#   LEVEL: スキルレベル（Lv または Lv）
-#   STRENGTH, INTELLIGENCE, SPIRIT, VITALITY, DEXTERITY: ステータス値
-#   variables で定義したカスタム変数
-damage:
-  formula: "BASE_DAMAGE + (INT * scale_factor) + (Lv * 5)"
-  base: 20.0                    # 基本ダメージ
-  stat: INTELLIGENCE            # 補正ステータス（オプション）
-
-# ============================================
-# パッシブ効果（常時発動型スキル用）
-# ============================================
-# コスト/クールダウン/ターゲット/ダメージを設定しない場合、
-# 以下のカスタムフィールドでパッシブ効果を定義できます:
 #
-# 例: crit_chance, crit_damage, magic_defense, move_speed など
-# 値は数式で記述可能
+# v5形式では、全てのスキル効果は「コンポーネント」で定義されます
 #
-# crit_chance: "5 + Lv * 0.5"
-# crit_damage: "150 + Lv * 5"
-# magic_defense: "10 + Lv * 2"
+# コンポーネントタイプ:
+#   - trigger   : トリガー（発動タイミング）
+#   - target    : ターゲット（効果対象）
+#   - condition : 条件（実行条件）
+#   - mechanic  : メカニック（効果）
+#   - cost      : コスト（消費）
+#   - cooldown  : クールダウン
+#
+# ============================================
+
+components:
+  # トリガー: スキル発動時に実行
+  - type: trigger
+    component_id: CAST
+    settings:
+      cooldown: 5.0              # クールダウン（秒）
+
+    # 子コンポーネント（トリガー発火時の効果）
+    children:
+      # ターゲット: 効果対象を指定
+      - type: target
+        component_id: SINGLE
+        settings:
+          range: 10.0
+          max_targets: 1
+
+        # コスト: MP/HP消費
+        - type: cost
+          component_id: MANA
+          settings:
+            base: 20
+            per_level: 2
+            min: 5
+            max: 100
+
+        # メカニック: ダメージを与える
+        - type: mechanic
+          component_id: DAMAGE
+          settings:
+            value: "10 + LEVEL * 2"
+            stat: INTELLIGENCE
+            multiplier: 1.0
 
 # ============================================
-# ターゲット設定
+# 各コンポーネントの詳細設定
 # ============================================
-# typeの種類:
-#   self            : 自分自身
-#   self_plus_one   : 自分 + 近くのエンティティ1体
-#   nearest_hostile : 最も近い敵対的エンティティ
-#   nearest_player  : 最も近いプレイヤー
-#   nearest_entity  : 最も近いエンティティ
-#   area_self       : 範囲内の全エンティティ（自分含む）
-#   area_others     : 範囲内の全エンティティ（自分除外）
-#   sphere          : 球形範囲（SkillAPI参考）
-#   line            : 直線上のターゲット（SkillAPI参考）
-#   cone            : 扇状範囲のターゲット（SkillAPI参考）
-#   looking         : 視線上のターゲット（SkillAPI参考）
-#   external        : 外部から指定されたターゲット
-targeting:
-  type: sphere
-  # 汎用ターゲット設定（LINE, LOOKING, CONE, SPHERE用）
-  range: 10.0                   # 範囲（ブロック）
-  line_width: 2.0               # 直線の幅（LINE, LOOKING用）
-  cone_angle: 60.0              # コーンの角度（度数法、CONE用）
-  sphere_radius: 5.0            # 球形の半径（SPHERE用）
-  # 従来の範囲設定（後方互換性）
-  sphere:
-    radius: 5.0
-  cone:
-    angle: 90.0
-    range: 10.0
-  rect:
-    width: 6.0
-    depth: 10.0
-  circle:
-    radius: 5.0
-  # エンティティフィルタ（オプション）
-  filter: all                   # all, players, mobs, hostile
-  # 最大ターゲット数（オプション、省略時は制限なし）
-  max_targets: 5
+#
+# 【トリガー (trigger)】
+#   CAST           : スキル使用時に即時実行（始動点）
+#   CROUCH         : スニーク時
+#   LAND           : 着地時（落下ダメージ時）
+#   DEATH          : 死亡時
+#   KILL           : エンティティを倒した時
+#   PHYSICAL_DEALT : 物理ダメージを与えた時
+#   PHYSICAL_TAKEN : 物理ダメージを受けた時
+#   LAUNCH         : 投射物を発射した時
+#   ENVIRONMENTAL  : 環境ダメージを受けた時（落下、炎、溺等）
+#
+# 【ターゲット (target)】
+#   SELF           : 自分自身
+#   SINGLE         : 単体ターゲット
+#   CONE           : コーン状範囲
+#   SPHERE         : 球形範囲
+#   SECTOR         : 扇形範囲
+#   AREA           : 指定座標範囲
+#   LINE           : 直線状範囲
+#   NEAREST_HOSTILE: 最寄りの敵
+#
+# 【条件 (condition)】
+#   health : HP条件（min, max, percent）
+#   mana   : MP条件（min, max）
+#   chance : 確率（chance: 0.0-1.0）
+#   biome  : バイオーム
+#   class  : クラス条件
+#   time   : 時間帯（day, night, dawn, dusk, noon, midnight）
+#   armor  : 防具条件
+#   fire   : 炎上状態
+#   water  : 水中状態
+#   combat : 戦闘状態
+#   potion : ポーション効果
+#   status : ステータス値（health, max_health, food, air, exp, level）
+#   tool   : ツール条件
+#
+# 【メカニック (mechanic)】
+#   damage   : ダメージ（value）
+#   heal     : 回復（value）
+#   push     : ノックバック（value）
+#   fire     : 炎上（duration）
+#   message  : メッセージ（text）
+#   potion   : ポーション効果（potion, duration, amplifier）
+#   lightning: 稲妻（damage, forward, right）
+#   sound    : サウンド（sound, volume, pitch）
+#   command  : コマンド実行（command, type: op/console/player）
+#   explosion: 爆発（power, fire, damage）
+#   speed    : 移動速度（duration, amplifier）
+#   particle : パーティクル（particle, count, offset, speed）
+#   launch   : 投射物発射（projectile, speed, spread）
+#   delay    : 遅延実行（delay, ticks）
+#   cleanse  : ポーション効果解除（bad_only, potion）
+#   channel  : 詠唱中（duration, ticks）
+#
+# 【コスト (cost)】
+#   MANA    : MP消費（base, per_level, min, max）
+#   HP      : HP消費
+#   STAMINA : スタミナ消費
+#   ITEM    : アイテム消費（item, amount）
+#
+# 【クールダウン (cooldown)】
+#   COOLDOWN: クールダウン（base, per_level, min）
+#
+# ============================================
 
-# キャスト時間（秒、オプション）
-cast_time: 1
+# ============================================
+# 設定例
+# ============================================
+#
+# 【単純な攻撃スキル】
+# components:
+#   - type: trigger
+#     component_id: CAST
+#     children:
+#       - type: target
+#         component_id: SINGLE
+#         children:
+#           - type: mechanic
+#             component_id: DAMAGE
+#             settings:
+#               value: "10 + LEVEL * 2"
+#
+# 【条件付きスキル - HPが50%以下の時に追加ダメージ】
+# components:
+#   - type: trigger
+#     component_id: CAST
+#     children:
+#       - type: target
+#         component_id: SINGLE
+#         children:
+#           - type: mechanic
+#             component_id: DAMAGE
+#             settings:
+#               value: "10 + LEVEL * 2"
+#           - type: condition
+#             component_id: health
+#             settings:
+#               max: 0.5
+#             children:
+#               - type: mechanic
+#                 component_id: DAMAGE
+#                 settings:
+#                   value: "5 + LEVEL"
+#
+# 【確率で発動するスキル - 30%の確率で炎上】
+# components:
+#   - type: trigger
+#     component_id: CAST
+#     children:
+#       - type: target
+#         component_id: SINGLE
+#         children:
+#           - type: condition
+#             component_id: chance
+#             settings:
+#               chance: 0.3
+#             children:
+#               - type: mechanic
+#                 component_id: FIRE
+#                 settings:
+#                   duration: "3 + LEVEL"
+#
+# 【範囲攻撃スキル - コーン状範囲】
+# components:
+#   - type: trigger
+#     component_id: CAST
+#     children:
+#       - type: target
+#         component_id: CONE
+#         settings:
+#           angle: 90
+#           range: 5.0
+#           max_targets: 5
+#         children:
+#           - type: mechanic
+#             component_id: DAMAGE
+#             settings:
+#               value: "8 + LEVEL"
+#
+# 【トリガースキル - 着地時に周囲にダメージ】
+# components:
+#   - type: trigger
+#     component_id: LAND
+#     settings:
+#       duration: 10              # 登録後10秒間有効
+#     children:
+#       - type: target
+#         component_id: SPHERE
+#         settings:
+#           radius: 5.0
+#         children:
+#           - type: mechanic
+#             component_id: DAMAGE
+#             settings:
+#               value: "5 + LEVEL"
+#
+# ============================================
 
-# ============================================
-# スキルツリー設定
-# ============================================
-skill_tree:
-  parent: none                  # 親スキルID（必要な場合、なければnone）
-  unlock_requirements:
-    - type: level               # 解除条件タイプ: level, stat, class, skill
-      value: 5                  # 必要プレイヤーレベル
-    - type: stat
-      stat: STRENGTH            # 必要ステータス
-      value: 30
-    - type: class
-      value: warrior            # 必要クラス
-    - type: skill
-      value: basic_attack       # 必要スキルID
-  cost: 50                      # スキルポイントコスト
-
-# ============================================
-# その他の設定
-# ============================================
 # アイコンマテリアル（GUI表示用、省略時はデフォルト）
 icon_material: DIAMOND_SWORD
 
@@ -156,21 +249,19 @@ available_classes:
   - mage
 
 # ============================================
-# 設定例
+# スキルツリー設定
 # ============================================
-#
-# 【発動型攻撃スキルの例】
-# - cost, cooldown, damage, targeting を設定
-# - パッシブ効果フィールドは削除
-#
-# 【常時発動型スキルの例】
-# - cost, cooldown, damage, targeting は削除
-# - パッシブ効果フィールドを設定（crit_chance等）
-#
-# 【強化バフスキルの例】
-# - cost, cooldown, targeting(self) を設定
-# - damage は削除、パッシブ効果フィールドを設定
-#
-# 【範囲攻撃スキルの例】
-# - cost, cooldown, damage, targeting(sphere/cone) を設定
-#
+skill_tree:
+  parent: none                  # 親スキルID
+  unlock_requirements:
+    - type: level               # 必要プレイヤーレベル
+      value: 5
+    - type: stat                # 必要ステータス
+      stat: STRENGTH
+      value: 30
+    - type: class               # 必要クラス
+      value: warrior
+    - type: skill               # 必要スキルID
+      value: basic_attack
+  cost: 50                      # スキルポイントコスト
+  icon: DIAMOND_SWORD           # GUI表示用アイコン

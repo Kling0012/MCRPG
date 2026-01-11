@@ -6,7 +6,9 @@ import io.lumine.mythic.bukkit.BukkitAdapter;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.mobs.ActiveMob;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Optional;
@@ -212,7 +214,14 @@ public class MythicMobsHook {
      */
     public double getMobMaxHealth(Entity entity) {
         Optional<ActiveMob> activeMob = getActiveMob(entity);
-        return activeMob.map(mob -> mob.getEntity().getMaxHealth()).orElse(-1.0);
+        if (activeMob.isEmpty()) {
+            return -1.0;
+        }
+        // Paper 1.20.6: Attribute APIを使用
+        if (entity instanceof LivingEntity living) {
+            return living.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        }
+        return -1.0;
     }
 
     /**

@@ -1,8 +1,8 @@
 # RPGPlugin ドキュメント
 
 > **Minecraft Java用RPGプラグイン**
-> **バージョン**: 1.0.0
-> **最終更新**: 2026-01-09
+> **バージョン**: 1.0.1
+> **最終更新**: 2026-01-11
 > **作業ブランチ**: main
 
 ---
@@ -13,12 +13,15 @@
 |-------------|------|------|
 | **[クイックスタート](QUICKSTART.md)** | 5分で始める開発者向けガイド | 初心者開発者 |
 | **[PlaceholderAPIチュートリアル](PLACEHOLDER_TUTORIAL.md)** | プレースホルダー活用チュートリアル | 初心者開発者 |
-| **[APIドキュメント](API_DOCUMENTATION.md)** | 詳細APIドキュメントとPhase11新機能 | 開発者 |
+| **[APIリファレンス](API.md)** | 詳細APIドキュメント | 開発者 |
 | **[プレースホルダー](PLACEHOLDERS.md)** | PlaceholderAPI プレースホルダーリファレンス | 開発者 |
 | **[コマンドリファレンス](COMMANDS.md)** | すべてのコマンドと使用方法 | 管理者・プレイヤー |
 | **[システム仕様書](SPEC.md)** | システムアーキテクチャと仕様 | 開発者 |
 | **[スキルシステムV2](SKILL_SYSTEM_V2.md)** | スキルシステムの全体像 | 開発者 |
+| **[コンポーネントシステムV5](COMPONENT_SYSTEM_V5.md)** | V5コンポーネントリファレンス | 開発者 |
 | **[YAMLリファレンス](YAML_REFERENCE.md)** | スキル/クラスYAMLフォーマット | 開発者 |
+| **[Skript連携](SKRIPT_INTEGRATION.md)** | Skript連携ガイド | 開発者 |
+| **[Skript Reflect](SKRIPT_REFLECT.md)** | Skript Reflect連携ガイド | 上級開発者 |
 | **[チュートリアル](../TUTORIAL.md)** | サーバー管理者・プレイヤー・開発者向けガイド | 全員 |
 
 ---

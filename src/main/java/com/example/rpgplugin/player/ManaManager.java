@@ -3,6 +3,8 @@ package com.example.rpgplugin.player;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.rpgclass.RPGClass;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -177,8 +179,8 @@ public class ManaManager {
      * @param amount 回復量
      */
     private void showRegenIndicator(Player player, int amount) {
-        // 簡易的なアクションバーメッセージ
-        player.sendActionBar("§b+" + amount + " MP");
+        // アクションバーメッセージ（Adventure API）
+        player.sendActionBar(Component.text("+" + amount + " MP", NamedTextColor.AQUA));
     }
 
     // ==================== 外部制御メソッド ====================
@@ -216,6 +218,7 @@ public class ManaManager {
      * @param uuid プレイヤーUUID
      * @param bonus ボーナス量/秒
      */
+    @SuppressWarnings("null")
     public void addTemporaryBonus(UUID uuid, double bonus) {
         temporaryBonus.merge(uuid, bonus, Double::sum);
     }

@@ -3,7 +3,6 @@ package com.example.rpgplugin.storage.repository;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * リポジトリの基底インターフェース

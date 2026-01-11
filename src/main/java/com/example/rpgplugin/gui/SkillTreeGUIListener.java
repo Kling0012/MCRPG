@@ -1,6 +1,6 @@
 package com.example.rpgplugin.gui;
 
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -33,7 +33,7 @@ public class SkillTreeGUIListener implements Listener {
 
         Player player = (Player) event.getWhoClicked();
         Inventory inventory = event.getClickedInventory();
-        String title = event.getView().getTitle();
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
 
         // スキルツリーGUI以外は無視
         if (!"スキルツリー".equals(title)) {
@@ -101,7 +101,7 @@ public class SkillTreeGUIListener implements Listener {
         }
 
         Player player = (Player) event.getPlayer();
-        String title = event.getView().getTitle();
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
 
         // スキルツリーGUIが閉じられた場合
         if ("スキルツリー".equals(title)) {

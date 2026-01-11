@@ -4,6 +4,7 @@ import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -199,7 +200,12 @@ public class VaultHook {
         if (!hasEconomy()) {
             return 0;
         }
-        return economy.getBalance(playerName);
+        // Paper 1.20.6: OfflinePlayerベースのAPIを使用
+        OfflinePlayer player = Bukkit.getOfflinePlayerIfCached(playerName);
+        if (player == null) {
+            return 0;
+        }
+        return economy.getBalance(player);
     }
 
     /**
@@ -214,12 +220,18 @@ public class VaultHook {
             return false;
         }
 
-        double current = economy.getBalance(playerName);
+        // Paper 1.20.6: OfflinePlayerベースのAPIを使用
+        OfflinePlayer player = Bukkit.getOfflinePlayerIfCached(playerName);
+        if (player == null) {
+            return false;
+        }
+
+        double current = economy.getBalance(player);
         if (amount > current) {
-            return economy.depositPlayer(playerName, amount - current)
+            return economy.depositPlayer(player, amount - current)
                     .transactionSuccess();
         } else if (amount < current) {
-            return economy.withdrawPlayer(playerName, current - amount)
+            return economy.withdrawPlayer(player, current - amount)
                     .transactionSuccess();
         }
 
@@ -237,7 +249,12 @@ public class VaultHook {
         if (!hasEconomy()) {
             return false;
         }
-        return economy.depositPlayer(playerName, amount).transactionSuccess();
+        // Paper 1.20.6: OfflinePlayerベースのAPIを使用
+        OfflinePlayer player = Bukkit.getOfflinePlayerIfCached(playerName);
+        if (player == null) {
+            return false;
+        }
+        return economy.depositPlayer(player, amount).transactionSuccess();
     }
 
     /**
@@ -251,7 +268,12 @@ public class VaultHook {
         if (!hasEconomy()) {
             return false;
         }
-        return economy.withdrawPlayer(playerName, amount).transactionSuccess();
+        // Paper 1.20.6: OfflinePlayerベースのAPIを使用
+        OfflinePlayer player = Bukkit.getOfflinePlayerIfCached(playerName);
+        if (player == null) {
+            return false;
+        }
+        return economy.withdrawPlayer(player, amount).transactionSuccess();
     }
 
     /**
@@ -265,7 +287,12 @@ public class VaultHook {
         if (!hasEconomy()) {
             return false;
         }
-        return economy.has(playerName, amount);
+        // Paper 1.20.6: OfflinePlayerベースのAPIを使用
+        OfflinePlayer player = Bukkit.getOfflinePlayerIfCached(playerName);
+        if (player == null) {
+            return false;
+        }
+        return economy.has(player, amount);
     }
 
     /**

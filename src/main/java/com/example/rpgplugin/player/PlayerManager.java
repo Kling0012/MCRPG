@@ -280,7 +280,8 @@ public class PlayerManager implements Listener {
                         failCount++;
                     }
                 } catch (Exception e) {
-                    logger.warning("Failed to save player " + rpgPlayer.getUsername() + ": " + e.getMessage());
+                    String playerName = (rpgPlayer != null) ? rpgPlayer.getUsername() : "unknown";
+                    logger.warning("Failed to save player " + playerName + ": " + e.getMessage());
                     failCount++;
 
                     // スタックトレース出力（デバッグ用）

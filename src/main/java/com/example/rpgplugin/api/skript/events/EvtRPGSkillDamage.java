@@ -58,6 +58,7 @@ public class EvtRPGSkillDamage extends SkriptEvent {
     private Literal<String> skillId;
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean init(Literal<?>[] args, int matchedPattern, SkriptParser.ParseResult parseResult) {
         if (matchedPattern == 1) {
             skillId = (Literal<String>) args[0];

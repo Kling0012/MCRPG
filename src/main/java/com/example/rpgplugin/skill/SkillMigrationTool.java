@@ -7,8 +7,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.logging.Level;
@@ -35,7 +33,6 @@ public class SkillMigrationTool {
 
     private static final Logger LOGGER = Logger.getLogger(SkillMigrationTool.class.getName());
 
-    private final File pluginDataFolder;
     private final File skillsDirectory;
     private final File legacyBackupDirectory;
 
@@ -45,7 +42,6 @@ public class SkillMigrationTool {
      * @param pluginDataFolder プラグインデータフォルダ
      */
     public SkillMigrationTool(File pluginDataFolder) {
-        this.pluginDataFolder = pluginDataFolder;
         this.skillsDirectory = new File(pluginDataFolder, "skills");
         this.legacyBackupDirectory = new File(skillsDirectory, "legacy");
     }

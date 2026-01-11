@@ -4,7 +4,6 @@ import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.api.RPGPluginAPI;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.rpgclass.RPGClass;
-import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.stats.Stat;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
@@ -58,13 +57,13 @@ public class RPGPlaceholderExpansion extends PlaceholderExpansion {
     @Override
     @NotNull
     public String getAuthor() {
-        return plugin.getDescription().getAuthors().stream().findFirst().orElse("RPGPlugin Team");
+        return plugin.getPluginMeta().getAuthors().stream().findFirst().orElse("RPGPlugin Team");
     }
 
     @Override
     @NotNull
     public String getVersion() {
-        return plugin.getDescription().getVersion();
+        return plugin.getPluginMeta().getVersion();
     }
 
     @Override

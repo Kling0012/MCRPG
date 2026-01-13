@@ -53,3 +53,8 @@ Thumbs.db
 # External tools and utilities
 /tools/
 warn.json
+
+# AI Assistant (Claude Code / PAI)
+.claude/
+.claude-flow/
+${HOME}/

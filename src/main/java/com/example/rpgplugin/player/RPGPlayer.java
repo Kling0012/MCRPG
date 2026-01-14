@@ -4,6 +4,7 @@ import com.example.rpgplugin.stats.ManaManager;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
 import com.example.rpgplugin.storage.models.PlayerData;
+import com.example.rpgplugin.skill.event.SkillEventListener;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -658,19 +659,20 @@ public class RPGPlayer {
     // ==================== スキル関連 ====================
 
     /**
-     * スキルマネージャーへの参照（オプション）
+     * スキルイベントリスナー（オプション）
      *
      * <p>スキル関連メソッドを使用するために設定されます。</p>
+     * <p>イベント駆動設計により、SkillManagerへの直接依存を解消します。</p>
      */
-    private volatile com.example.rpgplugin.skill.SkillManager skillManager;
+    private volatile SkillEventListener skillEventListener;
 
     /**
-     * スキルマネージャーを設定します
+     * スキルイベントリスナーを設定します
      *
-     * @param skillManager スキルマネージャー
+     * @param listener スキルイベントリスナー
      */
-    public void setSkillManager(com.example.rpgplugin.skill.SkillManager skillManager) {
-        this.skillManager = skillManager;
+    public void setSkillEventListener(SkillEventListener listener) {
+        this.skillEventListener = listener;
     }
 
     /**
@@ -680,14 +682,10 @@ public class RPGPlayer {
      * @return 習得している場合はtrue
      */
     public boolean hasSkill(String skillId) {
-        if (skillManager == null) {
+        if (skillEventListener == null) {
             return false;
         }
-        org.bukkit.entity.Player player = getBukkitPlayer();
-        if (player == null) {
-            return false;
-        }
-        return skillManager.hasSkill(player, skillId);
+        return skillEventListener.hasSkill(uuid, skillId);
     }
 
     /**
@@ -697,14 +695,10 @@ public class RPGPlayer {
      * @return スキルレベル、習得していない場合は0
      */
     public int getSkillLevel(String skillId) {
-        if (skillManager == null) {
+        if (skillEventListener == null) {
             return 0;
         }
-        org.bukkit.entity.Player player = getBukkitPlayer();
-        if (player == null) {
-            return 0;
-        }
-        return skillManager.getSkillLevel(player, skillId);
+        return skillEventListener.getSkillLevel(uuid, skillId);
     }
 
     /**
@@ -720,19 +714,27 @@ public class RPGPlayer {
     /**
      * スキルを習得します
      *
+     * <p>イベントを発行し、リスナーが実際の習得処理を行います。</p>
+     *
      * @param skillId スキルID
      * @param level 習得するレベル
      * @return 習得に成功した場合はtrue
      */
     public boolean acquireSkill(String skillId, int level) {
-        if (skillManager == null) {
+        if (skillEventListener == null) {
             return false;
         }
-        org.bukkit.entity.Player player = getBukkitPlayer();
-        if (player == null) {
+        if (!skillEventListener.canAcquireSkill(uuid, skillId)) {
             return false;
         }
-        return skillManager.acquireSkill(player, skillId, level);
+        // イベント発行
+        int previousLevel = skillEventListener.getSkillLevel(uuid, skillId);
+        if (previousLevel == 0) {
+            skillEventListener.onSkillAcquired(uuid, skillId, level);
+        } else {
+            skillEventListener.onSkillLevelUp(uuid, skillId, level, previousLevel);
+        }
+        return true;
     }
 
     /**
@@ -742,13 +744,64 @@ public class RPGPlayer {
      * @return レベルアップに成功した場合はtrue
      */
     public boolean upgradeSkill(String skillId) {
-        if (skillManager == null) {
+        if (skillEventListener == null) {
             return false;
         }
-        org.bukkit.entity.Player player = getBukkitPlayer();
-        if (player == null) {
+        int currentLevel = skillEventListener.getSkillLevel(uuid, skillId);
+        if (currentLevel == 0) {
             return false;
         }
-        return skillManager.upgradeSkill(player, skillId);
+        int newLevel = currentLevel + 1;
+        skillEventListener.onSkillLevelUp(uuid, skillId, newLevel, currentLevel);
+        return true;
+    }
+
+    /**
+     * スキルを実行します
+     *
+     * @param skillId スキルID
+     */
+    public void executeSkill(String skillId) {
+        if (skillEventListener == null) {
+            return;
+        }
+        int level = skillEventListener.getSkillLevel(uuid, skillId);
+        skillEventListener.onSkillExecuted(uuid, skillId, level);
+    }
+
+    /**
+     * スキルを実行します（Playerパラメータ付き）
+     *
+     * <p>Skript等の外部システムからスキルを実行する場合に使用します。</p>
+     *
+     * @param player プレイヤー
+     * @param skillId スキルID
+     * @return 実行結果
+     */
+    public com.example.rpgplugin.skill.result.SkillExecutionResult executeSkill(org.bukkit.entity.Player player, String skillId) {
+        if (skillEventListener == null) {
+            return com.example.rpgplugin.skill.result.SkillExecutionResult.failure("スキルシステムが利用できません");
+        }
+        return skillEventListener.executeSkill(player, skillId);
+    }
+
+    /**
+     * スキルを実行します（設定付き）
+     *
+     * <p>Skript等の外部システムからスキルを実行する場合に使用します。</p>
+     *
+     * @param player プレイヤー
+     * @param skillId スキルID
+     * @param config 実行設定
+     * @return 実行結果
+     */
+    public com.example.rpgplugin.skill.result.SkillExecutionResult executeSkill(
+            org.bukkit.entity.Player player,
+            String skillId,
+            com.example.rpgplugin.skill.SkillExecutionConfig config) {
+        if (skillEventListener == null) {
+            return com.example.rpgplugin.skill.result.SkillExecutionResult.failure("スキルシステムが利用できません");
+        }
+        return skillEventListener.executeSkill(player, skillId, config);
     }
 }

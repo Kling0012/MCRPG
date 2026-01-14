@@ -38,6 +38,7 @@ public class Skill {
     private final SkillTreeConfig skillTree;
     private final String iconMaterial;
     private final List<String> availableClasses;
+    private final List<String> requiredSkills;
 
     // Phase11-6: 新YAMLフォーマット対応フィールド
     private final java.util.List<VariableDefinition> variables;
@@ -492,6 +493,7 @@ public class Skill {
         this.skillTree = skillTree;
         this.iconMaterial = iconMaterial != null ? iconMaterial : "DIAMOND_SWORD";
         this.availableClasses = availableClasses != null ? new ArrayList<>(availableClasses) : new ArrayList<>();
+        this.requiredSkills = new ArrayList<>();  // デフォルトは空リスト
         // Phase11-6: 新フィールドの初期化
         this.variables = variables != null ? new ArrayList<>(variables) : new ArrayList<>();
         this.formulaDamage = formulaDamage;
@@ -666,6 +668,15 @@ public class Skill {
 
     public List<String> getAvailableClasses() {
         return new ArrayList<>(availableClasses);
+    }
+
+    /**
+     * スキル習得に必要な前提スキルのリストを取得します
+     *
+     * @return 前提スキルIDのリスト（変更不可）
+     */
+    public List<String> getRequiredSkills() {
+        return new ArrayList<>(requiredSkills);
     }
 
     /**

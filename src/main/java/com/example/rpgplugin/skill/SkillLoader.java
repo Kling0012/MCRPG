@@ -14,6 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -201,7 +202,15 @@ public class SkillLoader extends ConfigLoader {
             // コンポーネントベーススキルシステムのパース
             SkillEffect componentEffect = null;
             if (config.contains("components")) {
-                componentEffect = parseComponents(config.getConfigurationSection("components"), id);
+                if (config.isList("components")) {
+                    // componentsが直接リスト形式の場合、一時的なセクションを作成
+                    org.bukkit.configuration.MemoryConfiguration tempSection =
+                            new org.bukkit.configuration.MemoryConfiguration();
+                    tempSection.set("components", config.getList("components"));
+                    componentEffect = parseComponents(tempSection, id);
+                } else {
+                    componentEffect = parseComponents(config.getConfigurationSection("components"), id);
+                }
             }
 
             // Phase11-6+11-4統合: 新コンストラクタを使用して全設定を渡す
@@ -281,12 +290,19 @@ public class SkillLoader extends ConfigLoader {
             List<?> requirementList = section.getList("unlock_requirements");
             if (requirementList != null) {
                 for (Object reqObj : requirementList) {
+                    Skill.UnlockRequirement requirement = null;
+                    // ConfigurationSectionの場合
                     if (reqObj instanceof ConfigurationSection) {
-                        ConfigurationSection reqSection = (ConfigurationSection) reqObj;
-                        Skill.UnlockRequirement requirement = parseUnlockRequirement(reqSection, fileName);
-                        if (requirement != null) {
-                            requirements.add(requirement);
-                        }
+                        requirement = parseUnlockRequirement((ConfigurationSection) reqObj, fileName);
+                    }
+                    // Mapの場合（YAMLから直接ロードされた場合）
+                    else if (reqObj instanceof Map) {
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> reqMap = (Map<String, Object>) reqObj;
+                        requirement = parseUnlockRequirementFromMap(reqMap, fileName);
+                    }
+                    if (requirement != null) {
+                        requirements.add(requirement);
                     }
                 }
             }
@@ -321,6 +337,45 @@ public class SkillLoader extends ConfigLoader {
         }
 
         double value = section.getDouble("value", 0.0);
+
+        return new Skill.UnlockRequirement(type, stat, value);
+    }
+
+    /**
+     * 習得要件をMapからパースします（YAMLリスト内のマップ用）
+     *
+     * @param reqMap リクワイアメントマップ
+     * @param fileName ファイル名（エラー表示用）
+     * @return 習得要件
+     */
+    private Skill.UnlockRequirement parseUnlockRequirementFromMap(Map<String, Object> reqMap, String fileName) {
+        if (reqMap == null) {
+            return null;
+        }
+        Object typeObj = reqMap.get("type");
+        if (typeObj == null) {
+            getLogger().warning("unlock_requirements type is missing in " + fileName);
+            return null;
+        }
+
+        String type = typeObj.toString();
+        com.example.rpgplugin.stats.Stat stat = null;
+        if ("stat".equals(type)) {
+            Object statNameObj = reqMap.get("stat");
+            if (statNameObj != null) {
+                String statName = statNameObj.toString();
+                stat = com.example.rpgplugin.stats.Stat.fromShortName(statName);
+                if (stat == null) {
+                    stat = com.example.rpgplugin.stats.Stat.fromDisplayName(statName);
+                }
+            }
+        }
+
+        double value = 0.0;
+        Object valueObj = reqMap.get("value");
+        if (valueObj instanceof Number) {
+            value = ((Number) valueObj).doubleValue();
+        }
 
         return new Skill.UnlockRequirement(type, stat, value);
     }
@@ -849,8 +904,9 @@ public class SkillLoader extends ConfigLoader {
         if (section.getList("triggers") != null) {
             List<?> triggerList = section.getList("triggers");
             for (Object triggerObj : triggerList) {
-                if (triggerObj instanceof ConfigurationSection) {
-                    TriggerHandler handler = parseTriggerComponent((ConfigurationSection) triggerObj, skillId);
+                ConfigurationSection triggerSection = convertToSection(triggerObj);
+                if (triggerSection != null) {
+                    TriggerHandler handler = parseTriggerComponent(triggerSection, skillId);
                     if (handler != null) {
                         // TriggerManagerにスキルエフェクトを登録
                         com.example.rpgplugin.skill.component.trigger.TriggerManager.getInstance()
@@ -864,8 +920,9 @@ public class SkillLoader extends ConfigLoader {
         if (section.getList("components") != null) {
             List<?> componentList = section.getList("components");
             for (Object componentObj : componentList) {
-                if (componentObj instanceof ConfigurationSection) {
-                    EffectComponent component = parseComponent((ConfigurationSection) componentObj, skillId);
+                ConfigurationSection componentSection = convertToSection(componentObj);
+                if (componentSection != null) {
+                    EffectComponent component = parseComponent(componentSection, skillId);
                     if (component != null) {
                         effect.addComponent(component);
                     }
@@ -874,6 +931,28 @@ public class SkillLoader extends ConfigLoader {
         }
 
         return effect;
+    }
+
+    /**
+     * ObjectをConfigurationSectionに変換します
+     *
+     * @param obj オブジェクト（ConfigurationSectionまたはMap）
+     * @return ConfigurationSection、変換できない場合はnull
+     */
+    private ConfigurationSection convertToSection(Object obj) {
+        if (obj instanceof ConfigurationSection) {
+            return (ConfigurationSection) obj;
+        } else if (obj instanceof Map) {
+            org.bukkit.configuration.MemoryConfiguration memoryConfig =
+                    new org.bukkit.configuration.MemoryConfiguration();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = (Map<String, Object>) obj;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                memoryConfig.set(entry.getKey(), entry.getValue());
+            }
+            return memoryConfig;
+        }
+        return null;
     }
 
     /**
@@ -951,8 +1030,9 @@ public class SkillLoader extends ConfigLoader {
             List<?> childList = section.getList(childKey);
             if (childList != null) {
                 for (Object childObj : childList) {
-                    if (childObj instanceof ConfigurationSection) {
-                        EffectComponent child = parseComponent((ConfigurationSection) childObj, skillId);
+                    ConfigurationSection childSection = convertToSection(childObj);
+                    if (childSection != null) {
+                        EffectComponent child = parseComponent(childSection, skillId);
                         if (child != null) {
                             component.addChild(child);
                         }
@@ -1019,8 +1099,9 @@ public class SkillLoader extends ConfigLoader {
             List<?> childList = section.getList("components");
             if (childList != null) {
                 for (Object childObj : childList) {
-                    if (childObj instanceof ConfigurationSection) {
-                        EffectComponent child = parseComponent((ConfigurationSection) childObj, skillId);
+                    ConfigurationSection childSection = convertToSection(childObj);
+                    if (childSection != null) {
+                        EffectComponent child = parseComponent(childSection, skillId);
                         if (child != null) {
                             rootComponent.addChild(child);
                         }

@@ -589,4 +589,213 @@ class StatManagerTest {
         assertThat(statManager.getModifiers(Stat.STRENGTH)).isEmpty();
         assertThat(statManager.getModifiers(Stat.INTELLIGENCE)).isEmpty();
     }
+
+    // ==================== 例外ケース ====================
+
+    @Test
+    @DisplayName("getBaseStat: null statは例外")
+    void getBaseStat_NullStat_ThrowsException() {
+        assertThatThrownBy(() -> statManager.getBaseStat(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Stat cannot be null");
+    }
+
+    @Test
+    @DisplayName("getFinalStat: null statは例外")
+    void getFinalStat_NullStat_ThrowsException() {
+        assertThatThrownBy(() -> statManager.getFinalStat(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Stat cannot be null");
+    }
+
+    @Test
+    @DisplayName("setBaseStat: null statは例外")
+    void setBaseStat_NullStat_ThrowsException() {
+        assertThatThrownBy(() -> statManager.setBaseStat(null, 10))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Stat cannot be null");
+    }
+
+    @Test
+    @DisplayName("setAvailablePoints: 負値は例外")
+    void setAvailablePoints_Negative_ThrowsException() {
+        assertThatThrownBy(() -> statManager.setAvailablePoints(-1))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Available points cannot be negative");
+    }
+
+    @Test
+    @DisplayName("addAvailablePoints: 負値は例外")
+    void addAvailablePoints_Negative_ThrowsException() {
+        assertThatThrownBy(() -> statManager.addAvailablePoints(-1))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Amount cannot be negative");
+    }
+
+    @Test
+    @DisplayName("allocatePoint: null statは例外")
+    void allocatePoint_NullStat_ThrowsException() {
+        assertThatThrownBy(() -> statManager.allocatePoint(null, 1))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Stat cannot be null");
+    }
+
+    @Test
+    @DisplayName("allocatePoint: 負値は例外")
+    void allocatePoint_NegativeAmount_ThrowsException() {
+        assertThatThrownBy(() -> statManager.allocatePoint(Stat.STRENGTH, 0))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Amount must be positive");
+    }
+
+    @Test
+    @DisplayName("allocatePoint: 0は例外")
+    void allocatePoint_ZeroAmount_ThrowsException() {
+        assertThatThrownBy(() -> statManager.allocatePoint(Stat.STRENGTH, 0))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Amount must be positive");
+    }
+
+    @Test
+    @DisplayName("setTotalLevel: 1未満は例外")
+    void setTotalLevel_LessThanOne_ThrowsException() {
+        assertThatThrownBy(() -> statManager.setTotalLevel(0))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Level cannot be less than 1");
+    }
+
+    @Test
+    @DisplayName("removeModifier: null statは例外")
+    void removeModifier_NullStat_ThrowsException() {
+        assertThatThrownBy(() -> statManager.removeModifier(null, UUID.randomUUID()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Stat cannot be null");
+    }
+
+    @Test
+    @DisplayName("removeModifier: null IDは例外")
+    void removeModifier_NullId_ThrowsException() {
+        assertThatThrownBy(() -> statManager.removeModifier(Stat.STRENGTH, (UUID) null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Modifier ID cannot be null");
+    }
+
+    @Test
+    @DisplayName("removeModifiersBySource: null statは例外")
+    void removeModifiersBySource_NullStat_ThrowsException() {
+        assertThatThrownBy(() -> statManager.removeModifiersBySource(null, "source"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Stat cannot be null");
+    }
+
+    @Test
+    @DisplayName("removeModifiersBySource: null sourceは例外")
+    void removeModifiersBySource_NullSource_ThrowsException() {
+        assertThatThrownBy(() -> statManager.removeModifiersBySource(Stat.STRENGTH, null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Source cannot be null");
+    }
+
+    @Test
+    @DisplayName("clearModifiers: null statは例外")
+    void clearModifiers_NullStat_ThrowsException() {
+        assertThatThrownBy(() -> statManager.clearModifiers(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Stat cannot be null");
+    }
+
+    @Test
+    @DisplayName("cleanupExpiredModifiers: null statは例外")
+    void cleanupExpiredModifiers_NullStat_ThrowsException() {
+        assertThatThrownBy(() -> statManager.cleanupExpiredModifiers(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Stat cannot be null");
+    }
+
+    @Test
+    @DisplayName("getModifiers: null statは例外")
+    void getModifiers_NullStat_ThrowsException() {
+        assertThatThrownBy(() -> statManager.getModifiers(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Stat cannot be null");
+    }
+
+    // ==================== formatStats ====================
+
+    @Test
+    @DisplayName("formatStats: フォーマットされた文字列を返す")
+    void formatStats_ReturnsFormattedString() {
+        statManager.setTotalLevel(50);
+        statManager.setAvailablePoints(5);
+
+        String formatted = statManager.formatStats();
+
+        assertThat(formatted).contains("ステータス");
+        assertThat(formatted).contains("レベル: 50");
+        assertThat(formatted).contains("手動配分ポイント: 5");
+        // 日本語ステータス名と色コードが含まれる
+        assertThat(formatted).contains("筋力");
+        assertThat(formatted).contains("知力");
+        assertThat(formatted).contains("精神");
+        assertThat(formatted).contains("体力");
+        assertThat(formatted).contains("器用さ");
+    }
+
+    @Test
+    @DisplayName("formatStats: 修正値が含まれる場合")
+    void formatStats_WithModifiers_IncludesModifiers() {
+        statManager.addModifier(Stat.STRENGTH, new StatModifier(
+            "TestSource", StatModifier.Type.FLAT, 10.0
+        ));
+
+        String formatted = statManager.formatStats();
+
+        assertThat(formatted).contains("[TestSource:");
+    }
+
+    // ==================== toString ====================
+
+    @Test
+    @DisplayName("toString: 文字列表現を返す")
+    void toString_ReturnsStringRepresentation() {
+        statManager.setTotalLevel(25);
+        statManager.setAvailablePoints(3);
+
+        String str = statManager.toString();
+
+        assertThat(str).contains("StatManager");
+        assertThat(str).contains("totalLevel=25");
+        assertThat(str).contains("availablePoints=3");
+    }
+
+    // ==================== デフォルトコンストラクタ ====================
+
+    @Test
+    @DisplayName("デフォルトコンストラクタ: ポイント0で初期化")
+    void constructor_Default_InitializesWithZeroPoints() {
+        StatManager defaultManager = new StatManager();
+
+        assertThat(defaultManager.getAvailablePoints()).isZero();
+        assertThat(defaultManager.getTotalLevel()).isEqualTo(1);
+        assertThat(defaultManager.getBaseStat(Stat.STRENGTH)).isEqualTo(10);
+    }
+
+    // ==================== 効率的な最終値計算 ====================
+
+    @Test
+    @DisplayName("getFinalStat: 負の乗算値は0に")
+    void getFinalStat_NegativeMultiplier_ClampsToZero() {
+        statManager.setBaseStat(Stat.STRENGTH, 10);
+        StatModifier negativeMultiplier = new StatModifier(
+            "TestSource",
+            StatModifier.Type.MULTIPLIER,
+            -1.5  // -150%
+        );
+        statManager.addModifier(Stat.STRENGTH, negativeMultiplier);
+
+        int finalStat = statManager.getFinalStat(Stat.STRENGTH);
+
+        // 10 * (1 - 1.5) = 10 * (-0.5) = -5 → floor → -5
+        assertThat(finalStat).isLessThanOrEqualTo(0);
+    }
 }

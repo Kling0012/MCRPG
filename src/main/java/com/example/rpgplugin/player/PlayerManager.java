@@ -16,6 +16,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import java.util.Collections;
+
+import java.util.Map;
+
 /**
  * プレイヤー管理クラス
  *
@@ -351,10 +355,10 @@ public class PlayerManager implements Listener {
     /**
      * 全オンラインRPGPlayerを取得します
      *
-     * @return オンラインRPGPlayerのマップ（コピー）
+     * @return オンラインRPGPlayerのマップ（変更不可ビュー）
      */
     public Map<UUID, RPGPlayer> getOnlinePlayers() {
-        return Map.copyOf(onlinePlayers);
+        return Collections.unmodifiableMap(onlinePlayers);
     }
 
     /**

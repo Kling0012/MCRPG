@@ -9,6 +9,8 @@ import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillType;
 import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.skill.LevelDependentParameter;
+import com.example.rpgplugin.skill.event.SkillEventListener;
+import com.example.rpgplugin.skill.result.SkillExecutionResult;
 import com.example.rpgplugin.skill.target.SkillTarget;
 import com.example.rpgplugin.skill.target.TargetType;
 import com.example.rpgplugin.skill.target.AreaShape;
@@ -146,8 +148,8 @@ class SkillExecutionIntegrationTest {
         skillLoader = new SkillLoader(mockPlugin);
         skillManager = new SkillManager(mockPlugin, mockPlayerManager);
 
-        // RPGPlayerにSkillManagerを設定
-        mockRpgPlayer.setSkillManager(skillManager);
+        // RPGPlayerにSkillEventListenerを設定（SkillManagerはSkillEventListenerを実装）
+        mockRpgPlayer.setSkillEventListener(skillManager);
     }
 
     /**
@@ -329,7 +331,7 @@ class SkillExecutionIntegrationTest {
             skillManager.getPlayerSkillData(mockPlayer).setSkillLevel("slash", 1);
 
             // When: スキルを実行
-            SkillManager.SkillExecutionResult result = skillManager.executeSkill(mockPlayer, "slash");
+            SkillExecutionResult result = skillManager.executeSkill(mockPlayer, "slash");
 
             // Then: 成功結果が返る
             assertThat(result).isNotNull();
@@ -345,7 +347,7 @@ class SkillExecutionIntegrationTest {
             // スキル習得設定なし（未習得状態）
 
             // When: スキルを実行
-            SkillManager.SkillExecutionResult result = skillManager.executeSkill(mockPlayer, "slash");
+            SkillExecutionResult result = skillManager.executeSkill(mockPlayer, "slash");
 
             // Then: 失敗結果が返る
             assertThat(result).isNotNull();
@@ -364,7 +366,7 @@ class SkillExecutionIntegrationTest {
 
             // When: 2回連続でスキルを実行
             skillManager.executeSkill(mockPlayer, "slash");
-            SkillManager.SkillExecutionResult secondResult = skillManager.executeSkill(mockPlayer, "slash");
+            SkillExecutionResult secondResult = skillManager.executeSkill(mockPlayer, "slash");
 
             // Then: 2回目はクールダウンで失敗する
             assertThat(secondResult.isSuccess()).isFalse();

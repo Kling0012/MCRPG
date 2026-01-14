@@ -8,6 +8,7 @@ import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillType;
 import com.example.rpgplugin.skill.LevelDependentParameter;
+import com.example.rpgplugin.skill.result.SkillExecutionResult;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
 import org.bukkit.Bukkit;
@@ -372,7 +373,7 @@ class ManaCostIntegrationTest {
             when(mockRpgPlayer.hasMana(10)).thenReturn(true);
 
             // When: スキルを発動
-            SkillManager.SkillExecutionResult result = skillManager.executeSkill(
+            SkillExecutionResult result = skillManager.executeSkill(
                     mockPlayer, "fireball");
 
             // Then: スキル発動が成功し、コストが消費されている
@@ -392,7 +393,7 @@ class ManaCostIntegrationTest {
             when(mockRpgPlayer.hasMana(10)).thenReturn(false);
 
             // When: スキルを発動
-            SkillManager.SkillExecutionResult result = skillManager.executeSkill(
+            SkillExecutionResult result = skillManager.executeSkill(
                     mockPlayer, "fireball");
 
             // Then: スキル発動が失敗する
@@ -412,7 +413,7 @@ class ManaCostIntegrationTest {
             when(mockPlayer.getHealth()).thenReturn(100.0);
 
             // When: スキルを発動
-            SkillManager.SkillExecutionResult result = skillManager.executeSkill(
+            SkillExecutionResult result = skillManager.executeSkill(
                     mockPlayer, "blood_sacrifice");
 
             // Then: スキル発動が成功する
@@ -432,7 +433,7 @@ class ManaCostIntegrationTest {
             when(mockPlayer.getHealth()).thenReturn(10.0);
 
             // When: スキルを発動
-            SkillManager.SkillExecutionResult result = skillManager.executeSkill(
+            SkillExecutionResult result = skillManager.executeSkill(
                     mockPlayer, "blood_sacrifice");
 
             // Then: スキル発動が失敗する
@@ -462,9 +463,9 @@ class ManaCostIntegrationTest {
             when(mockRpgPlayer.hasMana(anyInt())).thenReturn(true);
 
             // When: 2つのスキルを連続発動
-            SkillManager.SkillExecutionResult result1 = skillManager.executeSkill(
+            SkillExecutionResult result1 = skillManager.executeSkill(
                     mockPlayer, "fireball");
-            SkillManager.SkillExecutionResult result2 = skillManager.executeSkill(
+            SkillExecutionResult result2 = skillManager.executeSkill(
                     mockPlayer, "ice_spike");
 
             // Then: 両方とも成功する
@@ -488,9 +489,9 @@ class ManaCostIntegrationTest {
             when(mockRpgPlayer.hasMana(10)).thenReturn(true, false);
 
             // When: 2つのスキルを連続発動
-            SkillManager.SkillExecutionResult result1 = skillManager.executeSkill(
+            SkillExecutionResult result1 = skillManager.executeSkill(
                     mockPlayer, "fireball");
-            SkillManager.SkillExecutionResult result2 = skillManager.executeSkill(
+            SkillExecutionResult result2 = skillManager.executeSkill(
                     mockPlayer, "fireball");
 
             // Then: 1回目は成功、2回目は失敗

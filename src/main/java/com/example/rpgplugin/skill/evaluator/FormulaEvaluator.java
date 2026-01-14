@@ -172,7 +172,7 @@ public class FormulaEvaluator {
 
         // それでも空の場合はデフォルト値
         if (targetFormula == null || targetFormula.trim().isEmpty()) {
-            LOGGER.warning("[FormulaEvaluator] 数式が未定義です。スキルレベル: " + skillLevel);
+            LOGGER.warning(() -> "[FormulaEvaluator] 数式が未定義です。スキルレベル: " + skillLevel);
             return 0.0;
         }
 
@@ -192,7 +192,7 @@ public class FormulaEvaluator {
         try {
             return evaluate(expression, rpgPlayer, skillLevel);
         } catch (FormulaEvaluationException e) {
-            LOGGER.warning("[FormulaEvaluator] 評価エラー（デフォルト値使用）: " + e.getMessage());
+            LOGGER.warning(() -> "[FormulaEvaluator] 評価エラー（デフォルト値使用）: " + e.getMessage());
             return defaultValue;
         }
     }

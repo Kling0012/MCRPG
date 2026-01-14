@@ -8,6 +8,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+import java.util.Collections;
+
+import java.util.Map;
+
 /**
  * 数式評価用の変数コンテキスト
  *
@@ -192,10 +196,10 @@ public class VariableContext {
     /**
      * カスタム変数マップを取得します
      *
-     * @return カスタム変数マップのコピー
+     * @return カスタム変数マップ（変更不可ビュー）
      */
     public Map<String, Double> getCustomVariables() {
-        return Map.copyOf(customVariables);
+        return Collections.unmodifiableMap(customVariables);
     }
 
     /**
@@ -218,7 +222,7 @@ public class VariableContext {
         try {
             return Double.parseDouble(value);
         } catch (NumberFormatException e) {
-            LOGGER.warning("[VariableContext] 数値パース失敗: " + value);
+            LOGGER.warning(() -> "[VariableContext] 数値パース失敗: " + value);
             throw e;
         }
     }

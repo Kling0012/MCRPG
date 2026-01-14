@@ -3,7 +3,6 @@ package com.example.rpgplugin.api.skript.effects;
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
-import com.example.rpgplugin.skill.SkillManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,15 +56,14 @@ public class EffCastRPGSkill extends Effect {
         }
 
         PlayerManager pm = plugin.getPlayerManager();
-        SkillManager sm = plugin.getSkillManager();
         RPGPlayer rpgPlayer = pm.getRPGPlayer(p.getUniqueId());
 
-        if (rpgPlayer == null || sm == null) {
+        if (rpgPlayer == null) {
             return;
         }
 
         // スキル発動
-        sm.executeSkill(p, skill);
+        rpgPlayer.executeSkill(p, skill);
     }
 
     @Override

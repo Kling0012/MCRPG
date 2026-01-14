@@ -80,6 +80,9 @@ public class ClassManager {
      * @return クラス（存在しない場合はempty）
      */
     public Optional<RPGClass> getClass(String classId) {
+        if (classId == null) {
+            return Optional.empty();
+        }
         return Optional.ofNullable(classes.get(classId));
     }
 

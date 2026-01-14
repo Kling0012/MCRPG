@@ -355,12 +355,40 @@ public class SchemaManager {
 
     /**
      * テーブルが存在するかチェック
+     *
+     * @param stmt SQLステートメント
+     * @param tableName テーブル名（ホワイトリスト検証済み）
+     * @return テーブルが存在する場合true
+     * @throws SQLException データベースエラー
+     * @throws IllegalArgumentException テーブル名が無効な場合
      */
     private boolean tableExists(Statement stmt, String tableName) throws SQLException {
+        // ホワイトリスト方式でテーブル名を検証（SQLインジェクション対策）
+        String sanitized = sanitizeTableName(tableName);
+        if (!sanitized.equals(tableName)) {
+            throw new IllegalArgumentException("Invalid table name: " + tableName);
+        }
+
         ResultSet rs = stmt.executeQuery(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "'"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='" + sanitized + "'"
         );
         return rs.next();
+    }
+
+    /**
+     * テーブル名をサニタイズ（ホワイトリスト方式）
+     *
+     * <p>許可する文字: アルファベット、数字、アンダースコアのみ</p>
+     *
+     * @param tableName テーブル名
+     * @return サニタイズされたテーブル名
+     */
+    private String sanitizeTableName(String tableName) {
+        if (tableName == null || tableName.isEmpty()) {
+            return "";
+        }
+        // アルファベット、数字、アンダースコアのみを許可
+        return tableName.replaceAll("[^a-zA-Z0-9_]", "");
     }
 
     /**

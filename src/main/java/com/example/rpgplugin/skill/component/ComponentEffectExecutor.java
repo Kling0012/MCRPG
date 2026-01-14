@@ -64,7 +64,7 @@ public class ComponentEffectExecutor {
             // SkillEffect経由でコンポーネントを実行
             return skillEffect.execute(caster, level, targets);
         } catch (Exception e) {
-            LOGGER.warning("[ComponentEffectExecutor] コンポーネント実行エラー: " + e.getMessage());
+            LOGGER.warning(() -> "[ComponentEffectExecutor] コンポーネント実行エラー: " + e.getMessage());
             if (caster instanceof Player) {
                 ((Player) caster).sendMessage(Component.text("スキル効果の実行中にエラーが発生しました", NamedTextColor.RED));
             }

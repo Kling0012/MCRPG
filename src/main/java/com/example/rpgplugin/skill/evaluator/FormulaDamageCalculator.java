@@ -5,6 +5,10 @@ import com.example.rpgplugin.player.RPGPlayer;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import java.util.Collections;
+
+import java.util.Map;
+
 /**
  * 数式ベースダメージ計算機
  *
@@ -122,7 +126,7 @@ public class FormulaDamageCalculator {
             return evaluator.evaluate(formula, rpgPlayer, skillLevel, customVariables);
 
         } catch (FormulaEvaluator.FormulaEvaluationException e) {
-            LOGGER.warning("[FormulaDamageCalculator] ダメージ計算エラー: " + e.getMessage());
+            LOGGER.warning(() -> "[FormulaDamageCalculator] ダメージ計算エラー: " + e.getMessage());
             return 0.0;
         }
     }
@@ -152,7 +156,7 @@ public class FormulaDamageCalculator {
             try {
                 return evaluator.evaluateWithContext(damageFormula, context);
             } catch (FormulaEvaluator.FormulaEvaluationException e) {
-                LOGGER.warning("[FormulaDamageCalculator] 評価エラー: " + e.getMessage());
+                LOGGER.warning(() -> "[FormulaDamageCalculator] 評価エラー: " + e.getMessage());
             }
         }
 
@@ -172,10 +176,10 @@ public class FormulaDamageCalculator {
     /**
      * レベル別数式を取得します
      *
-     * @return レベル別数式マップのコピー
+     * @return レベル別数式マップ（変更不可ビュー）
      */
     public Map<Integer, String> getLevelFormulas() {
-        return levelFormulas != null ? Map.copyOf(levelFormulas) : Map.of();
+        return levelFormulas != null ? Collections.unmodifiableMap(levelFormulas) : Map.of();
     }
 
     /**

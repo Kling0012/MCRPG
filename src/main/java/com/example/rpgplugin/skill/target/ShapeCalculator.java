@@ -62,6 +62,9 @@ public final class ShapeCalculator {
             case CIRCLE:
                 return isInRangeCircle(entityLoc, origin, config.getCircle());
 
+            case SPHERE:
+                return isInRangeSphere(entityLoc, origin, config.getSphereRadius());
+
             default:
                 return false;
         }
@@ -163,6 +166,19 @@ public final class ShapeCalculator {
 
         double distanceSq = entityLoc.distanceSquared(origin);
         return distanceSq <= (config.getRadius() * config.getRadius());
+    }
+
+    /**
+     * エンティティが球形範囲内に含まれるか判定します
+     *
+     * @param entityLoc エンティティ位置
+     * @param origin 中心位置
+     * @param radius 半径
+     * @return 範囲内の場合はtrue
+     */
+    private static boolean isInRangeSphere(Location entityLoc, Location origin, double radius) {
+        double distanceSq = entityLoc.distanceSquared(origin);
+        return distanceSq <= (radius * radius);
     }
 
     /**

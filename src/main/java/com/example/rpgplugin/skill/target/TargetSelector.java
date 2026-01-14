@@ -2,6 +2,7 @@ package com.example.rpgplugin.skill.target;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -377,9 +378,12 @@ public final class TargetSelector {
      * @return 一致する場合はtrue
      */
     private static boolean matchesFilter(Entity entity, EntityTypeFilter filter) {
+        if (entity == null) {
+            return false;
+        }
         return switch (filter) {
-            case PLAYER_ONLY -> entity instanceof Player;
-            case MOB_ONLY -> !(entity instanceof Player);
+            case PLAYER_ONLY -> entity.getType() == EntityType.PLAYER;
+            case MOB_ONLY -> entity.getType() != EntityType.PLAYER;
             case ALL -> true;
         };
     }
@@ -422,10 +426,13 @@ public final class TargetSelector {
      * @return 一致する場合はtrue
      */
     private static boolean matchesGroupFilter(Entity entity, TargetGroupFilter groupFilter, Player caster) {
+        if (entity == null) {
+            return false;
+        }
         return switch (groupFilter) {
             case BOTH -> true;
-            case ENEMY -> !(entity instanceof Player); // PvPなしサーバーではMobのみ敵対
-            case ALLY -> entity instanceof Player; // プレイヤーは味方
+            case ENEMY -> entity.getType() != EntityType.PLAYER; // PvPなしサーバーではMobのみ敵対
+            case ALLY -> entity.getType() == EntityType.PLAYER; // プレイヤーは味方
         };
     }
 
@@ -548,7 +555,13 @@ public final class TargetSelector {
         // 最大ターゲット数を適用
         int maxTargets = config.getMaxTargetsOrUnlimited();
         if (result.size() > maxTargets) {
-            result.subList(0, maxTargets);
+            // 最大数に制限（distanceの近い順に制限）
+            List<Entity> limited = result.stream()
+                    .sorted(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(origin)))
+                    .limit(maxTargets)
+                    .toList();
+            result.clear();
+            result.addAll(limited);
         }
     }
 
@@ -593,7 +606,13 @@ public final class TargetSelector {
         // 最大ターゲット数を適用
         int maxTargets = config.getMaxTargetsOrUnlimited();
         if (result.size() > maxTargets) {
-            result.subList(0, maxTargets);
+            // 最大数に制限（distanceの近い順に制限）
+            List<Entity> limited = result.stream()
+                    .sorted(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(origin)))
+                    .limit(maxTargets)
+                    .toList();
+            result.clear();
+            result.addAll(limited);
         }
     }
 
@@ -685,7 +704,13 @@ public final class TargetSelector {
         // 最大ターゲット数を適用
         int maxTargets = config.getMaxTargetsOrUnlimited();
         if (result.size() > maxTargets) {
-            result.subList(0, maxTargets);
+            // 最大数に制限（distanceの近い順に制限）
+            List<Entity> limited = result.stream()
+                    .sorted(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(origin)))
+                    .limit(maxTargets)
+                    .toList();
+            result.clear();
+            result.addAll(limited);
         }
     }
 

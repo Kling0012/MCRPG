@@ -662,3 +662,130 @@ Example spawn message:
 - 👀 Reviewer: [task]
 Working in parallel - I'll synthesize when they complete."
 ```
+
+---
+
+## 🤝 チームレビュー共同作業ワークフロー
+
+**成功したパターン（2025-01-15実績）**
+
+### ワークフロー全体図
+
+```
+1. 変更のコミット
+   ↓
+2. Gitワークツリーでブランチ作成
+   ↓
+3. 複数エージェントを並列スパーン
+   ↓
+4. エージェント完了待機
+   ↓
+5. 結果の統合と記録
+   ↓
+6. ワークツリー削除
+```
+
+### 詳細手順
+
+#### ステップ1: 変更のコミット
+```bash
+# 全変更をステージしてコミット
+git add -A
+git commit -m "feat: description of changes"
+```
+
+#### ステップ2: Gitワークツリーでブランチ作成
+```bash
+# ワークツリー用ブランチを作成
+git worktree add -b team-review-YYYY-MM-DD ../.zcf/ProjectName-team-review main
+```
+
+#### ステップ3: 複数エージェントを並列スパーン
+```javascript
+// 1つのメッセージで全エージェントをスパーン（run_in_background: true）
+Task({
+  subagent_type: "researcher",
+  prompt: "【Gemini】コード品質とテストカバレッジ分析...",
+  description: "Gemini: Codebase quality review",
+  run_in_background: true
+})
+Task({
+  subagent_type: "system-architect",
+  prompt: "【Codex】アーキテクチャと設計分析...",
+  description: "Codex: Architecture analysis",
+  run_in_background: true
+})
+Task({
+  subagent_type: "planner",
+  prompt: "【iFlow】ワークフローと開発プロセス分析...",
+  description: "iFlow: Workflow optimization analysis",
+  run_in_background: true
+})
+```
+
+#### ステップ4: ユーザーに通知して待機
+```
+"I've launched 3 agents in background:
+- 🔍 Gemini: コード品質・テスト分析
+- 🏗️ Codex: アーキテクチャ分析
+- ⚙️ iFlow: ワークフロー・プロセス分析
+
+並列で作業中です。完了次第、結果を統合します。"
+```
+
+#### ステップ5: 結果の統合と記録
+```javascript
+// エージェントの結果を取得・統合
+TaskOutput({ task_id: "a6d8bf7", block: false })
+TaskOutput({ task_id: "a603646", block: false })
+TaskOutput({ task_id: "a6e20bb", block: false })
+
+// 統合レポートを記憶に保存
+writeMemory({
+  memory_file_name: "team_review_summary_YYYY_MM_DD",
+  content: "# チームレビュー統合レポート\n..."
+})
+```
+
+#### ステップ6: ワークツリー削除
+```bash
+# レビュー完了後にワークツリーを削除
+git worktree remove ../.zcf/ProjectName-team-review
+```
+
+### エージェント役割分担
+
+| エージェント | subagent_type | 分析担当 | 主な出力 |
+|-------------|-----------------|----------|----------|
+| **Gemini** | `researcher` | コード品質・テスト | SOLID原則、DRY、テストカバレッジ、バグ |
+| **Codex** | `system-architect` | アーキテクチャ | パッケージ構造、依存関係、設計パターン |
+| **iFlow** | `planner` | ワークフロー・プロセス | Maven設定、CI/CD、ドキュメント |
+
+### 成功のポイント
+
+1. **並列実行**: 全エージェントを1つのメッセージで同時スパーン
+2. **バックグラウンド実行**: `run_in_background: true`で非同期実行
+3. **明確な役割分担**: 各エージェントに異なる視点を割り当て
+4. **ワークツリー分離**: メインブランチを汚さず独立作業
+5. **記録の保存**: 統合結果を記憶に保存して再利用可能
+
+### レポート出力例
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  🎉 チームレビュー完了しました                                       │
+├─────────────────────────────────────────────────────────────────┤
+│  総合スコア: ★★★★☆ (4.2/5)                                      │
+│  優先度高い改善事項:                                               │
+│  1. CI/CD導入                                                      │
+│  2. TODO解消                                                       │
+│  3. 設定ファイル整合性                                             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### コマンド例
+
+```bash
+# チームレビュー実行コマンド（ユーザーが指示）
+"コミットしてから、チーム全体でプロジェクトの現状を話し合ってレビューしろ"
+```

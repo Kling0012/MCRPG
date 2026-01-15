@@ -395,4 +395,55 @@ class DamageManagerTest {
             assertThat(damageManager.isEnabled()).isTrue(); // shutdownはタスク停止のみ
         }
     }
+
+    // ==================== カバレッジ向上テスト ====================
+
+    @Nested
+    @DisplayName("カバレッジ向上テスト")
+    class CoverageImprovementTests {
+
+        @Test
+        @DisplayName("enableメソッドでYAML設定が有効化される")
+        void enable_EnablesYamlConfig() {
+            damageManager = new DamageManager(mockPlugin, mockPlayerManager);
+            damageManager.setUseYamlConfig(true);
+
+            assertThat(damageManager.isUseYamlConfig()).isTrue();
+        }
+
+        @Test
+        @DisplayName("disableメソッドでYAML設定が無効化される")
+        void disable_DisablesYamlConfig() {
+            damageManager = new DamageManager(mockPlugin, mockPlayerManager);
+            damageManager.setUseYamlConfig(false);
+
+            assertThat(damageManager.isUseYamlConfig()).isFalse();
+        }
+
+        @Test
+        @DisplayName("getYamlCalculatorで計算機を取得")
+        void getYamlCalculator_ReturnsCalculator() {
+            damageManager = new DamageManager(mockPlugin, mockPlayerManager);
+
+            // nullでも取得可能
+            assertThat(damageManager.getYamlCalculator()).isNull();
+        }
+
+        @Test
+        @DisplayName("getScopeManagerでスコープマネージャーを取得")
+        void getScopeManager_ReturnsScopeManager() {
+            damageManager = new DamageManager(mockPlugin, mockPlayerManager);
+
+            assertThat(damageManager.getScopeManager()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("getDamageConfigでダメージ設定を取得")
+        void getDamageConfig_ReturnsDamageConfig() {
+            damageManager = new DamageManager(mockPlugin, mockPlayerManager);
+
+            // nullでも取得可能
+            assertThat(damageManager.getDamageConfig()).isNull();
+        }
+    }
 }

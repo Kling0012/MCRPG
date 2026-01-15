@@ -1,7 +1,7 @@
 name: MCRPG
 version: '${project.version}'
 main: com.example.rpgplugin.RPGPlugin
-api-version: '1.20'
+api-version: '1.20.6'
 author: RPGPlugin Team
 description: A Minecraft RPG plugin with stats, classes, and skills
 

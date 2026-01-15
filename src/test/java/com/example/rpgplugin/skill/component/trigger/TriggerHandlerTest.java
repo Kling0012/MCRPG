@@ -202,7 +202,7 @@ class TriggerHandlerTest {
         @Test
         @DisplayName("test: コンポーネント実行失敗")
         void testHandleImmediate_ComponentFails() {
-            when(mockComponent.execute(mockCaster, 1, anyList())).thenReturn(false);
+            when(mockComponent.execute(eq(mockCaster), eq(1), anyList())).thenReturn(false);
 
             boolean result = handler.handleImmediate(mockCaster, 1, mockTarget);
 

@@ -631,4 +631,200 @@ class ActiveSkillExecutorTest {
     void testGetPlayerManager() {
         assertEquals(mockPlayerManager, executor.getPlayerManager(), "プレイヤーマネージャーが取得できる");
     }
+
+    // ==================== 追加カバレッジテスト ====================
+
+    @Test
+    @DisplayName("execute: コストが0の場合は消費スキップ")
+    void testExecute_ZeroCost() {
+        Skill zeroCostSkill = mock(Skill.class);
+        when(zeroCostSkill.getId()).thenReturn("zero_cost");
+        when(zeroCostSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        when(zeroCostSkill.getTargetFromComponents()).thenReturn(null);
+        when(zeroCostSkill.findComponentByKey("damage")).thenReturn(null);
+        when(zeroCostSkill.getComponentEffect()).thenReturn(null);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("zero_cost"))).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, zeroCostSkill, 1);
+
+        assertTrue(result, "コスト0は成功すること");
+        verify(mockRpgPlayer, never()).consumeSkillCost(anyInt());
+    }
+
+    @Test
+    @DisplayName("execute: calculateDamage例外時")
+    void testExecute_CalculateDamageException() {
+        Skill damageSkill = mock(Skill.class);
+        when(damageSkill.getId()).thenReturn("damage_skill");
+        when(damageSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        when(damageSkill.getTargetFromComponents()).thenReturn(null);
+        when(damageSkill.getComponentEffect()).thenReturn(null);
+
+        com.example.rpgplugin.skill.component.EffectComponent mockDamageComponent =
+                mock(com.example.rpgplugin.skill.component.EffectComponent.class);
+        com.example.rpgplugin.skill.component.ComponentSettings mockSettings =
+                mock(com.example.rpgplugin.skill.component.ComponentSettings.class);
+
+        when(damageSkill.findComponentByKey("damage")).thenReturn(mockDamageComponent);
+        when(mockDamageComponent.getSettings()).thenReturn(mockSettings);
+        when(mockSettings.has("value")).thenReturn(false);
+        when(mockSettings.getDouble("value", 0.0)).thenReturn(0.0);
+        when(mockSettings.has("stat_multiplier")).thenReturn(true);
+        when(mockSettings.getString("stat_multiplier", "")).thenReturn("invalid_stat");
+        when(mockSettings.getDouble("multiplier", 1.0)).thenReturn(1.0);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("damage_skill"))).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, damageSkill, 1);
+
+        assertTrue(result, "例外ハンドリングで成功すること");
+    }
+
+    @Test
+    @DisplayName("executeWithCostType: コスト0の場合")
+    void testExecuteWithCostType_ZeroCost() {
+        Skill zeroCostSkill = new Skill(
+                "zero_cost", "zero_cost", "コストなし", SkillType.NORMAL, List.of(),
+                10, 0.0, 0, null, null, SkillCostType.MANA,
+                null, null, null, List.of()
+        );
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("zero_cost"))).thenReturn(true);
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+
+        boolean result = executor.executeWithCostType(mockPlayer, zeroCostSkill, 1, SkillCostType.MANA);
+
+        assertTrue(result, "コスト0は成功すること");
+        verify(mockRpgPlayer, never()).consumeMana(anyInt());
+    }
+
+    @Test
+    @DisplayName("execute: Stat.fromShortNameとfromDisplayName両方失敗")
+    void testExecute_StatResolutionFailure() {
+        Skill damageSkill = mock(Skill.class);
+        when(damageSkill.getId()).thenReturn("damage_skill");
+        when(damageSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        when(damageSkill.getTargetFromComponents()).thenReturn(null);
+        when(damageSkill.getComponentEffect()).thenReturn(null);
+
+        com.example.rpgplugin.skill.component.EffectComponent mockDamageComponent =
+                mock(com.example.rpgplugin.skill.component.EffectComponent.class);
+        com.example.rpgplugin.skill.component.ComponentSettings mockSettings =
+                mock(com.example.rpgplugin.skill.component.ComponentSettings.class);
+
+        when(damageSkill.findComponentByKey("damage")).thenReturn(mockDamageComponent);
+        when(mockDamageComponent.getSettings()).thenReturn(mockSettings);
+        when(mockSettings.has("value")).thenReturn(true);
+        when(mockSettings.getString("value", "0")).thenReturn("10");
+        when(mockSettings.has("stat_multiplier")).thenReturn(true);
+        when(mockSettings.getString("stat_multiplier", "")).thenReturn("nonexistent");
+        when(mockSettings.getDouble("multiplier", 1.0)).thenReturn(2.0);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("damage_skill"))).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, damageSkill, 1);
+
+        assertTrue(result, "stat解決失敗でも成功すること");
+    }
+
+    @Test
+    @DisplayName("parseFormula: カッコ付き数式")
+    void testParseFormula_WithParentheses() {
+        // 内部メソッドのテストとしてexecute経由で検証
+        Skill damageSkill = mock(Skill.class);
+        when(damageSkill.getId()).thenReturn("damage_skill");
+        when(damageSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        when(damageSkill.getTargetFromComponents()).thenReturn(null);
+        when(damageSkill.getComponentEffect()).thenReturn(null);
+
+        com.example.rpgplugin.skill.component.EffectComponent mockDamageComponent =
+                mock(com.example.rpgplugin.skill.component.EffectComponent.class);
+        com.example.rpgplugin.skill.component.ComponentSettings mockSettings =
+                mock(com.example.rpgplugin.skill.component.ComponentSettings.class);
+
+        when(damageSkill.findComponentByKey("damage")).thenReturn(mockDamageComponent);
+        when(mockDamageComponent.getSettings()).thenReturn(mockSettings);
+        when(mockSettings.has("value")).thenReturn(true);
+        when(mockSettings.getString("value", "0")).thenReturn("(10 + 5) * 2");
+        when(mockSettings.has("stat_multiplier")).thenReturn(false);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("damage_skill"))).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, damageSkill, 1);
+
+        assertTrue(result, "カッコ付き数式で成功すること");
+    }
+
+    @Test
+    @DisplayName("execute: 複数ターゲットにダメージ適用")
+    void testExecute_MultipleTargetsDamage() {
+        Skill damageSkill = mock(Skill.class);
+        when(damageSkill.getId()).thenReturn("damage_skill");
+        when(damageSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        when(damageSkill.getComponentEffect()).thenReturn(null);
+
+        com.example.rpgplugin.skill.component.EffectComponent mockDamageComponent =
+                mock(com.example.rpgplugin.skill.component.EffectComponent.class);
+        com.example.rpgplugin.skill.component.ComponentSettings mockSettings =
+                mock(com.example.rpgplugin.skill.component.ComponentSettings.class);
+
+        when(damageSkill.findComponentByKey("damage")).thenReturn(mockDamageComponent);
+        when(mockDamageComponent.getSettings()).thenReturn(mockSettings);
+        when(mockSettings.has("value")).thenReturn(true);
+        when(mockSettings.getString("value", "0")).thenReturn("10");
+        when(mockSettings.has("stat_multiplier")).thenReturn(false);
+
+        // SkillTargetモック
+        com.example.rpgplugin.skill.target.SkillTarget mockSkillTarget =
+                mock(com.example.rpgplugin.skill.target.SkillTarget.class);
+        when(damageSkill.getTargetFromComponents()).thenReturn(mockSkillTarget);
+        when(mockSkillTarget.getRange()).thenReturn(10.0);
+        when(mockSkillTarget.getType()).thenReturn(TargetType.NEAREST_HOSTILE);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("damage_skill"))).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, damageSkill, 1);
+
+        assertTrue(result, "複数ターゲットで成功すること");
+    }
+
+    @Test
+    @DisplayName("executeAt: ダメージ設定null")
+    void testExecuteAt_NullDamageConfig() {
+        Skill noDamageSkill = new Skill(
+                "no_damage", "no_damage", "ダメージなし", SkillType.NORMAL, List.of(),
+                10, 0.0, 0, null, null, SkillCostType.MANA,
+                null, null, null, List.of()
+        );
+
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+        when(mockTarget.isValid()).thenReturn(true);
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("no_damage"))).thenReturn(true);
+
+        boolean result = executor.executeAt(mockPlayer, noDamageSkill, 1, mockTarget);
+
+        assertTrue(result, "ダメージ設定nullでも成功すること");
+        verify(mockTarget, never()).damage(anyDouble(), any(Player.class));
+    }
+
+    @Test
+    @DisplayName("executeWithCostType: damageがnull")
+    void testExecuteWithCostType_NullDamage() {
+        Skill noDamageSkill = new Skill(
+                "no_damage", "no_damage", "ダメージなし", SkillType.NORMAL, List.of(),
+                10, 0.0, 0, null, null, SkillCostType.MANA,
+                null, null, null, List.of()
+        );
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("no_damage"))).thenReturn(true);
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+        // lenientを使用して不要なスタブ警告を回避
+        lenient().when(mockRpgPlayer.hasMana(10)).thenReturn(true);
+        lenient().when(mockRpgPlayer.consumeMana(10)).thenReturn(true);
+
+        boolean result = executor.executeWithCostType(mockPlayer, noDamageSkill, 1, SkillCostType.MANA);
+
+        assertTrue(result, "damageがnullでも成功すること");
+    }
 }

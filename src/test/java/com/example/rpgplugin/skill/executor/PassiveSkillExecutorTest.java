@@ -263,4 +263,129 @@ class PassiveSkillExecutorTest {
             new PassiveSkillExecutor(mockPlugin, mockSkillManager, null);
         }, "playerManager=nullは例外");
     }
+
+    // ==================== updatePassives テスト ====================
+
+    @Test
+    @DisplayName("updatePassives: PlayerSkillDataがnull")
+    void testUpdatePassives_NullData() {
+        when(mockSkillManager.getPlayerSkillData(testUuid)).thenReturn(null);
+
+        executor.updatePassives(mockPlayer);
+
+        // 何も起きない（例外を投げない）
+        verify(mockSkillManager).getPlayerSkillData(testUuid);
+    }
+
+    @Test
+    @DisplayName("updatePassives: スキル適用成功")
+    void testUpdatePassives_Success() {
+        // PlayerSkillDataモック
+        SkillManager.PlayerSkillData data = mock(SkillManager.PlayerSkillData.class);
+        when(mockSkillManager.getPlayerSkillData(testUuid)).thenReturn(data);
+
+        java.util.Map<String, Integer> acquiredSkills = new java.util.HashMap<>();
+        acquiredSkills.put("passive_skill", 3);
+        when(data.getAcquiredSkills()).thenReturn(acquiredSkills);
+        when(mockSkillManager.getSkill("passive_skill")).thenReturn(testSkill);
+
+        // クリアしてからupdate
+        executor.clearAllPassives(mockPlayer);
+        executor.updatePassives(mockPlayer);
+
+        Map<UUID, Map<String, PassiveSkillExecutor.PassiveEffect>> effects = executor.getActiveEffects();
+        assertTrue(effects.containsKey(testUuid), "プレイヤー効果が登録されている");
+    }
+
+    @Test
+    @DisplayName("updatePassives: nullスキルはスキップ")
+    void testUpdatePassives_NullSkill() {
+        SkillManager.PlayerSkillData data = mock(SkillManager.PlayerSkillData.class);
+        when(mockSkillManager.getPlayerSkillData(testUuid)).thenReturn(data);
+
+        java.util.Map<String, Integer> acquiredSkills = new java.util.HashMap<>();
+        acquiredSkills.put("null_skill", 1);
+        when(data.getAcquiredSkills()).thenReturn(acquiredSkills);
+        when(mockSkillManager.getSkill("null_skill")).thenReturn(null);
+
+        executor.updatePassives(mockPlayer);
+
+        // 例外を投げない
+        verify(mockSkillManager).getSkill("null_skill");
+    }
+
+    @Test
+    @DisplayName("updatePassives: 空の習得スキル")
+    void testUpdatePassives_EmptyAcquiredSkills() {
+        SkillManager.PlayerSkillData data = mock(SkillManager.PlayerSkillData.class);
+        when(mockSkillManager.getPlayerSkillData(testUuid)).thenReturn(data);
+
+        java.util.Map<String, Integer> acquiredSkills = new java.util.HashMap<>();
+        when(data.getAcquiredSkills()).thenReturn(acquiredSkills);
+
+        executor.updatePassives(mockPlayer);
+
+        // 例外を投げない
+        verify(data).getAcquiredSkills();
+    }
+
+    // ==================== removePassive 追加テスト ====================
+
+    @Test
+    @DisplayName("removePassive: 効果が存在しないプレイヤー")
+    void testRemovePassive_NoEffectsForPlayer() {
+        // 効果を適用していない状態で削除
+        reset(mockPlayer);
+        lenient().when(mockPlayer.getUniqueId()).thenReturn(testUuid);
+
+        executor.removePassive(mockPlayer, "passive_skill");
+
+        // メッセージは送られない
+        verify(mockPlayer, never()).sendMessage(any(Component.class));
+    }
+
+    // ==================== applyPassive 追加テスト ====================
+
+    @Test
+    @DisplayName("applyPassive: nullダメージ設定")
+    void testApplyPassive_NullDamageConfig() {
+        Skill noDamageSkill = new Skill(
+                "no_damage", "no_damage", "ダメージなし", SkillType.NORMAL, List.of(),
+                10, 0.0, 0, null, null, SkillCostType.MANA,
+                null, null, null, List.of()
+        );
+
+        boolean result = executor.applyPassive(mockPlayer, noDamageSkill, 1);
+
+        assertTrue(result, "nullダメージ設定でも適用できる");
+    }
+
+    @Test
+    @DisplayName("applyPassive: null stat multiplier")
+    void testApplyPassive_NullStatMultiplier() {
+        Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, null, 0.0, 0.0);
+        LevelDependentParameter cooldownParam = new LevelDependentParameter(0.0, 0.0, null, null);
+        LevelDependentParameter costParam = new LevelDependentParameter(0.0, 0.0, null, null);
+
+        Skill skill = new Skill(
+                "passive_null_stat", "passive_null_stat", "パッシブ", SkillType.NORMAL, List.of(),
+                10, 0.0, 0, cooldownParam, costParam,
+                SkillCostType.MANA, damage, null, null, List.of()
+        );
+
+        boolean result = executor.applyPassive(mockPlayer, skill, 1);
+
+        assertTrue(result, "stat multiplierがnullでも適用できる");
+    }
+
+    @Test
+    @DisplayName("applyPassive: null RPGPlayer")
+    void testApplyPassive_NullRPGPlayer() {
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(null);
+
+        boolean result = executor.applyPassive(mockPlayer, testSkill, 1);
+
+        // modifierがないので成功するが、ステータス修正は適用されない
+        assertTrue(result, "RPGPlayerがnullでもmodifierなしなら成功");
+    }
 }

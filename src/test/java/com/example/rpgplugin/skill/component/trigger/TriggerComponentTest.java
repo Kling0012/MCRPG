@@ -5,8 +5,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.projectiles.ProjectileSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -240,16 +243,72 @@ class TriggerComponentTest {
     @DisplayName("LandTrigger: 着地トリガー")
     class LandTriggerTests {
         private com.example.rpgplugin.skill.component.trigger.LandTrigger trigger;
+        private EntityDamageEvent event;
+        private EntityDamageEvent nonFallEvent;
 
         @BeforeEach
         void setUp() {
             trigger = new com.example.rpgplugin.skill.component.trigger.LandTrigger();
+            event = mock(EntityDamageEvent.class);
+            nonFallEvent = mock(EntityDamageEvent.class);
+            when(event.getEntity()).thenReturn(mockEntity);
+            when(nonFallEvent.getEntity()).thenReturn(mockEntity);
         }
 
         @Test
         @DisplayName("test: getKeyはLANDを返す")
         void testGetKey() {
             assertEquals("LAND", trigger.getKey());
+        }
+
+        @Test
+        @DisplayName("test: getEventはEntityDamageEvent.classを返す")
+        void testGetEvent() {
+            assertEquals(EntityDamageEvent.class, trigger.getEvent());
+        }
+
+        @Test
+        @DisplayName("test: FALLダメージ時に発動")
+        void testShouldTriggerWithFallDamage() {
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.FALL);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: 非FALLダメージ時は不发動")
+        void testShouldNotTriggerWithNonFallDamage() {
+            when(nonFallEvent.getCause()).thenReturn(EntityDamageEvent.DamageCause.ENTITY_ATTACK);
+            assertFalse(trigger.shouldTrigger(nonFallEvent, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: FIREダメージ時は不发動")
+        void testShouldNotTriggerWithFireDamage() {
+            when(nonFallEvent.getCause()).thenReturn(EntityDamageEvent.DamageCause.FIRE);
+            assertFalse(trigger.shouldTrigger(nonFallEvent, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: setValuesでダメージを設定")
+        void testSetValues() {
+            when(event.getDamage()).thenReturn(5.0);
+            java.util.Map<String, Object> data = new java.util.HashMap<>();
+            trigger.setValues(event, data);
+            assertEquals(5.0, data.get("damage"));
+        }
+
+        @Test
+        @DisplayName("test: getCasterはダメージを受けたエンティティ")
+        void testGetCaster() {
+            when(event.getEntity()).thenReturn(mockEntity);
+            assertEquals(mockEntity, trigger.getCaster(event));
+        }
+
+        @Test
+        @DisplayName("test: getTargetはダメージを受けたエンティティ")
+        void testGetTarget() {
+            when(event.getEntity()).thenReturn(mockEntity);
+            assertEquals(mockEntity, trigger.getTarget(event, settings));
         }
     }
 
@@ -275,6 +334,36 @@ class TriggerComponentTest {
         }
 
         @Test
+        @DisplayName("test: getEventはEntityDeathEvent.classを返す")
+        void testGetEvent() {
+            assertEquals(EntityDeathEvent.class, trigger.getEvent());
+        }
+
+        @Test
+        @DisplayName("test: キラーがいる場合に発動")
+        void testShouldTriggerWithKiller() {
+            when(mockEntity.getKiller()).thenReturn(mockPlayer);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: キラーがいない場合は不发動")
+        void testShouldNotTriggerWithoutKiller() {
+            when(mockEntity.getKiller()).thenReturn(null);
+            assertFalse(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: setValuesでvictimとvictim-typeを設定")
+        void testSetValues() {
+            when(event.getEntityType()).thenReturn(org.bukkit.entity.EntityType.ZOMBIE);
+            java.util.Map<String, Object> data = new java.util.HashMap<>();
+            trigger.setValues(event, data);
+            assertEquals(mockEntity, data.get("victim"));
+            assertEquals("ZOMBIE", data.get("victim-type"));
+        }
+
+        @Test
         @DisplayName("test: getCasterはキラーを返す")
         void testGetCaster() {
             when(mockEntity.getKiller()).thenReturn(mockPlayer);
@@ -282,10 +371,24 @@ class TriggerComponentTest {
         }
 
         @Test
-        @DisplayName("test: キラーがいない場合はnull")
+        @DisplayName("test: キラーがいない場合getCasterはnull")
         void testNoKillerReturnsNull() {
             when(mockEntity.getKiller()).thenReturn(null);
             assertNull(trigger.getCaster(event));
+        }
+
+        @Test
+        @DisplayName("test: getTargetはキラーを返す")
+        void testGetTarget() {
+            when(mockEntity.getKiller()).thenReturn(mockPlayer);
+            assertEquals(mockPlayer, trigger.getTarget(event, settings));
+        }
+
+        @Test
+        @DisplayName("test: キラーがいない場合getTargetはnull")
+        void testGetTargetWithoutKiller() {
+            when(mockEntity.getKiller()).thenReturn(null);
+            assertNull(trigger.getTarget(event, settings));
         }
     }
 
@@ -295,16 +398,97 @@ class TriggerComponentTest {
     @DisplayName("LaunchTrigger: 発射トリガー")
     class LaunchTriggerTests {
         private com.example.rpgplugin.skill.component.trigger.LaunchTrigger trigger;
+        private ProjectileLaunchEvent event;
+        private org.bukkit.entity.Projectile mockProjectile;
 
         @BeforeEach
         void setUp() {
             trigger = new com.example.rpgplugin.skill.component.trigger.LaunchTrigger();
+            event = mock(ProjectileLaunchEvent.class);
+            mockProjectile = mock(org.bukkit.entity.Projectile.class);
+            when(event.getEntity()).thenReturn(mockProjectile);
         }
 
         @Test
         @DisplayName("test: getKeyはLAUNCHを返す")
         void testGetKey() {
             assertEquals("LAUNCH", trigger.getKey());
+        }
+
+        @Test
+        @DisplayName("test: getEventはProjectileLaunchEvent.classを返す")
+        void testGetEvent() {
+            assertEquals(ProjectileLaunchEvent.class, trigger.getEvent());
+        }
+
+        @Test
+        @DisplayName("test: LivingEntityが発射した場合に発動")
+        void testShouldTriggerWithLivingEntityShooter() {
+            when(mockProjectile.getShooter()).thenReturn(mockEntity);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: Playerが発射した場合に発動")
+        void testShouldTriggerWithPlayerShooter() {
+            when(mockProjectile.getShooter()).thenReturn(mockPlayer);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: LivingEntityでない発射者の場合は不发動")
+        void testShouldNotTriggerWithNonLivingEntityShooter() {
+            ProjectileSource mockBlock = mock(ProjectileSource.class);
+            when(mockProjectile.getShooter()).thenReturn(mockBlock);
+            assertFalse(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: 発射者がnullの場合は不发動")
+        void testShouldNotTriggerWithNullShooter() {
+            when(mockProjectile.getShooter()).thenReturn(null);
+            assertFalse(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: setValuesでprojectile-typeとvelocityを設定")
+        void testSetValues() {
+            when(event.getEntityType()).thenReturn(org.bukkit.entity.EntityType.ARROW);
+            org.bukkit.util.Vector velocity = new org.bukkit.util.Vector(1.0, 0.0, 0.0);
+            when(mockProjectile.getVelocity()).thenReturn(velocity);
+            java.util.Map<String, Object> data = new java.util.HashMap<>();
+            trigger.setValues(event, data);
+            assertEquals("ARROW", data.get("projectile-type"));
+            assertEquals(1.0, data.get("velocity"));
+        }
+
+        @Test
+        @DisplayName("test: getCasterはLivingEntity発射者を返す")
+        void testGetCasterWithLivingEntity() {
+            when(mockProjectile.getShooter()).thenReturn(mockEntity);
+            assertEquals(mockEntity, trigger.getCaster(event));
+        }
+
+        @Test
+        @DisplayName("test: 発射者がLivingEntityでない場合getCasterはnull")
+        void testGetCasterWithNonLivingEntity() {
+            ProjectileSource mockBlock = mock(ProjectileSource.class);
+            when(mockProjectile.getShooter()).thenReturn(mockBlock);
+            assertNull(trigger.getCaster(event));
+        }
+
+        @Test
+        @DisplayName("test: getTargetは発射者と同じ")
+        void testGetTarget() {
+            when(mockProjectile.getShooter()).thenReturn(mockEntity);
+            assertEquals(mockEntity, trigger.getTarget(event, settings));
+        }
+
+        @Test
+        @DisplayName("test: 発射者がnullの場合getTargetはnull")
+        void testGetTargetWithNullShooter() {
+            when(mockProjectile.getShooter()).thenReturn(null);
+            assertNull(trigger.getTarget(event, settings));
         }
     }
 
@@ -314,16 +498,122 @@ class TriggerComponentTest {
     @DisplayName("EnvironmentalTrigger: 環境トリガー")
     class EnvironmentalTriggerTests {
         private com.example.rpgplugin.skill.component.trigger.EnvironmentalTrigger trigger;
+        private EntityDamageEvent event;
+        private EntityDamageByEntityEvent damageByEntityEvent;
 
         @BeforeEach
         void setUp() {
             trigger = new com.example.rpgplugin.skill.component.trigger.EnvironmentalTrigger();
+            event = mock(EntityDamageEvent.class);
+            damageByEntityEvent = mock(EntityDamageByEntityEvent.class);
+            when(event.getEntity()).thenReturn(mockEntity);
+            when(damageByEntityEvent.getEntity()).thenReturn(mockEntity);
         }
 
         @Test
         @DisplayName("test: getKeyはENVIRONMENTALを返す")
         void testGetKey() {
             assertEquals("ENVIRONMENTAL", trigger.getKey());
+        }
+
+        @Test
+        @DisplayName("test: getEventはEntityDamageEvent.classを返す")
+        void testGetEvent() {
+            assertEquals(EntityDamageEvent.class, trigger.getEvent());
+        }
+
+        @Test
+        @DisplayName("test: EntityDamageByEntityEventは不发動")
+        void testShouldNotTriggerWithEntityDamageByEntityEvent() {
+            assertFalse(trigger.shouldTrigger(damageByEntityEvent, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: LivingEntityの環境ダメージで発動")
+        void testShouldTriggerWithLivingEntityEnvironmentalDamage() {
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.FALL);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: type=fallでFALLダメージ時に発動")
+        void testShouldTriggerWithTypeFall() {
+            settings.set("type", "fall");
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.FALL);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: type=fireでFIREダメージ時に発動")
+        void testShouldTriggerWithTypeFire() {
+            settings.set("type", "fire");
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.FIRE);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: type=fallでFIREダメージ時は不发動")
+        void testShouldNotTriggerWithTypeFallFireDamage() {
+            settings.set("type", "fall");
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.FIRE);
+            assertFalse(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: type=anyですべての環境ダメージで発動")
+        void testShouldTriggerWithAnyType() {
+            settings.set("type", "any");
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.LAVA);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: typeの大文字小文字は区別されない")
+        void testTypeCaseInsensitive() {
+            settings.set("type", "FIRE");
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.FIRE);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: setValuesでdamageとcauseを設定")
+        void testSetValues() {
+            when(event.getDamage()).thenReturn(3.5);
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.DROWNING);
+            java.util.Map<String, Object> data = new java.util.HashMap<>();
+            trigger.setValues(event, data);
+            assertEquals(3.5, data.get("damage"));
+            assertEquals("DROWNING", data.get("cause"));
+        }
+
+        @Test
+        @DisplayName("test: getCasterはLivingEntityを返す")
+        void testGetCasterWithLivingEntity() {
+            when(event.getEntity()).thenReturn(mockEntity);
+            assertEquals(mockEntity, trigger.getCaster(event));
+        }
+
+        @Test
+        @DisplayName("test: エンティティがLivingEntityでない場合getCasterはnull")
+        void testGetCasterWithNonLivingEntity() {
+            Entity nonLiving = mock(Entity.class);
+            when(event.getEntity()).thenReturn(nonLiving);
+            assertNull(trigger.getCaster(event));
+        }
+
+        @Test
+        @DisplayName("test: getTargetはキャスターと同じ")
+        void testGetTarget() {
+            when(event.getEntity()).thenReturn(mockEntity);
+            assertEquals(mockEntity, trigger.getTarget(event, settings));
+        }
+
+        @Test
+        @DisplayName("test: 部分文字列マッチでtype判定")
+        void testTypePartialMatch() {
+            settings.set("type", "fir");
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.FIRE);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
         }
     }
 
@@ -334,11 +624,13 @@ class TriggerComponentTest {
     class PhysicalDealtTriggerTests {
         private com.example.rpgplugin.skill.component.trigger.PhysicalDealtTrigger trigger;
         private EntityDamageByEntityEvent event;
+        private org.bukkit.entity.Projectile mockProjectile;
 
         @BeforeEach
         void setUp() {
             trigger = new com.example.rpgplugin.skill.component.trigger.PhysicalDealtTrigger();
             event = mock(EntityDamageByEntityEvent.class);
+            mockProjectile = mock(org.bukkit.entity.Projectile.class);
             when(event.getDamager()).thenReturn(mockEntity);
         }
 
@@ -346,6 +638,37 @@ class TriggerComponentTest {
         @DisplayName("test: getKeyはPHYSICAL_DEALTを返す")
         void testGetKey() {
             assertEquals("PHYSICAL_DEALT", trigger.getKey());
+        }
+
+        @Test
+        @DisplayName("test: getEventはEntityDamageByEntityEvent.classを返す")
+        void testGetEvent() {
+            assertEquals(EntityDamageByEntityEvent.class, trigger.getEvent());
+        }
+
+        @Test
+        @DisplayName("test: LivingEntityがダメージを与えた場合に発動")
+        void testShouldTriggerWithLivingEntity() {
+            when(event.getDamager()).thenReturn(mockEntity);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: Projectileがダメージを与えた場合は不发動")
+        void testShouldNotTriggerWithProjectile() {
+            when(event.getDamager()).thenReturn(mockProjectile);
+            assertFalse(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: setValuesでdamageとdamage-causeを設定")
+        void testSetValues() {
+            when(event.getDamage()).thenReturn(10.5);
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.ENTITY_ATTACK);
+            java.util.Map<String, Object> data = new java.util.HashMap<>();
+            trigger.setValues(event, data);
+            assertEquals(10.5, data.get("damage"));
+            assertEquals("ENTITY_ATTACK", data.get("damage-cause"));
         }
 
         @Test
@@ -360,6 +683,15 @@ class TriggerComponentTest {
             settings.set("target", "victim");
             when(event.getEntity()).thenReturn(mockEntity);
             assertEquals(mockEntity, trigger.getTarget(event, settings));
+        }
+
+        @Test
+        @DisplayName("test: getTargetはtarget=victimで非LivingEntityの場合はnull")
+        void testGetTargetVictimNonLiving() {
+            settings.set("target", "victim");
+            Entity nonLiving = mock(Entity.class);
+            when(event.getEntity()).thenReturn(nonLiving);
+            assertNull(trigger.getTarget(event, settings));
         }
 
         @Test
@@ -391,9 +723,51 @@ class TriggerComponentTest {
         }
 
         @Test
+        @DisplayName("test: getEventはEntityDamageByEntityEvent.classを返す")
+        void testGetEvent() {
+            assertEquals(EntityDamageByEntityEvent.class, trigger.getEvent());
+        }
+
+        @Test
+        @DisplayName("test: LivingEntityがダメージを受けた場合に発動")
+        void testShouldTriggerWithLivingEntity() {
+            when(event.getEntity()).thenReturn(mockEntity);
+            assertTrue(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: 非LivingEntityがダメージを受けた場合は不发動")
+        void testShouldNotTriggerWithNonLivingEntity() {
+            Entity nonLiving = mock(Entity.class);
+            when(event.getEntity()).thenReturn(nonLiving);
+            assertFalse(trigger.shouldTrigger(event, 1, settings));
+        }
+
+        @Test
+        @DisplayName("test: setValuesでdamage、damage-cause、attackerを設定")
+        void testSetValues() {
+            when(event.getDamage()).thenReturn(8.5);
+            when(event.getCause()).thenReturn(EntityDamageEvent.DamageCause.ENTITY_ATTACK);
+            when(event.getDamager()).thenReturn(mockPlayer);
+            java.util.Map<String, Object> data = new java.util.HashMap<>();
+            trigger.setValues(event, data);
+            assertEquals(8.5, data.get("damage"));
+            assertEquals("ENTITY_ATTACK", data.get("damage-cause"));
+            assertEquals(mockPlayer, data.get("attacker"));
+        }
+
+        @Test
         @DisplayName("test: getCasterはダメージを受けたエンティティ")
         void testGetCaster() {
             assertEquals(mockEntity, trigger.getCaster(event));
+        }
+
+        @Test
+        @DisplayName("test: 非LivingEntityがダメージを受けた場合getCasterはnull")
+        void testGetCasterNonLivingEntity() {
+            Entity nonLiving = mock(Entity.class);
+            when(event.getEntity()).thenReturn(nonLiving);
+            assertNull(trigger.getCaster(event));
         }
 
         @Test
@@ -405,9 +779,26 @@ class TriggerComponentTest {
         }
 
         @Test
+        @DisplayName("test: getTargetはtarget=attackerで非LivingEntityの場合はnull")
+        void testGetTargetAttackerNonLiving() {
+            settings.set("target", "attacker");
+            Entity nonLiving = mock(Entity.class);
+            when(event.getDamager()).thenReturn(nonLiving);
+            assertNull(trigger.getTarget(event, settings));
+        }
+
+        @Test
         @DisplayName("test: getTargetはtarget=selfでダメージを受けたエンティティ")
         void testGetTargetSelf() {
             assertEquals(mockEntity, trigger.getTarget(event, settings));
+        }
+
+        @Test
+        @DisplayName("test: target設定の大文字小文字は区別されない")
+        void testTargetCaseInsensitive() {
+            settings.set("target", "ATTACKER");
+            when(event.getDamager()).thenReturn(mockPlayer);
+            assertEquals(mockPlayer, trigger.getTarget(event, settings));
         }
     }
 

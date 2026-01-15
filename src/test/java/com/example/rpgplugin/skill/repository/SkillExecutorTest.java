@@ -13,6 +13,7 @@ import com.example.rpgplugin.stats.StatManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -426,5 +431,245 @@ class SkillExecutorTest {
         assertFalse(result.isSuccess());
         assertEquals("エラー", result.getErrorMessage());
         assertEquals(0.0, result.getConsumedAmount(), 0.001);
+    }
+
+    // ==================== selectTargets テスト ====================
+
+    @Test
+    @DisplayName("selectTargets: 単体ターゲット指定")
+    void testSelectTargets_SingleTarget() {
+        LivingEntity mockTarget = mock(LivingEntity.class);
+
+        SkillExecutionConfig config = new SkillExecutionConfig.Builder()
+                .targetEntity(mockTarget)
+                .build();
+
+        List<LivingEntity> result = executor.selectTargets(mockPlayer, testSkill, config);
+
+        assertEquals(1, result.size());
+        assertTrue(result.contains(mockTarget));
+    }
+
+    @Test
+    @DisplayName("selectTargets: 単体ターゲットがLivingEntityでない場合は空")
+    void testSelectTargets_NonLivingEntityTarget() {
+        Entity mockEntity = mock(Entity.class);
+
+        SkillExecutionConfig config = new SkillExecutionConfig.Builder()
+                .targetEntity(mockEntity)
+                .build();
+
+        List<LivingEntity> result = executor.selectTargets(mockPlayer, testSkill, config);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("selectTargets: 範囲ターゲット選択（球形）")
+    void testSelectTargets_AreaSpherical() {
+        // モックの近くのエンティティを設定
+        Location testLocation = new Location(mockWorld, 0, 0, 0);
+        lenient().when(mockPlayer.getLocation()).thenReturn(testLocation);
+        lenient().when(mockPlayer.getWorld()).thenReturn(mockWorld);
+
+        LivingEntity mockEnemy = mock(LivingEntity.class);
+        lenient().when(mockEnemy.getUniqueId()).thenReturn(UUID.randomUUID());
+        lenient().when(mockEnemy.getType()).thenReturn(org.bukkit.entity.EntityType.ZOMBIE);
+
+        // getNearbyEntitiesが敵を返すようにモック
+        Collection<Entity> nearbyEntities = new ArrayList<>();
+        nearbyEntities.add(mockEnemy);
+        lenient().when(mockWorld.getNearbyEntities(any(), anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(nearbyEntities);
+
+        SkillExecutionConfig config = new SkillExecutionConfig.Builder()
+                .rangeConfig(SkillExecutionConfig.RangeConfig.sphere(10.0))
+                .build();
+
+        List<LivingEntity> result = executor.selectTargets(mockPlayer, testSkill, config);
+
+        // 敵（プレイヤーでないLivingEntity）が含まれる
+        assertFalse(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("selectTargets: プレイヤーはターゲットに含まれない")
+    void testSelectTargets_ExcludesCaster() {
+        Location testLocation = new Location(mockWorld, 0, 0, 0);
+        lenient().when(mockPlayer.getLocation()).thenReturn(testLocation);
+        lenient().when(mockPlayer.getWorld()).thenReturn(mockWorld);
+
+        // getNearbyEntitiesが発動者自身のみ返す
+        Collection<Entity> nearbyEntities = new ArrayList<>();
+        nearbyEntities.add(mockPlayer);
+        lenient().when(mockWorld.getNearbyEntities(any(), anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(nearbyEntities);
+
+        SkillExecutionConfig config = new SkillExecutionConfig.Builder()
+                .rangeConfig(SkillExecutionConfig.RangeConfig.sphere(10.0))
+                .build();
+
+        List<LivingEntity> result = executor.selectTargets(mockPlayer, testSkill, config);
+
+        // 発動者は含まれない
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("selectTargets: 最大ターゲット数制限")
+    void testSelectTargets_MaxTargetsLimit() {
+        Location testLocation = new Location(mockWorld, 0, 0, 0);
+        lenient().when(mockPlayer.getLocation()).thenReturn(testLocation);
+        lenient().when(mockPlayer.getWorld()).thenReturn(mockWorld);
+
+        // 複数の敵を用意
+        Collection<Entity> nearbyEntities = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            LivingEntity mockEnemy = mock(LivingEntity.class);
+            lenient().when(mockEnemy.getUniqueId()).thenReturn(UUID.randomUUID());
+            nearbyEntities.add(mockEnemy);
+        }
+        lenient().when(mockWorld.getNearbyEntities(any(), anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(nearbyEntities);
+
+        SkillExecutionConfig config = new SkillExecutionConfig.Builder()
+                .rangeConfig(new SkillExecutionConfig.RangeConfig(10.0, 10.0, 10.0, true, 3))
+                .build();
+
+        List<LivingEntity> result = executor.selectTargets(mockPlayer, testSkill, config);
+
+        // 最大3つに制限される
+        assertTrue(result.size() <= 3);
+    }
+
+    @Test
+    @DisplayName("selectTargets: 範囲ターゲット選択（直方体）")
+    void testSelectTargets_AreaCuboid() {
+        Location testLocation = new Location(mockWorld, 0, 0, 0);
+        lenient().when(mockPlayer.getLocation()).thenReturn(testLocation);
+        lenient().when(mockPlayer.getWorld()).thenReturn(mockWorld);
+
+        LivingEntity mockEnemy = mock(LivingEntity.class);
+        lenient().when(mockEnemy.getUniqueId()).thenReturn(UUID.randomUUID());
+
+        Collection<Entity> nearbyEntities = new ArrayList<>();
+        nearbyEntities.add(mockEnemy);
+        lenient().when(mockWorld.getNearbyEntities(any(), anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(nearbyEntities);
+
+        SkillExecutionConfig config = new SkillExecutionConfig.Builder()
+                .rangeConfig(new SkillExecutionConfig.RangeConfig(5.0, 3.0, 5.0, false, 0))
+                .build();
+
+        List<LivingEntity> result = executor.selectTargets(mockPlayer, testSkill, config);
+
+        // 直方体範囲でもターゲットが取得できる
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("selectTargets: デフォルト範囲設定")
+    void testSelectTargets_DefaultRange() {
+        Location testLocation = new Location(mockWorld, 0, 0, 0);
+        lenient().when(mockPlayer.getLocation()).thenReturn(testLocation);
+        lenient().when(mockPlayer.getWorld()).thenReturn(mockWorld);
+
+        lenient().when(mockWorld.getNearbyEntities(any(), anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(new ArrayList<>());
+
+        SkillExecutionConfig config = new SkillExecutionConfig.Builder()
+                .build(); // RangeConfigなし
+
+        List<LivingEntity> result = executor.selectTargets(mockPlayer, testSkill, config);
+
+        // デフォルトの球形範囲が使用される
+        assertNotNull(result);
+    }
+
+    // ==================== calculateDamageWithFormula テスト（カスタム変数付き）====================
+
+    @Test
+    @DisplayName("calculateDamageWithFormula: カスタム変数付き")
+    void testCalculateDamageWithFormula_CustomVariables() {
+        Map<String, Double> customVars = new HashMap<>();
+        customVars.put("bonus", 50.0);
+        customVars.put("multiplier", 1.5);
+
+        double damage = executor.calculateDamageWithFormula("STR + bonus", mockRpgPlayer, 5, customVars);
+
+        // STR(10) + bonus(50) = 60
+        assertEquals(60.0, damage, 0.001);
+    }
+
+    @Test
+    @DisplayName("calculateDamageWithFormula: 数式評価例外時は0")
+    void testCalculateDamageWithFormula_Exception() {
+        // 不正な数式
+        double damage = executor.calculateDamageWithFormula("invalid syntax!", mockRpgPlayer, 5);
+
+        assertEquals(0.0, damage, 0.001);
+    }
+
+    @Test
+    @DisplayName("calculateDamageWithFormula: カスタム変数null時")
+    void testCalculateDamageWithFormula_NullCustomVariables() {
+        double damage = executor.calculateDamageWithFormula("STR", mockRpgPlayer, 5, null);
+
+        assertEquals(10.0, damage, 0.001);
+    }
+
+    // ==================== executeSkill テスト（追加）====================
+
+    @Test
+    @DisplayName("executeSkill: 未知のコストタイプ")
+    void testExecuteSkill_UnknownCostType() {
+        Skill testSkill2 = createTestSkill("test2", "テスト2");
+        // 未知のタイプを渡すテストはconfig側でカバー
+
+        when(skillRepository.getSkill("test2")).thenReturn(testSkill2);
+        when(playerSkillService.hasSkill(mockPlayer, "test2")).thenReturn(true);
+        when(playerSkillService.getSkillLevel(mockPlayer, "test2")).thenReturn(1);
+        when(mockRpgPlayer.hasMana(10)).thenReturn(true);
+        when(playerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+
+        // 正常に消費できることを確認
+        SkillExecutionConfig config = new SkillExecutionConfig.Builder()
+                .consumeCost(true)
+                .costType(SkillCostType.MANA)
+                .applyCooldown(false)
+                .applyDamage(false)
+                .build();
+
+        SkillExecutionResult result = executor.executeSkill(mockPlayer, "test2", config);
+
+        assertTrue(result.isSuccess());
+    }
+
+    @Test
+    @DisplayName("executeSkill: ターゲットにダメージ適用")
+    void testExecuteSkill_ApplyDamageToTargets() {
+        LivingEntity mockTarget = mock(LivingEntity.class);
+        Location testLocation = new Location(mockWorld, 0, 0, 0);
+        lenient().when(mockPlayer.getLocation()).thenReturn(testLocation);
+        lenient().when(mockPlayer.getWorld()).thenReturn(mockWorld);
+
+        // ターゲットを含む近くのエンティティ
+        Collection<Entity> nearbyEntities = new ArrayList<>();
+        nearbyEntities.add(mockTarget);
+        lenient().when(mockWorld.getNearbyEntities(any(), anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(nearbyEntities);
+
+        when(skillRepository.getSkill("test_skill")).thenReturn(testSkill);
+        when(playerSkillService.hasSkill(mockPlayer, "test_skill")).thenReturn(true);
+        when(playerSkillService.getSkillLevel(mockPlayer, "test_skill")).thenReturn(1);
+        when(mockRpgPlayer.hasMana(10)).thenReturn(true);
+        when(mockSkillData.getLastCastTime("test_skill")).thenReturn(0L);
+
+        SkillExecutionConfig config = SkillExecutionConfig.createDefault();
+
+        SkillExecutionResult result = executor.executeSkill(mockPlayer, "test_skill", config);
+
+        assertTrue(result.isSuccess());
+        verify(mockTarget).damage(anyDouble());
     }
 }

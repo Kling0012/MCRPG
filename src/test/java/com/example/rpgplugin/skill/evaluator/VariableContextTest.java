@@ -3,6 +3,7 @@ package com.example.rpgplugin.skill.evaluator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 
 import java.util.Map;
 
@@ -215,5 +216,174 @@ class VariableContextTest {
         assertThrows(NumberFormatException.class, () -> {
             context.setCustomVariable("var", "not_a_number");
         });
+    }
+
+    // ===== RPGPlayerコンストラクタのテスト =====
+
+    @Nested
+    @DisplayName("VariableContext(RPGPlayer) コンストラクタのテスト")
+    class SingleParameterConstructorTests {
+
+        @Test
+        @DisplayName("RPGPlayerのみのコンストラクタでデフォルトskillLevel=1")
+        void testSingleParameterConstructor() {
+            VariableContext ctx = new VariableContext(null);
+
+            // デフォルトのスキルレベルは1
+            assertEquals(1, ctx.getSkillLevel());
+            assertEquals(1.0, ctx.getVariable(VariableContext.SKILL_LEVEL), 0.001);
+        }
+
+        @Test
+        @DisplayName("RPGPlayerのみのコンストラクタで変数操作")
+        void testSingleParameterConstructorWithVariables() {
+            VariableContext ctx = new VariableContext(null);
+
+            ctx.setCustomVariable("test", 100.0);
+            assertEquals(100.0, ctx.getVariable("test"), 0.001);
+
+            ctx.setSkillLevel(10);
+            assertEquals(10, ctx.getSkillLevel());
+        }
+
+        @Test
+        @DisplayName("RPGPlayerのみのコンストラクタtoString")
+        void testSingleParameterConstructorToString() {
+            VariableContext ctx = new VariableContext(null);
+            String str = ctx.toString();
+
+            assertTrue(str.contains("skillLevel=1"));
+            assertTrue(str.contains("customVariables={}"));
+            assertTrue(str.contains("rpgPlayer=null"));
+        }
+    }
+
+    // ===== setCustomVariable(String, String)の追加テスト =====
+
+    @Nested
+    @DisplayName("setCustomVariable(String, String)の詳細テスト")
+    class StringValueSetTests {
+
+        @Test
+        @DisplayName("null変数名で例外")
+        void testNullVariableNameThrowsException() {
+            Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+                context.setCustomVariable(null, "10.0");
+            });
+            assertTrue(exception.getMessage().contains("variable name cannot be null"));
+        }
+
+        @Test
+        @DisplayName("null値で例外")
+        void testNullValueThrowsException() {
+            Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+                context.setCustomVariable("var", (String) null);
+            });
+            assertTrue(exception.getMessage().contains("variable value cannot be null"));
+        }
+
+        @Test
+        @DisplayName("整数文字列のパース")
+        void testIntegerStringParsing() {
+            context.setCustomVariable("var", "42");
+            assertEquals(42.0, context.getVariable("var"), 0.001);
+        }
+
+        @Test
+        @DisplayName("負数文字列のパース")
+        void testNegativeStringParsing() {
+            context.setCustomVariable("var", "-100");
+            assertEquals(-100.0, context.getVariable("var"), 0.001);
+        }
+
+        @Test
+        @DisplayName("科学表記文字列のパース")
+        void testScientificNotationParsing() {
+            context.setCustomVariable("var", "1.5e2");
+            assertEquals(150.0, context.getVariable("var"), 0.001);
+        }
+
+        @Test
+        @DisplayName("空文字列パース例外")
+        void testEmptyStringParseException() {
+            assertThrows(NumberFormatException.class, () -> {
+                context.setCustomVariable("var", "");
+            });
+        }
+
+        @Test
+        @DisplayName("スペースのみの文字列パース例外")
+        void testWhitespaceStringParseException() {
+            assertThrows(NumberFormatException.class, () -> {
+                context.setCustomVariable("var", "   ");
+            });
+        }
+    }
+
+    // ===== toStringの詳細テスト =====
+
+    @Nested
+    @DisplayName("toString()の詳細テスト")
+    class ToStringTests {
+
+        @Test
+        @DisplayName("カスタム変数がある場合のtoString")
+        void testToStringWithCustomVariables() {
+            context.setCustomVariable("var1", 10.0);
+            context.setCustomVariable("var2", 20.0);
+
+            String str = context.toString();
+            assertTrue(str.contains("skillLevel=5"));
+            assertTrue(str.contains("var1=10.0"));
+            assertTrue(str.contains("var2=20.0"));
+        }
+
+        @Test
+        @DisplayName("スキルレベル変更後のtoString")
+        void testToStringAfterSkillLevelChange() {
+            context.setSkillLevel(15);
+            String str = context.toString();
+            assertTrue(str.contains("skillLevel=15"));
+        }
+    }
+
+    // ===== getVariableの境界テスト =====
+
+    @Nested
+    @DisplayName("getVariable()の境界テスト")
+    class GetVariableEdgeCaseTests {
+
+        @Test
+        @DisplayName("大文字小文字の区別テスト")
+        void testCaseSensitivity() {
+            context.setCustomVariable("Var", 10.0);
+            assertEquals(10.0, context.getVariable("Var"), 0.001);
+            assertNull(context.getVariable("var"));
+            assertNull(context.getVariable("VAR"));
+        }
+
+        @Test
+        @DisplayName("予約変数Lvの上書きテスト")
+        void testOverrideReservedVariableLv() {
+            context.setCustomVariable("Lv", 999.0);
+            assertEquals(999.0, context.getVariable("Lv"), 0.001);
+        }
+
+        @Test
+        @DisplayName("カスタム変数削除後の取得テスト")
+        void testGetVariableAfterClear() {
+            context.setCustomVariable("temp", 50.0);
+            assertEquals(50.0, context.getVariable("temp"), 0.001);
+
+            context.clearCustomVariables();
+            assertNull(context.getVariable("temp"));
+        }
+
+        @Test
+        @DisplayName("プレイヤーレベル（nullプレイヤー）のデフォルト値")
+        void testPlayerLevelWithNullPlayer() {
+            Double result = context.getVariable(VariableContext.PLAYER_LEVEL);
+            assertEquals(1.0, result, 0.001);
+        }
     }
 }

@@ -215,35 +215,29 @@ class SystemIntegrationTest {
         // When: インスタンスが正しく作成されることを確認
         // Then: マネージャーが初期化されている
         assertThat(dependencyManager).isNotNull();
-        assertThat(dependencyManager.isVaultAvailable()).isFalse(); // まだセットアップしていない
-        assertThat(dependencyManager.isMythicMobsAvailable()).isFalse();
-        assertThat(dependencyManager.isPlaceholderApiAvailable()).isFalse();
+        assertThat(dependencyManager.isPlaceholderApiAvailable()).isFalse(); // まだセットアップしていない
     }
 
     @Test
-    @DisplayName("DependencyManager: 必須依存が欠けている場合の挙動")
-    void testDependencyManager_MissingRequiredDependency() {
-        // Given: VaultとMythicMobsが存在しない状況をシミュレート
-        when(mockPluginManager.getPlugin("Vault")).thenReturn(null);
-        when(mockPluginManager.getPlugin("MythicMobs")).thenReturn(null);
+    @DisplayName("DependencyManager: setupDependenciesは常にtrueを返す")
+    void testDependencyManager_AlwaysSucceeds() {
+        // Given: VaultとMythicMobsは削除されたため、どのプラグインがなくても成功
+        when(mockPluginManager.getPlugin("PlaceholderAPI")).thenReturn(null);
 
         DependencyManager dependencyManager = new DependencyManager(mockPlugin);
 
         // When: 依存関係をセットアップ
         boolean setupResult = dependencyManager.setupDependencies();
 
-        // Then: セットアップが失敗する
-        assertThat(setupResult).isFalse();
-        assertThat(dependencyManager.isVaultAvailable()).isFalse();
-        assertThat(dependencyManager.isMythicMobsAvailable()).isFalse();
+        // Then: セットアップが成功する（オプション依存のみ）
+        assertThat(setupResult).isTrue();
     }
 
     @Test
-    @DisplayName("DependencyManager: オプション依存のチェック")
+    @DisplayName("DependencyManager: PlaceholderAPIがオプションであること")
     void testDependencyManager_OptionalDependency() {
-        // Given: 必須依存が欠けている状態
-        when(mockPluginManager.getPlugin("Vault")).thenReturn(null);
-        when(mockPluginManager.getPlugin("MythicMobs")).thenReturn(null);
+        // Given: PlaceholderAPIが存在しない状況をシミュレート
+        when(mockPluginManager.getPlugin("PlaceholderAPI")).thenReturn(null);
 
         DependencyManager dependencyManager = new DependencyManager(mockPlugin);
         dependencyManager.setupDependencies();
@@ -251,11 +245,8 @@ class SystemIntegrationTest {
         // When: オプション依存の状態を確認
         boolean papiAvailable = dependencyManager.isPlaceholderApiAvailable();
 
-        // Then: オプション依存も利用不可
+        // Then: PlaceholderAPIが利用不可でもセットアップは成功
         assertThat(papiAvailable).isFalse();
-        // 必須依存も利用不可
-        assertThat(dependencyManager.isVaultAvailable()).isFalse();
-        assertThat(dependencyManager.isMythicMobsAvailable()).isFalse();
     }
 
     @Test
@@ -268,8 +259,7 @@ class SystemIntegrationTest {
         dependencyManager.cleanup();
 
         // Then: 例外がスローされないことを確認
-        assertThat(dependencyManager.isVaultAvailable()).isFalse();
-        assertThat(dependencyManager.isMythicMobsAvailable()).isFalse();
+        assertThat(dependencyManager.isPlaceholderApiAvailable()).isFalse();
     }
 
     // ==================== YamlConfigManager テスト ====================
@@ -366,7 +356,8 @@ class SystemIntegrationTest {
     @DisplayName("全システム連携: エラーハンドリングの検証")
     void testSystemIntegration_ErrorHandling() {
         // Given: 依存関係が不十分な状態をシミュレート
-        when(mockPluginManager.getPlugin("Vault")).thenReturn(null);
+        // VaultとMythicMobsは削除されたため、PlaceholderAPIがなくても成功する
+        when(mockPluginManager.getPlugin("PlaceholderAPI")).thenReturn(null);
 
         DependencyManager dependencyManager = new DependencyManager(mockPlugin);
         ModuleManager moduleManager = new ModuleManager(mockPlugin);
@@ -374,8 +365,8 @@ class SystemIntegrationTest {
         // When: 依存関係チェックを実行
         boolean dependenciesSetup = dependencyManager.setupDependencies();
 
-        // Then: エラーが正しく検出される
-        assertThat(dependenciesSetup).isFalse();
+        // Then: オプション依存のみのため常に成功
+        assertThat(dependenciesSetup).isTrue();
 
         // モジュールは有効化できる（依存関係は独立）
         TestModule module = new TestModule("TestModule", "1.0.0");

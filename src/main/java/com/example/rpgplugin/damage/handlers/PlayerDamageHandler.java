@@ -1,6 +1,7 @@
 package com.example.rpgplugin.damage.handlers;
 
 import com.example.rpgplugin.damage.DamageModifier;
+import com.example.rpgplugin.damage.config.YamlDamageCalculator;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.stats.Stat;
@@ -40,6 +41,9 @@ public class PlayerDamageHandler {
 
     private final PlayerManager playerManager;
     private final Logger logger;
+
+    // YAMLダメージ計算機（オプション）
+    private YamlDamageCalculator yamlCalculator;
 
     // デバッグログフラグ
     private final boolean DEBUG = false;
@@ -92,9 +96,30 @@ public class PlayerDamageHandler {
     }
 
     /**
+     * YAMLダメージ計算機を設定します
+     *
+     * @param yamlCalculator YAMLダメージ計算機、nullでYAML計算を無効化
+     */
+    public void setYamlCalculator(YamlDamageCalculator yamlCalculator) {
+        this.yamlCalculator = yamlCalculator;
+    }
+
+    /**
+     * YAMLダメージ計算機を取得します
+     *
+     * @return YAMLダメージ計算機、設定されていない場合はnull
+     */
+    public YamlDamageCalculator getYamlCalculator() {
+        return yamlCalculator;
+    }
+
+    /**
      * プレイヤーからエンティティへのダメージを計算・適用
      *
      * <p>ダメージ計算結果を1秒間キャッシュし、連続攻撃時の計算コストを削減します。</p>
+     *
+     * <p>YAML設定が有効な場合はYamlDamageCalculatorを使用し、
+     * それ以外の場合はレガシーなDamageModifierを使用します。</p>
      *
      * @param event ダメージイベント
      * @return 計算後のダメージ値、イベントをキャンセルする場合は-1
@@ -130,34 +155,12 @@ public class PlayerDamageHandler {
             return finalDamage;
         }
 
-        // ステータス取得
-        Map<Stat, Integer> stats = rpgPlayer.getStatManager().getAllFinalStats();
-
-        // ダメージタイプ判定
-        EntityDamageEvent.DamageCause cause = event.getCause();
-        boolean isPhysical = isPhysicalDamage(cause);
-
-        // クラス倍率（将来的に実装、現在は1.0固定）
-        double classMultiplier = 1.0;
-
-        // ダメージ計算
+        // YAML計算機が利用可能な場合はYAMLベースで計算
         double calculatedDamage;
-        if (isPhysical) {
-            // 物理ダメージ計算
-            int strength = stats.getOrDefault(Stat.STRENGTH, 0);
-            calculatedDamage = DamageModifier.calculatePhysicalDamage(
-                    baseDamage,
-                    strength,
-                    classMultiplier
-            );
+        if (yamlCalculator != null) {
+            calculatedDamage = calculateDamageWithYaml(rpgPlayer, baseDamage, event);
         } else {
-            // 魔法ダメージ計算
-            int intelligence = stats.getOrDefault(Stat.INTELLIGENCE, 0);
-            calculatedDamage = DamageModifier.calculateMagicDamage(
-                    baseDamage,
-                    intelligence,
-                    classMultiplier
-            );
+            calculatedDamage = calculateDamageLegacy(rpgPlayer, baseDamage, event);
         }
 
         // 整数に丸める
@@ -173,10 +176,61 @@ public class PlayerDamageHandler {
 
         // ログ出力
         if (DEBUG) {
-            logDamage(player, target, baseDamage, finalDamage, stats);
+            logDamage(player, target, baseDamage, finalDamage, rpgPlayer.getStatManager().getAllFinalStats());
         }
 
         return finalDamage;
+    }
+
+    /**
+     * YAML設定を使用してダメージを計算します
+     *
+     * @param rpgPlayer RPGプレイヤー
+     * @param baseDamage 基本ダメージ
+     * @param event ダメージイベント
+     * @return 計算後のダメージ
+     */
+    private double calculateDamageWithYaml(RPGPlayer rpgPlayer, double baseDamage, EntityDamageByEntityEvent event) {
+        EntityDamageEvent.DamageCause cause = event.getCause();
+        boolean isPhysical = isPhysicalDamage(cause);
+
+        try {
+            if (isPhysical) {
+                return yamlCalculator.calculatePhysicalAttack(baseDamage, rpgPlayer);
+            } else {
+                return yamlCalculator.calculateMagicAttack(baseDamage, rpgPlayer);
+            }
+        } catch (Exception e) {
+            logWarning("YAML calculation failed, falling back to legacy: " + e.getMessage());
+            return calculateDamageLegacy(rpgPlayer, baseDamage, event);
+        }
+    }
+
+    /**
+     * レガシー方式でダメージを計算します
+     *
+     * @param rpgPlayer RPGプレイヤー
+     * @param baseDamage 基本ダメージ
+     * @param event ダメージイベント
+     * @return 計算後のダメージ
+     */
+    private double calculateDamageLegacy(RPGPlayer rpgPlayer, double baseDamage, EntityDamageByEntityEvent event) {
+        Map<Stat, Integer> stats = rpgPlayer.getStatManager().getAllFinalStats();
+        EntityDamageEvent.DamageCause cause = event.getCause();
+        boolean isPhysical = isPhysicalDamage(cause);
+
+        // クラス倍率（将来的に実装、現在は1.0固定）
+        double classMultiplier = 1.0;
+
+        if (isPhysical) {
+            // 物理ダメージ計算
+            int strength = stats.getOrDefault(Stat.STRENGTH, 0);
+            return DamageModifier.calculatePhysicalDamage(baseDamage, strength, classMultiplier);
+        } else {
+            // 魔法ダメージ計算
+            int intelligence = stats.getOrDefault(Stat.INTELLIGENCE, 0);
+            return DamageModifier.calculateMagicDamage(baseDamage, intelligence, classMultiplier);
+        }
     }
 
     /**

@@ -1,0 +1,180 @@
+# ==========================================
+# ダメージ計算設定ファイル
+# ==========================================
+# 設定を変更した場合は /rpg reload でリロードしてください
+
+# ==========================================
+# グローバル定数・変数
+# ==========================================
+constants:
+  # 基本ダメージ倍率
+  base_physical_multiplier: 1.0
+  base_magic_multiplier: 1.0
+
+  # クリティカルヒット倍率
+  critical_hit_chance: 0.05
+  critical_hit_multiplier: 2.0
+
+  # 防御カット上限
+  max_damage_cut_rate: 0.8
+
+# ==========================================
+# イベント定義
+# ==========================================
+events:
+  # ------------------------------------------
+  # スキルダメージイベント
+  # ------------------------------------------
+  skill_damage:
+    description: "スキルによるダメージ計算"
+
+    # 使用する定数（グローバル定数を上書き可）
+    constants:
+      fallback_formula: "BASE_DAMAGE * (1 + STR/100)"
+
+    # ダメージ計算式
+    # 使用可能な変数:
+    #   - BASE_DAMAGE: 基本ダメージ
+    #   - STR, INT, SPI, VIT, DEX: ステータス値
+    #   - Lv, LV: スキルレベル、プレイヤーレベル
+    #   - CLASS_RANK: クラスランク
+    #   - WEAPON_POWER: 武器威力（将来的）
+    #   - TARGET_DEF: 対象防御力
+    #   - グローバル定数、クラス定数、プレイヤー定数も使用可
+    formula: "BASE_DAMAGE * (1 + STR/100) * CLASS_MULTIPLIER"
+
+    # 最終ダメージの下限制限
+    min_damage: 1
+
+    # クリティカルヒット設定
+    critical:
+      enabled: true
+      chance_formula: "CRITICAL_HIT_CHANCE + DEX/1000"
+      multiplier_formula: "CRITICAL_HIT_MULTIPLIER + INT/100"
+
+  # ------------------------------------------
+  # 通常攻撃ダメージイベント（物理）
+  # ------------------------------------------
+  physical_attack:
+    description: "通常攻撃（物理）のダメージ計算"
+
+    constants:
+      fallback_formula: "BASE_DAMAGE * (1 + STR/100) * 0.5"
+
+    formula: "BASE_DAMAGE * (1 + STR/100) * WEAPON_MULTIPLIER"
+
+    min_damage: 1
+    max_damage: 9999
+
+  # ------------------------------------------
+  # 通常攻撃ダメージイベント（魔法）
+  # ------------------------------------------
+  magic_attack:
+    description: "通常攻撃（魔法）のダメージ計算"
+
+    constants:
+      fallback_formula: "BASE_DAMAGE + INT * 0.5"
+
+    formula: "BASE_DAMAGE + INT * 0.5"
+
+    min_damage: 1
+
+  # ------------------------------------------
+  # 被ダメージイベント（防御計算）
+  # ------------------------------------------
+  damage_taken:
+    description: "受けるダメージの軽減計算"
+
+    constants:
+      physical_defense_formula: "VIT * 0.5"
+      magic_defense_formula: "SPI * 0.5"
+
+    # 物理防御カット計算
+    physical_cut_formula: "DAMAGE * (1 - PHYSICAL_DEFENSE / (PHYSICAL_DEFENSE + 100))"
+
+    # 魔法防御カット計算
+    magic_cut_formula: "DAMAGE * (1 - MAGIC_DEFENSE / (MAGIC_DEFENSE + 100))"
+
+    # 最終ダメージ下限制限
+    min_damage: 0.1
+
+# ==========================================
+# クラス別定数・上書き
+# ==========================================
+class_overrides:
+  warrior:
+    description: "ウォーリアーのダメージ補正"
+    constants:
+      CLASS_MULTIPLIER: 1.5
+      CRITICAL_HIT_CHANCE: 0.1
+    skill_damage:
+      formula: "BASE_DAMAGE * (1 + STR/100) * 1.5"
+
+  mage:
+    description: "メイジのダメージ補正"
+    constants:
+      CLASS_MULTIPLIER: 1.2
+    skill_damage:
+      formula: "BASE_DAMAGE + INT * 0.8"
+    magic_attack:
+      formula: "BASE_DAMAGE + INT * 1.0"
+
+  rogue:
+    description: "ローグのダメージ補正"
+    constants:
+      CLASS_MULTIPLIER: 1.3
+      CRITICAL_HIT_CHANCE: 0.15
+      CRITICAL_HIT_MULTIPLIER: 2.5
+    skill_damage:
+      formula: "BASE_DAMAGE * (1 + DEX/100) * 1.3"
+
+  cleric:
+    description: "クレリックのダメージ補正"
+    constants:
+      CLASS_MULTIPLIER: 0.8
+    skill_damage:
+      formula: "BASE_DAMAGE * (1 + SPI/100) * 0.8"
+
+# ==========================================
+# ダメージタイプ別設定
+# ==========================================
+damage_types:
+  slash:
+    name: "斬撃"
+    description: "剣による攻撃"
+    stat_primary: "STR"
+    stat_secondary: "DEX"
+
+  pierce:
+    name: "刺突"
+    description: "弓や槍による攻撃"
+    stat_primary: "DEX"
+    stat_secondary: "STR"
+
+  blunt:
+    name: "打撃"
+    description: "鈍やハンマーによる攻撃"
+    stat_primary: "STR"
+    stat_secondary: "VIT"
+
+  magic:
+    name: "魔法"
+    description: "魔法による攻撃"
+    stat_primary: "INT"
+    stat_secondary: "SPI"
+
+# ==========================================
+# 武器タイプ別設定（将来的拡張用）
+# ==========================================
+weapon_types:
+  sword:
+    name: "剣"
+    base_multiplier: 1.0
+
+  bow:
+    name: "弓"
+    base_multiplier: 0.9
+
+  wand:
+    name: "杖"
+    base_multiplier: 1.2

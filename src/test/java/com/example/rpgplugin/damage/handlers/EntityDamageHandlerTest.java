@@ -1,5 +1,6 @@
 package com.example.rpgplugin.damage.handlers;
 
+import com.example.rpgplugin.damage.config.YamlDamageCalculator;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.stats.Stat;
@@ -680,5 +681,323 @@ class EntityDamageHandlerTest {
         when(mockEvent.getDamager()).thenReturn(mockDamager);
         when(mockEvent.getCause()).thenReturn(cause);
         when(mockEvent.getDamage()).thenReturn(damage);
+    }
+
+    // ==================== YAML Calculator 連携テスト ====================
+
+    @Nested
+    @DisplayName("YAML Calculator 連携テスト")
+    class YamlCalculatorIntegrationTests {
+
+        @Mock
+        private YamlDamageCalculator mockYamlCalculator;
+
+        @Test
+        @DisplayName("setYamlCalculatorで計算機を設定できる")
+        void setYamlCalculator_SetsCalculator() {
+            handler.setYamlCalculator(mockYamlCalculator);
+
+            assertThat(handler.getYamlCalculator()).isSameAs(mockYamlCalculator);
+        }
+
+        @Test
+        @DisplayName("getYamlCalculatorの初期値はnull")
+        void getYamlCalculator_InitialValueIsNull() {
+            assertThat(handler.getYamlCalculator()).isNull();
+        }
+
+        @Test
+        @DisplayName("setYamlCalculatorにnullで無効化できる")
+        void setYamlCalculatorToNull_DisablesYamlCalculation() {
+            handler.setYamlCalculator(mockYamlCalculator);
+            assertThat(handler.getYamlCalculator()).isNotNull();
+
+            handler.setYamlCalculator(null);
+            assertThat(handler.getYamlCalculator()).isNull();
+        }
+
+        @Test
+        @DisplayName("YAML計算機が設定されている場合はYAML計算を使用（物理）")
+        void yamlCalculator_Physical_UsesYamlCalculation() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 100.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.VITALITY, 50));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(100.0, mockRpgPlayer, false)).thenReturn(70.0);
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            assertThat(result).isEqualTo(70);
+            verify(mockYamlCalculator).calculateDamageTaken(100.0, mockRpgPlayer, false);
+        }
+
+        @Test
+        @DisplayName("YAML計算機が設定されている場合はYAML計算を使用（魔法）")
+        void yamlCalculator_Magic_UsesYamlCalculation() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.MAGIC, 100.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.SPIRIT, 50));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(100.0, mockRpgPlayer, true)).thenReturn(65.0);
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            assertThat(result).isEqualTo(65);
+            verify(mockYamlCalculator).calculateDamageTaken(100.0, mockRpgPlayer, true);
+        }
+
+        @Test
+        @DisplayName("YAML計算機でENTITY_SWEEP_ATTACKは物理ダメージ")
+        void yamlCalculator_SweepAttack_IsPhysical() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK, 50.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.VITALITY, 100));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(50.0, mockRpgPlayer, false)).thenReturn(25.0);
+
+            handler.handleEntityToPlayerDamage(mockEvent);
+
+            verify(mockYamlCalculator).calculateDamageTaken(50.0, mockRpgPlayer, false);
+        }
+
+        @Test
+        @DisplayName("YAML計算機でTHORNSは魔法ダメージ")
+        void yamlCalculator_Thorns_IsMagic() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.THORNS, 60.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.SPIRIT, 75));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(60.0, mockRpgPlayer, true)).thenReturn(35.0);
+
+            handler.handleEntityToPlayerDamage(mockEvent);
+
+            verify(mockYamlCalculator).calculateDamageTaken(60.0, mockRpgPlayer, true);
+        }
+
+        @Test
+        @DisplayName("YAML計算機でFIREは魔法ダメージ")
+        void yamlCalculator_Fire_IsMagic() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.FIRE, 80.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.SPIRIT, 50));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(80.0, mockRpgPlayer, true)).thenReturn(50.0);
+
+            handler.handleEntityToPlayerDamage(mockEvent);
+
+            verify(mockYamlCalculator).calculateDamageTaken(80.0, mockRpgPlayer, true);
+        }
+
+        @Test
+        @DisplayName("YAML計算機例外時はレガシー計算にフォールバック（物理）")
+        void yamlCalculator_Exception_FallsBackToLegacyPhysical() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 100.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.VITALITY, 50));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(100.0, mockRpgPlayer, false))
+                    .thenThrow(new RuntimeException("YAML error"));
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            // レガシー計算: 100 × (1 - 50/150) = 66.66... → 66
+            assertThat(result).isEqualTo(66);
+            verify(mockLogger).warning(contains("YAML calculation failed"));
+        }
+
+        @Test
+        @DisplayName("YAML計算機例外時はレガシー計算にフォールバック（魔法）")
+        void yamlCalculator_Exception_FallsBackToLegacyMagic() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.MAGIC, 100.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.SPIRIT, 50));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(100.0, mockRpgPlayer, true))
+                    .thenThrow(new IllegalStateException("Config error"));
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            // レガシー計算: 100 × (1 - 50/150) = 66.66... → 66
+            assertThat(result).isEqualTo(66);
+            verify(mockLogger).warning(contains("YAML calculation failed"));
+        }
+
+        @Test
+        @DisplayName("YAML計算機がnullのときはレガシー計算を使用")
+        void yamlCalculator_Null_UsesLegacyCalculation() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 100.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.VITALITY, 50));
+
+            // yamlCalculatorはnullのまま（設定しない）
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            // レガシー計算: 100 × (1 - 50/150) = 66.66... → 66
+            assertThat(result).isEqualTo(66);
+            verify(mockYamlCalculator, never()).calculateDamageTaken(anyDouble(), any(), anyBoolean());
+        }
+
+        @Test
+        @DisplayName("YAML計算機設定後にnullで上書きするとレガシー計算を使用")
+        void yamlCalculator_SetToNull_UsesLegacyCalculation() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 100.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.VITALITY, 100));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            handler.setYamlCalculator(null); // 無効化
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            // レガシー計算: 100 × 0.5 = 50
+            assertThat(result).isEqualTo(50);
+        }
+
+        @Test
+        @DisplayName("複数回YAML計算機を設定できる")
+        void yamlCalculator_CanBeSetMultipleTimes() {
+            YamlDamageCalculator mockCalc1 = mock(YamlDamageCalculator.class);
+            YamlDamageCalculator mockCalc2 = mock(YamlDamageCalculator.class);
+
+            handler.setYamlCalculator(mockCalc1);
+            assertThat(handler.getYamlCalculator()).isSameAs(mockCalc1);
+
+            handler.setYamlCalculator(mockCalc2);
+            assertThat(handler.getYamlCalculator()).isSameAs(mockCalc2);
+
+            handler.setYamlCalculator(null);
+            assertThat(handler.getYamlCalculator()).isNull();
+        }
+
+        @Test
+        @DisplayName("YAML計算機がNullPointerExceptionをスローしてもフォールバック")
+        void yamlCalculator_NullPointerException_FallsBackToLegacy() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 100.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.VITALITY, 50));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(100.0, mockRpgPlayer, false))
+                    .thenThrow(new NullPointerException("Null config"));
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            assertThat(result).isEqualTo(66); // レガシー計算結果
+            verify(mockLogger).warning(contains("YAML calculation failed"));
+        }
+
+        @Test
+        @DisplayName("YAML計算機で0ダメージが返されても1が保証される")
+        void yamlCalculator_ZeroDamage_MinimumOneGuaranteed() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 1.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.VITALITY, 500));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(1.0, mockRpgPlayer, false)).thenReturn(0.0);
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            // 0ダメージでも最低1保証
+            assertThat(result).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("YAML計算機で負のダメージが返されても1が保証される")
+        void yamlCalculator_NegativeDamage_MinimumOneGuaranteed() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.MAGIC, 10.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.SPIRIT, 1000));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(10.0, mockRpgPlayer, true)).thenReturn(-5.0);
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            // 負のダメージでも最低1保証
+            assertThat(result).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("YAML計算時もダメージインジケーターが表示される")
+        void yamlCalculator_ShowsDamageIndicator() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 50.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of(Stat.VITALITY, 100));
+
+            handler.setYamlCalculator(mockYamlCalculator);
+            when(mockYamlCalculator.calculateDamageTaken(50.0, mockRpgPlayer, false)).thenReturn(25.0);
+
+            handler.handleEntityToPlayerDamage(mockEvent);
+
+            verify(mockPlayer).sendActionBar(any(Component.class));
+        }
+    }
+
+    // ==================== ログ出力テスト ====================
+
+    @Nested
+    @DisplayName("ログ出力テスト")
+    class LoggingTests {
+
+        @Test
+        @DisplayName("RPGPlayerがnullのとき警告ログを出力")
+        void rpgPlayerNull_LogsWarning() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 50.0);
+            when(mockPlayerManager.getRPGPlayer(playerUuid)).thenReturn(null);
+            when(mockPlayer.getName()).thenReturn("TestPlayer");
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            assertThat(result).isEqualTo(-1);
+            verify(mockLogger).warning(contains("RPGPlayer not found for: TestPlayer"));
+        }
+
+        @Test
+        @DisplayName("RPGPlayerがnullのときはダメージを設定しない")
+        void rpgPlayerNull_DoesNotSetDamage() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 50.0);
+            when(mockPlayerManager.getRPGPlayer(playerUuid)).thenReturn(null);
+
+            double result = handler.handleEntityToPlayerDamage(mockEvent);
+
+            assertThat(result).isEqualTo(-1);
+            verify(mockEvent, never()).setDamage(anyDouble());
+        }
+    }
+
+    // ==================== 物理vs魔法ダメージ判定テスト ====================
+
+    @Nested
+    @DisplayName("物理/魔法判定テスト")
+    class PhysicalMagicDetectionTests {
+
+        @Test
+        @DisplayName("ENTITY_ATTACKは物理ダメージ（isMagic=false）")
+        void entityAttack_IsPhysicalDamage() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_ATTACK, 100.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of());
+
+            handler.handleEntityToPlayerDamage(mockEvent);
+
+            // エラーが起きなければ成功
+            verify(mockEvent).setDamage(anyDouble());
+        }
+
+        @Test
+        @DisplayName("ENTITY_SWEEP_ATTACKは物理ダメージ")
+        void sweepAttack_IsPhysicalDamage() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK, 50.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of());
+
+            handler.handleEntityToPlayerDamage(mockEvent);
+
+            verify(mockEvent).setDamage(anyDouble());
+        }
+
+        @Test
+        @DisplayName("MAGICは魔法ダメージ（isMagic=true）")
+        void magic_IsMagicDamage() {
+            setupDamageEvent(EntityDamageEvent.DamageCause.MAGIC, 100.0);
+            when(mockStatManager.getAllFinalStats()).thenReturn(Map.of());
+
+            handler.handleEntityToPlayerDamage(mockEvent);
+
+            verify(mockEvent).setDamage(anyDouble());
+        }
     }
 }

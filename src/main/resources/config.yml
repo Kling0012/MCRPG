@@ -46,19 +46,6 @@ cache:
   batch_save_size: 50
 
 # ================================
-# MythicMobs連携
-# ================================
-mythicmobs:
-  # MythicMobs連携を有効化
-  enabled: true
-
-  # ドロップアイテムの有効期限（分）
-  drop_expiration_minutes: 5
-
-  # ドロップアイテムの保護（他プレイヤーが拾えない）
-  drop_protection: true
-
-# ================================
 # 経験値減衰
 # ================================
 exp_diminish:
@@ -84,25 +71,6 @@ exp_diminish:
 
     # イベント報酬は減衰対象外
     event_rewards: true
-
-# ================================
-# 経済システム
-# ================================
-economy:
-  # 通貨名
-  currency_name: "ゴールド"
-
-  # 通貨記号
-  currency_symbol: "G"
-
-  # オークション手数料率（0.0 - 1.0）
-  auction_fee_rate: 0.05
-
-  # 最小入金額
-  min_deposit: 1
-
-  # 最大入金額
-  max_deposit: 1000000
 
 # ================================
 # クラスシステム
@@ -192,3 +160,19 @@ hot_reload:
   # テンプレートファイルのホットリロードを有効化
   # テンプレートファイルの編集を監視するかどうか
   templates: false
+
+# ================================
+# ダメージ計算設定
+# ================================
+damage:
+  # ダメージ計算を有効化
+  enabled: true
+
+  # 外部YAML設定を使用するか
+  use_external_config: true
+
+  # ダメージ設定ファイルのパス
+  config_file: "damage_config.yml"
+
+  # 最終ダメージのログ出力（デバッグ用）
+  log_final_damage: false

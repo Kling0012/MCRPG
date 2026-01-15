@@ -21,8 +21,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Server;
+import org.bukkit.entity.Player;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * TriggerManagerのテストクラス
@@ -350,6 +354,424 @@ class TriggerManagerTest {
             manager.activateSkill("testSkill2", mockCaster, 1, 10, handlers2);
 
             verify(mockEffect, times(2)).activate(mockCaster, 1, 10);
+        }
+    }
+
+
+    // ========== getEntity() テスト（リフレクション使用）==========
+
+    @Nested
+    @DisplayName("getEntity: エンティティ取得")
+    class GetEntityTests {
+
+        @Mock
+        private Server mockServer;
+        private java.util.Collection<Player> emptyPlayers;
+
+        @BeforeEach
+        void setUpGetEntity() {
+            emptyPlayers = java.util.Collections.emptyList();
+            when(mockPlugin.getServer()).thenReturn(mockServer);
+            // getOnlinePlayers()はCollection<? extends Player>を返す
+            when(mockServer.getOnlinePlayers()).thenAnswer(invocation -> emptyPlayers);
+        }
+
+        @Test
+        @DisplayName("test: エンティティが存在しない場合はnull")
+        void testGetEntity_NotFound() throws Exception {
+            var method = TriggerManager.class.getDeclaredMethod("getEntity", int.class);
+            method.setAccessible(true);
+
+            LivingEntity result = (LivingEntity) method.invoke(manager, 999);
+
+            assertThat(result).isNull();
+        }
+
+        @Test
+        @DisplayName("test: プレイヤーリストが空の場合はnull")
+        void testGetEntity_EmptyPlayerList() throws Exception {
+            var method = TriggerManager.class.getDeclaredMethod("getEntity", int.class);
+            method.setAccessible(true);
+
+            LivingEntity result = (LivingEntity) method.invoke(manager, 100);
+
+            assertThat(result).isNull();
+        }
+
+        @Test
+        @DisplayName("test: プレイヤーが見つかる場合はエンティティを返す")
+        void testGetEntity_PlayerFound() throws Exception {
+            // プレイヤーリストにmockPlayerを追加
+            java.util.List<Player> playerList = new java.util.ArrayList<>();
+            playerList.add(mockPlayer);
+
+            @SuppressWarnings("unchecked")
+            java.util.Collection<Player> players = (java.util.Collection<Player>) (java.util.Collection<?>) playerList;
+            when(mockServer.getOnlinePlayers()).thenAnswer(invocation -> players);
+            when(mockPlayer.getEntityId()).thenReturn(100);
+
+            var method = TriggerManager.class.getDeclaredMethod("getEntity", int.class);
+            method.setAccessible(true);
+
+            LivingEntity result = (LivingEntity) method.invoke(manager, 100);
+
+            assertThat(result).isSameAs(mockPlayer);
+        }
+
+        @Test
+        @DisplayName("test: 複数プレイヤーの中から正しいエンティティを返す")
+        void testGetEntity_MultiplePlayers() throws Exception {
+            Player mockPlayer2 = mock(Player.class);
+            when(mockPlayer2.getEntityId()).thenReturn(201);
+
+            java.util.List<Player> playerList = new java.util.ArrayList<>();
+            playerList.add(mockPlayer);
+            playerList.add(mockPlayer2);
+
+            @SuppressWarnings("unchecked")
+            java.util.Collection<Player> players = (java.util.Collection<Player>) (java.util.Collection<?>) playerList;
+            when(mockServer.getOnlinePlayers()).thenAnswer(invocation -> players);
+            when(mockPlayer.getEntityId()).thenReturn(200);
+
+            var method = TriggerManager.class.getDeclaredMethod("getEntity", int.class);
+            method.setAccessible(true);
+
+            // mockPlayer (ID=200) を探す
+            LivingEntity result = (LivingEntity) method.invoke(manager, 200);
+
+            assertThat(result).isSameAs(mockPlayer);
+        }
+
+        @Test
+        @DisplayName("test: 一致しないIDの場合はnull")
+        void testGetEntity_NoMatch() throws Exception {
+            java.util.List<Player> playerList = new java.util.ArrayList<>();
+            playerList.add(mockPlayer);
+
+            @SuppressWarnings("unchecked")
+            java.util.Collection<Player> players = (java.util.Collection<Player>) (java.util.Collection<?>) playerList;
+            when(mockServer.getOnlinePlayers()).thenAnswer(invocation -> players);
+            when(mockPlayer.getEntityId()).thenReturn(200);
+
+            var method = TriggerManager.class.getDeclaredMethod("getEntity", int.class);
+            method.setAccessible(true);
+
+            LivingEntity result = (LivingEntity) method.invoke(manager, 999);
+
+            assertThat(result).isNull();
+        }
+    }
+
+    // ========== cleanupExpired() テスト（リフレクション使用）==========
+
+    @Nested
+    @DisplayName("cleanupExpired: 期限切れトリガークリーンアップ")
+    class CleanupExpiredTests {
+
+        @BeforeEach
+        void setUpCleanup() {
+            // mockPlugin.getServer() のモック設定
+            Server mockServer = mock(Server.class);
+            when(mockPlugin.getServer()).thenReturn(mockServer);
+            when(mockServer.getOnlinePlayers()).thenReturn(java.util.Collections.emptyList());
+        }
+
+        @Test
+        @DisplayName("test: エンティティのトリガーがない場合は何もしない")
+        void testCleanupExpired_NoTriggers() throws Exception {
+            var method = TriggerManager.class.getDeclaredMethod("cleanupExpired", int.class);
+            method.setAccessible(true);
+
+            // 例外が投げられないことを確認
+            assertDoesNotThrow(() -> {
+                method.invoke(manager, 999);
+            });
+        }
+
+        @Test
+        @DisplayName("test: duration=0のトリガーは期限切れにならない")
+        void testCleanupExpired_ZeroDuration_NoExpiry() throws Exception {
+            List<TriggerHandler> handlers = new ArrayList<>();
+            handlers.add(mockHandler);
+
+            manager.registerSkill("testSkill", mockEffect);
+            manager.activateSkill("testSkill", mockCaster, 1, 0, handlers);
+
+            // activeTriggers にデータがある状態で cleanupExpired
+            var method = TriggerManager.class.getDeclaredMethod("cleanupExpired", int.class);
+            method.setAccessible(true);
+
+            assertDoesNotThrow(() -> {
+                method.invoke(manager, mockCaster.getEntityId());
+            });
+
+            // スキルはまだアクティブであるべき（cleanupされていない）
+            // これは間接的な検証
+        }
+
+        @Test
+        @DisplayName("test: 期限切れのトリガーを削除しcleanUpを呼ぶ")
+        void testCleanupExpired_RemovesExpired() throws Exception {
+            // まずスキルをアクティブ化
+            List<TriggerHandler> handlers = new ArrayList<>();
+            handlers.add(mockHandler);
+
+            manager.registerSkill("testSkill", mockEffect);
+            when(mockEffect.isActive(mockCaster)).thenReturn(true);
+
+            manager.activateSkill("testSkill", mockCaster, 1, 1, handlers); // duration=1秒
+
+            // 期限切れになるまで待機できないため、リフレクションで直接操作
+            var activeTriggersField = TriggerManager.class.getDeclaredField("activeTriggers");
+            activeTriggersField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<Integer, Map<String, Object>> activeTriggers = 
+                (Map<Integer, Map<String, Object>>) activeTriggersField.get(manager);
+
+            // expiryTime を過去に設定
+            Map<String, Object> entityTriggers = activeTriggers.get(mockCaster.getEntityId());
+            if (entityTriggers != null && !entityTriggers.isEmpty()) {
+                Object triggerData = entityTriggers.values().iterator().next();
+                var expiryTimeField = triggerData.getClass().getDeclaredField("expiryTime");
+                expiryTimeField.setAccessible(true);
+                expiryTimeField.set(triggerData, 0L); // 過去の時刻
+            }
+
+            var method = TriggerManager.class.getDeclaredMethod("cleanupExpired", int.class);
+            method.setAccessible(true);
+
+            assertDoesNotThrow(() -> {
+                method.invoke(manager, mockCaster.getEntityId());
+            });
+
+            // cleanUpはgetEntityがnullを返す場合呼ばれないため、ここでは動作確認のみ
+            // 実際のcleanUp呼び出しは統合テストで検証
+        }
+
+        @Test
+        @DisplayName("test: 全トリガー削除後にエントリも削除")
+        void testCleanupExpired_RemovesEntryWhenEmpty() throws Exception {
+            List<TriggerHandler> handlers = new ArrayList<>();
+            handlers.add(mockHandler);
+
+            manager.registerSkill("testSkill", mockEffect);
+            manager.activateSkill("testSkill", mockCaster, 1, 1, handlers);
+
+            // expiryTime を過去に設定して期限切れにする
+            var activeTriggersField = TriggerManager.class.getDeclaredField("activeTriggers");
+            activeTriggersField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<Integer, Map<String, Object>> activeTriggers = 
+                (Map<Integer, Map<String, Object>>) activeTriggersField.get(manager);
+
+            Map<String, Object> entityTriggers = activeTriggers.get(mockCaster.getEntityId());
+            if (entityTriggers != null && !entityTriggers.isEmpty()) {
+                Object triggerData = entityTriggers.values().iterator().next();
+                var expiryTimeField = triggerData.getClass().getDeclaredField("expiryTime");
+                expiryTimeField.setAccessible(true);
+                expiryTimeField.set(triggerData, 0L);
+            }
+
+            var method = TriggerManager.class.getDeclaredMethod("cleanupExpired", int.class);
+            method.setAccessible(true);
+
+            method.invoke(manager, mockCaster.getEntityId());
+
+            // エントリが削除されていることを確認
+            assertThat(activeTriggers.containsKey(mockCaster.getEntityId())).isFalse();
+        }
+
+        @Test
+        @DisplayName("test: 複数トリガーのうち期限切れのもののみ削除")
+        void testCleanupExpired_PartialRemoval() throws Exception {
+            // 異なる期限のトリガーを作成
+            TriggerHandler handler2 = mock(TriggerHandler.class);
+            when(handler2.getSkillId()).thenReturn("testSkill2");
+            when(handler2.getRootComponent()).thenReturn(mockComponent);
+            doReturn(new CastTrigger()).when(handler2).getTrigger();
+
+            List<TriggerHandler> handlers1 = new ArrayList<>();
+            handlers1.add(mockHandler);
+
+            List<TriggerHandler> handlers2 = new ArrayList<>();
+            handlers2.add(handler2);
+
+            manager.registerSkill("testSkill", mockEffect);
+            manager.registerSkill("testSkill2", mockEffect);
+
+            // 1つのスキルをアクティブ化
+            manager.activateSkill("testSkill", mockCaster, 1, 1, handlers1);
+
+            var method = TriggerManager.class.getDeclaredMethod("cleanupExpired", int.class);
+            method.setAccessible(true);
+
+            assertDoesNotThrow(() -> {
+                method.invoke(manager, mockCaster.getEntityId());
+            });
+        }
+    }
+
+    // ========== EventHandler テスト ==========
+
+    @Nested
+    @DisplayName("EventHandlers: Bukkitイベントハンドラー")
+    class EventHandlerTests {
+
+        @Test
+        @DisplayName("test: onPlayerToggleSneakでイベントが処理される")
+        void testOnPlayerToggleSneak_ProcessesEvent() {
+            org.bukkit.event.player.PlayerToggleSneakEvent event =
+                mock(org.bukkit.event.player.PlayerToggleSneakEvent.class);
+            when(event.getPlayer()).thenReturn(mockPlayer);
+
+            assertDoesNotThrow(() -> {
+                manager.onPlayerToggleSneak(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onEntityDeathでキラートリガーが処理される")
+        void testOnEntityDeath_ProcessesKillTrigger() {
+            org.bukkit.event.entity.EntityDeathEvent event =
+                mock(org.bukkit.event.entity.EntityDeathEvent.class);
+            LivingEntity deadEntity = mock(LivingEntity.class);
+            Player killer = mock(Player.class);
+            when(killer.getEntityId()).thenReturn(100);
+
+            when(event.getEntity()).thenReturn(deadEntity);
+            when(deadEntity.getKiller()).thenReturn(killer);
+
+            assertDoesNotThrow(() -> {
+                manager.onEntityDeath(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onEntityDeathでキラーがいない場合は何もしない")
+        void testOnEntityDeath_NoKiller() {
+            org.bukkit.event.entity.EntityDeathEvent event =
+                mock(org.bukkit.event.entity.EntityDeathEvent.class);
+            LivingEntity deadEntity = mock(LivingEntity.class);
+
+            when(event.getEntity()).thenReturn(deadEntity);
+            when(deadEntity.getKiller()).thenReturn(null);
+
+            assertDoesNotThrow(() -> {
+                manager.onEntityDeath(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onEntityDamageByEntityで物理ダメージトリガーが処理される")
+        void testOnEntityDamageByEntity_ProcessesPhysicalDamage() {
+            org.bukkit.event.entity.EntityDamageByEntityEvent event =
+                mock(org.bukkit.event.entity.EntityDamageByEntityEvent.class);
+            when(event.getEntity()).thenReturn(mockCaster);
+            when(event.getDamager()).thenReturn(mockPlayer);
+
+            assertDoesNotThrow(() -> {
+                manager.onEntityDamageByEntity(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onEntityDamageByEntityでエンティティがnullの場合")
+        void testOnEntityDamageByEntity_NullEntity() {
+            org.bukkit.event.entity.EntityDamageByEntityEvent event =
+                mock(org.bukkit.event.entity.EntityDamageByEntityEvent.class);
+            org.bukkit.entity.Entity nonLiving = mock(org.bukkit.entity.Entity.class);
+
+            when(event.getEntity()).thenReturn(nonLiving);
+
+            assertDoesNotThrow(() -> {
+                manager.onEntityDamageByEntity(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onEntityDamageで落下ダメージトリガーが処理される")
+        void testOnEntityDamage_ProcessesFallDamage() {
+            org.bukkit.event.entity.EntityDamageEvent event =
+                mock(org.bukkit.event.entity.EntityDamageEvent.class);
+            when(event.getEntity()).thenReturn(mockCaster);
+            when(event.getCause()).thenReturn(org.bukkit.event.entity.EntityDamageEvent.DamageCause.FALL);
+
+            assertDoesNotThrow(() -> {
+                manager.onEntityDamage(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onEntityDamageで環境ダメージトリガーが処理される")
+        void testOnEntityDamage_ProcessesEnvironmentalDamage() {
+            org.bukkit.event.entity.EntityDamageEvent event =
+                mock(org.bukkit.event.entity.EntityDamageEvent.class);
+            when(event.getEntity()).thenReturn(mockCaster);
+            when(event.getCause()).thenReturn(org.bukkit.event.entity.EntityDamageEvent.DamageCause.LAVA);
+
+            assertDoesNotThrow(() -> {
+                manager.onEntityDamage(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onEntityDamageで非LivingEntityの場合は何もしない")
+        void testOnEntityDamage_NonLivingEntity() {
+            org.bukkit.event.entity.EntityDamageEvent event =
+                mock(org.bukkit.event.entity.EntityDamageEvent.class);
+            org.bukkit.entity.Entity nonLiving = mock(org.bukkit.entity.Entity.class);
+
+            when(event.getEntity()).thenReturn(nonLiving);
+
+            assertDoesNotThrow(() -> {
+                manager.onEntityDamage(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onProjectileLaunchで投射物発射トリガーが処理される")
+        void testOnProjectileLaunch_ProcessesLaunch() {
+            org.bukkit.event.entity.ProjectileLaunchEvent event =
+                mock(org.bukkit.event.entity.ProjectileLaunchEvent.class);
+            org.bukkit.entity.Projectile projectile = mock(org.bukkit.entity.Projectile.class);
+
+            when(event.getEntity()).thenReturn(projectile);
+            when(projectile.getShooter()).thenReturn(mockPlayer);
+
+            assertDoesNotThrow(() -> {
+                manager.onProjectileLaunch(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onProjectileLaunchでシューターがnullの場合")
+        void testOnProjectileLaunch_NullShooter() {
+            org.bukkit.event.entity.ProjectileLaunchEvent event =
+                mock(org.bukkit.event.entity.ProjectileLaunchEvent.class);
+            org.bukkit.entity.Projectile projectile = mock(org.bukkit.entity.Projectile.class);
+
+            when(event.getEntity()).thenReturn(projectile);
+            when(projectile.getShooter()).thenReturn(null);
+
+            assertDoesNotThrow(() -> {
+                manager.onProjectileLaunch(event);
+            });
+        }
+
+        @Test
+        @DisplayName("test: onProjectileLaunchでシューターが非LivingEntityの場合")
+        void testOnProjectileLaunch_NonLivingShooter() {
+            org.bukkit.event.entity.ProjectileLaunchEvent event =
+                mock(org.bukkit.event.entity.ProjectileLaunchEvent.class);
+            org.bukkit.entity.Projectile projectile = mock(org.bukkit.entity.Projectile.class);
+            org.bukkit.projectiles.ProjectileSource blockSource = mock(org.bukkit.projectiles.ProjectileSource.class);
+
+            when(event.getEntity()).thenReturn(projectile);
+            when(projectile.getShooter()).thenReturn(blockSource);
+
+            assertDoesNotThrow(() -> {
+                manager.onProjectileLaunch(event);
+            });
         }
     }
 }

@@ -1,0 +1,24 @@
+constants:
+  base_physical_multiplier: 1.0
+  base_magic_multiplier: 1.0
+  critical_hit_chance: 0.05
+  critical_hit_multiplier: 2.0
+  max_damage_cut_rate: 0.8
+events:
+  skill_damage:
+    description: スキルによるダメージ計算
+    formula: BASE_DAMAGE * (1 + STR/100)
+    min_damage: 1
+  physical_attack:
+    description: 通常攻撃（物理）のダメージ計算
+    formula: BASE_DAMAGE * (1 + STR/100)
+    min_damage: 1
+  magic_attack:
+    description: 通常攻撃（魔法）のダメージ計算
+    formula: BASE_DAMAGE + INT * 0.5
+    min_damage: 1
+  damage_taken:
+    description: 受けるダメージの軽減計算
+    physical_cut_formula: DAMAGE * (1 - VIT / (VIT + 100))
+    magic_cut_formula: DAMAGE * (1 - SPI / (SPI + 100))
+    min_damage: 0.1

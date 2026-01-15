@@ -205,10 +205,10 @@ class DamageModifierTest {
         }
 
         @Test
-        @DisplayName("負の値は0に")
+        @DisplayName("負の値は最低1保証")
         void testRoundDamage_NegativeValue() {
             int result = DamageModifier.roundDamage(-5.5);
-            assertThat(result).isEqualTo(0);
+            assertThat(result).isEqualTo(1);
         }
 
         @Test

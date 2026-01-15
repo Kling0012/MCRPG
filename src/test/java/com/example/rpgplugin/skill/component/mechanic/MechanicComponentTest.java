@@ -10,6 +10,7 @@ import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.LivingEntity;
@@ -396,8 +397,8 @@ class MechanicComponentTest {
                     return;
                 }
                 try {
-                    boolean result = (boolean) isNegativeEffectMethod.invoke(mechanic,
-                            org.bukkit.potion.PotionEffectType.SLOWNESS);
+                    PotionEffectType slowness = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.minecraft("slow"));
+                    boolean result = (boolean) isNegativeEffectMethod.invoke(mechanic, slowness);
                     assertTrue(result);
                 } catch (NoClassDefFoundError | ExceptionInInitializerError e) {
                     assertTrue(true, "Bukkit API not available");
@@ -476,8 +477,8 @@ class MechanicComponentTest {
                     return;
                 }
                 try {
-                    boolean result = (boolean) isNegativeEffectMethod.invoke(mechanic,
-                            org.bukkit.potion.PotionEffectType.NAUSEA);
+                    PotionEffectType nausea = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.minecraft("nausea"));
+                    boolean result = (boolean) isNegativeEffectMethod.invoke(mechanic, nausea);
                     assertTrue(result);
                 } catch (NoClassDefFoundError | ExceptionInInitializerError e) {
                     assertTrue(true, "Bukkit API not available");
@@ -508,8 +509,8 @@ class MechanicComponentTest {
                     return;
                 }
                 try {
-                    boolean result = (boolean) isNegativeEffectMethod.invoke(mechanic,
-                            org.bukkit.potion.PotionEffectType.MINING_FATIGUE);
+                    PotionEffectType miningFatigue = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.minecraft("mining_fatigue"));
+                    boolean result = (boolean) isNegativeEffectMethod.invoke(mechanic, miningFatigue);
                     assertTrue(result);
                 } catch (NoClassDefFoundError | ExceptionInInitializerError e) {
                     assertTrue(true, "Bukkit API not available");
@@ -620,8 +621,8 @@ class MechanicComponentTest {
                     return;
                 }
                 try {
-                    boolean result = (boolean) isNegativeEffectMethod.invoke(mechanic,
-                            org.bukkit.potion.PotionEffectType.STRENGTH);
+                    PotionEffectType strength = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.minecraft("strength"));
+                    boolean result = (boolean) isNegativeEffectMethod.invoke(mechanic, strength);
                     assertFalse(result);
                 } catch (NoClassDefFoundError | ExceptionInInitializerError e) {
                     assertTrue(true, "Bukkit API not available");

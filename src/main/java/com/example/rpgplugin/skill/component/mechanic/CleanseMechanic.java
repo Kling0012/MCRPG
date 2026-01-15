@@ -75,17 +75,16 @@ public class CleanseMechanic extends MechanicComponent {
     private boolean isNegativeEffect(PotionEffectType type) {
         if (type == null) return false;
         // 一般的に負の効果とされるもの
-        return type == PotionEffectType.SLOWNESS
-                || type == PotionEffectType.MINING_FATIGUE
-                || type == PotionEffectType.POISON
-                || type == PotionEffectType.WITHER
-                || type == PotionEffectType.WEAKNESS
-                || type == PotionEffectType.BLINDNESS
-                || type == PotionEffectType.NAUSEA
-                || type == PotionEffectType.HUNGER
-                || type == PotionEffectType.DARKNESS
-                || type == PotionEffectType.LEVITATION  // 場合による
-                || type == PotionEffectType.BAD_OMEN
-                || type == PotionEffectType.UNLUCK;
+        // Minecraft 1.20.1以降のAPIに対応
+        return type.getKey().equals(org.bukkit.NamespacedKey.minecraft("slow"))
+                || type.getKey().equals(org.bukkit.NamespacedKey.minecraft("poison"))
+                || type.getKey().equals(org.bukkit.NamespacedKey.minecraft("wither"))
+                || type.getKey().equals(org.bukkit.NamespacedKey.minecraft("weakness"))
+                || type.getKey().equals(org.bukkit.NamespacedKey.minecraft("blindness"))
+                || type.getKey().equals(org.bukkit.NamespacedKey.minecraft("hunger"))
+                || type.getKey().equals(org.bukkit.NamespacedKey.minecraft("darkness"))
+                || type.getKey().equals(org.bukkit.NamespacedKey.minecraft("levitation"))  // 場合による
+                || type.getKey().equals(org.bukkit.NamespacedKey.minecraft("bad_omen"))
+                || type.getKey().equals(org.bukkit.NamespacedKey.minecraft("unluck"));
     }
 }

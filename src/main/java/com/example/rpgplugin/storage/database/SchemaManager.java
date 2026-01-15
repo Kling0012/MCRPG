@@ -124,97 +124,7 @@ public class SchemaManager {
         stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_data_username ON player_data(username)");
         stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_data_class ON player_data(class_id)");
 
-        // V3: 通貨テーブル
-        String playerCurrencySql = """
-            CREATE TABLE IF NOT EXISTS player_currency (
-                uuid TEXT PRIMARY KEY,
-                gold_balance REAL DEFAULT 0.0,
-                total_earned REAL DEFAULT 0.0,
-                total_spent REAL DEFAULT 0.0,
-                FOREIGN KEY (uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
-            )
-        """;
-        stmt.execute(playerCurrencySql);
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_currency_uuid ON player_currency(uuid)");
-
-        // V3: オークションテーブル
-        String auctionListingsSql = """
-            CREATE TABLE IF NOT EXISTS auction_listings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                seller_uuid TEXT NOT NULL,
-                seller_name TEXT NOT NULL,
-                item_data TEXT NOT NULL,
-                starting_price REAL NOT NULL,
-                current_bid REAL DEFAULT 0,
-                current_bidder TEXT,
-                duration_seconds INTEGER NOT NULL,
-                created_at INTEGER NOT NULL,
-                expires_at INTEGER NOT NULL,
-                is_active BOOLEAN DEFAULT TRUE,
-                FOREIGN KEY (seller_uuid) REFERENCES player_data(uuid)
-            )
-        """;
-        stmt.execute(auctionListingsSql);
-
-        String auctionBidsSql = """
-            CREATE TABLE IF NOT EXISTS auction_bids (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                auction_id INTEGER NOT NULL,
-                bidder_uuid TEXT NOT NULL,
-                bid_amount REAL NOT NULL,
-                bid_time INTEGER DEFAULT (strftime('%s', 'now')),
-                FOREIGN KEY (auction_id) REFERENCES auction_listings(id) ON DELETE CASCADE
-            )
-        """;
-        stmt.execute(auctionBidsSql);
-
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_seller ON auction_listings(seller_uuid)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_expires ON auction_listings(expires_at)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_active ON auction_listings(is_active)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_auction ON auction_bids(auction_id)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_bidder ON auction_bids(bidder_uuid)");
-
-        // V3: トレード履歴テーブル
-        String tradeHistorySql = """
-            CREATE TABLE IF NOT EXISTS trade_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                player1_uuid TEXT NOT NULL,
-                player2_uuid TEXT NOT NULL,
-                player1_items TEXT,
-                player2_items TEXT,
-                gold_amount1 REAL DEFAULT 0.0,
-                gold_amount2 REAL DEFAULT 0.0,
-                trade_time INTEGER DEFAULT (strftime('%s', 'now')),
-                FOREIGN KEY (player1_uuid) REFERENCES player_data(uuid),
-                FOREIGN KEY (player2_uuid) REFERENCES player_data(uuid)
-            )
-        """;
-        stmt.execute(tradeHistorySql);
-
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player1 ON trade_history(player1_uuid)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player2 ON trade_history(player2_uuid)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_time ON trade_history(trade_time)");
-
-        // V4: MythicMobsドロップ管理テーブル
-        String mythicDropsSql = """
-            CREATE TABLE IF NOT EXISTS mythic_drops (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                player_uuid TEXT NOT NULL,
-                mob_id TEXT NOT NULL,
-                item_data TEXT NOT NULL,
-                dropped_at INTEGER DEFAULT (strftime('%s', 'now')),
-                is_claimed BOOLEAN DEFAULT 0,
-                expires_at INTEGER,
-                FOREIGN KEY (player_uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
-            )
-        """;
-        stmt.execute(mythicDropsSql);
-
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_player ON mythic_drops(player_uuid)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_mob ON mythic_drops(mob_id)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_expires ON mythic_drops(expires_at)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_claimed ON mythic_drops(is_claimed)");
-
+        // V3以降の経済・MythicMobs関連テーブルは削除済み
         logger.info("Latest schema created successfully");
     }
 
@@ -292,11 +202,10 @@ public class SchemaManager {
             case 2:
                 applyMigrationV2(stmt);
                 break;
+            // V3, V4 は経済・MythicMobs関連のため削除済み
             case 3:
-                applyMigrationV3(stmt);
-                break;
             case 4:
-                applyMigrationV4(stmt);
+                logger.info("Skipping migration version " + version + " (economy/MythicMobs removed)");
                 break;
             case 5:
                 applyMigrationV5(stmt);
@@ -423,117 +332,20 @@ public class SchemaManager {
 
     /**
      * バージョン3のマイグレーション: 通貨・オークション・トレードシステムテーブルを追加
+     * @deprecated 経済システムは削除されました
      */
+    @Deprecated
     private void applyMigrationV3(Statement stmt) throws SQLException {
-        logger.info("Applying version 3 migration: adding currency, auction, and trade tables");
-
-        // player_currency テーブル
-        String playerCurrencySql = """
-            CREATE TABLE IF NOT EXISTS player_currency (
-                uuid TEXT PRIMARY KEY,
-                gold_balance REAL DEFAULT 0.0,
-                total_earned REAL DEFAULT 0.0,
-                total_spent REAL DEFAULT 0.0,
-                FOREIGN KEY (uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
-            )
-        """;
-        stmt.execute(playerCurrencySql);
-
-        // インデックス作成（通貨）
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_currency_uuid ON player_currency(uuid)");
-
-        // auction_listings テーブル
-        String auctionListingsSql = """
-            CREATE TABLE IF NOT EXISTS auction_listings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                seller_uuid TEXT NOT NULL,
-                seller_name TEXT NOT NULL,
-                item_data TEXT NOT NULL,
-                starting_price REAL NOT NULL,
-                current_bid REAL DEFAULT 0,
-                current_bidder TEXT,
-                duration_seconds INTEGER NOT NULL,
-                created_at INTEGER NOT NULL,
-                expires_at INTEGER NOT NULL,
-                is_active BOOLEAN DEFAULT TRUE,
-                FOREIGN KEY (seller_uuid) REFERENCES player_data(uuid)
-            )
-        """;
-        stmt.execute(auctionListingsSql);
-
-        // auction_bids テーブル（入札履歴）
-        String auctionBidsSql = """
-            CREATE TABLE IF NOT EXISTS auction_bids (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                auction_id INTEGER NOT NULL,
-                bidder_uuid TEXT NOT NULL,
-                bid_amount REAL NOT NULL,
-                bid_time INTEGER DEFAULT (strftime('%s', 'now')),
-                FOREIGN KEY (auction_id) REFERENCES auction_listings(id) ON DELETE CASCADE
-            )
-        """;
-        stmt.execute(auctionBidsSql);
-
-        // インデックス作成（オークション）
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_seller ON auction_listings(seller_uuid)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_expires ON auction_listings(expires_at)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_listings_active ON auction_listings(is_active)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_auction ON auction_bids(auction_id)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_auction_bids_bidder ON auction_bids(bidder_uuid)");
-
-        // trade_history テーブル（トレード履歴）
-        String tradeHistorySql = """
-            CREATE TABLE IF NOT EXISTS trade_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                player1_uuid TEXT NOT NULL,
-                player2_uuid TEXT NOT NULL,
-                player1_items TEXT,
-                player2_items TEXT,
-                gold_amount1 REAL DEFAULT 0.0,
-                gold_amount2 REAL DEFAULT 0.0,
-                trade_time INTEGER DEFAULT (strftime('%s', 'now')),
-                FOREIGN KEY (player1_uuid) REFERENCES player_data(uuid),
-                FOREIGN KEY (player2_uuid) REFERENCES player_data(uuid)
-            )
-        """;
-        stmt.execute(tradeHistorySql);
-
-        // インデックス作成（トレード）
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player1 ON trade_history(player1_uuid)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_player2 ON trade_history(player2_uuid)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_trade_history_time ON trade_history(trade_time)");
-
-        logger.info("Version 3 migration completed successfully");
+        logger.info("Skipping version 3 migration (economy system removed)");
     }
 
     /**
      * バージョン4のマイグレーション: MythicMobsドロップ管理テーブルを追加
+     * @deprecated MythicMobs連携は削除されました
      */
+    @Deprecated
     private void applyMigrationV4(Statement stmt) throws SQLException {
-        logger.info("Applying version 4 migration: adding mythic_drops table");
-
-        // mythic_drops テーブル
-        String mythicDropsSql = """
-            CREATE TABLE IF NOT EXISTS mythic_drops (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                player_uuid TEXT NOT NULL,
-                mob_id TEXT NOT NULL,
-                item_data TEXT NOT NULL,
-                dropped_at INTEGER DEFAULT (strftime('%s', 'now')),
-                is_claimed BOOLEAN DEFAULT 0,
-                expires_at INTEGER,
-                FOREIGN KEY (player_uuid) REFERENCES player_data(uuid) ON DELETE CASCADE
-            )
-        """;
-        stmt.execute(mythicDropsSql);
-
-        // インデックス作成
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_player ON mythic_drops(player_uuid)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_mob ON mythic_drops(mob_id)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_expires ON mythic_drops(expires_at)");
-        stmt.execute("CREATE INDEX IF NOT EXISTS idx_mythic_drops_claimed ON mythic_drops(is_claimed)");
-
-        logger.info("Version 4 migration completed successfully");
+        logger.info("Skipping version 4 migration (MythicMobs integration removed)");
     }
 
     /**
@@ -565,8 +377,6 @@ public class SchemaManager {
 
         boolean hasPlayerData = false;
         boolean hasPlayerStats = false;
-        boolean hasAuctionListings = false;
-        boolean hasAuctionBids = false;
 
         while (rs.next()) {
             String tableName = rs.getString("name");
@@ -574,21 +384,12 @@ public class SchemaManager {
                 hasPlayerData = true;
             } else if ("player_stats".equals(tableName)) {
                 hasPlayerStats = true;
-            } else if ("auction_listings".equals(tableName)) {
-                hasAuctionListings = true;
-            } else if ("auction_bids".equals(tableName)) {
-                hasAuctionBids = true;
             }
         }
 
         if (!hasPlayerData || !hasPlayerStats) {
             logger.warning("Some tables are missing, applying version 1 schema");
             applyMigrationV1(stmt);
-        }
-
-        if (!hasAuctionListings || !hasAuctionBids) {
-            logger.warning("Auction tables are missing, applying version 3 schema");
-            applyMigrationV3(stmt);
         }
     }
 

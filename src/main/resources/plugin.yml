@@ -8,8 +8,6 @@ description: A Minecraft RPG plugin with stats, classes, and skills
 # オプション依存（あれば機能拡張）
 softdepend:
   - PlaceholderAPI
-  - Vault
-  - MythicMobs
   - Skript
 
 # プラグインが読み込まれる前にロードする必要があるプラグイン

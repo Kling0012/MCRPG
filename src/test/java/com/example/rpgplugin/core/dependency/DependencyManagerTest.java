@@ -5,7 +5,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +41,9 @@ class DependencyManagerTest {
     private JavaPlugin mockPlugin;
 
     @Mock
+    private RPGPlugin mockRpgPlugin;
+
+    @Mock
     private Logger mockLogger;
 
     @Mock
@@ -59,9 +61,6 @@ class DependencyManagerTest {
     @Mock
     private Plugin mockPapiPlugin;
 
-    @Mock
-    private RPGPlugin mockRpgPlugin;
-
     private MockedStatic<Bukkit> mockedBukkit;
     private DependencyManager dependencyManager;
 
@@ -74,7 +73,10 @@ class DependencyManagerTest {
         mockedBukkit.when(Bukkit::getPluginManager).thenReturn(mockPluginManager);
         when(mockServer.getPluginManager()).thenReturn(mockPluginManager);
 
-        // プラグインモック設定
+        // RPGPluginモック設定
+        when(mockRpgPlugin.getLogger()).thenReturn(mockLogger);
+
+        // プラグインモック設定（RPGPluginとしても振る舞う）
         when(mockPlugin.getLogger()).thenReturn(mockLogger);
 
         // Vault plugin mock
@@ -87,17 +89,12 @@ class DependencyManagerTest {
         when(mockMythicMobsPlugin.isEnabled()).thenReturn(true);
         when(mockMythicMobsPlugin.getName()).thenReturn("MythicMobs");
 
-        // PlaceholderAPI plugin mock
-        when(mockPluginManager.getPlugin("PlaceholderAPI")).thenReturn(mockPapiPlugin);
-        when(mockPapiPlugin.isEnabled()).thenReturn(true);
-        when(mockPapiPlugin.getName()).thenReturn("PlaceholderAPI");
+        // PlaceholderAPI plugin mock - null by default to avoid NoClassDefFoundError
+        // Note: When PlaceholderAPI is mocked as enabled, checkPlaceholderAPI() tries to
+        // instantiate PlaceholderHook which requires actual PlaceholderAPI classes
+        when(mockPluginManager.getPlugin("PlaceholderAPI")).thenReturn(null);
 
-        // PlaceholderAPI plugin meta mock
-        var papiMeta = mock(io.papermc.paper.plugin.configuration.PluginMeta.class);
-        when(mockPapiPlugin.getPluginMeta()).thenReturn(papiMeta);
-        when(papiMeta.getVersion()).thenReturn("2.11.3");
-
-        dependencyManager = new DependencyManager(mockPlugin);
+        dependencyManager = new DependencyManager(mockRpgPlugin);
     }
 
     @AfterEach
@@ -120,18 +117,15 @@ class DependencyManagerTest {
         }
 
         @Test
-        @DisplayName("初期状態は全依存が利用不可能")
+        @DisplayName("初期状態はPlaceholderAPIが利用不可能")
         void constructor_InitiallyNoDependencies() {
-            assertThat(dependencyManager.isVaultAvailable()).isFalse();
-            assertThat(dependencyManager.isMythicMobsAvailable()).isFalse();
             assertThat(dependencyManager.isPlaceholderApiAvailable()).isFalse();
         }
 
         @Test
         @DisplayName("初期状態でゲッターはnullを返す")
         void constructor_GettersReturnNull() {
-            assertThat(dependencyManager.getVaultHook()).isNull();
-            assertThat(dependencyManager.getMythicMobsHook()).isNull();
+            assertThat(dependencyManager.getPlaceholderHook()).isNull();
         }
     }
 
@@ -142,124 +136,43 @@ class DependencyManagerTest {
     class SetupDependenciesTests {
 
         @Test
-        @DisplayName("Vaultがない場合はfalseを返す")
-        void setupDependencies_NoVault_ReturnsFalse() {
-            when(mockPluginManager.getPlugin("Vault")).thenReturn(null);
-
+        @DisplayName("setupDependenciesは常にtrueを返す（オプション依存のみ）")
+        void setupDependencies_AlwaysReturnsTrue() {
             boolean result = dependencyManager.setupDependencies();
 
-            assertThat(result).isFalse();
-            verify(mockLogger).severe(contains("MISSING REQUIRED DEPENDENCIES"));
+            assertThat(result).isTrue();
         }
 
         @Test
-        @DisplayName("Vaultが無効な場合はfalseを返す")
-        void setupDependencies_VaultDisabled_ReturnsFalse() {
-            when(mockVaultPlugin.isEnabled()).thenReturn(false);
-
-            boolean result = dependencyManager.setupDependencies();
-
-            assertThat(result).isFalse();
-        }
-
-        @Test
-        @DisplayName("MythicMobsがない場合はfalseを返す")
-        void setupDependencies_NoMythicMobs_ReturnsFalse() {
-            when(mockPluginManager.getPlugin("MythicMobs")).thenReturn(null);
-
-            boolean result = dependencyManager.setupDependencies();
-
-            assertThat(result).isFalse();
-            verify(mockLogger, atLeastOnce()).severe(contains("MythicMobs"));
-        }
-
-        @Test
-        @DisplayName("全必須依存がない場合は両方ログに出力される")
-        void setupDependencies_NoRequiredDependencies_LogsBoth() {
-            when(mockPluginManager.getPlugin("Vault")).thenReturn(null);
-            when(mockPluginManager.getPlugin("MythicMobs")).thenReturn(null);
-
-            dependencyManager.setupDependencies();
-
-            // ログが少なくとも1回呼ばれることを確認
-            verify(mockLogger, atLeastOnce()).severe(contains("Vault"));
-            verify(mockLogger, atLeastOnce()).severe(contains("MythicMobs"));
-        }
-
-        @Test
-        @DisplayName("PlaceholderAPIはオプションなのでなくても成功する可能性がある")
-        void setupDependencies_NoPapi_CanStillSucceed() {
-            // VaultとMythicMobsのセットアップを試みるが、実際には失敗する可能性がある
-            // ここではPAPIがない場合でもチェックが続くことを確認
+        @DisplayName("PlaceholderAPIがない場合も成功")
+        void setupDependencies_NoPapiStillSucceeds() {
             when(mockPluginManager.getPlugin("PlaceholderAPI")).thenReturn(null);
 
-            dependencyManager.setupDependencies();
+            boolean result = dependencyManager.setupDependencies();
 
-            verify(mockLogger).info(contains("PlaceholderAPI not found"));
-        }
-
-        @Test
-        @DisplayName("ダウンロードリンクがログに含まれる")
-        void setupDependencies_MissingDependencies_ContainsDownloadLinks() {
-            when(mockPluginManager.getPlugin("Vault")).thenReturn(null);
-            when(mockPluginManager.getPlugin("MythicMobs")).thenReturn(null);
-
-            dependencyManager.setupDependencies();
-
-            verify(mockLogger, atLeastOnce()).severe(contains("spigotmc.org"));
+            assertThat(result).isTrue();
         }
     }
 
     // ==================== 成功セットアップ テスト ====================
+    // 注: Vault連携は削除されたため、PlaceholderAPIのみテスト
 
     @Nested
     @DisplayName("成功セットアップ テスト")
     class SuccessfulSetupTests {
 
-        @Mock
-        private org.bukkit.plugin.ServicesManager mockServicesManager;
-
-        @Mock
-        private RegisteredServiceProvider<net.milkbowl.vault.economy.Economy> mockEconomyRsp;
-
-        @Mock
-        private net.milkbowl.vault.economy.Economy mockEconomy;
-
-        @BeforeEach
-        void setUp() {
-            mockedBukkit.when(Bukkit::getServicesManager).thenReturn(mockServicesManager);
-            when(mockServer.getServicesManager()).thenReturn(mockServicesManager);
-
-            // Economyサービスのモック
-            when(mockEconomy.isEnabled()).thenReturn(true);
-            when(mockEconomyRsp.getProvider()).thenReturn(mockEconomy);
-            when(mockServicesManager.getRegistration(net.milkbowl.vault.economy.Economy.class)).thenReturn(mockEconomyRsp);
-
-            // Vaultプラグインは有効
-            when(mockPluginManager.getPlugin("Vault")).thenReturn(mockVaultPlugin);
-            when(mockVaultPlugin.isEnabled()).thenReturn(true);
-
-            // Plugin.getServer()がnullにならないように
-            when(mockPlugin.getServer()).thenReturn(mockServer);
-        }
-
         @Test
-        @DisplayName("Vaultが正常にセットアップされると利用可能になる")
-        void setupDependencies_VaultSetup_Success_BecomesAvailable() {
-            boolean result = dependencyManager.setupDependencies();
+        @DisplayName("PlaceholderAPIがない場合でもsetupDependenciesは成功")
+        void setupDependencies_NoPapi_Succeeds() {
+            // PlaceholderAPIはnullに設定
+            when(mockPluginManager.getPlugin("PlaceholderAPI")).thenReturn(null);
 
-            // MythicMobsがないので全体としては失敗する
-            assertThat(result).isFalse();
-            // しかしVaultフックは作成されている
-            assertThat(dependencyManager.getVaultHook()).isNotNull();
-        }
-
-        @Test
-        @DisplayName("セットアップ成功時に適切なログが出力される")
-        void setupDependencies_VaultSetup_LogsSuccess() {
             dependencyManager.setupDependencies();
 
-            verify(mockLogger, atLeastOnce()).info(contains("Vault"));
+            // フックは作成されない
+            assertThat(dependencyManager.getPlaceholderHook()).isNull();
+            // でもsetupDependenciesは成功（オプション依存）
+            assertThat(dependencyManager.isPlaceholderApiAvailable()).isFalse();
         }
 
         @Test
@@ -271,12 +184,12 @@ class DependencyManagerTest {
         }
 
         @Test
-        @DisplayName("セットアップに失敗してもフックがnull安全")
-        void setupDependencies_FailedSetup_NullSafe() {
-            when(mockPluginManager.getPlugin("Vault")).thenReturn(null);
+        @DisplayName("セットアップは常に成功（オプション依存のみ）")
+        void setupDependencies_AlwaysSucceeds() {
+            // VaultとMythicMobsは削除されたため、setupDependenciesは常にtrueを返す
+            boolean result = dependencyManager.setupDependencies();
 
-            assertThatCode(() -> dependencyManager.setupDependencies())
-                    .doesNotThrowAnyException();
+            assertThat(result).isTrue();
         }
 
         @Test
@@ -294,40 +207,9 @@ class DependencyManagerTest {
     class IsAvailableTests {
 
         @Test
-        @DisplayName("isVaultAvailableの初期状態はfalse")
-        void isVaultAvailable_InitiallyFalse() {
-            assertThat(dependencyManager.isVaultAvailable()).isFalse();
-        }
-
-        @Test
-        @DisplayName("isMythicMobsAvailableの初期状態はfalse")
-        void isMythicMobsAvailable_InitiallyFalse() {
-            assertThat(dependencyManager.isMythicMobsAvailable()).isFalse();
-        }
-
-        @Test
         @DisplayName("isPlaceholderApiAvailableの初期状態はfalse")
         void isPlaceholderApiAvailable_InitiallyFalse() {
             assertThat(dependencyManager.isPlaceholderApiAvailable()).isFalse();
-        }
-    }
-
-    // ==================== ゲッター テスト ====================
-
-    @Nested
-    @DisplayName("ゲッター テスト")
-    class GetterTests {
-
-        @Test
-        @DisplayName("getVaultHookは初期状態null")
-        void getVaultHook_InitiallyNull() {
-            assertThat(dependencyManager.getVaultHook()).isNull();
-        }
-
-        @Test
-        @DisplayName("getMythicMobsHookは初期状態null")
-        void getMythicMobsHook_InitiallyNull() {
-            assertThat(dependencyManager.getMythicMobsHook()).isNull();
         }
     }
 
@@ -343,8 +225,6 @@ class DependencyManagerTest {
             dependencyManager.logDependencyStatus();
 
             verify(mockLogger).info(contains("Dependency Status"));
-            verify(mockLogger).info(contains("Vault:"));
-            verify(mockLogger).info(contains("MythicMobs:"));
             verify(mockLogger).info(contains("PlaceholderAPI:"));
         }
 
@@ -381,21 +261,18 @@ class DependencyManagerTest {
     class CleanupTests {
 
         @Test
-        @DisplayName("cleanupで全フックがnullになる")
+        @DisplayName("cleanupでPlaceholderAPIフックがnullになる")
         void cleanup_SetsHooksToNull() {
             dependencyManager.cleanup();
 
-            assertThat(dependencyManager.getVaultHook()).isNull();
-            assertThat(dependencyManager.getMythicMobsHook()).isNull();
+            assertThat(dependencyManager.getPlaceholderHook()).isNull();
         }
 
         @Test
-        @DisplayName("cleanup後は全利用不可フラグがfalse")
-        void cleanup_AfterCleanup_AllUnavailable() {
+        @DisplayName("cleanup後はPlaceholderAPI利用不可フラグがfalse")
+        void cleanup_AfterCleanup_Unavailable() {
             dependencyManager.cleanup();
 
-            assertThat(dependencyManager.isVaultAvailable()).isFalse();
-            assertThat(dependencyManager.isMythicMobsAvailable()).isFalse();
             assertThat(dependencyManager.isPlaceholderApiAvailable()).isFalse();
         }
 
@@ -433,7 +310,7 @@ class DependencyManagerTest {
 
             // クリーンアップ
             dependencyManager.cleanup();
-            assertThat(dependencyManager.getVaultHook()).isNull();
+            assertThat(dependencyManager.getPlaceholderHook()).isNull();
         }
 
         @Test
@@ -471,8 +348,7 @@ class DependencyManagerTest {
             assertThat(manager1).isNotSameAs(manager2);
 
             // 同じ状態
-            assertThat(manager1.isVaultAvailable()).isEqualTo(manager2.isVaultAvailable());
-            assertThat(manager1.isMythicMobsAvailable()).isEqualTo(manager2.isMythicMobsAvailable());
+            assertThat(manager1.isPlaceholderApiAvailable()).isEqualTo(manager2.isPlaceholderApiAvailable());
         }
     }
 
@@ -488,10 +364,7 @@ class DependencyManagerTest {
             assertThatCode(() -> {
                 dependencyManager.cleanup();
                 dependencyManager.logDependencyStatus();
-                dependencyManager.getVaultHook();
-                dependencyManager.getMythicMobsHook();
-                dependencyManager.isVaultAvailable();
-                dependencyManager.isMythicMobsAvailable();
+                dependencyManager.getPlaceholderHook();
                 dependencyManager.isPlaceholderApiAvailable();
             }).doesNotThrowAnyException();
         }

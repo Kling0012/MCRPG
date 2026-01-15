@@ -123,10 +123,6 @@
             <url>https://jitpack.io</url>
         </repository>
         <repository>
-            <id>lumine-repo</id>
-            <url>https://mvn.lumine.io/repository/maven-public/</url>
-        </repository>
-        <repository>
             <id>placeholderapi-repo</id>
             <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
@@ -153,7 +149,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.20.6-R0.1-SNAPSHOT</version>
+            <version>1.20.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!-- SQLite JDBC -->
@@ -170,21 +166,6 @@
             <version>3.1.8</version>
         </dependency>
 
-        <!-- Vault API -->
-        <dependency>
-            <groupId>com.github.MilkBowl</groupId>
-            <artifactId>VaultAPI</artifactId>
-            <version>1.7.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- MythicMobs (最新版 API) -->
-        <dependency>
-            <groupId>io.lumine</groupId>
-            <artifactId>Mythic-Dist</artifactId>
-            <version>5.6.2</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- PlaceholderAPI (オプション依存) -->
         <dependency>

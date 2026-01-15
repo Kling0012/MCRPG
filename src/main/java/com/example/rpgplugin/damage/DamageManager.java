@@ -1,6 +1,10 @@
 package com.example.rpgplugin.damage;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.damage.config.DamageConfig;
+import com.example.rpgplugin.damage.config.DamageConfigLoader;
+import com.example.rpgplugin.damage.config.VariableScopeManager;
+import com.example.rpgplugin.damage.config.YamlDamageCalculator;
 import com.example.rpgplugin.damage.handlers.EntityDamageHandler;
 import com.example.rpgplugin.damage.handlers.PlayerDamageHandler;
 import com.example.rpgplugin.player.PlayerManager;
@@ -50,6 +54,13 @@ public class DamageManager implements Listener {
     // キャッシュクリアタスクID
     private int cacheClearTaskId = -1;
 
+    // YAMLダメージ設定
+    private DamageConfig damageConfig;
+    private DamageConfigLoader configLoader;
+    private VariableScopeManager scopeManager;
+    private YamlDamageCalculator yamlCalculator;
+    private boolean useYamlConfig = true;
+
     /**
      * コンストラクタ
      *
@@ -62,16 +73,71 @@ public class DamageManager implements Listener {
         this.playerDamageHandler = new PlayerDamageHandler(playerManager, logger);
         this.entityDamageHandler = new EntityDamageHandler(playerManager, logger);
         this.enabled = true;
+
+        // YAMLダメージ設定を初期化
+        this.scopeManager = new VariableScopeManager();
+        this.configLoader = new DamageConfigLoader(logger, plugin.getDataFolder());
+        this.yamlCalculator = null; // loadConfig()で初期化
     }
 
     /**
      * ダメージマネージャーを初期化
      *
-     * <p>キャッシュクリアタスクを開始します。</p>
+     * <p>キャッシュクリアタスクを開始し、YAML設定を読み込みます。</p>
      */
     public void initialize() {
         startCacheClearTask();
-        logger.info("DamageManager initialized with cache optimization");
+        loadDamageConfig();
+        logger.info("DamageManager initialized with cache optimization and YAML config");
+    }
+
+    /**
+     * YAMLダメージ設定を読み込みます
+     */
+    public void loadDamageConfig() {
+        if (!useYamlConfig) {
+            logger.info("YAML config is disabled, using default damage calculation");
+            propagateCalculatorToHandlers();
+            return;
+        }
+
+        // 設定ファイルが存在しない場合はデフォルトを作成
+        if (!configLoader.configExists()) {
+            logger.info("Damage config file not found, creating default config");
+            configLoader.createDefaultConfig();
+        }
+
+        // 設定を読み込み
+        damageConfig = configLoader.loadConfig();
+        if (damageConfig != null) {
+            yamlCalculator = new YamlDamageCalculator(damageConfig, scopeManager);
+            propagateCalculatorToHandlers();
+            logger.info("YAML damage config loaded successfully");
+        } else {
+            logger.warning("Failed to load YAML damage config, using defaults");
+        }
+    }
+
+    /**
+     * YAMLダメージ設定を再読み込みします
+     */
+    public void reloadDamageConfig() {
+        damageConfig = configLoader.reloadConfig();
+        if (damageConfig != null) {
+            yamlCalculator = new YamlDamageCalculator(damageConfig, scopeManager);
+            propagateCalculatorToHandlers();
+            logger.info("YAML damage config reloaded successfully");
+        } else {
+            logger.warning("Failed to reload YAML damage config");
+        }
+    }
+
+    /**
+     * YAML計算機をハンドラーに伝播します
+     */
+    private void propagateCalculatorToHandlers() {
+        playerDamageHandler.setYamlCalculator(yamlCalculator);
+        entityDamageHandler.setYamlCalculator(yamlCalculator);
     }
 
     /**
@@ -239,5 +305,56 @@ public class DamageManager implements Listener {
      */
     public EntityDamageHandler getEntityDamageHandler() {
         return entityDamageHandler;
+    }
+
+    /**
+     * YAMLダメージ計算機を取得します
+     *
+     * @return YAMLダメージ計算機、設定未読み込み時はnull
+     */
+    public YamlDamageCalculator getYamlCalculator() {
+        return yamlCalculator;
+    }
+
+    /**
+     * 変数スコープマネージャーを取得します
+     *
+     * @return 変数スコープマネージャー
+     */
+    public VariableScopeManager getScopeManager() {
+        return scopeManager;
+    }
+
+    /**
+     * ダメージ設定を取得します
+     *
+     * @return ダメージ設定、設定未読み込み時はnull
+     */
+    public DamageConfig getDamageConfig() {
+        return damageConfig;
+    }
+
+    /**
+     * YAML設定使用フラグを設定します
+     *
+     * @param useYamlConfig YAML設定を使用するかどうか
+     */
+    public void setUseYamlConfig(boolean useYamlConfig) {
+        this.useYamlConfig = useYamlConfig;
+        if (useYamlConfig) {
+            loadDamageConfig();
+        } else {
+            yamlCalculator = null;
+            propagateCalculatorToHandlers(); // nullを伝播してレガシー計算に戻す
+        }
+    }
+
+    /**
+     * YAML設定を使用しているかどうか
+     *
+     * @return YAML設定を使用している場合はtrue
+     */
+    public boolean isUseYamlConfig() {
+        return useYamlConfig && yamlCalculator != null;
     }
 }

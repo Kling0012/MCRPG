@@ -8,13 +8,17 @@ import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.skill.SkillType;
+import com.example.rpgplugin.skill.component.SkillEffect;
+import com.example.rpgplugin.skill.target.TargetType;
 import com.example.rpgplugin.stats.Stat;
 import com.example.rpgplugin.stats.StatManager;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
+import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +31,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -60,6 +65,10 @@ class ActiveSkillExecutorTest {
     private LivingEntity mockTarget;
     @Mock
     private World mockWorld;
+    @Mock
+    private Server mockServer;
+    @Mock
+    private PluginManager mockPluginManager;
 
     private ActiveSkillExecutor executor;
     private UUID testUuid;
@@ -67,6 +76,13 @@ class ActiveSkillExecutorTest {
 
     @BeforeEach
     void setUp() {
+        // Bukkit.getServer()のモック（TriggerManager.initialize()で必要）
+        lenient().when(mockPlugin.getServer()).thenReturn(mockServer);
+        lenient().when(mockServer.getPluginManager()).thenReturn(mockPluginManager);
+
+        // TriggerManagerを初期化（server stubの後で呼ぶ必要あり）
+        com.example.rpgplugin.skill.component.trigger.TriggerManager.initialize(mockPlugin);
+
         executor = new ActiveSkillExecutor(mockPlugin, mockSkillManager, mockPlayerManager);
         testUuid = UUID.randomUUID();
 
@@ -250,6 +266,49 @@ class ActiveSkillExecutorTest {
         assertFalse(result, "クールダウン中は失敗すること");
     }
 
+    @Test
+    @DisplayName("executeAt: 敵対的ターゲットで成功")
+    void testExecuteAt_SuccessWithEnemyTarget() {
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+        when(mockTarget.isValid()).thenReturn(true);
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("test_skill"))).thenReturn(true);
+        // mockTarget is LivingEntity but not Player, so it's an enemy
+
+        boolean result = executor.executeAt(mockPlayer, testSkill, 1, mockTarget);
+
+        assertTrue(result, "敵対的ターゲットで成功すること");
+        verify(mockTarget).damage(anyDouble(), eq(mockPlayer));
+        verify(mockSkillData).setLastCastTime(eq("test_skill"), anyLong());
+    }
+
+    @Test
+    @DisplayName("executeAt: 非敵対的ターゲット（プレイヤー）で失敗")
+    void testExecuteAt_NonEnemyTarget_Fails() {
+        Player mockPlayerTarget = mock(Player.class);
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+        when(mockPlayerTarget.isValid()).thenReturn(true);
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("test_skill"))).thenReturn(true);
+
+        boolean result = executor.executeAt(mockPlayer, testSkill, 1, mockPlayerTarget);
+
+        assertFalse(result, "非敵対的ターゲットは失敗すること");
+        verify(mockPlayer).sendMessage(any(Component.class));
+    }
+
+    @Test
+    @DisplayName("executeAt: LivingEntity以外のターゲット")
+    void testExecuteAt_NonLivingEntityTarget() {
+        org.bukkit.entity.Entity mockEntity = mock(org.bukkit.entity.Entity.class);
+        lenient().when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+        lenient().when(mockEntity.isValid()).thenReturn(true);
+        lenient().when(mockSkillManager.checkCooldown(any(Player.class), eq("test_skill"))).thenReturn(true);
+
+        boolean result = executor.executeAt(mockPlayer, testSkill, 1, mockEntity);
+
+        assertTrue(result, "LivingEntity以外でも成功すること（ダメージは適用されない）");
+        // Entityにはdamageメソッドがないため検証は省略
+    }
+
     // ==================== executeWithCostType テスト ====================
 
     @Test
@@ -322,22 +381,238 @@ class ActiveSkillExecutorTest {
         verify(mockPlayer).setHealth(10.0);
     }
 
-    // ==================== ゲッター テスト ====================
-
     @Test
-    @DisplayName("isEnemy: プレイヤーは敵対的でない")
-    void testIsEnemy_Player() {
-        // isEnemyはprivateメソッドなのでテストできない
-        // executeメソッドの挙動を通じて検証
-        lenient().when(mockSkillManager.checkCooldown(any(Player.class), eq("test_skill"))).thenReturn(true);
-        lenient().when(mockRpgPlayer.consumeSkillCost(0)).thenReturn(true);
+    @DisplayName("executeWithCostType: HP不足で失敗")
+    void testExecuteWithCostType_NotEnoughHealth() {
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("test_skill"))).thenReturn(true);
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+        when(mockRpgPlayer.getBukkitPlayer()).thenReturn(mockPlayer);
+        when(mockPlayer.getHealth()).thenReturn(5.0); // HPがコスト(10)より低い
 
-        boolean result = executor.execute(mockPlayer, testSkill, 1);
+        boolean result = executor.executeWithCostType(mockPlayer, testSkill, 1, SkillCostType.HP);
 
-        assertTrue(result, "成功すること（プレイヤーをターゲットにしない）");
+        assertFalse(result, "HP不足は失敗すること");
+        verify(mockPlayer).sendMessage(any(Component.class));
     }
 
-    // ==================== ゲッター ====================
+    @Test
+    @DisplayName("executeWithCostType: HP消費時にBukkitPlayerがnull")
+    void testExecuteWithCostType_Hp_NullBukkitPlayer() {
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("test_skill"))).thenReturn(true);
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+        when(mockRpgPlayer.getBukkitPlayer()).thenReturn(null);
+
+        boolean result = executor.executeWithCostType(mockPlayer, testSkill, 1, SkillCostType.HP);
+
+        assertFalse(result, "BukkitPlayerがnullの場合は失敗すること");
+    }
+
+    // ==================== execute ダメージ計算テスト ====================
+
+    @Test
+    @DisplayName("execute: コンポーネントベースのダメージ計算")
+    void testExecute_ComponentBasedDamage() {
+        // ダメージコンポーネント付きスキルモック
+        Skill damageSkill = mock(Skill.class);
+        when(damageSkill.getId()).thenReturn("damage_skill");
+        lenient().when(damageSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        lenient().when(damageSkill.getTargetFromComponents()).thenReturn(null);
+        lenient().when(damageSkill.getComponentEffect()).thenReturn(null);
+
+        // EffectComponentモック
+        com.example.rpgplugin.skill.component.EffectComponent mockDamageComponent =
+                mock(com.example.rpgplugin.skill.component.EffectComponent.class);
+        com.example.rpgplugin.skill.component.ComponentSettings mockSettings =
+                mock(com.example.rpgplugin.skill.component.ComponentSettings.class);
+
+        when(damageSkill.findComponentByKey("damage")).thenReturn(mockDamageComponent);
+        when(mockDamageComponent.getSettings()).thenReturn(mockSettings);
+        when(mockSettings.has("value")).thenReturn(true);
+        when(mockSettings.getString("value", "0")).thenReturn("10 + level * 2");
+        lenient().when(mockSettings.has("stat_multiplier")).thenReturn(false);
+        lenient().when(mockSettings.has("level_multiplier")).thenReturn(false);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("damage_skill"))).thenReturn(true);
+        lenient().when(mockRpgPlayer.consumeSkillCost(0)).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, damageSkill, 5);
+
+        assertTrue(result, "ダメージ計算付きで成功すること");
+        verify(mockSkillData).setLastCastTime(eq("damage_skill"), anyLong());
+    }
+
+    @Test
+    @DisplayName("execute: ステータス倍率付きダメージ")
+    void testExecute_DamageWithStatMultiplier() {
+        Skill damageSkill = mock(Skill.class);
+        when(damageSkill.getId()).thenReturn("damage_skill");
+        lenient().when(damageSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        lenient().when(damageSkill.getTargetFromComponents()).thenReturn(null);
+        lenient().when(damageSkill.getComponentEffect()).thenReturn(null);
+
+        com.example.rpgplugin.skill.component.EffectComponent mockDamageComponent =
+                mock(com.example.rpgplugin.skill.component.EffectComponent.class);
+        com.example.rpgplugin.skill.component.ComponentSettings mockSettings =
+                mock(com.example.rpgplugin.skill.component.ComponentSettings.class);
+
+        when(damageSkill.findComponentByKey("damage")).thenReturn(mockDamageComponent);
+        when(mockDamageComponent.getSettings()).thenReturn(mockSettings);
+        when(mockSettings.has("value")).thenReturn(true);
+        when(mockSettings.getString("value", "0")).thenReturn("10");
+        when(mockSettings.has("stat_multiplier")).thenReturn(true);
+        when(mockSettings.getString("stat_multiplier", "")).thenReturn("strength");
+        when(mockSettings.getDouble("multiplier", 1.0)).thenReturn(2.0);
+        lenient().when(mockSettings.has("level_multiplier")).thenReturn(false);
+        lenient().when(mockStatManager.getFinalStat(Stat.STRENGTH)).thenReturn(15);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("damage_skill"))).thenReturn(true);
+        lenient().when(mockRpgPlayer.consumeSkillCost(0)).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, damageSkill, 1);
+
+        assertTrue(result, "ステータス倍率付きで成功すること");
+    }
+
+    @Test
+    @DisplayName("execute: レベル倍率付きダメージ")
+    void testExecute_DamageWithLevelMultiplier() {
+        Skill damageSkill = mock(Skill.class);
+        when(damageSkill.getId()).thenReturn("damage_skill");
+        lenient().when(damageSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        lenient().when(damageSkill.getTargetFromComponents()).thenReturn(null);
+        lenient().when(damageSkill.getComponentEffect()).thenReturn(null);
+
+        com.example.rpgplugin.skill.component.EffectComponent mockDamageComponent =
+                mock(com.example.rpgplugin.skill.component.EffectComponent.class);
+        com.example.rpgplugin.skill.component.ComponentSettings mockSettings =
+                mock(com.example.rpgplugin.skill.component.ComponentSettings.class);
+
+        when(damageSkill.findComponentByKey("damage")).thenReturn(mockDamageComponent);
+        when(mockDamageComponent.getSettings()).thenReturn(mockSettings);
+        when(mockSettings.has("value")).thenReturn(true);
+        when(mockSettings.getString("value", "0")).thenReturn("10");
+        lenient().when(mockSettings.has("stat_multiplier")).thenReturn(false);
+        when(mockSettings.has("level_multiplier")).thenReturn(true);
+        when(mockSettings.getDouble("level_multiplier", 0.0)).thenReturn(5.0);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("damage_skill"))).thenReturn(true);
+        lenient().when(mockRpgPlayer.consumeSkillCost(0)).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, damageSkill, 3);
+
+        assertTrue(result, "レベル倍率付きで成功すること");
+    }
+
+    @Test
+    @DisplayName("execute: ステータス変数付き数式")
+    void testExecute_DamageWithStatVariables() {
+        Skill damageSkill = mock(Skill.class);
+        when(damageSkill.getId()).thenReturn("damage_skill");
+        lenient().when(damageSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        lenient().when(damageSkill.getTargetFromComponents()).thenReturn(null);
+        lenient().when(damageSkill.getComponentEffect()).thenReturn(null);
+
+        com.example.rpgplugin.skill.component.EffectComponent mockDamageComponent =
+                mock(com.example.rpgplugin.skill.component.EffectComponent.class);
+        com.example.rpgplugin.skill.component.ComponentSettings mockSettings =
+                mock(com.example.rpgplugin.skill.component.ComponentSettings.class);
+
+        when(damageSkill.findComponentByKey("damage")).thenReturn(mockDamageComponent);
+        when(mockDamageComponent.getSettings()).thenReturn(mockSettings);
+        when(mockSettings.has("value")).thenReturn(true);
+        when(mockSettings.getString("value", "0")).thenReturn("strength + intelligence");
+        lenient().when(mockSettings.has("stat_multiplier")).thenReturn(false);
+        lenient().when(mockSettings.has("level_multiplier")).thenReturn(false);
+        when(mockStatManager.getFinalStat(Stat.STRENGTH)).thenReturn(15);
+        when(mockStatManager.getFinalStat(Stat.INTELLIGENCE)).thenReturn(10);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("damage_skill"))).thenReturn(true);
+        lenient().when(mockRpgPlayer.consumeSkillCost(0)).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, damageSkill, 1);
+
+        assertTrue(result, "ステータス変数付きで成功すること");
+    }
+
+    @Test
+    @DisplayName("execute: 無効な数式パース時のフォールバック")
+    void testExecute_InvalidFormulaFallback() {
+        Skill damageSkill = mock(Skill.class);
+        when(damageSkill.getId()).thenReturn("damage_skill");
+        lenient().when(damageSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        lenient().when(damageSkill.getTargetFromComponents()).thenReturn(null);
+        lenient().when(damageSkill.getComponentEffect()).thenReturn(null);
+
+        com.example.rpgplugin.skill.component.EffectComponent mockDamageComponent =
+                mock(com.example.rpgplugin.skill.component.EffectComponent.class);
+        com.example.rpgplugin.skill.component.ComponentSettings mockSettings =
+                mock(com.example.rpgplugin.skill.component.ComponentSettings.class);
+
+        when(damageSkill.findComponentByKey("damage")).thenReturn(mockDamageComponent);
+        when(mockDamageComponent.getSettings()).thenReturn(mockSettings);
+        when(mockSettings.has("value")).thenReturn(true);
+        when(mockSettings.getString("value", "0")).thenReturn("invalid formula");
+        lenient().when(mockSettings.getDouble("value", 0.0)).thenReturn(25.0);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("damage_skill"))).thenReturn(true);
+        lenient().when(mockRpgPlayer.consumeSkillCost(0)).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, damageSkill, 1);
+
+        assertTrue(result, "フォールバック値を使用して成功すること");
+    }
+
+    // ==================== execute コンポーネント効果テスト ====================
+
+    @Test
+    @DisplayName("execute: コンポーネント効果実行")
+    void testExecute_WithComponentEffect() {
+        Skill effectSkill = mock(Skill.class);
+        when(effectSkill.getId()).thenReturn("effect_skill");
+        lenient().when(effectSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        lenient().when(effectSkill.getTargetFromComponents()).thenReturn(null);
+        lenient().when(effectSkill.findComponentByKey("damage")).thenReturn(null);
+
+        // SkillEffectモック
+        SkillEffect mockComponentEffect = mock(SkillEffect.class);
+        when(effectSkill.getComponentEffect()).thenReturn(mockComponentEffect);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("effect_skill"))).thenReturn(true);
+        lenient().when(mockRpgPlayer.consumeSkillCost(0)).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, effectSkill, 1);
+
+        assertTrue(result, "コンポーネント効果付きで成功すること");
+        verify(mockSkillData).setLastCastTime(eq("effect_skill"), anyLong());
+    }
+
+    // ==================== getTargets テスト ====================
+
+    @Test
+    @DisplayName("execute: ターゲット選択（SkillTargetあり）")
+    void testExecute_WithSkillTarget() {
+        Skill targetedSkill = mock(Skill.class);
+        when(targetedSkill.getId()).thenReturn("targeted_skill");
+        lenient().when(targetedSkill.getCostFromComponents(anyInt())).thenReturn(0);
+        lenient().when(targetedSkill.findComponentByKey("damage")).thenReturn(null);
+        lenient().when(targetedSkill.getComponentEffect()).thenReturn(null);
+
+        // SkillTargetモック
+        com.example.rpgplugin.skill.target.SkillTarget mockSkillTarget =
+                mock(com.example.rpgplugin.skill.target.SkillTarget.class);
+        when(targetedSkill.getTargetFromComponents()).thenReturn(mockSkillTarget);
+        lenient().when(mockSkillTarget.getRange()).thenReturn(10.0);
+        lenient().when(mockSkillTarget.getType()).thenReturn(TargetType.SELF);
+
+        when(mockSkillManager.checkCooldown(any(Player.class), eq("targeted_skill"))).thenReturn(true);
+        lenient().when(mockRpgPlayer.consumeSkillCost(0)).thenReturn(true);
+
+        boolean result = executor.execute(mockPlayer, targetedSkill, 1);
+
+        assertTrue(result, "ターゲット選択付きで成功すること");
+    }
+
+    // ==================== ゲッター テスト ====================
 
     @Test
     @DisplayName("getPlugin: プラグイン取得")

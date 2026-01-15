@@ -1,6 +1,7 @@
 package com.example.rpgplugin.damage.handlers;
 
 import com.example.rpgplugin.damage.DamageModifier;
+import com.example.rpgplugin.damage.config.YamlDamageCalculator;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.stats.Stat;
@@ -34,6 +35,9 @@ public class EntityDamageHandler {
     private final PlayerManager playerManager;
     private final Logger logger;
 
+    // YAMLダメージ計算機（オプション）
+    private YamlDamageCalculator yamlCalculator;
+
     // デバッグログフラグ
     private final boolean DEBUG = false;
 
@@ -49,7 +53,28 @@ public class EntityDamageHandler {
     }
 
     /**
+     * YAMLダメージ計算機を設定します
+     *
+     * @param yamlCalculator YAMLダメージ計算機、nullでYAML計算を無効化
+     */
+    public void setYamlCalculator(YamlDamageCalculator yamlCalculator) {
+        this.yamlCalculator = yamlCalculator;
+    }
+
+    /**
+     * YAMLダメージ計算機を取得します
+     *
+     * @return YAMLダメージ計算機、設定されていない場合はnull
+     */
+    public YamlDamageCalculator getYamlCalculator() {
+        return yamlCalculator;
+    }
+
+    /**
      * エンティティからプレイヤーへのダメージを計算・適用
+     *
+     * <p>YAML設定が有効な場合はYamlDamageCalculatorを使用し、
+     * それ以外の場合はレガシーなDamageModifierを使用します。</p>
      *
      * @param event ダメージイベント
      * @return 計算後のダメージ値、イベントをキャンセルする場合は-1
@@ -71,9 +96,6 @@ public class EntityDamageHandler {
             return -1;
         }
 
-        // ステータス取得
-        Map<Stat, Integer> stats = rpgPlayer.getStatManager().getAllFinalStats();
-
         // 基本ダメージ取得
         double baseDamage = event.getDamage();
 
@@ -83,14 +105,10 @@ public class EntityDamageHandler {
 
         // 防御計算
         double damageAfterDefense;
-        if (isPhysical) {
-            // 物理防御（VIT依存）
-            int vitality = stats.getOrDefault(Stat.VITALITY, 0);
-            damageAfterDefense = DamageModifier.calculateDefenseCut(baseDamage, vitality);
+        if (yamlCalculator != null) {
+            damageAfterDefense = calculateDamageTakenWithYaml(rpgPlayer, baseDamage, !isPhysical);
         } else {
-            // 魔法防御（SPI依存）
-            int spirit = stats.getOrDefault(Stat.SPIRIT, 0);
-            damageAfterDefense = DamageModifier.calculateMagicDefenseCut(baseDamage, spirit);
+            damageAfterDefense = calculateDamageTakenLegacy(rpgPlayer, baseDamage, isPhysical);
         }
 
         // 整数に丸める
@@ -101,13 +119,52 @@ public class EntityDamageHandler {
 
         // ログ出力
         if (DEBUG) {
-            logDamage(event.getDamager(), player, baseDamage, finalDamage, stats);
+            logDamage(event.getDamager(), player, baseDamage, finalDamage, rpgPlayer.getStatManager().getAllFinalStats());
         }
 
         // ダメージ数値表示
         showDamageIndicator(player, finalDamage);
 
         return finalDamage;
+    }
+
+    /**
+     * YAML設定を使用して被ダメージを計算します
+     *
+     * @param rpgPlayer RPGプレイヤー
+     * @param damage 元ダメージ
+     * @param isMagic 魔法ダメージかどうか
+     * @return 軽減後のダメージ
+     */
+    private double calculateDamageTakenWithYaml(RPGPlayer rpgPlayer, double damage, boolean isMagic) {
+        try {
+            return yamlCalculator.calculateDamageTaken(damage, rpgPlayer, isMagic);
+        } catch (Exception e) {
+            logWarning("YAML calculation failed, falling back to legacy: " + e.getMessage());
+            return calculateDamageTakenLegacy(rpgPlayer, damage, !isMagic);
+        }
+    }
+
+    /**
+     * レガシー方式で被ダメージを計算します
+     *
+     * @param rpgPlayer RPGプレイヤー
+     * @param damage 元ダメージ
+     * @param isPhysical 物理ダメージかどうか
+     * @return 軽減後のダメージ
+     */
+    private double calculateDamageTakenLegacy(RPGPlayer rpgPlayer, double damage, boolean isPhysical) {
+        Map<Stat, Integer> stats = rpgPlayer.getStatManager().getAllFinalStats();
+
+        if (isPhysical) {
+            // 物理防御（VIT依存）
+            int vitality = stats.getOrDefault(Stat.VITALITY, 0);
+            return DamageModifier.calculateDefenseCut(damage, vitality);
+        } else {
+            // 魔法防御（SPI依存）
+            int spirit = stats.getOrDefault(Stat.SPIRIT, 0);
+            return DamageModifier.calculateMagicDefenseCut(damage, spirit);
+        }
     }
 
     /**

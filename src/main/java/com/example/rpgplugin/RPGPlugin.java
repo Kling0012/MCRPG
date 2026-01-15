@@ -8,9 +8,7 @@ import com.example.rpgplugin.core.module.ModuleManager;
 import com.example.rpgplugin.core.system.CoreSystemManager;
 import com.example.rpgplugin.core.system.GameSystemManager;
 import com.example.rpgplugin.core.system.ExternalSystemManager;
-import com.example.rpgplugin.mythicmobs.MythicMobsManager;
-import com.example.rpgplugin.mythicmobs.config.MobDropConfig;
-import com.example.rpgplugin.mythicmobs.listener.MythicDeathListener;
+
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.ExpDiminisher;
 import com.example.rpgplugin.player.VanillaExpHandler;
@@ -80,7 +78,7 @@ public class RPGPlugin extends JavaPlugin {
             setupGameSystemExtensions();
 
             // 3. 外部システムの初期化
-            externalSystem = new ExternalSystemManager(this, coreSystem.getStorageManager().getDatabaseManager().getConnectionPool());
+            externalSystem = new ExternalSystemManager(this);
             externalSystem.initialize();
 
             // 外部システムの追加初期化
@@ -188,8 +186,8 @@ public class RPGPlugin extends JavaPlugin {
         boolean hotReloadClasses = configManager.getBoolean("main", "hot_reload.classes", true);
         boolean hotReloadSkills = configManager.getBoolean("main", "hot_reload.skills", true);
         boolean hotReloadExp = configManager.getBoolean("main", "hot_reload.exp_diminish", true);
-        boolean hotReloadMobs = configManager.getBoolean("main", "hot_reload.mobs", true);
         boolean hotReloadTemplates = configManager.getBoolean("main", "hot_reload.templates", false);
+        boolean hotReloadDamage = configManager.getBoolean("main", "hot_reload.damage", true);
 
         // クラス定義の監視
         if (hotReloadClasses) {
@@ -238,21 +236,22 @@ public class RPGPlugin extends JavaPlugin {
             });
         }
 
-        // モブドロップ設定の監視
-        if (hotReloadMobs && coreSystem.getDependencyManager().isMythicMobsAvailable()) {
-            configWatcher.watchDirectory("mobs");
-            configWatcher.addDirectoryListener("mobs", path -> {
+        // ダメージ設定の監視（ルートディレクトリ）
+        if (hotReloadDamage) {
+            configWatcher.watchDirectory("");
+            configWatcher.addFileListener("damage_config.yml", path -> {
                 try {
-                    if (path.getFileName().toString().equals("mob_drops.yml")) {
-                        getLogger().info("[HotReload] Mob drops config modified");
-                        loadMobDropConfigs();
-                        getLogger().info("[HotReload] Reloaded mob_drops.yml");
-                    }
+                    getLogger().info("[HotReload] Damage config modified");
+                    gameSystem.getDamageManager().reloadDamageConfig();
+                    getLogger().info("[HotReload] Reloaded damage_config.yml");
                 } catch (Exception e) {
-                    getLogger().warning("[HotReload] Failed to reload mob drops: " + e.getMessage());
+                    getLogger().warning("[HotReload] Failed to reload damage config: " + e.getMessage());
                 }
             });
         }
+
+        // モブドロップ設定の監視（MythicMobs連携は削除済み）
+        // 以前のモブドロップ設定監視は削除されました
 
         // テンプレートファイルの監視（ログ出力のみ）
         if (hotReloadTemplates) {
@@ -329,19 +328,8 @@ public class RPGPlugin extends JavaPlugin {
      */
     private void setupExternalSystemExtensions() {
         getLogger().info("Setting up external system extensions...");
-
-        // MythicMobsが利用可能な場合のみ追加設定
-        if (coreSystem.getDependencyManager().isMythicMobsAvailable()) {
-            // ドロップ設定を読み込み
-            loadMobDropConfigs();
-
-            // 期限切れドロップクリーニングタスクを開始
-            startDropCleanupTask();
-
-            getLogger().info("MythicMobs extensions setup complete!");
-        } else {
-            getLogger().info("MythicMobs not available, skipping extensions.");
-        }
+        // MythicMobs連携は削除されました
+        getLogger().info("External system extensions setup complete!");
     }
 
     /**
@@ -371,54 +359,6 @@ if (getServer().getPluginManager().getPlugin("Skript") != null) {
 }
 
         getLogger().info("Third-party integrations setup complete!");
-    }
-
-    /**
-     * モブドロップ設定を読み込み
-     */
-    private void loadMobDropConfigs() {
-        getLogger().info("Loading mob drop configurations...");
-
-        // mob_drops.ymlを保存（存在しない場合）
-        saveResource("mobs/mob_drops.yml", false);
-
-        // 設定ファイルを読み込み
-        FileConfiguration dropConfig = coreSystem.getConfigManager().getConfig("mob_drops");
-        if (dropConfig == null) {
-            // 手動で読み込み
-            try {
-                dropConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(
-                        new java.io.File(getDataFolder(), "mobs/mob_drops.yml")
-                );
-            } catch (Exception e) {
-                getLogger().warning("Failed to load mob_drops.yml: " + e.getMessage());
-                return;
-            }
-        }
-
-        // MobDropConfigで設定を解析
-        MobDropConfig configLoader = new MobDropConfig(getLogger());
-        var mobDrops = configLoader.loadFromConfig(dropConfig);
-
-        // マネージャーに設定をロード
-        externalSystem.getMythicMobsManager().loadDropConfigs(mobDrops);
-
-        getLogger().info("Loaded " + mobDrops.size() + " mob drop configurations");
-    }
-
-    /**
-     * ドロップクリーニングタスクを開始
-     */
-    private void startDropCleanupTask() {
-        // 10分ごとに期限切れドロップをクリーニング
-        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-            MythicMobsManager mythicMobsManager = externalSystem.getMythicMobsManager();
-            if (mythicMobsManager != null) {
-                mythicMobsManager.cleanupExpiredDrops();
-            }
-        }, 10L * 60L * 20L, 10L * 60L * 20L); // 10分 = 12000 ticks
-
-        getLogger().info("Drop cleanup task started (runs every 10 minutes)");
     }
 
     /**
@@ -662,24 +602,6 @@ private void registerListeners() {
     }
 
     // ====== 外部システム ======
-
-    /**
-     * MythicMobsマネージャーを取得します
-     *
-     * @return MythicMobsManagerインスタンス
-     */
-    public MythicMobsManager getMythicMobsManager() {
-        return externalSystem.getMythicMobsManager();
-    }
-
-    /**
-     * MythicMobsデスリスナーを取得します
-     *
-     * @return MythicDeathListenerインスタンス
-     */
-    public MythicDeathListener getMythicDeathListener() {
-        return externalSystem.getMythicDeathListener();
-    }
 
     /**
      * APIを取得します

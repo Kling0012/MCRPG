@@ -105,12 +105,12 @@ public class DamageModifier {
      * ダメージを整数に丸める
      *
      * @param damage ダメージ値
-     * @return 整数に丸められたダメージ（負の値は0、最低1）
+     * @return 整数に丸められたダメージ（負の値は0として扱うが最低1を保証）
      */
     public static int roundDamage(double damage) {
-        // 負の値は0に
+        // 負の値は0として扱う
         if (damage < 0) {
-            return 0;
+            damage = 0;
         }
 
         // 小数点以下を切り捨て（Math.floorではなくintキャスト）

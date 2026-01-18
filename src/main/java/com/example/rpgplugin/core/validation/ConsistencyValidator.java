@@ -8,23 +8,30 @@ import java.util.logging.Logger;
 
 /**
  * 整合性検証クラス
- * <p>クラスとスキルの双方向整合性を検証します</p>
+ * <p>クラスとスキルの整合性を検証・同期します</p>
+ *
+ * <p>設計方針:</p>
+ * <ul>
+ *   <li>情報源（Single Source of Truth）: {@code Skill.availableClasses}</li>
+ *   <li>派生データ: {@code RPGClass.availableSkills} はスキル側から自動生成</li>
+ *   <li>双方向リンクは非推奨: スキル起点の一方向管理に移行</li>
+ * </ul>
  *
  * <p>検証内容:</p>
  * <ul>
- *   <li>RPGClass.availableSkills と Skill.availableClasses の双方向整合性</li>
  *   <li>スキルIDの実在確認</li>
  *   <li>クラスIDの実在確認</li>
+ *   <li>RPGClass.availableSkills が Skill.availableClasses と一致しているか</li>
  * </ul>
  *
  * <p>設計原則:</p>
  * <ul>
  *   <li>SOLID-S: 整合性検証に専念</li>
- *   <li>Observer: 検証結果を通知</li>
+ *   <li>Single Source of Truth: スキル側を正とする</li>
  * </ul>
  *
  * @author RPGPlugin Team
- * @version 1.0.0
+ * @version 2.0.0 - 情報源をスキル側に変更
  */
 public class ConsistencyValidator {
 
@@ -193,13 +200,109 @@ public class ConsistencyValidator {
     }
 
     /**
-     * 整合性問題を自動修復します
-     * <p>Class.availableSkillsを基準として、Skill.availableClassesを同期します</p>
+     * スキル起点でクラスのスキルリストを生成します
+     * <p>{@code Skill.availableClasses} を情報源として、各クラスが持つべきスキルリストを生成します。</p>
+     *
+     * <p>使用例:</p>
+     * <pre>{@code
+     * Map<String, List<String>> classSkills = validator.syncSkillToClassLinks(classes, skills);
+     * // classSkills = { "warrior": ["slash", "bash"], "mage": ["fireball", "frost"] }
+     * }</pre>
+     *
+     * @param classes クラスマップ
+     * @param skills スキルマップ（情報源）
+     * @return クラスID → スキルIDリストのマップ（スキル側から生成）
+     */
+    public Map<String, List<String>> syncSkillToClassLinks(Map<String, RPGClass> classes,
+                                                           Map<String, Skill> skills) {
+        Map<String, List<String>> classSkillMap = new HashMap<>();
+
+        // すべてのクラスを初期化
+        for (String classId : classes.keySet()) {
+            classSkillMap.put(classId, new ArrayList<>());
+        }
+
+        // スキル側の定義からクラス→スキルのマッピングを構築
+        for (Map.Entry<String, Skill> entry : skills.entrySet()) {
+            String skillId = entry.getKey();
+            Skill skill = entry.getValue();
+            List<String> availableClasses = skill.getAvailableClasses();
+
+            if (availableClasses.isEmpty()) {
+                // 全クラスで利用可能なスキル
+                for (String classId : classes.keySet()) {
+                    classSkillMap.get(classId).add(skillId);
+                }
+            } else {
+                // 特定クラスのみ利用可能
+                for (String classId : availableClasses) {
+                    if (classes.containsKey(classId)) {
+                        classSkillMap.get(classId).add(skillId);
+                    } else {
+                        logger.warning("Skill '" + skillId + "' references non-existent class '" + classId + "'");
+                    }
+                }
+            }
+        }
+
+        return classSkillMap;
+    }
+
+    /**
+     * スキル起点で整合性チェックを行います
+     * <p>{@code RPGClass.availableSkills} が {@code Skill.availableClasses} から生成される内容と一致しているか検証します。</p>
+     *
+     * @param classes クラスマップ
+     * @param skills スキルマップ（情報源）
+     * @return 一致性のレポート
+     */
+    public SyncResult verifySkillSourcedConsistency(Map<String, RPGClass> classes,
+                                                     Map<String, Skill> skills) {
+        SyncResult result = new SyncResult();
+
+        // スキル側から正しいクラス→スキルマップを生成
+        Map<String, List<String>> expectedMap = syncSkillToClassLinks(classes, skills);
+
+        // 各クラスの実際のスキルリストと比較
+        for (Map.Entry<String, RPGClass> entry : classes.entrySet()) {
+            String classId = entry.getKey();
+            RPGClass rpgClass = entry.getValue();
+            List<String> actualSkills = rpgClass.getAvailableSkills();
+            List<String> expectedSkills = expectedMap.getOrDefault(classId, Collections.emptyList());
+
+            // 余分なスキル（クラス側にあるが、スキル側で許可されていない）
+            List<String> extraSkills = new ArrayList<>(actualSkills);
+            extraSkills.removeAll(expectedSkills);
+            if (!extraSkills.isEmpty()) {
+                result.addInconsistency("Class '" + classId + "' has skills not listed in Skill.availableClasses: " + extraSkills);
+            }
+
+            // 足りないスキル（スキル側で許可されているが、クラス側にない）
+            List<String> missingSkills = new ArrayList<>(expectedSkills);
+            missingSkills.removeAll(actualSkills);
+            if (!missingSkills.isEmpty()) {
+                result.addInconsistency("Class '" + classId + "' is missing skills listed in Skill.availableClasses: " + missingSkills);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 整合性問題を自動修復します（非推奨）
+     * <p>クラス側を基準としてスキル側を同期しようとしていましたが、
+     * これは設計方針の変更により非推奨となりました。</p>
+     *
+     * <p>代わりに {@link #syncSkillToClassLinks(Map, Map)} を使用してください。
+     * スキル側を情報源として、クラス側のスキルリストを生成します。</p>
      *
      * @param classes クラスマップ
      * @param skills スキルマップ（変更されません）
      * @return 修復されたスキルのマップ（新しいインスタンス）
+     * @deprecated 情報源はスキル側（{@code Skill.availableClasses}）に変更されました。
+     *             代わりに {@link #syncSkillToClassLinks(Map, Map)} を使用してください。
      */
+    @Deprecated
     public Map<String, Skill> autoRepair(Map<String, RPGClass> classes, Map<String, Skill> skills) {
         // 注意: Skillはイミュータブルな設計なので、
         // 実際の修復はSkillLoader側で行う必要があります
@@ -349,6 +452,85 @@ public class ConsistencyValidator {
             }
 
             sb.append("=====================================").append("\n");
+            return sb.toString();
+        }
+    }
+
+    /**
+     * スキル起点整合性チェックの結果
+     * <p>{@link #verifySkillSourcedConsistency(Map, Map)} の結果を表します。</p>
+     *
+     * @since 2.0.0
+     */
+    public static class SyncResult {
+        private final List<String> inconsistencies = new ArrayList<>();
+
+        /**
+         * 不整合を追加します
+         *
+         * @param inconsistency 不整合メッセージ
+         */
+        public void addInconsistency(String inconsistency) {
+            inconsistencies.add(inconsistency);
+        }
+
+        /**
+         * 整合しているか（不整合なし）
+         *
+         * @return 整合している場合はtrue
+         */
+        public boolean isConsistent() {
+            return inconsistencies.isEmpty();
+        }
+
+        /**
+         * 不整合リストを取得します
+         *
+         * @return 不整合リストのコピー
+         */
+        public List<String> getInconsistencies() {
+            return new ArrayList<>(inconsistencies);
+        }
+
+        /**
+         * 不整合件数を取得します
+         *
+         * @return 不整合件数
+         */
+        public int getInconsistencyCount() {
+            return inconsistencies.size();
+        }
+
+        /**
+         * 結果のサマリーを取得します
+         *
+         * @return サマリー文字列
+         */
+        public String getSummary() {
+            return String.format("SyncResult{inconsistencies=%d, isConsistent=%s}",
+                    inconsistencies.size(), isConsistent());
+        }
+
+        /**
+         * 詳細なレポートを生成します
+         *
+         * @return レポート文字列
+         */
+        public String getDetailedReport() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Skill-Sourced Consistency Report ===\n");
+
+            if (inconsistencies.isEmpty()) {
+                sb.append("✓ All classes match Skill.availableClasses definitions\n");
+            } else {
+                sb.append("✗ Inconsistencies found (").append(inconsistencies.size()).append("):\n");
+                for (String issue : inconsistencies) {
+                    sb.append("  - ").append(issue).append("\n");
+                }
+                sb.append("\nSuggestion: Run syncSkillToClassLinks() to generate correct class skill lists\n");
+            }
+
+            sb.append("========================================\n");
             return sb.toString();
         }
     }

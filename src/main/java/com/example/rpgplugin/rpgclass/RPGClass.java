@@ -48,7 +48,17 @@ public class RPGClass {
     /** 分岐パターンの代替クラス（Rank2以降） */
     private final Map<String, List<ClassRequirement>> alternativeRanks;
 
-    /** 使用可能スキルIDリスト */
+    /**
+     * 使用可能スキルIDリスト（非推奨）
+     *
+     * @deprecated 情報源は {@code Skill.availableClasses} に変更されました。
+     *             このフィールドは将来的に削除予定です。
+     *             代わりに {@code ConsistencyValidator.syncSkillToClassLinks()} を使用して、
+     *             スキル側の定義からクラスのスキルリストを生成してください。
+     * @since 1.0.0
+     * @see com.example.rpgplugin.core.validation.ConsistencyValidator#syncSkillToClassLinks
+     */
+    @Deprecated(since = "2.0.0", forRemoval = true)
     private final List<String> availableSkills;
 
     /** パッシブボーナス */
@@ -127,6 +137,17 @@ public class RPGClass {
         return new HashMap<>(alternativeRanks);
     }
 
+    /**
+     * 使用可能スキルIDリストを取得します（非推奨）
+     *
+     * @return スキルIDリストのコピー
+     * @deprecated 情報源は {@code Skill.availableClasses} に変更されました。
+     *             代わりに {@code ConsistencyValidator.syncSkillToClassLinks()} を使用して、
+     *             スキル側の定義からクラスのスキルリストを生成してください。
+     * @since 1.0.0
+     * @see com.example.rpgplugin.core.validation.ConsistencyValidator#syncSkillToClassLinks
+     */
+    @Deprecated(since = "2.0.0", forRemoval = true)
     public List<String> getAvailableSkills() {
         return new ArrayList<>(availableSkills);
     }

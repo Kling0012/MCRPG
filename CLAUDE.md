@@ -32,82 +32,55 @@ npx @claude-flow/cli@latest swarm init --topology hierarchical --max-agents 8 --
 
 ### 🔄 Auto-Start Swarm Protocol (Background Execution)
 
-When the user requests a complex task, **spawn agents in background and WAIT for completion:**
+When the user requests a complex task, **execute agents via Bash CLI in background and WAIT for completion:**
 
-```javascript
-// STEP 1: Initialize swarm coordination (anti-drift config)
-Bash("npx @claude-flow/cli@latest swarm init --topology hierarchical --max-agents 8 --strategy specialized")
+```bash
+# STEP 1: Initialize swarm coordination (anti-drift config)
+npx @claude-flow/cli@latest swarm init --topology hierarchical --max-agents 8 --strategy specialized
 
-// STEP 2: Spawn ALL agents IN BACKGROUND in a SINGLE message
-// Use run_in_background: true so agents work concurrently
-Task({
-  prompt: "Research requirements, analyze codebase patterns, store findings in memory",
-  subagent_type: "researcher",
-  description: "Research phase",
-  run_in_background: true  // ← CRITICAL: Run in background
-})
-Task({
-  prompt: "Design architecture based on research. Document decisions.",
-  subagent_type: "system-architect",
-  description: "Architecture phase",
-  run_in_background: true
-})
-Task({
-  prompt: "Implement the solution following the design. Write clean code.",
-  subagent_type: "coder",
-  description: "Implementation phase",
-  run_in_background: true
-})
-Task({
-  prompt: "Write comprehensive tests for the implementation.",
-  subagent_type: "tester",
-  description: "Testing phase",
-  run_in_background: true
-})
-Task({
-  prompt: "Review code quality, security, and best practices.",
-  subagent_type: "reviewer",
-  description: "Review phase",
-  run_in_background: true
-})
+# STEP 2: Execute ALL agents via CLI in ONE Bash block
+mkdir -p .sprint/outputs
 
-// STEP 3: WAIT - Tell user agents are working, then STOP
-// Say: "I've spawned 5 agents to work on this in parallel. They'll report back when done."
-// DO NOT check status repeatedly. Just wait for user or agent responses.
+# 各エージェントを非対話モードで並列実行
+codex exec "実装タスク: ${task}" > .sprint/outputs/codex.log 2>&1 &
+iflow -p "プロセス・振り分け: ${task}" > .sprint/outputs/iflow.log 2>&1 &
+gemini "情報収集: ${task}" > .sprint/outputs/gemini.log 2>&1 &
+
+# STEP 3: WAIT - Tell user agents are working, then STOP
+# 通知: "🚀 3エージェントを並列実行中 - 完了時に結果を統合します"
+# ログを定期的にチェックせず、ユーザーまたはエージェントからの応答を待つ
 ```
 
-### ⏸️ CRITICAL: Spawn and Wait Pattern
+### ⏸️ CRITICAL: Execute and Wait Pattern
 
-**After spawning background agents:**
+**After executing background agents:**
 
-1. **TELL USER** - "I've spawned X agents working in parallel on: [list tasks]"
-2. **STOP** - Do not continue with more tool calls
-3. **WAIT** - Let the background agents complete their work
-4. **RESPOND** - When agents return results, review and synthesize
+1. **TELL USER** - "🚀 3エージェントを並列実行中: [タスクリスト]"
+2. **STOP** - 追加のツール呼び出しをしない
+3. **WAIT** - バックグラウンドエージェントの完了を待つ
+4. **RESPOND** - ログファイルから結果を確認し、統合
 
-**Example response after spawning:**
+**通知例:**
 ```
-I've launched 5 concurrent agents to work on this:
-- 🔍 Researcher: Analyzing requirements and codebase
-- 🏗️ Architect: Designing the implementation approach
-- 💻 Coder: Implementing the solution
-- 🧪 Tester: Writing tests
-- 👀 Reviewer: Code review and security check
+🚀 3エージェントを並列実行中:
+- 💻 Codex: 実装タスク
+- 🔄 iFlow: プロセス・振り分け
+- 🔍 Gemini: 情報収集
 
-They're working in parallel. I'll synthesize their results when they complete.
+並列実行中 - 完了時に結果を統合します。
 ```
 
 ### 🚫 DO NOT:
-- Continuously check swarm status
-- Poll TaskOutput repeatedly
-- Add more tool calls after spawning
-- Ask "should I check on the agents?"
+- 継続的にスワームステータスをチェック
+- 繰り返しログをポーリング
+- 実行後に追加のツール呼び出し
+- "エージェントをチェックしますか?"と尋ねる
 
 ### ✅ DO:
-- Spawn all agents in ONE message
-- Tell user what's happening
-- Wait for agent results to arrive
-- Synthesize results when they return
+- 1つのBashブロックで全エージェントを実行
+- ユーザーに状況を通知
+- ログファイルから結果が到着するのを待つ
+- 結果が到着したら統合
 
 ## 🧠 AUTO-LEARNING PROTOCOL
 
@@ -200,13 +173,13 @@ Bash("npx @claude-flow/cli@latest hooks worker dispatch --trigger optimize")
 1. ALL operations MUST be concurrent/parallel in a single message
 2. **NEVER save working files, text/mds and tests to the root folder**
 3. ALWAYS organize files in appropriate subdirectories
-4. **USE CLAUDE CODE'S TASK TOOL** for spawning agents concurrently, not just MCP
+4. **USE CLI AGENTS** (codex, iflow, gemini) via Bash for parallel execution
 
 ### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
 
 **MANDATORY PATTERNS:**
 - **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
-- **Task tool (Claude Code)**: ALWAYS spawn ALL agents in ONE message with full instructions
+- **CLI Agent Execution**: ALWAYS execute ALL agents in ONE Bash block with background `&`
 - **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
 - **Bash commands**: ALWAYS batch ALL terminal operations in ONE message
 - **Memory operations**: ALWAYS batch ALL memory store/retrieve in ONE message
@@ -571,17 +544,21 @@ npx @claude-flow/cli@latest doctor --fix
 ## 🎯 Claude Code vs CLI Tools
 
 ### Claude Code Handles ALL EXECUTION:
-- **Task tool**: Spawn and run agents concurrently
-- File operations (Read, Write, Edit, MultiEdit, Glob, Grep)
+- **File operations**: Read, Write, Edit, MultiEdit, Glob, Grep
 - Code generation and programming
 - Bash commands and system operations
 - TodoWrite and task management
 - Git operations
+- Log file reading and result synthesis
+
+### CLI Agents Handle Team Execution (via Bash):
+- **Codex**: `codex exec "task"` - 実装・設計担当
+- **iFlow**: `iflow -p "task"` - プロセス・振り分け担当
+- **Gemini**: `gemini "query"` - 情報収集・外部調査担当
 
 ### CLI Tools Handle Coordination (via Bash):
 - **Swarm init**: `npx @claude-flow/cli@latest swarm init --topology <type>`
 - **Swarm status**: `npx @claude-flow/cli@latest swarm status`
-- **Agent spawn**: `npx @claude-flow/cli@latest agent spawn -t <type> --name <name>`
 - **Memory store**: `npx @claude-flow/cli@latest memory store --key "mykey" --value "myvalue" --namespace patterns`
 - **Memory search**: `npx @claude-flow/cli@latest memory search --query "search terms"`
 - **Memory list**: `npx @claude-flow/cli@latest memory list --namespace patterns`
@@ -626,7 +603,7 @@ npx @claude-flow/cli@latest memory retrieve --key "pattern-auth" --namespace pat
 npx @claude-flow/cli@latest memory init --force --verbose
 ```
 
-**KEY**: CLI coordinates the strategy via Bash, Claude Code's Task tool executes with real agents.
+**KEY**: CLI agents (codex, iflow, gemini) execute tasks via Bash in parallel, Claude Code reads results from log files and synthesizes.
 
 ## Support
 
@@ -645,188 +622,334 @@ NEVER proactively create documentation files (*.md) or README files. Only create
 Never save working files, text/mds and tests to the root folder.
 
 ## 🚨 SWARM EXECUTION RULES (CRITICAL)
-1. **SPAWN IN BACKGROUND**: Use `run_in_background: true` for all agent Task calls
-2. **SPAWN ALL AT ONCE**: Put ALL agent Task calls in ONE message for parallel execution
-3. **TELL USER**: After spawning, list what each agent is doing (use emojis for clarity)
-4. **STOP AND WAIT**: After spawning, STOP - do NOT add more tool calls or check status
-5. **NO POLLING**: Never poll TaskOutput or check swarm status - trust agents to return
-6. **SYNTHESIZE**: When agent results arrive, review ALL results before proceeding
-7. **NO CONFIRMATION**: Don't ask "should I check?" - just wait for results
 
-Example spawn message:
+### 📋 CLIベースの並列実行ルール
+
+1. **SPAWN IN BACKGROUND**: Bashでバックグラウンド実行（`&`）を使用
+2. **SPAWN ALL AT ONCE**: 1つのBashブロックで全CLIコマンドを同時実行
+3. **LOG OUTPUT**: 各エージェントの出力を `.sprint/outputs/` にリダイレクト
+4. **TELL USER**: 実行後、各エージェントの作業内容を通知（絵文字使用）
+5. **STOP AND WAIT**: 実行後、STOP - 追加のツール呼び出しやステータスチェックをしない
+6. **READ LOGS**: 結果はログファイルから取得 - `.sprint/outputs/*.log`
+7. **SYNTHESIZE**: 全ログを確認してから統合・進行
+8. **NO CONFIRMATION**: "確認しますか？"と聞かずに結果を待つ
+
+### 🔄 実行パターン
+
+```bash
+# ===== 1つのBashブロックで全エージェントを並列実行 =====
+mkdir -p .sprint/outputs
+
+# 各エージェントを非対話モードでバックグラウンド実行
+codex exec "タスク内容" > .sprint/outputs/codex.log 2>&1 &
+iflow -p "タスク内容" > .sprint/outputs/iflow.log 2>&1 &
+gemini "タスク内容" > .sprint/outputs/gemini.log 2>&1 &
+
+# 通知メッセージ例:
+echo "🚀 3エージェントを並列実行中:
+- 💻 Codex: [タスク]
+- 🔄 iFlow: [タスク]
+- 🔍 Gemini: [タスク]
+並列実行中 - 完了時に結果を統合します。"
 ```
-"I've launched 4 agents in background:
-- 🔍 Researcher: [task]
-- 💻 Coder: [task]
-- 🧪 Tester: [task]
-- 👀 Reviewer: [task]
-Working in parallel - I'll synthesize when they complete."
+
+### 📂 ログファイルの読み取り
+
+```bash
+# 実行完了後、ログを確認
+cat .sprint/outputs/codex.log
+cat .sprint/outputs/iflow.log
+cat .sprint/outputs/gemini.log
+
+# または全ログを統合
+for log in .sprint/outputs/*.log; do
+    echo "=== $(basename $log .log) ==="
+    cat "$log"
+    echo ""
+done
 ```
 
 ---
 
-## 🤝 汎用共同作業フレームワーク（Multi-Agent Collaboration）
+## 🤝 アジャイル型チーム共同作業フレームワーク（Agile Team Collaboration）
 
-**あらゆる作業種類に適用可能な並列エージェント協調パターン**
+**イテレーティブな開発プロセスによる並列エージェント協調パターン**
 
 ---
 
-### 📋 フレームワーク概要
+### 👥 チームメンバー定義（最大6名）
+
+| 名前 | レベル | 特徴 | 役割 | 話し合いへの参加 |
+|------|--------|------|------|------------------|
+| **ClaudeCode** | 中上級者/統率 | コマンド・統率 | プロダクトオーナー/スクラムマスター | 必須 |
+| **Codex** | 中上級者 | 作業能力高 | 実装リード・設計 | ✅ 有意義 |
+| **iFlow** | 中級者 | 作業能力高 | プロセス・CI/CD・振り分け | ✅ 有意義 |
+| **Gemini** | 中級者 | **不安定**、WEB検索・情報獲得が得意 | 情報収集・ドキュメント・外部リサーチ | ✅ 有意義（計画時） |
+| **SubAgent1** | 可変 | タスク依存 | 研究者/テスター等 | 随時 |
+| **SubAgent2** | 可変 | タスク依存 | レビュアー/監査等 | 随時 |
+
+> **注意**: Geminiは不安定なため、実行フェーズではバックアッププランを用意し、優先度の低いタスクに割り当てる。
+
+---
+
+### 🚀 エージェント起動方法（CLI）
+
+各エージェントは新しいShellでCLIコマンドを実行して起動します。
+
+| エージェント | CLIコマンド | 起動方法 |
+|------------|------------|----------|
+| **Codex** | `codex` | 対話的CLIを起動 |
+| **iFlow** | `iflow` | 対話的CLIを起動 |
+| **Gemini** | `gemini` | 対話的CLIを起動 |
+
+#### 基本的な使い方
+
+```bash
+# 新しいShellで各エージェントを起動
+codex      # Codex（コーディング担当）
+iflow      # iFlow（プロセス担当）
+gemini     # Gemini（情報収集担当）
+```
+
+#### 非対話モード（プロンプトを直接指定）
+
+```bash
+# Codex: プロンプトを指定して実行
+codex exec "実装してほしい内容"
+
+# iFlow: -p でプロンプトを指定
+iflow -p "プロセス改善の提案"
+
+# Gemini: 位置引数でクエリを指定
+gemini "WEB検索してほしい内容"
+```
+
+#### オプション例
+
+```bash
+# モデル指定
+iflow -m sonnet "タスク"
+
+# 対話モードで継続
+gemini -i "初期プロンプト"
+
+# YOLOモード（自動承認）
+codex -y "タスク"
+```
+
+---
+
+### 🔄 アジャイルスプリントサイクル
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  汎用共同作業フレームワーク                                         │
+│  アジャイルスプリントサイクル                                     │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  1. 事前準備    → 作業内容の把握・タスク分解                        │
-│  2. ブランチ作成  → Gitワークツリーで分離                          │
-│  3. エージェント配置 → タスクタイプに応じて並列スパーン              │
-│  4. 実行監視     → 進捗通知・結果待機                              │
-│  5. 統合レビュー  → 結果の統合・検証                               │
-│  6. 記録・後始末  → 記憶保存・ワークツリー削除                      │
+│  ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐         │
+│  │  計画    │ → │  実行    │ → │  レビュー  │ → │  レトロ   │         │
+│  │Planning │   │Execution│   │ Review  │   │  Retro  │         │
+│  └─────────┘   └─────────┘   └─────────┘   └─────────┘         │
+│       ↓             ↓              ↓             ↓             │
+│   話し合い      並列作業       成果確認      プロセス改善         │
+│   タスク分解    (6名まで)      受け入れ      次回改善             │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 🎯 タスクタイプ別 エージェント構成
+### 📋 フェーズ詳細
 
-| タスクタイプ | 推奨エージェント | subagent_type | 役割 |
-|------------|----------------|---------------|------|
-| **レビュー** | Gemini + Codex + iFlow | researcher + system-architect + planner | コード品質・設計・プロセス |
-| **機能開発** | Architect + Coder + Tester | system-architect + coder + tester | 設計・実装・テスト |
-| **バグ修正** | Researcher + Coder + Reviewer | researcher + coder + reviewer | 原因究明・修正・レビュー |
-| **リファクタ** | Architect + Coder + Reviewer | system-architect + coder + reviewer | 設計改善・実装・検証 |
-| **パフォーマンス** | PerfEng + Coder | performance-engineer + coder | ボトルネック解析・改善 |
-| **セキュリティ** | SecArch + Auditor | security-architect + security-auditor | 脆弱性診断・修正 |
-| **ドキュメント** | Researcher + Docs | researcher + api-docs | 情報収集・文書作成 |
-| **デバッグ** | Debugger + Coder | debugger + coder | 問題特定・修正 |
+#### フェーズ1: スプリント計画（Planning）
 
----
-
-### 📝 ステップバイステップ
-
-#### ステップ1: 事前準備
-
-**1.1 タスクの理解と分解**
-```
-ユーザー指示の分析:
-- 何を達成するのか？（ゴール）
-- どの範囲を対象とするか？（スコープ）
-- 制約条件は？（優先度・期限など）
-```
-
-**1.2 必要なエージェント選定**
-```javascript
-// タスクタイプに応じてエージェントを選定
-const agents = selectAgents({
-  taskType: "review" | "feature" | "bugfix" | "refactor" | "performance" | "security",
-  complexity: "simple" | "medium" | "complex",  // 複雑度でエージェント数調整
-  priority: "low" | "normal" | "high" | "critical"
-});
-```
-
-#### ステップ2: ブランチ作成（分離）
+**目的**: チーム全員で話し合い、タスクを明確化する
 
 ```bash
-# 現在の変更をコミット
-git add -A
-git commit -m "feat: 作業前の状態保存"
+# 1. 記憶から過去のパターンを検索
+Bash("npx @claude-flow/cli@latest memory search --query '[task type]' --namespace patterns")
 
-# ワークツリー用ブランチを作成
-BRANCH_NAME="<task-type>-YYYY-MM-DD"
-WORKTREE_PATH="../.zcf/ProjectName-${BRANCH_NAME}"
-git worktree add -b ${BRANCH_NAME} ${WORKTREE_PATH} main
+# 2. ユーザー指示の分析
+#    - 何を達成するのか？（ゴール）
+#    - どの範囲を対象とするか？（スコープ）
+#    - 受け入れ基準は？（Definition of Done）
 ```
 
-**命名規則:**
-- レビュー: `review-YYYY-MM-DD`
-- 機能開発: `feature-<name>-YYYY-MM-DD`
-- バグ修正: `bugfix-<issue>-YYYY-MM-DD`
-- リファクタ: `refactor-<module>-YYYY-MM-DD`
+**計画会議参加者**（話し合いに参加するメンバー）:
+- ✅ ClaudeCode（統率）
+- ✅ Codex（設計・実装の観点）
+- ✅ iFlow（プロセス・振り分けの観点）
+- ✅ Gemini（ドキュメント・全体把握の観点）
+- 必要に応じて SubAgent
 
-#### ステップ3: エージェント並列スパーン
+**出力**: タスク分解、担当割当、受け入れ基準
 
-**重要: 1つのメッセージで全エージェントを同時スパーン**
+---
 
-```javascript
-// パターン1: レビュー（3エージェント）
-Task({ subagent_type: "researcher",     prompt: "プロンプト", description: "説明", run_in_background: true })
-Task({ subagent_type: "system-architect", prompt: "プロンプト", description: "説明", run_in_background: true })
-Task({ subagent_type: "planner",         prompt: "プロンプト", description: "説明", run_in_background: true })
+#### フェーズ2: スプリント実行（Execution）
 
-// パターン2: 機能開発（4エージェント）
-Task({ subagent_type: "system-architect", prompt: "設計案作成", description: "設計", run_in_background: true })
-Task({ subagent_type: "coder",           prompt: "実装", description: "実装", run_in_background: true })
-Task({ subagent_type: "tester",          prompt: "テスト作成", description: "テスト", run_in_background: true })
-Task({ subagent_type: "reviewer",        prompt: "コードレビュー", description: "レビュー", run_in_background: true })
+**目的**: 並列でタスクを実行する（最大6名）
 
-// パターン3: バグ修正（3エージェント）
-Task({ subagent_type: "researcher", prompt: "原因調査", description: "調査", run_in_background: true })
-Task({ subagent_type: "coder",     prompt: "修正実装", description: "修正", run_in_background: true })
-Task({ subagent_type: "reviewer",  prompt: "レビュー", description: "検証", run_in_background: true })
+**重要**: 1つのメッセージで全エージェントを同時実行（Bash非対話モード）
+
+```bash
+# ===== 実行フェーズ =====
+# 全エージェントをBash経由で非対話的に並列実行
+# ClaudeCodeは統率として直接実行には参加せず、監視・調整を行う
+
+# 出力先ディレクトリを作成
+mkdir -p .sprint/outputs
+
+# 各エージェントを並列実行（バックグラウンド実行）
+codex exec "実装タスク: ${task}" > .sprint/outputs/codex.log 2>&1 &
+iflow -p "プロセス・振り分けタスク: ${task}" > .sprint/outputs/iflow.log 2>&1 &
+gemini "情報収集タスク: ${task}" > .sprint/outputs/gemini.log 2>&1 &
+
+# プロセスIDを保存
+jobs -p > .sprint/pids.txt
+
+# 通知: "🚀 スプリント実行中: [task]"
+# 全エージェントがバックグラウンドで並列実行中
 ```
 
-#### ステップ4: 実行監視
+**Geminiへの配慮**:
+- 不安定性を考慮し、独立したタスクを割り当てる
+- 失敗時のフォールバックを用意
+- 重要なクリティカルパスは避ける
 
-**ユーザー通知フォーマット:**
-```
-"🚀 <タスク名>を開始しました
+---
 
-📋 並列実行中のエージェント:
-- 🔍 [名前]: [担当タスク]
-- 💻 [名前]: [担当タスク]
-- 🧪 [名前]: [担当タスク]
+#### フェーズ3: スプリントレビュー（Review）
 
-並列で作業中です。完了次第、結果を統合します。"
-```
+**目的**: 成果物の確認と受け入れ基準のチェック
 
-#### ステップ5: 統合レビュー
+```bash
+# ===== レビューフェーズ =====
+# 各エージェントの出力を取得
 
-```javascript
-// 各エージェントの結果を取得
-const results = [
-  TaskOutput({ task_id: "xxx", block: false }),
-  TaskOutput({ task_id: "yyy", block: false }),
-  TaskOutput({ task_id: "zzz", block: false })
-];
+# 出力ファイルを読み込んで結果を確認
+cat .sprint/outputs/codex.log
+cat .sprint/outputs/iflow.log
+cat .sprint/outputs/gemini.log
 
-// 結果の統合と検証
-// - 矛盾の確認
-// - 足りない部分の補完
-// - 品質チェック
-```
+# または、全エージェントの結果を統合して表示
+echo "=== スプリント実行結果 ===" && \
+for log in .sprint/outputs/*.log; do
+    echo "### $(basename $log .log) ###"
+    cat "$log"
+    echo ""
+done > .sprint/summary.md
 
-#### ステップ6: 記録・後始末
-
-```javascript
-// 統合結果を記憶に保存
-writeMemory({
-  memory_file_name: "<task_type>_summary_YYYY_MM_DD",
-  content: "# タスク要約\n\n## 結果\n...\n\n## 学んだこと\n..."
-});
-
-// ワークツリー削除（完了後）
-// git worktree remove ../.zcf/ProjectName-<branch-name>
+# 統合と検証
+# - 受け入れ基準を満たしているか？
+# - 品質基準は満たしているか？
+# - 次のステップに問題ないか？
 ```
 
 ---
 
-### ⚙️ エージェント詳細定義
+#### フェーズ4: レトロスペクティブ（Retrospective）
 
-| 名称 | subagent_type | 特徴 | 適用タスク |
-|------|---------------|------|-----------|
-| **Gemini** | `researcher` | 情報収集・分析 | リサーチ、コードレビュー |
-| **Codex** | `system-architect` | 設計・アーキテクチャ | 設計、リファクタリング |
-| **iFlow** | `planner` | プロセス・ワークフロー | CI/CD、プロセス改善 |
-| **Builder** | `coder` | 実装 | コーディング |
-| **QA** | `tester` | テスト | テスト作成、検証 |
-| **Critic** | `reviewer` | レビュー | コードレビュー |
-| **Optimus** | `performance-engineer` | パフォーマンス | チューニング、最適化 |
-| **Shield** | `security-architect` | セキュリティ | セキュリティ監査 |
-| **Doc** | `api-docs` | ドキュメント | APIドキュメント作成 |
-| **Sherlock** | `debugger` | デバッグ | バグ解析 |
+**目的**: プロセス改善と学習の記録
+
+```bash
+# 成功パターンを記憶に保存
+Bash("npx @claude-flow/cli@latest memory store --namespace patterns --key '[pattern-name]' --value '[what worked]'")
+
+# レトロ項目:
+# - よくできたこと（Continue）
+# - 改善すべきこと（Improve）
+# - 新しい試み（Start）
+# - やめること（Stop）
+```
+
+---
+
+### 🎯 スプリントパターン別チーム構成
+
+| パターン | 目的 | チーム構成 | 最大数 |
+|---------|------|-----------|--------|
+| **Spike** | 技術調査・PoC | ClaudeCode + Codex + Researcher | 3 |
+| **Feature** | 機能開発 | ClaudeCode + Codex + iFlow + Tester | 4 |
+| **Feature+** | 大規模機能 | + SubAgent1 + SubAgent2 | 6 |
+| **Bugfix** | バグ修正 | Codex + Debugger + Tester | 3 |
+| **Refactor** | リファクタ | Codex + iFlow + Reviewer | 3 |
+| **Review** | コードレビュー・情報調査 | Codex + iFlow + Gemini（外部情報収集） | 3 |
+| **Full Sprint** | 完全開発サイクル | 全6名 | 6 |
+
+---
+
+### 📦 実装テンプレート
+
+#### テンプレート1: 機能開発スプリント
+
+```bash
+# ===== 計画フェーズ =====
+# ClaudeCode + Codex + iFlow + Gemini で話し合い
+# タスク分解、受け入れ基準の定義
+
+# ===== 実行フェーズ =====
+# 1つのBashブロックで全エージェントを同時実行（非対話モード）
+mkdir -p .sprint/outputs
+
+codex exec "設計と実装: ${task}" > .sprint/outputs/codex.log 2>&1 &
+iflow -p "プロセス・振り分け: ${task}" > .sprint/outputs/iflow.log 2>&1 &
+gemini "外部ドキュメント調査: ${task}" > .sprint/outputs/gemini.log 2>&1 &
+
+# 通知: "🚀 スプリント実行中: ${task}"
+# 各エージェントのログ: .sprint/outputs/{codex,iflow,gemini}.log
+```
+
+#### テンプレート2: バグ修正スプリント
+
+```bash
+# ===== 計画フェーズ =====
+# ClaudeCode + Codex + iFlow で話し合い
+
+# ===== 実行フェーズ =====
+mkdir -p .sprint/outputs
+
+codex exec "原因調査と修正: ${issue}" > .sprint/outputs/codex.log 2>&1 &
+iflow -p "プロセス改善提案: ${issue}" > .sprint/outputs/iflow.log 2>&1 &
+
+# 通知: "🐛 バグ修正スプリント実行中"
+```
+
+#### テンプレート3: コードレビュースプリント
+
+```bash
+# ===== 計画フェーズ =====
+# ClaudeCode + Codex + iFlow + Gemini で話し合い
+# レビュー範囲、基準の定義
+
+# ===== 実行フェーズ =====
+mkdir -p .sprint/outputs
+
+codex exec "品質分析と設計レビュー: ${scope}" > .sprint/outputs/codex.log 2>&1 &
+iflow -p "プロセス・振り分けレビュー: ${scope}" > .sprint/outputs/iflow.log 2>&1 &
+gemini "外部情報収集・ベストプラクティス調査: ${scope}" > .sprint/outputs/gemini.log 2>&1 &
+
+# 通知: "👀 コードレビュースプリント実行中"
+```
+
+#### テンプレート4: フルスプリント（6名）
+
+```bash
+# ===== 計画フェーズ =====
+# ClaudeCode + Codex + iFlow + Gemini + SubAgent1 + SubAgent2
+
+# ===== 実行フェーズ =====
+mkdir -p .sprint/outputs
+
+codex exec "設計と実装: ${task}" > .sprint/outputs/codex.log 2>&1 &
+iflow -p "プロセス・振り分け: ${task}" > .sprint/outputs/iflow.log 2>&1 &
+gemini "ドキュメント・外部調査: ${task}" > .sprint/outputs/gemini.log 2>&1 &
+codex exec "レビュー: ${task}" > .sprint/outputs/reviewer.log 2>&1 &
+gemini "情報収集・ベストプラクティス: ${task}" > .sprint/outputs/docs.log 2>&1 &
+codex exec "パフォーマンス検証: ${task}" > .sprint/outputs/perf.log 2>&1 &
+
+# 通知: "🚀 フルスプリント実行中（6エージェント並列）"
+```
 
 ---
 
@@ -834,83 +957,54 @@ writeMemory({
 
 | 要点 | 説明 |
 |------|------|
-| **🔄 並列実行** | 全エージェントを1メッセージで同時スパーン |
-| **🌙 バックグラウンド** | `run_in_background: true` で非同期実行 |
-| **🎭 役割分離** | 各エージェントに異なる視点・役割を割当 |
-| **🌿 分離** | ワークツリーでメインブランチを汚さない |
-| **📝 記録** | 統合結果を記憶に保存して再利用 |
-| **🧩 統合** | 結果を統合して一貫性を確認 |
-| **⏳ 待機** | ポーリングせず結果を待つ |
+| **💬 話し合い** | 計画フェーズでCodex/iFlow/Geminiと意思疎通 |
+| **🔄 並列実行** | 全エージェントを1つのBashブロックで同時実行（非対話モード） |
+| **📋 ログ管理** | `.sprint/outputs/` に各エージェントの出力を保存 |
+| **🛡️ Gemini対策** | 不安定性を考慮したタスク割当・フォールバック |
+| **📝 DoD** | 明確な受け入れ基準（Definition of Done） |
+| **🧩 レトロ** | 毎回の振り返りとプロセス改善 |
+| **⏳ 待機** | バックグラウンドプロセスが完了するのを待つ |
 
 ---
 
-### 📦 実装テンプレート
+### 📊 複雑度によるチーム規模
 
-#### テンプレート1: 機能開発
-
-```javascript
-// 1. 設計・実装・テスト・レビューを並列実行
-Task({ subagent_type: "system-architect", prompt: "設計: " + task, description: "設計", run_in_background: true })
-Task({ subagent_type: "coder",           prompt: "実装: " + task, description: "実装", run_in_background: true })
-Task({ subagent_type: "tester",          prompt: "テスト: " + task, description: "テスト", run_in_background: true })
-Task({ subagent_type: "reviewer",        prompt: "レビュー: " + task, description: "レビュー", run_in_background: true })
-
-// 通知: "🚀 機能開発を開始: [task]"
-```
-
-#### テンプレート2: バグ修正
-
-```javascript
-// 1. 原因調査・修正・検証を並列実行
-Task({ subagent_type: "debugger", prompt: "デバッグ: " + issue, description: "調査", run_in_background: true })
-Task({ subagent_type: "coder",    prompt: "修正案: " + issue, description: "修正", run_in_background: true })
-Task({ subagent_type: "tester",   prompt: "回帰テスト: " + issue, description: "テスト", run_in_background: true })
-
-// 通知: "🐛 バグ修正を開始: [issue]"
-```
-
-#### テンプレート3: リファクタリング
-
-```javascript
-// 1. 現状分析・設計・実装・レビューを並列実行
-Task({ subagent_type: "system-architect", prompt: "現状分析: " + scope, description: "分析", run_in_background: true })
-Task({ subagent_type: "system-architect", prompt: "改善設計: " + scope, description: "設計", run_in_background: true })
-Task({ subagent_type: "coder",           prompt: "リファクタ実装: " + scope, description: "実装", run_in_background: true })
-Task({ subagent_type: "reviewer",        prompt: "レビュー: " + scope, description: "レビュー", run_in_background: true })
-
-// 通知: "♻️ リファクタリングを開始: [scope]"
-```
-
----
-
-### 📊 複雑度によるエージェント数
-
-| 複雑度 | 推奨エージェント数 | 構成例 |
-|--------|------------------|--------|
-| **Simple** | 2-3 | Researcher + Coder |
-| **Medium** | 3-4 | Architect + Coder + Tester |
-| **Complex** | 4-6 | + Researcher + Reviewer + Specialist |
-| **Large** | 6-8 | Full team with coordinators |
+| 複雑度 | チーム規模 | 構成例 |
+|--------|----------|--------|
+| **Simple** | 2-3 | ClaudeCode + Codex + (必要に応じて1名) |
+| **Medium** | 3-4 | + iFlow + Tester |
+| **Complex** | 5-6 | 全メンバー参加 |
 
 ---
 
 ### 📞 ユーザーコマンド例
 
 ```
-# レビュー
-"コミットしてから、チーム全体でプロジェクトの現状をレビューしろ"
+# スプリント開始
+"チームで[機能名]のスプリントを開始して"
 
-# 機能開発
-"チームで[機能名]を実装して"
+# レビュースプリント
+"コードレビュースプリントを実行して"
 
-# バグ修正
-"チームでこのバグを調査・修正して"
+# バグ修正スプリント
+"バグ修正スプリントで[issue番号]を修正して"
 
-# リファクタ
-"チームで[モジュール]をリファクタリングして"
-
-# パフォーマンス
-"チームでパフォーマンスを改善して"
+# フルスプリント
+"フルスプリントで[大規模機能]を開発して"
 ```
+
+---
+
+### ⚠️ Gemini運用ガイドライン
+
+| 状況 | 対応 |
+|------|------|
+| **計画フェーズ** | 積極的に話し合いに参加させる |
+| **情報収集タスク** | WEB検索・外部リサーチに最適（得意分野） |
+| **実行フェーズ** | 独立した低優先度タスクを割り当てる |
+| **失敗時** | フォールバックプランを即時実行 |
+| **成功時** | 結果を活用し、記憶に保存 |
+
+> **Geminiの得意分野**: WEB検索、インターネット上の情報獲得、外部ドキュメント調査、ライブラリ・API情報の収集
 
 ---

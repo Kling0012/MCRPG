@@ -249,6 +249,33 @@ class SkillTreeRegistryTest {
         }
 
         @Test
+        @DisplayName("test: 1つのスキルが複数クラスで利用可能（マルチクラス対応）")
+        void testSkillAvailableForMultipleClasses() {
+            // 1つのスキルが複数クラスで使える設定
+            List<String> multiClasses = new ArrayList<>();
+            multiClasses.add("warrior");
+            multiClasses.add("mage");
+            multiClasses.add("rogue");
+            when(mockSkill.getAvailableClasses()).thenReturn(multiClasses);
+
+            registry.registerSkill(mockSkill);
+
+            // 全てのクラスでスキルを取得可能
+            List<Skill> warriorSkills = registry.getSkillsForClass("warrior");
+            List<Skill> mageSkills = registry.getSkillsForClass("mage");
+            List<Skill> rogueSkills = registry.getSkillsForClass("rogue");
+
+            assertEquals(1, warriorSkills.size());
+            assertEquals(1, mageSkills.size());
+            assertEquals(1, rogueSkills.size());
+
+            // 同じスキルインスタンスであることを確認
+            assertSame(mockSkill, warriorSkills.get(0));
+            assertSame(mockSkill, mageSkills.get(0));
+            assertSame(mockSkill, rogueSkills.get(0));
+        }
+
+        @Test
         @DisplayName("test: 空のリストを返す（スキル未登録）")
         void testGetSkillsForClassEmpty() {
             List<Skill> skills = registry.getSkillsForClass("warrior");

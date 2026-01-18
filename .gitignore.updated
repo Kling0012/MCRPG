@@ -1,0 +1,68 @@
+# Minecraft RPG Plugin - Updated .gitignore
+# このファイルは現在の.gitignoreを置き換えるか、内容をマージしてください
+
+# Build artifacts
+target/
+dependency-reduced-pom.xml
+build/
+out/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+.sprint/outputs/*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# AI Assistant memory (optional - uncomment if you want to ignore)
+# .swarm/memory.db
+# .serena/memories/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Java
+*.class
+hs_err_pid*
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Local configuration
+config.local.yml
+*.local.json

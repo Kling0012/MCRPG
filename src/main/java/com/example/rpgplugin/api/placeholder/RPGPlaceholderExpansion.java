@@ -63,7 +63,8 @@ public class RPGPlaceholderExpansion extends PlaceholderExpansion {
     @Override
     @NotNull
     public String getVersion() {
-        return plugin.getPluginMeta().getVersion();
+        String version = plugin.getPluginMeta().getVersion();
+        return version != null ? version : "1.0.0";
     }
 
     @Override
@@ -77,6 +78,10 @@ public class RPGPlaceholderExpansion extends PlaceholderExpansion {
             return "";
         }
 
+        if (params == null) {
+            return null;
+        }
+
         UUID uuid = player.getUniqueId();
         RPGPluginAPI api = plugin.getAPI();
 
@@ -85,9 +90,24 @@ public class RPGPlaceholderExpansion extends PlaceholderExpansion {
             return String.valueOf(api.getLevel(player));
         }
 
+        // マルチステータス（全て表示） - "stats"は "stat"のチェックより先に行う
+        if (params.equals("stats")) {
+            RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(uuid);
+            if (rpgPlayer != null) {
+                return String.format("STR:%d INT:%d SPI:%d VIT:%d DEX:%d",
+                        api.getStat(player, Stat.STRENGTH),
+                        api.getStat(player, Stat.INTELLIGENCE),
+                        api.getStat(player, Stat.SPIRIT),
+                        api.getStat(player, Stat.VITALITY),
+                        api.getStat(player, Stat.DEXTERITY)
+                );
+            }
+            return "";
+        }
+
         // ステータス関連
-        if (params.startsWith("stat_")) {
-            String statStr = params.substring(5).toUpperCase();
+        if (params.startsWith("stat")) {
+            String statStr = params.startsWith("stat_") ? params.substring(5).toUpperCase() : "";
             Stat stat = parseStat(statStr);
             if (stat != null) {
                 return String.valueOf(api.getStat(player, stat));
@@ -161,8 +181,8 @@ public class RPGPlaceholderExpansion extends PlaceholderExpansion {
 
         if (params.equals("max_mana")) {
             RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(uuid);
-            if (rpgPlayer != null && rpgPlayer.getMaxMana() > 0) {
-                return String.valueOf(rpgPlayer.getMaxMana());
+            if (rpgPlayer != null && rpgPlayer.getPlayerData().getMaxMana() > 0) {
+                return String.valueOf(rpgPlayer.getPlayerData().getMaxMana());
             }
             return "100";
         }
@@ -170,24 +190,9 @@ public class RPGPlaceholderExpansion extends PlaceholderExpansion {
         if (params.equals("mana")) {
             RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(uuid);
             if (rpgPlayer != null) {
-                return String.valueOf(rpgPlayer.getCurrentMana());
+                return String.valueOf(rpgPlayer.getPlayerData().getCurrentMana());
             }
             return "100";
-        }
-
-        // マルチステータス（全て表示）
-        if (params.equals("stats")) {
-            RPGPlayer rpgPlayer = plugin.getPlayerManager().getRPGPlayer(uuid);
-            if (rpgPlayer != null) {
-                return String.format("STR:%d INT:%d SPI:%d VIT:%d DEX:%d",
-                        api.getStat(player, Stat.STRENGTH),
-                        api.getStat(player, Stat.INTELLIGENCE),
-                        api.getStat(player, Stat.SPIRIT),
-                        api.getStat(player, Stat.VITALITY),
-                        api.getStat(player, Stat.DEXTERITY)
-                );
-            }
-            return "";
         }
 
         // 不明なリクエスト

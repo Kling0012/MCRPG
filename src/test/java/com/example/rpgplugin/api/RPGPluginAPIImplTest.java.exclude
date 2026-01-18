@@ -1,0 +1,607 @@
+package com.example.rpgplugin.api;
+
+import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.damage.DamageModifier;
+import com.example.rpgplugin.player.PlayerManager;
+import com.example.rpgplugin.player.RPGPlayer;
+import com.example.rpgplugin.player.StatsManager;
+import com.example.rpgplugin.rpgclass.ClassManager;
+import com.example.rpgplugin.rpgclass.RPGClass;
+import com.example.rpgplugin.skill.Skill;
+import com.example.rpgplugin.skill.SkillCostType;
+import com.example.rpgplugin.skill.SkillManager;
+import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
+import com.example.rpgplugin.skill.PlayerSkillData;
+import com.example.rpgplugin.stats.Stat;
+import org.bukkit.Entity;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * RPGPluginAPIImplの単体テスト
+ *
+ * <p>RPGPlugin API実装クラスの機能テスト。</p>
+ *
+ * @author RPGPlugin Team
+ * @version 1.0.0
+ */
+@DisplayName("RPGPluginAPIImpl テスト")
+@ExtendWith(MockitoExtension.class)
+class RPGPluginAPIImplTest {
+
+    @Mock
+    private RPGPlugin mockPlugin;
+
+    @Mock
+    private PlayerManager mockPlayerManager;
+
+    @Mock
+    private ClassManager mockClassManager;
+
+    @Mock
+    private SkillManager mockSkillManager;
+
+    @Mock
+    private ActiveSkillExecutor mockActiveSkillExecutor;
+
+    @Mock
+    private Player mockPlayer;
+
+    @Mock
+    private RPGPlayer mockRpgPlayer;
+
+    @Mock
+    private StatsManager mockStatsManager;
+
+    @Mock
+    private PlayerSkillData mockPlayerSkillData;
+
+    @Mock
+    private Skill mockSkill;
+
+    @Mock
+    private World mockWorld;
+
+    @Mock
+    private Entity mockEntity;
+
+    @Mock
+    private Location mockLocation;
+
+    private RPGPluginAPIImpl api;
+    private UUID testUuid;
+
+    @BeforeEach
+    void setUp() {
+        testUuid = UUID.randomUUID();
+
+        // プラグイン基本設定
+        lenient().when(mockPlugin.getPlayerManager()).thenReturn(mockPlayerManager);
+        lenient().when(mockPlugin.getClassManager()).thenReturn(mockClassManager);
+        lenient().when(mockPlugin.getSkillManager()).thenReturn(mockSkillManager);
+        lenient().when(mockPlugin.getActiveSkillExecutor()).thenReturn(mockActiveSkillExecutor);
+
+        // プレイヤー基本設定
+        lenient().when(mockPlayer.getUniqueId()).thenReturn(testUuid);
+        lenient().when(mockPlayer.getLevel()).thenReturn(10);
+        lenient().when(mockPlayer.spigot()).thenReturn(org.bukkit.entity.Player.Spigot.class.cast(mockPlayer));
+
+        // RPGPlayer基本設定
+        lenient().when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+        lenient().when(mockRpgPlayer.getClassId()).thenReturn("warrior");
+        lenient().when(mockRpgPlayer.getStatManager()).thenReturn(mockStatsManager);
+
+        // StatsManager基本設定
+        Map<Stat, Integer> stats = new HashMap<>();
+        stats.put(Stat.STRENGTH, 15);
+        stats.put(Stat.INTELLIGENCE, 10);
+        stats.put(Stat.VITALITY, 12);
+        stats.put(Stat.SPIRIT, 8);
+        stats.put(Stat.DEXTERITY, 11);
+        lenient().when(mockStatsManager.getAllFinalStats()).thenReturn(stats);
+
+        // SkillManager基本設定
+        lenient().when(mockSkillManager.getPlayerSkillData(mockPlayer)).thenReturn(mockPlayerSkillData);
+        lenient().when(mockSkillManager.getSkillLevel(mockPlayer, "fireball")).thenReturn(1);
+        lenient().when(mockSkillManager.getSkill("fireball")).thenReturn(mockSkill);
+        lenient().when(mockSkillManager.hasSkill(mockPlayer, "fireball")).thenReturn(true);
+        lenient().when(mockSkillManager.checkCooldown(mockPlayer, "fireball")).thenReturn(true);
+
+        // PlayerSkillData基本設定
+        lenient().when(mockPlayerSkillData.getSkillPoints()).thenReturn(5);
+        lenient().when(mockPlayerSkillData.getAcquiredSkills()).thenReturn(Map.of("fireball", 1));
+
+        // Skill基本設定
+        lenient().when(mockSkill.getId()).thenReturn("fireball");
+
+        // ClassManager基本設定
+        RPGClass testClass = new RPGClass.Builder("warrior")
+                .setDisplayName("ウォーリアー")
+                .build();
+        lenient().when(mockClassManager.getClass("warrior")).thenReturn(Optional.of(testClass));
+        lenient().when(mockClassManager.setPlayerClass(mockPlayer, "warrior")).thenReturn(true);
+        lenient().when(mockClassManager.changeClass(mockPlayer, "warrior", 0)).thenReturn(true);
+        lenient().when(mockClassManager.canUpgradeClass(eq(mockPlayer), anyString()))
+                .thenReturn(new com.example.rpgplugin.rpgclass.requirements.RequirementResult.Success());
+
+        // World基本設定
+        lenient().when(mockPlayer.getWorld()).thenReturn(mockWorld);
+        lenient().when(mockPlayer.getLocation()).thenReturn(mockLocation);
+        lenient().when(mockWorld.getNearbyEntities(any(), anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(Collections.emptyList());
+
+        api = new RPGPluginAPIImpl(mockPlugin);
+    }
+
+    @AfterEach
+    void tearDown() {
+        // クリーンアップ
+    }
+
+    // ==================== getRPGPlayer テスト ====================
+
+    @Test
+    @DisplayName("getRPGPlayer: 正常に取得")
+    void testGetRPGPlayer_Success() {
+        Optional<RPGPlayer> result = api.getRPGPlayer(mockPlayer);
+
+        assertTrue(result.isPresent());
+        assertEquals(mockRpgPlayer, result.get());
+    }
+
+    @Test
+    @DisplayName("getRPGPlayer: nullプレイヤーはempty")
+    void testGetRPGPlayer_NullPlayer() {
+        Optional<RPGPlayer> result = api.getRPGPlayer(null);
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    @DisplayName("getRPGPlayer: 存在しないプレイヤーはempty")
+    void testGetRPGPlayer_NotFound() {
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(null);
+
+        Optional<RPGPlayer> result = api.getRPGPlayer(mockPlayer);
+
+        assertFalse(result.isPresent());
+    }
+
+    // ==================== getLevel/setLevel テスト ====================
+
+    @Test
+    @DisplayName("getLevel: プレイヤーレベルを取得")
+    void testGetLevel_Success() {
+        assertEquals(10, api.getLevel(mockPlayer));
+    }
+
+    @Test
+    @DisplayName("getLevel: nullプレイヤーは0")
+    void testGetLevel_NullPlayer() {
+        assertEquals(0, api.getLevel(null));
+    }
+
+    @Test
+    @DisplayName("setLevel: レベルを設定")
+    void testSetLevel_Success() {
+        api.setLevel(mockPlayer, 20);
+
+        verify(mockPlayer).setLevel(20);
+    }
+
+    @Test
+    @DisplayName("setLevel: nullプレイヤーでは何もしない")
+    void testSetLevel_NullPlayer() {
+        api.setLevel(null, 20);
+
+        verify(mockPlayer, never()).setLevel(anyInt());
+    }
+
+    // ==================== getStat テスト ====================
+
+    @Test
+    @DisplayName("getStat: 正常にステータスを取得")
+    void testGetStat_Success() {
+        when(mockRpgPlayer.getFinalStat(Stat.STRENGTH)).thenReturn(15);
+
+        int result = api.getStat(mockPlayer, Stat.STRENGTH);
+
+        assertEquals(15, result);
+    }
+
+    @Test
+    @DisplayName("getStat: nullプレイヤーは0")
+    void testGetStat_NullPlayer() {
+        assertEquals(0, api.getStat(null, Stat.STRENGTH));
+    }
+
+    @Test
+    @DisplayName("getStat: nullステータスは0")
+    void testGetStat_NullStat() {
+        assertEquals(0, api.getStat(mockPlayer, null));
+    }
+
+    // ==================== getClassId テスト ====================
+
+    @Test
+    @DisplayName("getClassId: 正常にクラスIDを取得")
+    void testGetClassId_Success() {
+        assertEquals("warrior", api.getClassId(mockPlayer));
+    }
+
+    @Test
+    @DisplayName("getClassId: nullプレイヤーはnull")
+    void testGetClassId_NullPlayer() {
+        assertNull(api.getClassId(null));
+    }
+
+    // ==================== setStat テスト ====================
+
+    @Test
+    @DisplayName("setStat: 正常にステータスを設定")
+    void testSetStat_Success() {
+        api.setStat(mockPlayer, Stat.STRENGTH, 20);
+
+        verify(mockRpgPlayer).setBaseStat(Stat.STRENGTH, 20);
+    }
+
+    @Test
+    @DisplayName("setStat: nullプレイヤーでは何もしない")
+    void testSetStat_NullPlayer() {
+        api.setStat(null, Stat.STRENGTH, 20);
+
+        verify(mockRpgPlayer, never()).setBaseStat(any(), anyInt());
+    }
+
+    // ==================== addStatPoints テスト ====================
+
+    @Test
+    @DisplayName("addStatPoints: 正常にポイントを追加")
+    void testAddStatPoints_Success() {
+        api.addStatPoints(mockPlayer, 5);
+
+        verify(mockRpgPlayer).addAvailablePoints(5);
+    }
+
+    @Test
+    @DisplayName("addStatPoints: 0以下のポイントでは何もしない")
+    void testAddStatPoints_ZeroOrNegative() {
+        api.addStatPoints(mockPlayer, 0);
+        api.addStatPoints(mockPlayer, -5);
+
+        verify(mockRpgPlayer, never()).addAvailablePoints(anyInt());
+    }
+
+    // ==================== getSkillPoints/setSkillPoints テスト ====================
+
+    @Test
+    @DisplayName("getSkillPoints: 正常に取得")
+    void testGetSkillPoints_Success() {
+        assertEquals(5, api.getSkillPoints(mockPlayer));
+    }
+
+    @Test
+    @DisplayName("getSkillPoints: nullプレイヤーは0")
+    void testGetSkillPoints_NullPlayer() {
+        assertEquals(0, api.getSkillPoints(null));
+    }
+
+    @Test
+    @DisplayName("setSkillPoints: 正常に設定")
+    void testSetSkillPoints_Success() {
+        api.setSkillPoints(mockPlayer, 10);
+
+        verify(mockPlayerSkillData).setSkillPoints(10);
+    }
+
+    // ==================== getAttrPoints/setAttrPoints テスト ====================
+
+    @Test
+    @DisplayName("getAttrPoints: 正常に取得")
+    void testGetAttrPoints_Success() {
+        when(mockRpgPlayer.getAvailablePoints()).thenReturn(3);
+
+        assertEquals(3, api.getAttrPoints(mockPlayer));
+    }
+
+    @Test
+    @DisplayName("setAttrPoints: 正常に設定")
+    void testSetAttrPoints_Success() {
+        api.setAttrPoints(mockPlayer, 5);
+
+        verify(mockRpgPlayer).setAvailablePoints(5);
+    }
+
+    // ==================== setClass テスト ====================
+
+    @Test
+    @DisplayName("setClass: 正常に設定")
+    void testSetClass_Success() {
+        assertTrue(api.setClass(mockPlayer, "warrior"));
+        verify(mockClassManager).setPlayerClass(mockPlayer, "warrior");
+    }
+
+    @Test
+    @DisplayName("setClass: nullプレイヤーは失敗")
+    void testSetClass_NullPlayer() {
+        assertFalse(api.setClass(null, "warrior"));
+    }
+
+    @Test
+    @DisplayName("setClass: 空クラスIDは失敗")
+    void testSetClass_EmptyClassId() {
+        assertFalse(api.setClass(mockPlayer, ""));
+    }
+
+    // ==================== changeClass テスト ====================
+
+    @Test
+    @DisplayName("changeClass: 正常に変更")
+    void testChangeClass_Success() {
+        assertTrue(api.changeClass(mockPlayer, "warrior"));
+        verify(mockClassManager).changeClass(mockPlayer, "warrior", 0);
+    }
+
+    @Test
+    @DisplayName("changeClass: レベル指定で変更")
+    void testChangeClass_WithLevel() {
+        assertTrue(api.changeClass(mockPlayer, "warrior", 20));
+        verify(mockClassManager).changeClass(mockPlayer, "warrior", 20);
+    }
+
+    // ==================== hasSkill テスト ====================
+
+    @Test
+    @DisplayName("hasSkill: 習得済みはtrue")
+    void testHasSkill_Acquired() {
+        assertTrue(api.hasSkill(mockPlayer, "fireball"));
+    }
+
+    @Test
+    @DisplayName("hasSkill: 未習得はfalse")
+    void testHasSkill_NotAcquired() {
+        when(mockSkillManager.hasSkill(mockPlayer, "icicle")).thenReturn(false);
+
+        assertFalse(api.hasSkill(mockPlayer, "icicle"));
+    }
+
+    @Test
+    @DisplayName("hasSkill: nullスキルIDはfalse")
+    void testHasSkill_NullSkillId() {
+        assertFalse(api.hasSkill(mockPlayer, null));
+    }
+
+    // ==================== unlockSkill テスト ====================
+
+    @Test
+    @DisplayName("unlockSkill: 正常に習得")
+    void testUnlockSkill_Success() {
+        when(mockSkillManager.acquireSkill(mockPlayer, "fireball", 1)).thenReturn(true);
+
+        assertTrue(api.unlockSkill(mockPlayer, "fireball"));
+    }
+
+    @Test
+    @DisplayName("unlockSkill: nullプレイヤーは失敗")
+    void testUnlockSkill_NullPlayer() {
+        assertFalse(api.unlockSkill(null, "fireball"));
+    }
+
+    // ==================== castSkill テスト ====================
+
+    @Test
+    @DisplayName("castSkill: 正常に発動")
+    void testCastSkill_Success() {
+        when(mockActiveSkillExecutor.execute(mockPlayer, mockSkill, 1)).thenReturn(true);
+
+        assertTrue(api.castSkill(mockPlayer, "fireball"));
+    }
+
+    @Test
+    @DisplayName("castSkill: 未習得スキルは失敗")
+    void testCastSkill_NotAcquired() {
+        when(mockSkillManager.hasSkill(mockPlayer, "icicle")).thenReturn(false);
+
+        assertFalse(api.castSkill(mockPlayer, "icicle"));
+        verify(mockPlayer).sendMessage(contains("習得していません"));
+    }
+
+    @Test
+    @DisplayName("castSkill: クールダウン中は失敗")
+    void testCastSkill_OnCooldown() {
+        when(mockSkillManager.checkCooldown(mockPlayer, "fireball")).thenReturn(false);
+
+        assertFalse(api.castSkill(mockPlayer, "fireball"));
+    }
+
+    // ==================== getSkillLevel テスト ====================
+
+    @Test
+    @DisplayName("getSkillLevel: 正常に取得")
+    void testGetSkillLevel_Success() {
+        assertEquals(1, api.getSkillLevel(mockPlayer, "fireball"));
+    }
+
+    @Test
+    @DisplayName("getSkillLevel: nullプレイヤーは0")
+    void testGetSkillLevel_NullPlayer() {
+        assertEquals(0, api.getSkillLevel(null, "fireball"));
+    }
+
+    // ==================== getAcquiredSkills テスト ====================
+
+    @Test
+    @DisplayName("getAcquiredSkills: 正常に取得")
+    void testGetAcquiredSkills_Success() {
+        Map<String, Integer> result = api.getAcquiredSkills(mockPlayer);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertTrue(result.containsKey("fireball"));
+    }
+
+    @Test
+    @DisplayName("getAcquiredSkills: nullプレイヤーは空マップ")
+    void testGetAcquiredSkills_NullPlayer() {
+        Map<String, Integer> result = api.getAcquiredSkills(null);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    // ==================== getSkillsForClass テスト ====================
+
+    @Test
+    @DisplayName("getSkillsForClass: 正常に取得")
+    void testGetSkillsForClass_Success() {
+        when(mockSkillManager.getSkillsForClass("warrior"))
+                .thenReturn(Arrays.asList(mockSkill));
+
+        List<Skill> result = api.getSkillsForClass("warrior");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    @DisplayName("getSkillsForClass: nullクラスIDは空リスト")
+    void testGetSkillsForClass_NullClassId() {
+        List<Skill> result = api.getSkillsForClass(null);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    // ==================== calculateDamage テスト ====================
+
+    @Test
+    @DisplayName("calculateDamage: 正常に計算")
+    void testCalculateDamage_Success() {
+        double result = api.calculateDamage(mockPlayer, mockEntity);
+
+        assertTrue(result > 0);
+    }
+
+    @Test
+    @DisplayName("calculateDamage: nullアタッカーは0")
+    void testCalculateDamage_NullAttacker() {
+        assertEquals(0.0, api.calculateDamage(null, mockEntity));
+    }
+
+    @Test
+    @DisplayName("calculateDamage: nullターゲットは0")
+    void testCalculateDamage_NullTarget() {
+        assertEquals(0.0, api.calculateDamage(mockPlayer, null));
+    }
+
+    @Test
+    @DisplayName("calculateDamage: プレイヤーが存在しない場合はデフォルトダメージ")
+    void testCalculateDamage_NoRPGPlayer() {
+        when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(null);
+
+        assertEquals(1.0, api.calculateDamage(mockPlayer, mockEntity));
+    }
+
+    // ==================== applyStatModifiers テスト ====================
+
+    @Test
+    @DisplayName("applyStatModifiers: STRENGTHで物理ダメージ計算")
+    void testApplyStatModifiers_Strength() {
+        double result = api.applyStatModifiers(mockPlayer, 10.0, Stat.STRENGTH);
+
+        assertTrue(result >= 10.0);
+    }
+
+    @Test
+    @DisplayName("applyStatModifiers: INTELLIGENCEで魔法ダメージ計算")
+    void testApplyStatModifiers_Intelligence() {
+        double result = api.applyStatModifiers(mockPlayer, 10.0, Stat.INTELLIGENCE);
+
+        assertTrue(result >= 10.0);
+    }
+
+    // ==================== upgradeClassRank テスト ====================
+
+    @Test
+    @DisplayName("upgradeClassRank: 正常にランクアップ")
+    void testUpgradeClassRank_Success() {
+        RPGClass currentClass = new RPGClass.Builder("warrior")
+                .setNextRankClassId(Optional.of("warrior_rank2"))
+                .build();
+        when(mockClassManager.getClass("warrior")).thenReturn(Optional.of(currentClass));
+
+        assertTrue(api.upgradeClassRank(mockPlayer));
+    }
+
+    @Test
+    @DisplayName("upgradeClassRank: nullプレイヤーは失敗")
+    void testUpgradeClassRank_NullPlayer() {
+        assertFalse(api.upgradeClassRank(null));
+    }
+
+    // ==================== canUpgradeClass テスト ====================
+
+    @Test
+    @DisplayName("canUpgradeClass: 正常にチェック")
+    void testCanUpgradeClass_Success() {
+        RPGClass currentClass = new RPGClass.Builder("warrior")
+                .setNextRankClassId(Optional.of("warrior_rank2"))
+                .build();
+        when(mockClassManager.getClass("warrior")).thenReturn(Optional.of(currentClass));
+
+        assertTrue(api.canUpgradeClass(mockPlayer));
+    }
+
+    // ==================== getEntitiesInArea テスト ====================
+
+    @Test
+    @DisplayName("getEntitiesInArea: 円形範囲で取得")
+    void testGetEntitiesInArea_Circle() {
+        Collection<Entity> result = api.getEntitiesInArea(mockPlayer, "circle", 5.0);
+
+        assertNotNull(result);
+        verify(mockWorld).getNearbyEntities(mockLocation, 5.0, 5.0, 5.0);
+    }
+
+    @Test
+    @DisplayName("getEntitiesInArea: 立方体範囲で取得")
+    void testGetEntitiesInArea_Cube() {
+        Collection<Entity> result = api.getEntitiesInArea(mockPlayer, "cube", 5.0, 3.0, 5.0);
+
+        assertNotNull(result);
+        verify(mockWorld).getNearbyEntities(mockLocation, 5.0, 3.0, 5.0);
+    }
+
+    @Test
+    @DisplayName("getEntitiesInArea: 水平範囲で取得")
+    void testGetEntitiesInArea_Horizontal() {
+        Collection<Entity> result = api.getEntitiesInArea(mockPlayer, "horizontal", 5.0);
+
+        assertNotNull(result);
+        verify(mockWorld).getNearbyEntities(mockLocation, 5.0, 0.0, 5.0);
+    }
+
+    @Test
+    @DisplayName("getEntitiesInArea: nullプレイヤーは空リスト")
+    void testGetEntitiesInArea_NullPlayer() {
+        Collection<Entity> result = api.getEntitiesInArea(null, "circle", 5.0);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+}

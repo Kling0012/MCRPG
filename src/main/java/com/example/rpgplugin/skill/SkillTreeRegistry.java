@@ -28,8 +28,8 @@ public class SkillTreeRegistry {
     /** クラスIDごとのスキルツリーキャッシュ */
     private final Map<String, SkillTree> treeCache = new ConcurrentHashMap<>();
 
-    /** スキルIDから所属クラスのマッピング */
-    private final Map<String, String> skillToClassMap = new ConcurrentHashMap<>();
+    /** スキルIDから所属クラスのマッピング（マルチクラス対応） */
+    private final Map<String, Set<String>> skillToClassMap = new ConcurrentHashMap<>();
 
     /** 登録済みスキル（全スキル） */
     private final Map<String, Skill> registeredSkills = new ConcurrentHashMap<>();
@@ -82,9 +82,10 @@ public class SkillTreeRegistry {
             targetClasses = new HashSet<>(availableClasses);
         }
 
-        // 各クラスのスキルとしてマッピング
+        // 各クラスのスキルとしてマッピング（マルチクラス対応）
+        Set<String> classSet = new HashSet<>(targetClasses);
+        skillToClassMap.put(skillId, classSet);
         for (String classId : targetClasses) {
-            skillToClassMap.put(skillId, classId);
             invalidateTree(classId);
         }
 
@@ -173,14 +174,16 @@ public class SkillTreeRegistry {
     }
 
     /**
-     * スキルの所属クラスのツリーを再構築します
+     * スキルの所属クラスのツリーを再構築します（マルチクラス対応）
      *
      * @param skillId スキルID
      */
     private void rebuildTreeForSkill(String skillId) {
-        String classId = skillToClassMap.get(skillId);
-        if (classId != null) {
-            invalidateTree(classId);
+        Set<String> classIds = skillToClassMap.get(skillId);
+        if (classIds != null) {
+            for (String classId : classIds) {
+                invalidateTree(classId);
+            }
         }
     }
 

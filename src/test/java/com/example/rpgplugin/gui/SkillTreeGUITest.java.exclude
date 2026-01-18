@@ -1,0 +1,337 @@
+package com.example.rpgplugin.gui;
+
+import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.player.PlayerManager;
+import com.example.rpgplugin.player.RPGPlayer;
+import com.example.rpgplugin.skill.Skill;
+import com.example.rpgplugin.skill.SkillManager;
+import com.example.rpgplugin.skill.SkillNode;
+import com.example.rpgplugin.skill.SkillTree;
+import com.example.rpgplugin.skill.SkillTreeRegistry;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * SkillTreeGUIの単体テスト
+ *
+ * <p>スキルツリーGUIの機能テスト。</p>
+ *
+ * @author RPGPlugin Team
+ * @version 1.0.0
+ */
+@DisplayName("SkillTreeGUI テスト")
+@ExtendWith(MockitoExtension.class)
+class SkillTreeGUITest {
+
+    @Mock
+    private RPGPlugin mockPlugin;
+
+    @Mock
+    private Player mockPlayer;
+
+    @Mock
+    private PlayerManager mockPlayerManager;
+
+    @Mock
+    private SkillManager mockSkillManager;
+
+    @Mock
+    private SkillTree mockSkillTree;
+
+    @Mock
+    private SkillTreeRegistry mockSkillTreeRegistry;
+
+    @Mock
+    private Inventory mockInventory;
+
+    @Mock
+    private RPGPlayer mockRpgPlayer;
+
+    @Mock
+    private Skill mockSkill;
+
+    @Mock
+    private SkillNode mockSkillNode;
+
+    private MockedStatic<Bukkit> mockedBukkit;
+    private UUID testUuid;
+
+    @BeforeEach
+    void setUp() {
+        testUuid = UUID.randomUUID();
+
+        // Bukkitのモック設定
+        mockedBukkit = mockStatic(Bukkit.class);
+
+        // Serverモックの設定
+        org.bukkit.Server mockServer = mock(org.bukkit.Server.class);
+        lenient().when(mockServer.createInventory(any(), anyInt(), any(Component.class))).thenReturn(mockInventory);
+
+        // プラグイン基本設定
+        lenient().when(mockPlugin.getServer()).thenReturn(mockServer);
+        lenient().when(mockPlugin.getSkillManager()).thenReturn(mockSkillManager);
+        lenient().when(mockPlugin.getPlayerManager()).thenReturn(mockPlayerManager);
+
+        // プレイヤー基本設定
+        lenient().when(mockPlayer.getUniqueId()).thenReturn(testUuid);
+        lenient().when(mockPlayer.getName()).thenReturn("TestPlayer");
+        lenient().when(mockPlayer.getLevel()).thenReturn(10);
+
+        // RPGPlayerモック設定
+        lenient().when(mockPlayerManager.getRPGPlayer(testUuid)).thenReturn(mockRpgPlayer);
+        lenient().when(mockRpgPlayer.getClassId()).thenReturn("warrior");
+
+        // SkillManagerモック設定
+        lenient().when(mockSkillManager.getTreeRegistry()).thenReturn(mockSkillTreeRegistry);
+        lenient().when(mockSkillManager.getSkillLevel(mockPlayer, anyString())).thenReturn(1);
+        lenient().when(mockSkillManager.getSkillsForClass("warrior")).thenReturn(Collections.emptyList());
+
+        // SkillTreeRegistryモック設定
+        lenient().when(mockSkillTreeRegistry.getTree("warrior")).thenReturn(mockSkillTree);
+
+        // SkillTreeモック設定
+        Map<String, SkillNode> testNodes = new HashMap<>();
+        when(mockSkillTree.getAllNodes()).thenReturn(testNodes);
+        when(mockSkillTree.getNode(anyString())).thenAnswer(inv -> {
+            String id = inv.getArgument(0);
+            return testNodes.get(id);
+        });
+        when(mockSkillTree.getCost(anyString())).thenReturn(1);
+        when(mockSkillTree.getParentSkillId(anyString())).thenReturn("none");
+
+        // Skillモック設定
+        when(mockSkill.getId()).thenReturn("testSkill");
+        when(mockSkill.getDisplayName()).thenReturn("Test Skill");
+        when(mockSkill.getColoredDisplayName()).thenReturn("Test Skill");
+        when(mockSkill.getDescription()).thenReturn(Arrays.asList("Test description"));
+        when(mockSkill.getMaxLevel()).thenReturn(5);
+        when(mockSkill.getIconMaterial()).thenReturn("DIAMOND_SWORD");
+
+        // SkillNodeモック設定
+        when(mockSkillNode.getSkill()).thenReturn(mockSkill);
+        when(mockSkillNode.isRoot()).thenReturn(true);
+        when(mockSkillNode.isLeaf()).thenReturn(true);
+        when(mockSkillNode.getChildren()).thenReturn(Collections.emptyList());
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (mockedBukkit != null) {
+            mockedBukkit.close();
+        }
+    }
+
+    // ==================== コンストラクタテスト ====================
+
+    @Test
+    @DisplayName("コンストラクタ: 正常に初期化される")
+    void testConstructor_ValidInitialization() {
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+
+        assertNotNull(gui);
+    }
+
+    @Test
+    @DisplayName("コンストラクタ: クラスID省略時にデフォルトを使用")
+    void testConstructor_NullClassId_UsesDefault() {
+        when(mockRpgPlayer.getClassId()).thenReturn("mage");
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, null);
+
+        assertNotNull(gui);
+    }
+
+    @Test
+    @DisplayName("コンストラクタ: 存在しないスキルツリーでエラーメッセージ")
+    void testConstructor_UnknownSkillTree() {
+        when(mockSkillTreeRegistry.getTree("unknown")).thenReturn(null);
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "unknown");
+
+        assertNotNull(gui);
+        verify(mockPlayer).sendMessage(any(Component.class));
+    }
+
+    // ==================== open テスト ====================
+
+    @Test
+    @DisplayName("open: GUIを開く")
+    void testOpen_Success() {
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+
+        gui.open();
+
+        verify(mockPlayer).openInventory(mockInventory);
+    }
+
+    @Test
+    @DisplayName("open: スキルツリーがnullの場合はメッセージ送信")
+    void testOpen_NullSkillTree() {
+        when(mockSkillTreeRegistry.getTree("unknown")).thenReturn(null);
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "unknown");
+        gui.open();
+
+        verify(mockPlayer, atLeastOnce()).sendMessage(any(Component.class));
+    }
+
+    // ==================== acquireSkill テスト ====================
+
+    @Test
+    @DisplayName("acquireSkill: 存在しないスキルで失敗")
+    void testAcquireSkill_UnknownSkill() {
+        when(mockSkillManager.getSkill("unknown")).thenReturn(null);
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+        boolean result = gui.acquireSkill("unknown");
+
+        assertFalse(result);
+        verify(mockPlayer).sendMessage(any(Component.class));
+    }
+
+    @Test
+    @DisplayName("acquireSkill: スキルポイント不足で失敗")
+    void testAcquireSkill_NotEnoughPoints() {
+        when(mockSkillManager.getSkill("fireball")).thenReturn(mockSkill);
+        when(mockSkillManager.getSkillLevel(mockPlayer, "fireball")).thenReturn(0);
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+        boolean result = gui.acquireSkill("fireball");
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("acquireSkill: 最大レベル到達で失敗")
+    void testAcquireSkill_MaxLevel() {
+        when(mockSkillManager.getSkill("fireball")).thenReturn(mockSkill);
+        when(mockSkillManager.getSkillLevel(mockPlayer, "fireball")).thenReturn(5);
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+        boolean result = gui.acquireSkill("fireball");
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("acquireSkill: 新規習得に成功")
+    void testAcquireSkill_NewAcquisition_Success() {
+        when(mockSkillManager.getSkill("fireball")).thenReturn(mockSkill);
+        when(mockSkillManager.getSkillLevel(mockPlayer, "fireball")).thenReturn(0);
+        when(mockSkillManager.acquireSkill(mockPlayer, "fireball", 1)).thenReturn(true);
+
+        when(mockPlayer.getLevel()).thenReturn(100);
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+        boolean result = gui.acquireSkill("fireball");
+
+        assertTrue(result);
+        verify(mockSkillManager).acquireSkill(mockPlayer, "fireball", 1);
+    }
+
+    @Test
+    @DisplayName("acquireSkill: レベルアップに成功")
+    void testAcquireSkill_LevelUp_Success() {
+        when(mockSkillManager.getSkill("fireball")).thenReturn(mockSkill);
+        when(mockSkillManager.getSkillLevel(mockPlayer, "fireball")).thenReturn(1);
+        when(mockSkillManager.upgradeSkill(mockPlayer, "fireball")).thenReturn(true);
+
+        when(mockPlayer.getLevel()).thenReturn(100);
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+        boolean result = gui.acquireSkill("fireball");
+
+        assertTrue(result);
+        verify(mockSkillManager).upgradeSkill(mockPlayer, "fireball");
+    }
+
+    // ==================== refundSkill テスト ====================
+
+    @Test
+    @DisplayName("refundSkill: 存在しないスキルで失敗")
+    void testRefundSkill_UnknownSkill() {
+        when(mockSkillManager.getSkill("unknown")).thenReturn(null);
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+        boolean result = gui.refundSkill("unknown");
+
+        assertFalse(result);
+        verify(mockPlayer).sendMessage(any(Component.class));
+    }
+
+    @Test
+    @DisplayName("refundSkill: 未習得スキルで失敗")
+    void testRefundSkill_NotAcquired() {
+        when(mockSkillManager.getSkill("fireball")).thenReturn(mockSkill);
+        when(mockSkillManager.getSkillLevel(mockPlayer, "fireball")).thenReturn(0);
+
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+        boolean result = gui.refundSkill("fireball");
+
+        assertFalse(result);
+        verify(mockPlayer).sendMessage(any(Component.class));
+    }
+
+    // ==================== close テスト ====================
+
+    @Test
+    @DisplayName("close: GUIを閉じる")
+    void testClose() {
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+
+        assertDoesNotThrow(() -> gui.close());
+    }
+
+    // ==================== isSkillSlot テスト ====================
+
+    @Test
+    @DisplayName("isSkillSlot: スキルスロット範囲内はtrue")
+    void testIsSkillSlot_InsideRange() {
+        assertTrue(SkillTreeGUI.isSkillSlot(10));
+        assertTrue(SkillTreeGUI.isSkillSlot(9));
+        assertTrue(SkillTreeGUI.isSkillSlot(44));
+    }
+
+    @Test
+    @DisplayName("isSkillSlot: スキルスロット範囲外はfalse")
+    void testIsSkillSlot_OutsideRange() {
+        assertFalse(SkillTreeGUI.isSkillSlot(8));
+        assertFalse(SkillTreeGUI.isSkillSlot(45));
+        assertFalse(SkillTreeGUI.isSkillSlot(0));
+        assertFalse(SkillTreeGUI.isSkillSlot(53));
+    }
+
+    // ==================== refreshGUI テスト ====================
+
+    @Test
+    @DisplayName("refreshGUI: 正常にリフレッシュ")
+    void testRefreshGUI_Success() {
+        SkillTreeGUI gui = new SkillTreeGUI(mockPlugin, mockPlayer, "warrior");
+
+        assertDoesNotThrow(() -> gui.refreshGUI());
+    }
+
+    // ==================== getOpenGUI テスト ====================
+
+    @Test
+    @DisplayName("getOpenGUI: 静的メソッドとして機能することを確認")
+    void testGetOpenGUI_StaticMethod() {
+        assertDoesNotThrow(() -> SkillTreeGUI.getOpenGUI(mockPlayer));
+    }
+}

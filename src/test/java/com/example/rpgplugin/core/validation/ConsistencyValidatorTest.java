@@ -488,4 +488,307 @@ class ConsistencyValidatorTest {
             }).doesNotThrowAnyException();
         }
     }
+
+    // ==================== syncSkillToClassLinks メソッド テスト ====================
+
+    @Nested
+    @DisplayName("syncSkillToClassLinks メソッド テスト（v2.0.0 スキル起点）")
+    class SyncSkillToClassLinksTests {
+
+        @Test
+        @DisplayName("スキル起点でクラス→スキルマップを生成")
+        void syncSkillToClassLinks_BuildsClassToSkillMap() {
+            // セットアップ: スキル側にクラスが定義されている
+            when(mockClass1.getId()).thenReturn("warrior");
+            when(mockClass2.getId()).thenReturn("mage");
+
+            when(mockSkill1.getId()).thenReturn("slash");
+            when(mockSkill1.getAvailableClasses()).thenReturn(List.of("warrior"));
+
+            when(mockSkill2.getId()).thenReturn("fireball");
+            when(mockSkill2.getAvailableClasses()).thenReturn(List.of("mage"));
+
+            Map<String, RPGClass> classes = new HashMap<>();
+            classes.put("warrior", mockClass1);
+            classes.put("mage", mockClass2);
+
+            Map<String, Skill> skills = new HashMap<>();
+            skills.put("slash", mockSkill1);
+            skills.put("fireball", mockSkill2);
+
+            // 実行
+            Map<String, List<String>> result = validator.syncSkillToClassLinks(classes, skills);
+
+            // 検証: スキル側の定義からクラス→スキルマップが生成される
+            assertThat(result).hasSize(2);
+            assertThat(result.get("warrior")).containsExactly("slash");
+            assertThat(result.get("mage")).containsExactly("fireball");
+        }
+
+        @Test
+        @DisplayName("マルチクラススキルのマッピング（1つのスキルが複数クラスで利用可能）")
+        void syncSkillToClassLinks_MultiClassSkill_MapsToMultipleClasses() {
+            // セットアップ: 1つのスキルが複数クラスで使える
+            when(mockClass1.getId()).thenReturn("warrior");
+            when(mockClass2.getId()).thenReturn("mage");
+            when(mockClass2.getId()).thenReturn("rogue");
+
+            when(mockSkill1.getId()).thenReturn("heal");
+            when(mockSkill1.getAvailableClasses()).thenReturn(List.of("warrior", "mage", "rogue"));
+
+            Map<String, RPGClass> classes = new HashMap<>();
+            classes.put("warrior", mockClass1);
+            classes.put("mage", mockClass2);
+            classes.put("rogue", mockClass2);
+
+            Map<String, Skill> skills = new HashMap<>();
+            skills.put("heal", mockSkill1);
+
+            // 実行
+            Map<String, List<String>> result = validator.syncSkillToClassLinks(classes, skills);
+
+            // 検証: 全てのクラスでhealスキルが利用可能
+            assertThat(result.get("warrior")).containsExactly("heal");
+            assertThat(result.get("mage")).contains("heal");
+            assertThat(result.get("rogue")).contains("heal");
+        }
+
+        @Test
+        @DisplayName("全クラススキル（availableClassesが空）は全クラスにマッピング")
+        void syncSkillToClassLinks_AllClassSkill_MapsToAllClasses() {
+            // セットアップ: availableClassesが空 = 全クラスで利用可能
+            when(mockClass1.getId()).thenReturn("warrior");
+            when(mockClass2.getId()).thenReturn("mage");
+
+            when(mockSkill1.getId()).thenReturn("basic_attack");
+            when(mockSkill1.getAvailableClasses()).thenReturn(List.of()); // 空リスト
+
+            Map<String, RPGClass> classes = new HashMap<>();
+            classes.put("warrior", mockClass1);
+            classes.put("mage", mockClass2);
+
+            Map<String, Skill> skills = new HashMap<>();
+            skills.put("basic_attack", mockSkill1);
+
+            // 実行
+            Map<String, List<String>> result = validator.syncSkillToClassLinks(classes, skills);
+
+            // 検証: 全クラスでbasic_attackが利用可能
+            assertThat(result.get("warrior")).containsExactly("basic_attack");
+            assertThat(result.get("mage")).containsExactly("basic_attack");
+        }
+
+        @Test
+        @DisplayName("存在しないクラスへの参照はログ出力のみ")
+        void syncSkillToClassLinks_NonExistentClass_LogsWarning() {
+            // セットアップ: スキルが存在しないクラスを参照
+            when(mockClass1.getId()).thenReturn("warrior");
+
+            when(mockSkill1.getId()).thenReturn("slash");
+            when(mockSkill1.getAvailableClasses()).thenReturn(List.of("warrior", "non_existent_class"));
+
+            Map<String, RPGClass> classes = new HashMap<>();
+            classes.put("warrior", mockClass1);
+
+            Map<String, Skill> skills = new HashMap<>();
+            skills.put("slash", mockSkill1);
+
+            // 実行
+            Map<String, List<String>> result = validator.syncSkillToClassLinks(classes, skills);
+
+            // 検証: 存在するクラスのみマッピング
+            assertThat(result.get("warrior")).containsExactly("slash");
+            assertThat(result).doesNotContainKey("non_existent_class");
+            verify(mockLogger).warning(contains("non_existent_class"));
+        }
+    }
+
+    // ==================== verifySkillSourcedConsistency メソッド テスト ====================
+
+    @Nested
+    @DisplayName("verifySkillSourcedConsistency メソッド テスト（v2.0.0 スキル起点）")
+    class VerifySkillSourcedConsistencyTests {
+
+        @Test
+        @DisplayName("クラス側がスキル側と一致している場合は整合性あり")
+        void verifySkillSourcedConsistency_MatchingDefinitions_IsConsistent() {
+            // セットアップ: 双方が一致
+            when(mockClass1.getId()).thenReturn("warrior");
+            when(mockClass1.getAvailableSkills()).thenReturn(List.of("slash"));
+
+            when(mockSkill1.getId()).thenReturn("slash");
+            when(mockSkill1.getAvailableClasses()).thenReturn(List.of("warrior"));
+
+            Map<String, RPGClass> classes = new HashMap<>();
+            classes.put("warrior", mockClass1);
+
+            Map<String, Skill> skills = new HashMap<>();
+            skills.put("slash", mockSkill1);
+
+            // 実行
+            ConsistencyValidator.SyncResult result = validator.verifySkillSourcedConsistency(classes, skills);
+
+            // 検証: 整合性あり
+            assertThat(result.isConsistent()).isTrue();
+            assertThat(result.getInconsistencyCount()).isZero();
+        }
+
+        @Test
+        @DisplayName("クラス側に余分なスキルがある場合は不整合")
+        void verifySkillSourcedConsistency_ClassHasExtraSkills_NotConsistent() {
+            // セットアップ: クラス側にスキル側で許可されていないスキルがある
+            when(mockClass1.getId()).thenReturn("warrior");
+            when(mockClass1.getAvailableSkills()).thenReturn(List.of("slash", "fireball")); // fireballはmage専用
+
+            when(mockSkill1.getId()).thenReturn("slash");
+            when(mockSkill1.getAvailableClasses()).thenReturn(List.of("warrior"));
+
+            when(mockSkill2.getId()).thenReturn("fireball");
+            when(mockSkill2.getAvailableClasses()).thenReturn(List.of("mage")); // mage専用
+
+            Map<String, RPGClass> classes = new HashMap<>();
+            classes.put("warrior", mockClass1);
+
+            Map<String, Skill> skills = new HashMap<>();
+            skills.put("slash", mockSkill1);
+            skills.put("fireball", mockSkill2);
+
+            // 実行
+            ConsistencyValidator.SyncResult result = validator.verifySkillSourcedConsistency(classes, skills);
+
+            // 検証: 不整合あり
+            assertThat(result.isConsistent()).isFalse();
+            assertThat(result.getInconsistencies()).anyMatch(s -> s.contains("fireball"));
+        }
+
+        @Test
+        @DisplayName("クラス側に足りないスキルがある場合は不整合")
+        void verifySkillSourcedConsistency_ClassMissingSkills_NotConsistent() {
+            // セットアップ: スキル側で許可されているがクラス側にない
+            when(mockClass1.getId()).thenReturn("warrior");
+            when(mockClass1.getAvailableSkills()).thenReturn(List.of("slash")); // blockが不足
+
+            when(mockSkill1.getId()).thenReturn("slash");
+            when(mockSkill1.getAvailableClasses()).thenReturn(List.of("warrior"));
+
+            when(mockSkill2.getId()).thenReturn("block");
+            when(mockSkill2.getAvailableClasses()).thenReturn(List.of("warrior")); // warriorで使える
+
+            Map<String, RPGClass> classes = new HashMap<>();
+            classes.put("warrior", mockClass1);
+
+            Map<String, Skill> skills = new HashMap<>();
+            skills.put("slash", mockSkill1);
+            skills.put("block", mockSkill2);
+
+            // 実行
+            ConsistencyValidator.SyncResult result = validator.verifySkillSourcedConsistency(classes, skills);
+
+            // 検証: 不整合あり
+            assertThat(result.isConsistent()).isFalse();
+            assertThat(result.getInconsistencies()).anyMatch(s -> s.contains("block") && s.contains("missing"));
+        }
+
+        @Test
+        @DisplayName("詳細レポートの出力")
+        void verifySkillSourcedConsistency_DetailedReport_CorrectFormat() {
+            // セットアップ: 不整合あり
+            when(mockClass1.getId()).thenReturn("warrior");
+            when(mockClass1.getAvailableSkills()).thenReturn(List.of("slash", "fireball"));
+
+            when(mockSkill1.getId()).thenReturn("slash");
+            when(mockSkill1.getAvailableClasses()).thenReturn(List.of("warrior"));
+
+            when(mockSkill2.getId()).thenReturn("fireball");
+            when(mockSkill2.getAvailableClasses()).thenReturn(List.of("mage"));
+
+            Map<String, RPGClass> classes = new HashMap<>();
+            classes.put("warrior", mockClass1);
+
+            Map<String, Skill> skills = new HashMap<>();
+            skills.put("slash", mockSkill1);
+            skills.put("fireball", mockSkill2);
+
+            // 実行
+            ConsistencyValidator.SyncResult result = validator.verifySkillSourcedConsistency(classes, skills);
+
+            // 検証: レポート形式
+            String report = result.getDetailedReport();
+            assertThat(report).contains("Skill-Sourced Consistency Report");
+            assertThat(report).contains("Inconsistencies found");
+            assertThat(report).contains("syncSkillToClassLinks()");
+        }
+    }
+
+    // ==================== SyncResult テスト ====================
+
+    @Nested
+    @DisplayName("SyncResult テスト（v2.0.0）")
+    class SyncResultTests {
+
+        private ConsistencyValidator.SyncResult result;
+
+        @BeforeEach
+        void setUp() {
+            result = new ConsistencyValidator.SyncResult();
+        }
+
+        @Test
+        @DisplayName("初期状態は整合性あり")
+        void syncResult_InitiallyConsistent() {
+            assertThat(result.isConsistent()).isTrue();
+            assertThat(result.getInconsistencyCount()).isZero();
+        }
+
+        @Test
+        @DisplayName("不整合追加後に整合性なし")
+        void syncResult_AddInconsistency_BecomesInconsistent() {
+            result.addInconsistency("Test inconsistency");
+
+            assertThat(result.isConsistent()).isFalse();
+            assertThat(result.getInconsistencyCount()).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("getInconsistenciesはコピーを返す")
+        void syncResult_GetInconsistencies_ReturnsCopy() {
+            result.addInconsistency("Issue 1");
+
+            List<String> issues = result.getInconsistencies();
+            issues.clear(); // 返されたリストを変更
+
+            assertThat(result.getInconsistencyCount()).isEqualTo(1); // 元は変わらない
+        }
+
+        @Test
+        @DisplayName("getSummaryは正しいフォーマット")
+        void syncResult_GetSummary_CorrectFormat() {
+            result.addInconsistency("Issue 1");
+
+            String summary = result.getSummary();
+
+            assertThat(summary).contains("inconsistencies=1");
+            assertThat(summary).contains("isConsistent=false");
+        }
+
+        @Test
+        @DisplayName("整合性ありのレポート")
+        void syncResult_ConsistentReport_SuccessMessage() {
+            String report = result.getDetailedReport();
+
+            assertThat(report).contains("All classes match Skill.availableClasses definitions");
+        }
+
+        @Test
+        @DisplayName("不整合ありのレポート")
+        void syncResult_InconsistentReport_ShowIssues() {
+            result.addInconsistency("Test issue");
+
+            String report = result.getDetailedReport();
+
+            assertThat(report).contains("Inconsistencies found");
+            assertThat(report).contains("Test issue");
+            assertThat(report).contains("syncSkillToClassLinks()");
+        }
+    }
 }

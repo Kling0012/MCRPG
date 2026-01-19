@@ -10,6 +10,8 @@ on:
     types: [labeled]
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
   pull_request_review:
     types: [submitted]
 

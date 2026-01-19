@@ -1,6 +1,6 @@
 name: Claude AI Coder
 
-on:
+"on":
   issues:
     types: [labeled]
   pull_request:

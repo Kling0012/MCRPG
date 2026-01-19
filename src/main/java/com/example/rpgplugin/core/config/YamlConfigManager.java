@@ -52,6 +52,42 @@ public class YamlConfigManager {
     }
 
     /**
+     * ConfigLoaderを取得します
+     *
+     * @return ConfigLoader
+     */
+    public ConfigLoader getLoader() {
+        return loader;
+    }
+
+    /**
+     * プラグインを取得します
+     *
+     * @return プラグイン
+     */
+    public Plugin getPlugin() {
+        return plugin;
+    }
+
+    /**
+     * ロガーを取得します
+     *
+     * @return ロガー
+     */
+    public Logger getLogger() {
+        return logger;
+    }
+
+    /**
+     * データフォルダを取得します
+     *
+     * @return データフォルダ
+     */
+    public File getDataFolder() {
+        return dataFolder;
+    }
+
+    /**
      * 設定ファイルを読み込みます
      *
      * @param name 設定名
@@ -427,45 +463,5 @@ public class YamlConfigManager {
     @NotNull
     public Set<String> getConfigNames() {
         return configs.keySet();
-    }
-
-    /**
-     * プラグインを取得します
-     *
-     * @return プラグイン
-     */
-    @NotNull
-    public Plugin getPlugin() {
-        return plugin;
-    }
-
-    /**
-     * ロガーを取得します
-     *
-     * @return ロガー
-     */
-    @NotNull
-    public Logger getLogger() {
-        return logger;
-    }
-
-    /**
-     * データフォルダを取得します
-     *
-     * @return データフォルダ
-     */
-    @NotNull
-    public File getDataFolder() {
-        return dataFolder;
-    }
-
-    /**
-     * ConfigLoaderを取得します
-     *
-     * @return ConfigLoader
-     */
-    @NotNull
-    public ConfigLoader getLoader() {
-        return loader;
     }
 }

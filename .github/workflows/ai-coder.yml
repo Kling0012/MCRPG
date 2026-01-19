@@ -1,15 +1,18 @@
-name: Claude Integrated AI Agent
+name: Claude AI Coder
 
 on:
   issues:
     types: [labeled]
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
+  workflow_dispatch:
 
 jobs:
   # --- Job 1: Issueを解決してコードを修正する ---
   ai-fix:
-    if: github.event.label.name == 'ai-fix'
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'ai-fix')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Node.jsのセットアップ
         uses: actions/setup-node@v4
@@ -49,24 +53,25 @@ jobs:
         run: |
           SYSTEM_PROMPT="【自律実行モード】あなたは非対話環境のGitHub Actions上で動作しています。
           - 人間との会話は不可能です。質問せず、MCPツールを活用して自己完結してください。
-          - 論理的思考には 'sequential-thinking' を、調査には 'open-websearch' や 'mcp-deepwiki' を使用してください。
-          - 修正後は必ずブランチを作成し、PRを作成して終了してください。"
+          - 論理的思考には 'sequential-thinking' を、調査には 'open-websearch' を使用してください。
+          - 修正後は必ずブランチを作成し、PRを作成して終了してください。
+          - 作業完了後、必ず git push してください。"
 
           claude "$SYSTEM_PROMPT \n\n 指示内容: Issue #${{ github.event.issue.number }} ${{ github.event.issue.title }}" \
             --mcp "npx @modelcontextprotocol/server-sequential-thinking" \
             --mcp "npx @modelcontextprotocol/server-open-websearch" \
-            --mcp "npx mcp-deepwiki" \
             --dangerously-skip-permissions \
             --yes
 
   # --- Job 2: 作成されたPRを自動レビューする ---
   ai-review:
-    # AI自身が作ったPRに反応して無限ループしないよう、bot以外のPRのみ対象にする（推奨）
+    # botによるPRはスキップ（無限ループ防止）
     if: github.event_name == 'pull_request' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
+      issues: write
 
     steps:
       - name: コードのチェックアウト
@@ -82,16 +87,164 @@ jobs:
       - name: Claude Codeのインストール
         run: npm install -g @anthropic-ai/claude-code
 
-      - name: PR自動レビュー実行
+      - name: PR情報の取得
+        id: pr-info
+        run: |
+          echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "pr_title=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
+          echo "base_ref=${{ github.base_ref }}" >> $GITHUB_OUTPUT
+          echo "head_ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+
+      - name: 差分の取得
+        id: diff
+        run: |
+          git fetch origin ${{ steps.pr-info.outputs.base_ref }}
+          DIFF=$(git diff origin/${{ steps.pr-info.outputs.base_ref }} HEAD)
+          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          echo "$DIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: AIレビュー実行
+        id: review
         env:
           ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
         run: |
-          REVIEW_PROMPT="あなたはシニアエンジニアです。このPRの差分を分析し、バグの可能性、可読性、改善点を日本語でレビューしてください。
-          【制約】会話は不要です。レビューコメントのみを出力してください。"
+          REVIEW_PROMPT="あなたはシニアエンジニアです。以下のPRの差分を分析し、日本語でレビューしてください。
 
-          # 差分を取得してClaudeに渡す
-          DIFF=$(git diff origin/${{ github.base_ref }} HEAD)
-          claude "$REVIEW_PROMPT \n\n 差分データ: \n $DIFF" \
+          ## レビュー観点
+          1. バグの可能性
+          2. 可読性
+          3. パフォーマンス
+          4. セキュリティ
+          5. SOLID原則の遵守
+
+          ## 出力形式
+          ## レビュー結果
+
+          ### 🔴 Critical（重大な問題）
+          - （問題があれば記述）
+
+          ### 🟡 Major（改善推奨）
+          - （問題があれば記述）
+
+          ### 🟢 Minor（軽微な問題）
+          - （問題があれば記述）
+
+          ### ✅ 良い点
+          - （良かった点を記述）
+
+          ## 差分:
+          ${{ steps.diff.outputs.diff }}"
+
+          # レビュー結果を取得してファイルに保存
+          claude "$REVIEW_PROMPT" \
+            --dangerously-skip-permissions \
+            --yes > /tmp/review_result.txt 2>&1
+
+          # 結果を確認
+          if [ -s /tmp/review_result.txt ]; then
+            echo "review_result<<EOF" >> $GITHUB_OUTPUT
+            cat /tmp/review_result.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "レビューの取得に失敗しました" > /tmp/review_result.txt
+            echo "review_result<<EOF" >> $GITHUB_OUTPUT
+            cat /tmp/review_result.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: GitHub PRへのレビュー投稿
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REVIEW_BODY="${{ steps.review.outputs.review_result }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+
+          # レビューをコメントとして投稿
+          gh api \
+            --method POST \
+            /repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
+            -f body="$REVIEW_BODY"
+
+      - name: Critical/Major問題があればIssueを作成
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REVIEW="${{ steps.review.outputs.review_result }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+
+          # CriticalまたはMajorが含まれる場合にIssueを作成
+          if echo "$REVIEW" | grep -qE "🔴 Critical|🟡 Major"; then
+            ISSUE_TITLE="🤖 AIレビュー: ${PR_TITLE} (#${PR_NUMBER}) - 要修正"
+            ISSUE_BODY="## AIレビュー結果
+
+            PR #${PR_NUMBER} 「${PR_TITLE}」 のレビューで重大な問題が見つかりました。
+
+            ${{ steps.review.outputs.review_result }}
+
+            ---
+            - PR: #${PR_NUMBER}
+            - 自動作成者: Claude AI Coder"
+
+            gh issue create \
+              --title "$ISSUE_TITLE" \
+              --body "$ISSUE_BODY" \
+              --label "ai-fix,auto-generated"
+          fi
+
+  # --- Job 3: レビューコメントに対するAI修正 ---
+  ai-fix-review-comment:
+    if: github.event_name == 'pull_request_review'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: リポジトリのコードをチェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Node.jsのセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Claude Codeのインストール
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: レビューコメントの取得
+        id: comments
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          COMMENTS=$(gh api /repos/${{ github.repository }}/pulls/${PR_NUMBER}/comments \
+            --jq '.[] | select(.body | contains("修正") or contains("fix") or contains("改善")) | .body' | head -5)
+
+          if [ -n "$COMMENTS" ]; then
+            echo "comments<<EOF" >> $GITHUB_OUTPUT
+            echo "$COMMENTS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: AIによる修正実行
+        if: steps.comments.outputs.comments != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
+          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PROMPT="【PR修正モード】以下のレビューコメントを元にコードを修正してください。
+          修正後はコミットしてプッシュしてください。
+
+          ## レビューコメント:
+          ${{ steps.comments.outputs.comments }}"
+
+          claude "$PROMPT" \
             --dangerously-skip-permissions \
             --yes

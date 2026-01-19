@@ -4,8 +4,8 @@ import com.example.rpgplugin.skill.component.ComponentType;
 import com.example.rpgplugin.skill.component.EffectComponent;
 import org.bukkit.entity.LivingEntity;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 条件コンポーネントの基底クラス
@@ -32,10 +32,13 @@ public abstract class ConditionComponent extends EffectComponent {
 
     @Override
     public boolean execute(LivingEntity caster, int level, List<LivingEntity> targets) {
-        // 条件を満たすターゲットのみをフィルタリング
-        List<LivingEntity> filtered = targets.stream()
-                .filter(t -> test(caster, level, t))
-                .collect(Collectors.toList());
+        // 条件を満たすターゲットのみをフィルタリング（Streamよりループの方が高速）
+        List<LivingEntity> filtered = new ArrayList<>(targets.size());
+        for (LivingEntity target : targets) {
+            if (test(caster, level, target)) {
+                filtered.add(target);
+            }
+        }
 
         // 通過したターゲットがいれば、子コンポーネントを実行
         return !filtered.isEmpty() && executeChildren(caster, level, filtered);

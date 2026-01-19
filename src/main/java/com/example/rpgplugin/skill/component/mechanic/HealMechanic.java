@@ -1,5 +1,6 @@
 package com.example.rpgplugin.skill.component.mechanic;
 
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 
 /**
@@ -15,6 +16,11 @@ public class HealMechanic extends MechanicComponent {
     private static final String TYPE = "type";
 
     /**
+     * パーセンテージ計算の分母定数
+     */
+    private static final double PERCENT_DIVISOR = 100.0;
+
+    /**
      * コンストラクタ
      */
     public HealMechanic() {
@@ -26,17 +32,17 @@ public class HealMechanic extends MechanicComponent {
         String type = getString(TYPE, "value").toLowerCase();
         double base = parseValues(caster, VALUE, level, 10);
 
-        double maxHp = target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+        double maxHp = getMaxHealth(target);
         double amount;
         switch (type) {
             case "percent":
                 // 最大HPに対する割合回復
-                amount = base * maxHp / 100.0;
+                amount = base * maxHp / PERCENT_DIVISOR;
                 break;
             case "percent missing":
                 // 失ったHPに対する割合回復
-                double missing = maxHp - target.getHealth();
-                amount = base * missing / 100.0;
+                double missing = getMissingHealth(target);
+                amount = base * missing / PERCENT_DIVISOR;
                 break;
             case "value":
             default:
@@ -53,5 +59,19 @@ public class HealMechanic extends MechanicComponent {
         target.setHealth(newHealth);
 
         return true;
+    }
+
+    /**
+     * ターゲットの最大HPを取得します
+     */
+    private double getMaxHealth(LivingEntity target) {
+        return target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+    }
+
+    /**
+     * ターゲットの失ったHPを取得します
+     */
+    private double getMissingHealth(LivingEntity target) {
+        return getMaxHealth(target) - target.getHealth();
     }
 }

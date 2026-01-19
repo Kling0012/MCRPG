@@ -22,6 +22,11 @@ public class PotionMechanic extends MechanicComponent {
     private static final String AMBIENT = "ambient";
 
     /**
+     * 秒からティックへの変換定数
+     */
+    private static final int TICKS_PER_SECOND = 20;
+
+    /**
      * コンストラクタ
      */
     public PotionMechanic() {
@@ -49,7 +54,7 @@ public class PotionMechanic extends MechanicComponent {
                 return false;
             }
 
-            int ticks = (int) (duration * 20);
+            int ticks = (int) (duration * TICKS_PER_SECOND);
             // Paper 1.20.6: boolean overrideパラメータは削除された
             target.addPotionEffect(new PotionEffect(type, ticks, amplifier, ambient));
             return true;

@@ -3,6 +3,7 @@ package com.example.rpgplugin.skill.component;
 import org.bukkit.entity.LivingEntity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -96,12 +97,12 @@ public abstract class EffectComponent {
     }
 
     /**
-     * 子コンポーネントを取得します
+     * 子コンポーネントを取得します（不変ビュー）
      *
-     * @return 子コンポーネントリスト
+     * @return 子コンポーネントリストの不変ビュー
      */
     public List<EffectComponent> getChildren() {
-        return children;
+        return Collections.unmodifiableList(children);
     }
 
     /**

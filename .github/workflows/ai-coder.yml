@@ -54,7 +54,7 @@ jobs:
       - name: push（検証用）
         if: github.event_name == 'push'
         run: |
-          echo "pushイベントは検証用にジョブ起動のみ確認し、Claudeレビューは実行しません（claude-code-actionがpush未対応のため）"
+          echo "pushイベントは検証用の起動確認のみ（Claudeレビューは実行しません）"
 
       - name: リポジトリのチェックアウト
         if: github.event_name != 'push'
@@ -74,13 +74,13 @@ jobs:
           command -v gh >/dev/null 2>&1 || { echo "gh not found"; exit 1; }
 
       - name: Claude に PR レビューを依頼（structured output）
-        if: github.event_name != 'push'
+        if: github.event_name != 'push' && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target')
         id: review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
           prompt: |
-            あなたはシニアエンジニアです。PRをレビューし、日本語でコメント文も作ってください。
+            あなたはシニアエンジニアです。以下のPRをレビューし、日本語でコメント文を作ってください。
 
             レビュー観点:
             1. バグの可能性

@@ -1,15 +1,16 @@
-name: Claude AI Agent (Cached)
+name: Claude Integrated AI Agent
 
 on:
   issues:
     types: [labeled]
+  pull_request:
+    types: [opened, synchronize]
 
 jobs:
+  # --- Job 1: Issueを解決してコードを修正する ---
   ai-fix:
-    # "ai-fix" ラベルがついた時だけ実行
     if: github.event.label.name == 'ai-fix'
     runs-on: ubuntu-latest
-    
     permissions:
       contents: write
       issues: write
@@ -19,7 +20,7 @@ jobs:
       - name: リポジトリのコードをチェックアウト
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 全履歴を取得（AIがgit操作をするため推奨）
+          fetch-depth: 0
 
       - name: Node.jsのセットアップ
         uses: actions/setup-node@v4
@@ -28,33 +29,69 @@ jobs:
 
       - name: npmキャッシュの設定
         uses: actions/cache@v4
-        id: npm-cache
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-claude-code
+          key: ${{ runner.os }}-node-claude-integrated
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: Claude Codeのインストール
-        # キャッシュがあっても最新版を保つためインストールは行いますが、
-        # キャッシュがあればダウンロード時間が大幅に短縮されます
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Claude Code と MCPのインストール
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          npm install -g @modelcontextprotocol/server-sequential-thinking
+          npm install -g @modelcontextprotocol/server-open-websearch
 
-      - name: AIエージェントの実行
+      - name: AIエージェントの自律実行
         env:
-          # カスタムAPI設定（Secretsに登録したもの）
           ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-          # 必要に応じてモデル名を固定する場合（任意）
-          # ANTHROPIC_MODEL: "claude-3-7-sonnet-latest"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 1. Issueの情報を変数に格納
-          ISSUE_NUMBER="${{ github.event.issue.number }}"
-          ISSUE_TITLE="${{ github.event.issue.title }}"
-          
-          # 2. Claudeを実行
-          # --dangerously-skip-permissions: 権限確認をスキップ
-          # --yes: 全ての提案に自動同意
-          claude "Issue #${ISSUE_NUMBER}: ${ISSUE_TITLE} を解決するためのコード修正を行い、新しいブランチを作成してプルリクエストを出してください。" \
+          SYSTEM_PROMPT="【自律実行モード】あなたは非対話環境のGitHub Actions上で動作しています。
+          - 人間との会話は不可能です。質問せず、MCPツールを活用して自己完結してください。
+          - 論理的思考には 'sequential-thinking' を、調査には 'open-websearch' や 'mcp-deepwiki' を使用してください。
+          - 修正後は必ずブランチを作成し、PRを作成して終了してください。"
+
+          claude "$SYSTEM_PROMPT \n\n 指示内容: Issue #${{ github.event.issue.number }} ${{ github.event.issue.title }}" \
+            --mcp "npx @modelcontextprotocol/server-sequential-thinking" \
+            --mcp "npx @modelcontextprotocol/server-open-websearch" \
+            --mcp "npx mcp-deepwiki" \
+            --dangerously-skip-permissions \
+            --yes
+
+  # --- Job 2: 作成されたPRを自動レビューする ---
+  ai-review:
+    # AI自身が作ったPRに反応して無限ループしないよう、bot以外のPRのみ対象にする（推奨）
+    if: github.event_name == 'pull_request' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: コードのチェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Node.jsのセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Claude Codeのインストール
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: PR自動レビュー実行
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
+          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+        run: |
+          REVIEW_PROMPT="あなたはシニアエンジニアです。このPRの差分を分析し、バグの可能性、可読性、改善点を日本語でレビューしてください。
+          【制約】会話は不要です。レビューコメントのみを出力してください。"
+
+          # 差分を取得してClaudeに渡す
+          DIFF=$(git diff origin/${{ github.base_ref }} HEAD)
+          claude "$REVIEW_PROMPT \n\n 差分データ: \n $DIFF" \
             --dangerously-skip-permissions \
             --yes

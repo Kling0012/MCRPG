@@ -46,7 +46,7 @@ jobs:
   # --- Job 2: 作成されたPRを自動レビューする ---
   ai-review:
     # botによるPRはスキップ（無限ループ防止）
-    if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target' || github.event_name == 'workflow_dispatch') && github.actor != 'github-actions[bot]'
+    if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target' || github.event_name == 'workflow_dispatch' || github.event_name == 'push') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -96,6 +96,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: GitHub PRへのレビュー投稿
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -110,6 +111,7 @@ jobs:
             -f body="$REVIEW_BODY"
 
       - name: Critical/Major問題があればIssueを作成
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

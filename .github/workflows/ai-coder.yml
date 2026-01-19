@@ -37,6 +37,7 @@ jobs:
             --dangerously-skip-permissions
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # --- Job 2: 作成されたPRを自動レビューする ---
@@ -88,6 +89,7 @@ jobs:
             --json-schema '{"type":"object","properties":{"has_critical":{"type":"boolean"},"has_major":{"type":"boolean"},"body":{"type":"string"}},"required":["has_critical","has_major","body"]}'
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: GitHub PRへのレビュー投稿
@@ -155,4 +157,5 @@ jobs:
             --dangerously-skip-permissions
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

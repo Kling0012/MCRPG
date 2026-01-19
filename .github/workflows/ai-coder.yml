@@ -31,6 +31,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
           github_token: ${{ secrets.G_TOKEN }}
+          show_full_output: true
           prompt: |
             【自律実行モード】あなたは非対話環境の GitHub Actions 上で動作しています。
             - 人間との会話は不可能です。質問せず自己完結してください。
@@ -84,6 +85,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
           github_token: ${{ secrets.G_TOKEN }}
+          show_full_output: true
           prompt: |
             あなたはシニアエンジニアです。以下のPRをレビューし、日本語でコメント文を作ってください。
 
@@ -163,6 +165,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
           github_token: ${{ secrets.G_TOKEN }}
+          show_full_output: true
           prompt: |
             【PR修正モード】以下のレビューコメントを元にコードを修正してください。
             修正後はコミットしてプッシュしてください。

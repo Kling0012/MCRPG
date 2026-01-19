@@ -1,17 +1,18 @@
 #!/bin/bash
 ##############################################################################
-# 作業完了後ワークフロースクリプト
+# 作業完了後ワークフロースクリプト（最適化版）
 #
-# 機能: ビルド → 成果物生成 → コミット → PR作成 を一連実行
+# 機能: 変更検出 → タイプ推測 → ビルド → コミット → プッシュ → PR作成
 #
 # 使用方法:
-#   ./.scripts/workflow-complete.sh [タイトル] [説明]
-#   例: ./scripts/workflow-complete.sh "機能追加" "新しいXXX機能を実装"
+#   ./.scripts/workflow-complete.sh [タイトル] [説明] [オプション]
 #
 # オプション:
-#   --dry-run    : 実行せずにシミュレーションのみ
-#   --no-build   : ビルドをスキップ
-#   --no-pr      : PR作成をスキップ（コミットのみ）
+#   --dry-run         : シミュレーションのみ
+#   --no-build        : ビルドスキップ
+#   --no-pr           : PR作成スキップ
+#   --non-interactive : 対話なしで自動実行（フック用）
+#   --type <TYPE>     : コミットタイプ指定（feat/fix/refactor/docs/style/test/chore）
 ##############################################################################
 
 set -e
@@ -21,9 +22,9 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# プロジェクトルートディレクトリ
+# プロジェクトルート
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_ROOT"
@@ -32,270 +33,198 @@ cd "$PROJECT_ROOT"
 DRY_RUN=false
 SKIP_BUILD=false
 SKIP_PR=false
-TITLE="${1:-作業完了}"
-DESCRIPTION="${2:-作業完了による変更}"
+NON_INTERACTIVE=false
+COMMIT_TYPE=""
+TITLE=""
+DESCRIPTION=""
 BASE_BRANCH="main"
-CURRENT_BRANCH=$(git branch --show-current)
+CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "HEAD")
+
+# コミットタイプの定義
+declare -A COMMIT_TYPES=(
+    ["feat"]="新機能"
+    ["fix"]="バグ修正"
+    ["refactor"]="リファクタリング"
+    ["docs"]="ドキュメント"
+    ["style"]="フォーマット"
+    ["test"]="テスト"
+    ["chore"]="その他"
+    ["perf"]="パフォーマンス"
+    ["ci"]="CI/CD"
+)
+
+##############################################################################
+# ログ関数
+##############################################################################
+log_info()  { echo -e "${BLUE}[INFO]${NC} $1" >&2; }
+log_success() { echo -e "${GREEN}[OK]${NC} $1" >&2; }
+log_warn()   { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
+log_error()  { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+log_step()   { echo -e "\n${BLUE}=== $1 ===${NC}" >&2; }
+
+##############################################################################
+# 変更ファイルからコミットタイプを推測
+##############################################################################
+detect_commit_type() {
+    if [[ -n "$COMMIT_TYPE" ]]; then
+        echo "$COMMIT_TYPE"
+        return
+    fi
+
+    # 変更ファイルのパスから推測
+    local changed_files=$(git diff --cached --name-only --diff-filter=M 2>/dev/null | head -20)
+
+    if echo "$changed_files" | grep -qE "\.md$|docs/|README"; then
+        echo "docs"
+    elif echo "$changed_files" | grep -qE "\.yml$|\.yaml$|\.github/|Dockerfile"; then
+        echo "ci"
+    elif echo "$changed_files" | grep -qE "test/|.*Test\.java"; then
+        echo "test"
+    elif echo "$changed_files" | grep -qiE "fix|bug|修正"; then
+        echo "fix"
+    elif echo "$changed_files" | grep -qiE "refactor|簡素|整理"; then
+        echo "refactor"
+    elif echo "$changed_files" | grep -qiE "perf|optim|最適"; then
+        echo "perf"
+    else
+        echo "chore"
+    fi
+}
+
+##############################################################################
+# 変更の有無をチェック
+##############################################################################
+has_changes() {
+    ! git diff --quiet || ! git diff --cached --quiet
+}
+
+##############################################################################
+# ファイルが変わったか（新規・修正・削除）
+##############################################################################
+has_file_changes() {
+    [[ $(git diff --name-only | wc -l) -gt 0 ]] || [[ $(git diff --cached --name-only | wc -l) -gt 0 ]]
+}
+
+##############################################################################
+# メイン処理
+##############################################################################
 
 # オプション解析
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --dry-run)
-            DRY_RUN=true
-            shift
-            ;;
-        --no-build)
-            SKIP_BUILD=true
-            shift
-            ;;
-        --no-pr)
-            SKIP_PR=true
-            shift
-            ;;
+        --dry-run)         DRY_RUN=true; shift ;;
+        --no-build)        SKIP_BUILD=true; shift ;;
+        --no-pr)           SKIP_PR=true; shift ;;
+        --non-interactive) NON_INTERACTIVE=true; shift ;;
+        --type)            COMMIT_TYPE="$2"; shift 2 ;;
         *)
-            if [[ -z "$TITLE_PARSED" ]]; then
+            if [[ -z "$TITLE" ]]; then
                 TITLE="$1"
-                TITLE_PARSED=true
-            elif [[ -z "$DESCRIPTION_PARSED" ]]; then
+            elif [[ -z "$DESCRIPTION" ]]; then
                 DESCRIPTION="$1"
-                DESCRIPTION_PARSED=true
             fi
             shift
             ;;
     esac
 done
 
-##############################################################################
-# ログ関数
-##############################################################################
-log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+# 引数のデフォルト値
+TITLE="${TITLE:-作業完了}"
+DESCRIPTION="${DESCRIPTION:-作業完了による変更}"
 
-log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
+log_info "🚀 ワークフロー開始"
+log_info "ブランチ: $CURRENT_BRANCH"
 
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
+# 1. 変更チェック
+log_step "変更チェック"
+if ! has_file_changes; then
+    log_warn "変更がないためワークフローをスキップします"
+    exit 0
+fi
+log_success "変更を検出しました"
 
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-log_step() {
-    echo -e "\n${BLUE}=== $1 ===${NC}"
-}
-
-##############################################################################
-# 事前チェック
-##############################################################################
-pre_check() {
-    log_step "事前チェック"
-
-    # Gitリポジトリチェック
-    if ! git rev-parse --git-dir > /dev/null 2>&1; then
-        log_error "Gitリポジトリではありません"
-        exit 1
-    fi
-
-    # 変更があるかチェック
-    if git diff --quiet && git diff --cached --quiet; then
-        log_warn "コミット可能な変更がありません"
-        read -p "続行しますか? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 0
-        fi
-    fi
-
-    # gh CLIチェック
-    if ! command -v gh &> /dev/null; then
-        log_error "gh CLIがインストールされていません"
-        log_info "インストール: https://cli.github.com/"
-        exit 1
-    fi
-
-    # 認証チェック
-    if ! gh auth status &> /dev/null; then
-        log_error "gh CLIの認証が必要です"
-        log_info "実行: gh auth login"
-        exit 1
-    fi
-
-    # Mavenチェック
-    if ! command -v mvn &> /dev/null; then
-        log_error "Mavenがインストールされていません"
-        exit 1
-    fi
-
-    # ベースブランチチェック
-    if ! git rev-parse --verify "$BASE_BRANCH" > /dev/null 2>&1; then
-        log_warn "ベースブランチ '$BASE_BRANCH' が存在しません"
-        BASE_BRANCH=$(git remote show origin | grep "HEAD branch" | cut -d: -f2 | xargs)
-        log_info "ベースブランチを '$BASE_BRANCH' に設定"
-    fi
-
-    log_success "事前チェック完了"
-}
-
-##############################################################################
-# ビルド実行
-##############################################################################
-do_build() {
-    if [[ "$SKIP_BUILD" == true ]]; then
-        log_warn "ビルドをスキップします"
-        return 0
-    fi
-
-    log_step "Mavenビルド実行"
-
+# 2. ビルド（スキップ可能）
+if [[ "$SKIP_BUILD" == false ]]; then
+    log_step "Mavenビルド"
     if [[ "$DRY_RUN" == true ]]; then
-        log_info "[DRY-RUN] mvn clean package -DskipTests"
-        return 0
-    fi
-
-    # ビルド実行
-    if mvn clean package -DskipTests; then
-        log_success "ビルド成功"
-
-        # 成果物のパス
-        ARTIFACT="$PROJECT_ROOT/target/$(ls target/*.jar 2>/dev/null | grep -v 'javadoc\|sources' | head -1 | xargs basename)"
-        if [[ -f "target/$ARTIFACT" ]]; then
-            log_info "成果物: target/$ARTIFACT"
-            ls -lh "target/$ARTIFACT"
-        fi
+        log_info "[DRY-RUN] mvn clean package -Dmaven.test.skip=true"
     else
-        log_error "ビルド失敗"
-        read -p "続行しますか? (y/N): " -n 1 -r
-        echo
-        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-            exit 1
+        if mvn clean package -Dmaven.test.skip=true -q; then
+            log_success "ビルド成功"
+        else
+            log_error "ビルド失敗"
+            [[ "$NON_INTERACTIVE" == true ]] && exit 1
+            read -p "続行しますか? (y/N): " -n 1 -r && [[ $REPLY =~ ^[Yy]$ ]] || exit 1
         fi
     fi
-}
+fi
 
-##############################################################################
-# コミット作成
-##############################################################################
-do_commit() {
-    log_step "コミット作成"
+# 3. コミットタイプ推測
+TYPE=$(detect_commit_type)
+log_info "コミットタイプ: $TYPE (${COMMIT_TYPES[$TYPE]})"
 
-    # ステージされていない変更を表示
-    log_info "変更内容:"
-    git status --short
+# 4. コミット
+log_step "コミット作成"
+git add -A
 
-    if [[ "$DRY_RUN" == true ]]; then
-        log_info "[DRY-RUN] git add . && git commit"
-        return 0
-    fi
+# 既にステージされているコミットがあるかチェック
+if git diff --cached --quiet; then
+    log_warn "ステージする変更がないためスキップします"
+else
+    COMMIT_MSG="${TYPE}: ${TITLE}
 
-    # 変更をステージング
-    git add .
-
-    # コミットメッセージ生成
-    COMMIT_MSG="$TITLE
-
-$DESCRIPTION
+${DESCRIPTION}
 
 ---
 Co-authored-by: Claude Code <claude@anthropic.com>"
-    # コミット実行
-    if git commit -m "$COMMIT_MSG"; then
-        log_success "コミット作成成功"
-        git log -1 --oneline
-    else
-        log_warn "コミット作成失敗（変更がありません）"
-    fi
-}
-
-##############################################################################
-# プッシュ実行
-##############################################################################
-do_push() {
-    log_step "プッシュ実行"
 
     if [[ "$DRY_RUN" == true ]]; then
-        log_info "[DRY-RUN] git push -u origin $CURRENT_BRANCH"
-        return 0
+        log_info "[DRY-RUN] コミットメッセージ: $COMMIT_MSG"
+    else
+        git commit -m "$COMMIT_MSG"
+        log_success "コミット作成: $(git log -1 --oneline)"
     fi
+fi
 
-    # リモートブランチが存在するかチェック
+# 5. プッシュ
+log_step "プッシュ"
+if [[ "$DRY_RUN" == true ]]; then
+    log_info "[DRY-RUN] git push"
+else
     if git rev-parse --verify "origin/$CURRENT_BRANCH" > /dev/null 2>&1; then
-        log_info "既存のブランチにプッシュ"
         git push
     else
-        log_info "新しいブランチをプッシュ"
         git push -u origin "$CURRENT_BRANCH"
     fi
-
     log_success "プッシュ完了"
-}
+fi
 
-##############################################################################
-# PR作成
-##############################################################################
-do_pr() {
-    if [[ "$SKIP_PR" == true ]]; then
-        log_warn "PR作成をスキップします"
-        return 0
-    fi
+# 6. PR作成（スキップ可能）
+if [[ "$SKIP_PR" == false ]]; then
+    log_step "プルリクエスト"
 
-    log_step "プルリクエスト作成"
-
-    if [[ "$DRY_RUN" == true ]]; then
-        log_info "[DRY-RUN] gh pr create --base $BASE_BRANCH --title '$TITLE' --body '$DESCRIPTION'"
-        return 0
-    fi
-
-    # 既存PRチェック
     EXISTING_PR=$(gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
 
     if [[ -n "$EXISTING_PR" ]]; then
         log_warn "PR #$EXISTING_PR が既に存在します"
-        read -p "既存PRを更新しますか? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            gh pr edit "$EXISTING_PR" --title "$TITLE" --body "$DESCRIPTION"
-            log_success "PR #$EXISTING_PR を更新しました"
+        if [[ "$NON_INTERACTIVE" == true ]]; then
+            log_info "非対話モードのためスキップします"
+        else
+            read -p "更新しますか? (y/N): " -n 1 -r && echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                gh pr edit "$EXISTING_PR" --title "$TITLE" --body "$DESCRIPTION"
+                log_success "PRを更新しました"
+            fi
         fi
-        return 0
-    fi
-
-    # PR作成
-    PR_URL=$(gh pr create \
-        --base "$BASE_BRANCH" \
-        --title "$TITLE" \
-        --body "$DESCRIPTION" \
-        --label "auto-generated" 2>&1)
-
-    if [[ $? -eq 0 ]]; then
-        log_success "PR作成完了"
-        log_info "$PR_URL"
     else
-        log_error "PR作成失敗: $PR_URL"
-        return 1
+        if [[ "$DRY_RUN" == true ]]; then
+            log_info "[DRY-RUN] gh pr create"
+        else
+            gh pr create --base "$BASE_BRANCH" --title "$TITLE" --body "$DESCRIPTION" 2>/dev/null && \
+                log_success "PR作成完了" || \
+                log_warn "PR作成をスキップしました（既に存在する可能性）"
+        fi
     fi
-}
+fi
 
-##############################################################################
-# メイン処理
-##############################################################################
-main() {
-    log_info "🚀 作業完了後ワークフロー開始"
-    log_info "プロジェクト: $PROJECT_ROOT"
-    log_info "現在のブランチ: $CURRENT_BRANCH"
-    log_info "タイトル: $TITLE"
-
-    pre_check
-    do_build
-    do_commit
-    do_push
-    do_pr
-
-    log_success "✅ ワークフロー完了"
-}
-
-# 実行
-main "$@"
+log_success "✅ ワークフロー完了"

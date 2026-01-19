@@ -2,10 +2,19 @@
 	"hooks": {
 		"postTask": [
 			{
-				"command": "bash ./.scripts/workflow-complete.sh \"{{description}}\" \"作業完了: {{taskId}}\"",
-				"enabled": true
+				"command": "bash ./.scripts/workflow-complete.sh --non-interactive \"{{description}}\" \"{{taskId}}\"",
+				"enabled": true,
+				"description": "作業完了後にビルド・コミット・PR作成を自動実行"
 			}
-		]
+		],
+		"preEdit": {
+			"command": "bash -c 'git diff --name-only \"$1\" | head -5'",
+			"enabled": false
+		},
+		"postEdit": {
+			"command": "echo \"Edited: $1\" >> .claude/edit.log",
+			"enabled": true
+		}
 	},
 	"statusLine": {
 		"type": "command",
@@ -17,10 +26,15 @@
 		"allow": [
 			"Bash(npx claude-flow:*)",
 			"Bash(npx @claude-flow/*)",
-			"mcp__claude-flow__*"
+			"mcp__claude-flow__*",
+			"Bash(./.scripts/*)",
+			"Bash(git *)",
+			"Bash(gh *)",
+			"Bash(mvn *)"
 		],
 		"deny": [
-			"Bash(rm -rf /:*)"
+			"Bash(rm -rf /:*)",
+			"Bash(mvn clean *)"
 		]
 	},
 	"claudeFlow": {

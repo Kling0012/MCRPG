@@ -58,4 +58,36 @@ public class NearestHostileTargetComponent extends TargetComponent {
 
         return targets;
     }
+
+    @Override
+    protected List<LivingEntity> selectTargets(LivingEntity caster, int level, List<LivingEntity> currentTargets) {
+        List<LivingEntity> targets = new ArrayList<>();
+
+        // 現在のターゲットの最初のエンティティを基準に選択
+        LivingEntity reference = currentTargets.isEmpty() ? caster : currentTargets.get(0);
+
+        if (reference == null || !reference.isValid()) {
+            return targets;
+        }
+
+        double range = getRange(level, 15.0);
+
+        // 基準エンティティの近くのエンティティを取得
+        List<LivingEntity> nearby = getNearbyEntities(reference, range);
+
+        // 敵対的エンティティにフィルタ
+        List<LivingEntity> hostile = filterHostile(reference, nearby);
+
+        if (hostile.isEmpty()) {
+            return targets;
+        }
+
+        // 最も近い敵対的エンティティを選択
+        LivingEntity nearest = getNearestEntity(reference, hostile);
+        if (nearest != null) {
+            targets.add(nearest);
+        }
+
+        return targets;
+    }
 }

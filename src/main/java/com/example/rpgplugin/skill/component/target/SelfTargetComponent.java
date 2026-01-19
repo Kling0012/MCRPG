@@ -31,4 +31,10 @@ public class SelfTargetComponent extends TargetComponent {
         }
         return targets;
     }
+
+    @Override
+    protected List<LivingEntity> selectTargets(LivingEntity caster, int level, List<LivingEntity> currentTargets) {
+        // SelfTargetは常に自分自身を返す（currentTargetsは無視）
+        return selectTargets(caster, level);
+    }
 }

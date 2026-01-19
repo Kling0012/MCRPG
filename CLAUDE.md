@@ -681,10 +681,10 @@ done
 
 | 名前 | レベル | 特徴 | 役割 | 話し合いへの参加 |
 |------|--------|------|------|------------------|
-| **ClaudeCode** | 中上級者/統率 | コマンド・統率 | プロダクトオーナー/スクラムマスター | 必須 |
-| **Codex** | 中上級者 | 作業能力高 | 実装リード・設計 | ✅ 有意義 |
+| **ClaudeCode** | 上級者/統率 | コマンド・統率 | プロダクトオーナー/スクラムマスター | 必須 |
+| **Codex** | 上級者 | 作業能力高 | 実装リード・設計 | ✅ 有意義 |
 | **iFlow** | 中級者 | 作業能力高 | プロセス・CI/CD・振り分け | ✅ 有意義 |
-| **Gemini** | 中級者 | **不安定**、WEB検索・情報獲得が得意 | 情報収集・ドキュメント・外部リサーチ | ✅ 有意義（計画時） |
+| **Gemini** | 中級者 | WEB検索・情報獲得が得意 | 情報収集・ドキュメント・外部リサーチ | ✅ 有意義（計画時） |
 | **SubAgent1** | 可変 | タスク依存 | 研究者/テスター等 | 随時 |
 | **SubAgent2** | 可変 | タスク依存 | レビュアー/監査等 | 随時 |
 
@@ -693,23 +693,6 @@ done
 ---
 
 ### 🚀 エージェント起動方法（CLI）
-
-各エージェントは新しいShellでCLIコマンドを実行して起動します。
-
-| エージェント | CLIコマンド | 起動方法 |
-|------------|------------|----------|
-| **Codex** | `codex` | 対話的CLIを起動 |
-| **iFlow** | `iflow` | 対話的CLIを起動 |
-| **Gemini** | `gemini` | 対話的CLIを起動 |
-
-#### 基本的な使い方
-
-```bash
-# 新しいShellで各エージェントを起動
-codex      # Codex（コーディング担当）
-iflow      # iFlow（プロセス担当）
-gemini     # Gemini（情報収集担当）
-```
 
 #### 非対話モード（プロンプトを直接指定）
 
@@ -722,6 +705,8 @@ iflow -p "プロセス改善の提案"
 
 # Gemini: 位置引数でクエリを指定
 gemini "WEB検索してほしい内容"
+
+opencode run "実装してほしい内容"
 ```
 
 #### オプション例
@@ -777,9 +762,10 @@ Bash("npx @claude-flow/cli@latest memory search --query '[task type]' --namespac
 
 **計画会議参加者**（話し合いに参加するメンバー）:
 - ✅ ClaudeCode（統率）
-- ✅ Codex（設計・実装の観点）
-- ✅ iFlow（プロセス・振り分けの観点）
-- ✅ Gemini（ドキュメント・全体把握の観点）
+- ✅ Codex
+- ✅ iFlow
+- ✅ Gemini（ドキュメント・情報収集）
+- ✅ opencode
 - 必要に応じて SubAgent
 
 **出力**: タスク分解、担当割当、受け入れ基準
@@ -804,7 +790,7 @@ mkdir -p .sprint/outputs
 codex exec "実装タスク: ${task}" > .sprint/outputs/codex.log 2>&1 &
 iflow -p "プロセス・振り分けタスク: ${task}" > .sprint/outputs/iflow.log 2>&1 &
 gemini "情報収集タスク: ${task}" > .sprint/outputs/gemini.log 2>&1 &
-
+opencode run "実装タスク: ${task}" > .sprint/outputs/codex.log 2>&1 &
 # プロセスIDを保存
 jobs -p > .sprint/pids.txt
 
@@ -871,10 +857,10 @@ Bash("npx @claude-flow/cli@latest memory store --namespace patterns --key '[patt
 |---------|------|-----------|--------|
 | **Spike** | 技術調査・PoC | ClaudeCode + Codex + Researcher | 3 |
 | **Feature** | 機能開発 | ClaudeCode + Codex + iFlow + Tester | 4 |
-| **Feature+** | 大規模機能 | + SubAgent1 + SubAgent2 | 6 |
+| **Feature+** | 大規模機能 | + SubAgent1 + Codex + Tester | 6 |
 | **Bugfix** | バグ修正 | Codex + Debugger + Tester | 3 |
 | **Refactor** | リファクタ | Codex + iFlow + Reviewer | 3 |
-| **Review** | コードレビュー・情報調査 | Codex + iFlow + Gemini（外部情報収集） | 3 |
+| **Review** | コードレビュー・情報調査 | Codex + iFlow + Gemini（外部情報収集） | 4 |
 | **Full Sprint** | 完全開発サイクル | 全6名 | 6 |
 
 ---
@@ -915,96 +901,18 @@ iflow -p "プロセス改善提案: ${issue}" > .sprint/outputs/iflow.log 2>&1 &
 # 通知: "🐛 バグ修正スプリント実行中"
 ```
 
-#### テンプレート3: コードレビュースプリント
+## レビュータスク/スプリント
+レビューは並列ではなく，直列で実行する．
 
+レビューワークフロー
+claudecode(セルフレビュー) → iflow → gemini → opencode → codex → claudecode(総合的に再レビュー) → 疑問点があれば再度繰り返す．
+レビュー結果は引き継ぐが，信用せずに確認し，自分の判断をレビューして残す．レビュー結果に対して懸念点が残った場合はそこに対して討論する．
+
+===== 計画フェーズ =====
+問題点やレビューの目標が不明確の場合，ClaudeCode + Codex + Geminiで話し合い
 ```bash
-# ===== 計画フェーズ =====
-# ClaudeCode + Codex + iFlow + Gemini で話し合い
-# レビュー範囲、基準の定義
-
 # ===== 実行フェーズ =====
 mkdir -p .sprint/outputs
-
-codex exec "品質分析と設計レビュー: ${scope}" > .sprint/outputs/codex.log 2>&1 &
-iflow -p "プロセス・振り分けレビュー: ${scope}" > .sprint/outputs/iflow.log 2>&1 &
-gemini "外部情報収集・ベストプラクティス調査: ${scope}" > .sprint/outputs/gemini.log 2>&1 &
-
-# 通知: "👀 コードレビュースプリント実行中"
+#で実行，ログ管理
+# 通知: "👀 レビュースプリント実行中"
 ```
-
-#### テンプレート4: フルスプリント（6名）
-
-```bash
-# ===== 計画フェーズ =====
-# ClaudeCode + Codex + iFlow + Gemini + SubAgent1 + SubAgent2
-
-# ===== 実行フェーズ =====
-mkdir -p .sprint/outputs
-
-codex exec "設計と実装: ${task}" > .sprint/outputs/codex.log 2>&1 &
-iflow -p "プロセス・振り分け: ${task}" > .sprint/outputs/iflow.log 2>&1 &
-gemini "ドキュメント・外部調査: ${task}" > .sprint/outputs/gemini.log 2>&1 &
-codex exec "レビュー: ${task}" > .sprint/outputs/reviewer.log 2>&1 &
-gemini "情報収集・ベストプラクティス: ${task}" > .sprint/outputs/docs.log 2>&1 &
-codex exec "パフォーマンス検証: ${task}" > .sprint/outputs/perf.log 2>&1 &
-
-# 通知: "🚀 フルスプリント実行中（6エージェント並列）"
-```
-
----
-
-### 🎓 成功のポイント
-
-| 要点 | 説明 |
-|------|------|
-| **💬 話し合い** | 計画フェーズでCodex/iFlow/Geminiと意思疎通 |
-| **🔄 並列実行** | 全エージェントを1つのBashブロックで同時実行（非対話モード） |
-| **📋 ログ管理** | `.sprint/outputs/` に各エージェントの出力を保存 |
-| **🛡️ Gemini対策** | 不安定性を考慮したタスク割当・フォールバック |
-| **📝 DoD** | 明確な受け入れ基準（Definition of Done） |
-| **🧩 レトロ** | 毎回の振り返りとプロセス改善 |
-| **⏳ 待機** | バックグラウンドプロセスが完了するのを待つ |
-
----
-
-### 📊 複雑度によるチーム規模
-
-| 複雑度 | チーム規模 | 構成例 |
-|--------|----------|--------|
-| **Simple** | 2-3 | ClaudeCode + Codex + (必要に応じて1名) |
-| **Medium** | 3-4 | + iFlow + Tester |
-| **Complex** | 5-6 | 全メンバー参加 |
-
----
-
-### 📞 ユーザーコマンド例
-
-```
-# スプリント開始
-"チームで[機能名]のスプリントを開始して"
-
-# レビュースプリント
-"コードレビュースプリントを実行して"
-
-# バグ修正スプリント
-"バグ修正スプリントで[issue番号]を修正して"
-
-# フルスプリント
-"フルスプリントで[大規模機能]を開発して"
-```
-
----
-
-### ⚠️ Gemini運用ガイドライン
-
-| 状況 | 対応 |
-|------|------|
-| **計画フェーズ** | 積極的に話し合いに参加させる |
-| **情報収集タスク** | WEB検索・外部リサーチに最適（得意分野） |
-| **実行フェーズ** | 独立した低優先度タスクを割り当てる |
-| **失敗時** | フォールバックプランを即時実行 |
-| **成功時** | 結果を活用し、記憶に保存 |
-
-> **Geminiの得意分野**: WEB検索、インターネット上の情報獲得、外部ドキュメント調査、ライブラリ・API情報の収集
-
----

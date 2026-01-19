@@ -95,4 +95,64 @@ public class LineTargetComponent extends TargetComponent {
         // 最大ターゲット数で制限
         return limitTargets(targets, maxTargets);
     }
+
+    @Override
+    protected List<LivingEntity> selectTargets(LivingEntity caster, int level, List<LivingEntity> currentTargets) {
+        List<LivingEntity> targets = new ArrayList<>();
+
+        // 現在のターゲットの最初のエンティティを基準に選択
+        LivingEntity reference = currentTargets.isEmpty() ? caster : currentTargets.get(0);
+
+        if (reference == null || !reference.isValid()) {
+            return targets;
+        }
+
+        double length = getLength(level, 15.0);
+        double width = getWidth(level, 2.0);
+        int maxTargets = getMaxTargets(level, 5);
+
+        // 視線方向に基づいて直線上のエンティティを検索
+        Location referenceLoc = reference.getEyeLocation();
+        Vector direction = referenceLoc.getDirection().normalize();
+
+        // 範囲内のエンティティを取得（長さ+幅の余裕を持つ）
+        double searchRange = length + width;
+        List<LivingEntity> nearby = getNearbyEntities(reference, searchRange);
+
+        for (LivingEntity entity : nearby) {
+            if (entity.equals(reference)) {
+                continue;
+            }
+
+            // 基準エンティティからエンティティへのベクトル
+            Vector toEntity = entity.getLocation().toVector().subtract(referenceLoc.toVector());
+
+            // 視線方向への投影
+            double projection = toEntity.dot(direction);
+
+            // 直線の長さ範囲内かチェック
+            if (projection < 0 || projection > length) {
+                continue;
+            }
+
+            // 直線からの距離を計算
+            Vector projectedPoint = direction.clone().multiply(projection);
+            Vector perpendicular = toEntity.clone().subtract(projectedPoint);
+            double distanceFromLine = perpendicular.length();
+
+            // 幅の範囲内かチェック
+            if (distanceFromLine <= width) {
+                targets.add(entity);
+            }
+        }
+
+        // 距離順にソート
+        targets.sort((a, b) -> {
+            double distA = reference.getLocation().distance(a.getLocation());
+            double distB = reference.getLocation().distance(b.getLocation());
+            return Double.compare(distA, distB);
+        });
+
+        return limitTargets(targets, maxTargets);
+    }
 }

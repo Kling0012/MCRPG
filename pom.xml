@@ -27,6 +27,7 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                    <showWarnings>false</showWarnings>
                 </configuration>
             </plugin>
             <plugin>

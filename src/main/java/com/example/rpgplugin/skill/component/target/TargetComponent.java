@@ -41,8 +41,18 @@ public abstract class TargetComponent extends EffectComponent {
 
     @Override
     public boolean execute(LivingEntity caster, int level, List<LivingEntity> targets) {
-        // ターゲットを選択して置き換え
-        List<LivingEntity> selectedTargets = selectTargets(caster, level);
+        // relative_to パラメータを取得
+        String relativeTo = settings.getString("relative_to", "caster");
+
+        List<LivingEntity> selectedTargets;
+
+        if ("target".equals(relativeTo) && !targets.isEmpty()) {
+            // 現在のターゲット（親TARGETで選択された最初のエンティティ）を基準に選択
+            selectedTargets = selectTargets(caster, level, targets);
+        } else {
+            // casterを基準に選択（デフォルト、後方互換）
+            selectedTargets = selectTargets(caster, level);
+        }
 
         if (selectedTargets.isEmpty()) {
             return false;
@@ -53,13 +63,27 @@ public abstract class TargetComponent extends EffectComponent {
     }
 
     /**
-     * ターゲットを選択します
+     * ターゲットを選択します（caster基準）
      *
      * @param caster 発動者
      * @param level  スキルレベル
      * @return 選択されたターゲットリスト
      */
     protected abstract List<LivingEntity> selectTargets(LivingEntity caster, int level);
+
+    /**
+     * ターゲットを選択します（現在のターゲット基準）
+     * <p>relative_to=target の場合に呼ばれます。現在のターゲットリストの最初のエンティティを基準に選択します。</p>
+     *
+     * @param caster 発動者
+     * @param level  スキルレベル
+     * @param currentTargets 現在のターゲットリスト（親TARGETで選択されたエンティティ）
+     * @return 選択されたターゲットリスト
+     */
+    protected List<LivingEntity> selectTargets(LivingEntity caster, int level, List<LivingEntity> currentTargets) {
+        // デフォルト実装: caster基準にフォールバック（後方互換）
+        return selectTargets(caster, level);
+    }
 
     /**
      * 設定からTargetTypeを取得します

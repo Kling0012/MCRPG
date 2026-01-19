@@ -84,4 +84,53 @@ public class ConeTargetComponent extends TargetComponent {
         // 最大ターゲット数で制限
         return limitTargets(targets, maxTargets);
     }
+
+    @Override
+    protected List<LivingEntity> selectTargets(LivingEntity caster, int level, List<LivingEntity> currentTargets) {
+        List<LivingEntity> targets = new ArrayList<>();
+
+        // 現在のターゲットの最初のエンティティを基準に選択
+        LivingEntity reference = currentTargets.isEmpty() ? caster : currentTargets.get(0);
+
+        if (reference == null || !reference.isValid()) {
+            return targets;
+        }
+
+        double angle = getAngle(level, 90.0);
+        double range = getRange(level, 10.0);
+        int maxTargets = getMaxTargets(level, 5);
+
+        // 近くのエンティティを取得
+        List<LivingEntity> nearby = getNearbyEntities(reference, range);
+
+        // 視線方向を取得（基準エンティティの視線）
+        Vector direction = reference.getEyeLocation().getDirection();
+        Location referenceLoc = reference.getEyeLocation();
+
+        // コーン内のエンティティをフィルタ
+        for (LivingEntity entity : nearby) {
+            if (entity.equals(reference)) {
+                continue;
+            }
+
+            Vector toEntity = entity.getLocation().toVector().subtract(referenceLoc.toVector());
+            double distance = toEntity.length();
+
+            if (distance > range) {
+                continue;
+            }
+
+            // 角度を計算
+            toEntity.normalize();
+            double angleDiff = Math.toDegrees(Math.acos(
+                    Math.max(-1.0, Math.min(1.0, direction.dot(toEntity)))
+            ));
+
+            if (angleDiff <= angle / 2.0) {
+                targets.add(entity);
+            }
+        }
+
+        return limitTargets(targets, maxTargets);
+    }
 }

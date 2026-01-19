@@ -80,4 +80,54 @@ public class SingleTargetComponent extends TargetComponent {
 
         return targets;
     }
+
+    @Override
+    protected List<LivingEntity> selectTargets(LivingEntity caster, int level, List<LivingEntity> currentTargets) {
+        List<LivingEntity> targets = new ArrayList<>();
+
+        // 現在のターゲットの最初のエンティティを基準に選択
+        LivingEntity reference = currentTargets.isEmpty() ? caster : currentTargets.get(0);
+
+        if (reference == null || !reference.isValid()) {
+            return targets;
+        }
+
+        // 自分自身をターゲットにする場合
+        boolean targetSelf = settings.getBoolean("target_self", false);
+        if (targetSelf) {
+            targets.add(reference);
+            return targets;
+        }
+
+        // 基準エンティティの近くのエンティティを取得
+        double range = getRange(level, 10.0);
+        List<LivingEntity> nearby = getNearbyEntities(reference, range);
+
+        // 敵対的エンティティのみにフィルタ
+        boolean hostileOnly = settings.getBoolean("hostile_only", true);
+        if (hostileOnly) {
+            nearby = filterHostile(reference, nearby);
+        }
+
+        if (nearby.isEmpty()) {
+            return targets;
+        }
+
+        // 最も近いターゲットを選択
+        boolean selectNearest = settings.getBoolean("select_nearest", true);
+        if (selectNearest) {
+            LivingEntity nearest = getNearestEntity(reference, nearby);
+            if (nearest != null) {
+                targets.add(nearest);
+            }
+        } else {
+            // ランダムに1体選択
+            if (!nearby.isEmpty()) {
+                int index = (int) (Math.random() * nearby.size());
+                targets.add(nearby.get(index));
+            }
+        }
+
+        return targets;
+    }
 }

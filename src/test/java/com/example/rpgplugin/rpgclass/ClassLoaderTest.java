@@ -18,7 +18,11 @@ import static org.mockito.Mockito.*;
 
 /**
  * ClassLoaderのテストクラス
+ *
+ * <p>注意: 移行期間中、非推奨の {@code getAvailableSkills()} を
+ * テストで意図的に使用します。</p>
  */
+@SuppressWarnings("deprecation")
 @DisplayName("ClassLoader Tests")
 class ClassLoaderTest {
 

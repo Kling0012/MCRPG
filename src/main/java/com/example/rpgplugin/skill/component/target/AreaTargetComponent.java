@@ -73,4 +73,41 @@ public class AreaTargetComponent extends TargetComponent {
         // 最大ターゲット数で制限
         return limitTargets(targets, maxTargets);
     }
+
+    @Override
+    protected List<LivingEntity> selectTargets(LivingEntity caster, int level, List<LivingEntity> currentTargets) {
+        List<LivingEntity> targets = new ArrayList<>();
+
+        // 現在のターゲットの最初のエンティティを基準に選択
+        LivingEntity reference = currentTargets.isEmpty() ? caster : currentTargets.get(0);
+
+        if (reference == null || !reference.isValid()) {
+            return targets;
+        }
+
+        AreaShape shape = getAreaShape(AreaShape.CIRCLE);
+        int maxTargets = getMaxTargets(level, 15);
+        boolean includeReference = settings.getBoolean("include_caster", false);
+
+        double range;
+        if (shape == AreaShape.CIRCLE || shape == AreaShape.SPHERE) {
+            range = getRadius(level, 10.0);
+        } else {
+            double width = settings.getDouble("width", 10.0);
+            double depth = settings.getDouble("depth", 10.0);
+            range = Math.max(width, depth);
+        }
+
+        // 基準エンティティの近くのエンティティを取得
+        List<LivingEntity> nearby = getNearbyEntities(reference, range);
+
+        for (LivingEntity entity : nearby) {
+            if (entity.equals(reference) && !includeReference) {
+                continue;
+            }
+            targets.add(entity);
+        }
+
+        return limitTargets(targets, maxTargets);
+    }
 }

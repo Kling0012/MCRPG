@@ -26,9 +26,13 @@ import static org.mockito.Mockito.*;
  *
  * <p>クラスとスキルの整合性検証クラスのテストを行います。</p>
  *
+ * <p>注意: 移行期間中、非推奨の {@code getAvailableSkills()} を
+ * モック設定で意図的に使用します。</p>
+ *
  * @author RPGPlugin Team
  * @version 1.0.0
  */
+@SuppressWarnings("deprecation")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("ConsistencyValidator テスト")
@@ -78,6 +82,7 @@ class ConsistencyValidatorTest {
 
     // ==================== validate メソッド テスト ====================
 
+    @SuppressWarnings("deprecation")
     @Nested
     @DisplayName("validate メソッド テスト")
     class ValidateTests {
@@ -244,6 +249,7 @@ class ConsistencyValidatorTest {
 
     // ==================== validateClass メソッド テスト ====================
 
+    @SuppressWarnings("deprecation")
     @Nested
     @DisplayName("validateClass メソッド テスト")
     class ValidateClassTests {
@@ -312,6 +318,7 @@ class ConsistencyValidatorTest {
 
     // ==================== autoRepair メソッド テスト ====================
 
+    @SuppressWarnings("deprecation")
     @Nested
     @DisplayName("autoRepair メソッド テスト")
     class AutoRepairTests {
@@ -605,6 +612,7 @@ class ConsistencyValidatorTest {
 
     // ==================== verifySkillSourcedConsistency メソッド テスト ====================
 
+    @SuppressWarnings("deprecation")
     @Nested
     @DisplayName("verifySkillSourcedConsistency メソッド テスト（v2.0.0 スキル起点）")
     class VerifySkillSourcedConsistencyTests {

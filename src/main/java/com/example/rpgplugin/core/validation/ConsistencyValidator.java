@@ -55,6 +55,7 @@ public class ConsistencyValidator {
 
     /**
      * クラスとスキルの整合性を検証します
+     * <p>スキル起点の検証: {@code Skill.availableClasses} を情報源として検証します</p>
      *
      * @param classes クラスマップ
      * @param skills スキルマップ
@@ -63,24 +64,26 @@ public class ConsistencyValidator {
     public ValidationResult validate(Map<String, RPGClass> classes, Map<String, Skill> skills) {
         ValidationResult result = new ValidationResult();
 
-        // スキル側の整合性チェック
+        // スキル側の整合性チェック（クラス参照の実在確認）
         for (Map.Entry<String, Skill> entry : skills.entrySet()) {
             String skillId = entry.getKey();
             Skill skill = entry.getValue();
-
             validateSkillClasses(skillId, skill, classes, result);
         }
 
-        // クラス側の整合性チェック
+        // スキル起点で各クラスが持つべきスキルリストを生成
+        Map<String, List<String>> expectedClassSkills = syncSkillToClassLinks(classes, skills);
+
+        // 各クラスのスキルリストを検証（スキル起点の期待値と比較）
         for (Map.Entry<String, RPGClass> entry : classes.entrySet()) {
             String classId = entry.getKey();
             RPGClass rpgClass = entry.getValue();
 
-            validateClassSkills(classId, rpgClass, skills, result);
+            validateClassSkillsAgainstSkillDefinitions(classId, rpgClass, skills, expectedClassSkills, result);
         }
 
-        // 双方向整合性チェック
-        validateBidirectionalConsistency(classes, skills, result);
+        // クラス側のスキルリスト更新推奨
+        suggestClassSkillUpdates(classes, expectedClassSkills, result);
 
         return result;
     }
@@ -106,70 +109,77 @@ public class ConsistencyValidator {
     }
 
     /**
-     * クラスのスキル参照を検証します
+     * クラスのスキル参照をスキル定義から検証します
+     * <p>{@code Skill.availableClasses} から生成される期待値と、
+     * クラス側の {@code availableSkills} を比較します。</p>
+     *
+     * <p>注意: 移行期間中、非推奨の {@code getAvailableSkills()} を意図的に使用します。</p>
      *
      * @param classId クラスID
      * @param rpgClass クラス
      * @param skills スキルマップ
+     * @param expectedClassSkills スキル側から生成された期待値
      * @param result 検証結果
      */
-    private void validateClassSkills(String classId, RPGClass rpgClass,
-                                    Map<String, Skill> skills,
-                                    ValidationResult result) {
-        List<String> availableSkills = rpgClass.getAvailableSkills();
+    @SuppressWarnings("deprecation")
+    private void validateClassSkillsAgainstSkillDefinitions(String classId, RPGClass rpgClass,
+                                                          Map<String, Skill> skills,
+                                                          Map<String, List<String>> expectedClassSkills,
+                                                          ValidationResult result) {
+        List<String> actualSkills = rpgClass.getAvailableSkills();
+        List<String> expectedSkills = expectedClassSkills.getOrDefault(classId, Collections.emptyList());
 
-        for (String skillId : availableSkills) {
-            if (!skills.containsKey(skillId)) {
+        // クラス側にあるが、スキル側で許可されていないスキル（古いデータの可能性）
+        List<String> extraSkills = new ArrayList<>(actualSkills);
+        extraSkills.removeAll(expectedSkills);
+        for (String skillId : extraSkills) {
+            if (skills.containsKey(skillId)) {
+                // スキルは存在するが、このクラスで利用可能とされていない
+                result.addWarning("Class '" + classId + "' has skill '" + skillId +
+                        "' but skill doesn't list this class in availableClasses. " +
+                        "Consider removing from class definition or updating skill definition.");
+            } else {
+                // スキルが存在しない
                 result.addError("Class '" + classId + "' references non-existent skill '" + skillId + "'");
             }
+        }
+
+        // スキル側で許可されているが、クラス側にないスキル
+        List<String> missingSkills = new ArrayList<>(expectedSkills);
+        missingSkills.removeAll(actualSkills);
+        if (!missingSkills.isEmpty()) {
+            result.addInfo("Class '" + classId + "' is missing skills that are available in Skill.availableClasses: " +
+                    missingSkills + ". Consider running syncSkillToClassLinks() to update class definitions.");
         }
     }
 
     /**
-     * 双方向整合性を検証します
-     * <p>Class.availableSkillsとSkill.availableClassesが一致しているか確認します</p>
+     * クラスのスキルリスト更新を推奨します
+     *
+     * <p>注意: 移行期間中、非推奨の {@code getAvailableSkills()} を意図的に使用します。</p>
      *
      * @param classes クラスマップ
-     * @param skills スキルマップ
+     * @param expectedClassSkills スキル側から生成された期待値
      * @param result 検証結果
      */
-    private void validateBidirectionalConsistency(Map<String, RPGClass> classes,
-                                                  Map<String, Skill> skills,
-                                                  ValidationResult result) {
-        for (Map.Entry<String, RPGClass> classEntry : classes.entrySet()) {
-            String classId = classEntry.getKey();
-            RPGClass rpgClass = classEntry.getValue();
+    @SuppressWarnings("deprecation")
+    private void suggestClassSkillUpdates(Map<String, RPGClass> classes,
+                                        Map<String, List<String>> expectedClassSkills,
+                                        ValidationResult result) {
+        int updateCount = 0;
+        for (Map.Entry<String, RPGClass> entry : classes.entrySet()) {
+            String classId = entry.getKey();
+            List<String> actualSkills = entry.getValue().getAvailableSkills();
+            List<String> expectedSkills = expectedClassSkills.getOrDefault(classId, Collections.emptyList());
 
-            for (String skillId : rpgClass.getAvailableSkills()) {
-                Skill skill = skills.get(skillId);
-                if (skill == null) {
-                    continue; // すでにエラーとして報告済み
-                }
-
-                // スキル側でこのクラスが利用可能とされているか確認
-                if (!skill.isAvailableForClass(classId)) {
-                    result.addWarning("Class '" + classId + "' has skill '" + skillId +
-                            "' but skill doesn't list this class in availableClasses");
-                }
+            if (!actualSkills.equals(expectedSkills)) {
+                updateCount++;
             }
         }
 
-        for (Map.Entry<String, Skill> skillEntry : skills.entrySet()) {
-            String skillId = skillEntry.getKey();
-            Skill skill = skillEntry.getValue();
-
-            for (String classId : skill.getAvailableClasses()) {
-                RPGClass rpgClass = classes.get(classId);
-                if (rpgClass == null) {
-                    continue; // すでにエラーとして報告済み
-                }
-
-                // クラス側でこのスキルが利用可能とされているか確認
-                if (!rpgClass.getAvailableSkills().contains(skillId)) {
-                    result.addWarning("Skill '" + skillId + "' is available for class '" + classId +
-                            "' but class doesn't list this skill in availableSkills");
-                }
-            }
+        if (updateCount > 0) {
+            result.addInfo(updateCount + " class(es) have availableSkills that differ from Skill.availableClasses. " +
+                    "Use syncSkillToClassLinks() to generate the correct mappings.");
         }
     }
 
@@ -252,10 +262,14 @@ public class ConsistencyValidator {
      * スキル起点で整合性チェックを行います
      * <p>{@code RPGClass.availableSkills} が {@code Skill.availableClasses} から生成される内容と一致しているか検証します。</p>
      *
+     * <p>注意: このメソッドは移行期間中、新旧データの比較のために
+     * 非推奨の {@code getAvailableSkills()} を意図的に使用します。</p>
+     *
      * @param classes クラスマップ
      * @param skills スキルマップ（情報源）
      * @return 一致性のレポート
      */
+    @SuppressWarnings("deprecation")
     public SyncResult verifySkillSourcedConsistency(Map<String, RPGClass> classes,
                                                      Map<String, Skill> skills) {
         SyncResult result = new SyncResult();
@@ -303,6 +317,7 @@ public class ConsistencyValidator {
      *             代わりに {@link #syncSkillToClassLinks(Map, Map)} を使用してください。
      */
     @Deprecated
+    @SuppressWarnings("deprecation")
     public Map<String, Skill> autoRepair(Map<String, RPGClass> classes, Map<String, Skill> skills) {
         // 注意: Skillはイミュータブルな設計なので、
         // 実際の修復はSkillLoader側で行う必要があります
@@ -337,6 +352,7 @@ public class ConsistencyValidator {
     public static class ValidationResult {
         private final List<String> errors = new ArrayList<>();
         private final List<String> warnings = new ArrayList<>();
+        private final List<String> infos = new ArrayList<>();
 
         /**
          * エラーを追加します
@@ -361,6 +377,15 @@ public class ConsistencyValidator {
         }
 
         /**
+         * 情報メッセージを追加します
+         *
+         * @param info 情報メッセージ
+         */
+        public void addInfo(String info) {
+            infos.add(info);
+        }
+
+        /**
          * 検証が成功したか（エラーなし）
          *
          * @return 成功場合はtrue
@@ -376,6 +401,16 @@ public class ConsistencyValidator {
          */
         public boolean hasWarnings() {
             return !warnings.isEmpty();
+        }
+
+        /**
+         * 情報メッセージがあるか
+         *
+         * @return 情報がある場合はtrue
+         * @since 2.0.0
+         */
+        public boolean hasInfos() {
+            return !infos.isEmpty();
         }
 
         /**
@@ -397,6 +432,16 @@ public class ConsistencyValidator {
         }
 
         /**
+         * 情報リストを取得します
+         *
+         * @return 情報リストのコピー
+         * @since 2.0.0
+         */
+        public List<String> getInfos() {
+            return new ArrayList<>(infos);
+        }
+
+        /**
          * エラー件数を取得します
          *
          * @return エラー件数
@@ -415,13 +460,23 @@ public class ConsistencyValidator {
         }
 
         /**
+         * 情報件数を取得します
+         *
+         * @return 情報件数
+         * @since 2.0.0
+         */
+        public int getInfoCount() {
+            return infos.size();
+        }
+
+        /**
          * 検証結果のサマリーを取得します
          *
          * @return サマリー文字列
          */
         public String getSummary() {
-            return String.format("ValidationResult{errors=%d, warnings=%d}",
-                    errors.size(), warnings.size());
+            return String.format("ValidationResult{errors=%d, warnings=%d, infos=%d}",
+                    errors.size(), warnings.size(), infos.size());
         }
 
         /**
@@ -448,6 +503,13 @@ public class ConsistencyValidator {
                 sb.append("⚠ Warnings found (").append(warnings.size()).append("):\n");
                 for (String warning : warnings) {
                     sb.append("  - ").append(warning).append("\n");
+                }
+            }
+
+            if (!infos.isEmpty()) {
+                sb.append("ℹ Info (").append(infos.size()).append("):\n");
+                for (String info : infos) {
+                    sb.append("  - ").append(info).append("\n");
                 }
             }
 

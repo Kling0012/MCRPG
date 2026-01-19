@@ -1,6 +1,9 @@
 name: Claude AI Coder
 
 "on":
+  push:
+    branches:
+      - Local50
   issues:
     types: [labeled]
   pull_request:

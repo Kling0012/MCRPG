@@ -22,7 +22,7 @@ jobs:
     permissions:
       contents: write
       issues: write
-      pull-requests: write
+        if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target' || github.event_name == 'workflow_dispatch' || github.event_name == 'push') && github.actor != 'github-actions[bot]'
 
     steps:
       - name: Claude に Issue 対応を依頼
@@ -45,6 +45,7 @@ jobs:
 
   # --- Job 2: 作成されたPRを自動レビューする ---
   ai-review:
+            if: github.event_name != 'push'
     # botによるPRはスキップ（無限ループ防止）
     if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target' || github.event_name == 'workflow_dispatch' || github.event_name == 'push') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
@@ -54,17 +55,25 @@ jobs:
       issues: write
 
     steps:
+      - name: push（検証用）
+        if: github.event_name == 'push'
+        run: |
+          echo "pushイベントは検証用にジョブ起動のみ確認し、Claudeレビューは実行しません（claude-code-actionがpush未対応のため）"
+
       - name: リポジトリのチェックアウト
+        if: github.event_name != 'push'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: jq をインストール
+        if: github.event_name != 'push'
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
 
       - name: GitHub CLI を確認
+        if: github.event_name != 'push'
         run: |
           command -v gh >/dev/null 2>&1 || { echo "gh not found"; exit 1; }
 

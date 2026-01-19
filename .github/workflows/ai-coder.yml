@@ -12,8 +12,11 @@ on:
 jobs:
   # --- Job 1: Issueを解決してコードを修正する ---
   ai-fix:
-    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'ai-fix')
+    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'ai-fix') && !contains(github.event.issue.labels.*.name, 'auto-generated')
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     permissions:
       contents: write
       issues: write
@@ -68,6 +71,9 @@ jobs:
     # botによるPRはスキップ（無限ループ防止）
     if: github.event_name == 'pull_request' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     permissions:
       contents: read
       pull-requests: write
@@ -98,8 +104,10 @@ jobs:
       - name: 差分の取得
         id: diff
         run: |
-          git fetch origin ${{ steps.pr-info.outputs.base_ref }}
-          DIFF=$(git diff origin/${{ steps.pr-info.outputs.base_ref }} HEAD)
+          # base branch を確実に取得して、PRの差分を安定して生成する
+          git fetch --no-tags --prune --depth=1 origin \
+            "+refs/heads/${{ steps.pr-info.outputs.base_ref }}:refs/remotes/origin/${{ steps.pr-info.outputs.base_ref }}"
+          DIFF=$(git diff --no-color --unified=3 "origin/${{ steps.pr-info.outputs.base_ref }}...HEAD")
           echo "diff<<EOF" >> $GITHUB_OUTPUT
           echo "$DIFF" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -119,17 +127,21 @@ jobs:
           4. セキュリティ
           5. SOLID原則の遵守
 
-          ## 出力形式
+          ## 出力形式（重要）
+          - 次のマーカー行を必ずそのまま含めてください（機械判定に使います）
+            HAS_CRITICAL: yes|no
+            HAS_MAJOR: yes|no
+
           ## レビュー結果
 
           ### 🔴 Critical（重大な問題）
-          - （問題があれば記述）
+          - 問題がなければ「- なし」
 
           ### 🟡 Major（改善推奨）
-          - （問題があれば記述）
+          - 問題がなければ「- なし」
 
           ### 🟢 Minor（軽微な問題）
-          - （問題があれば記述）
+          - 問題がなければ「- なし」
 
           ### ✅ 良い点
           - （良かった点を記述）
@@ -175,8 +187,11 @@ jobs:
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_TITLE="${{ github.event.pull_request.title }}"
 
-          # CriticalまたはMajorが含まれる場合にIssueを作成
-          if echo "$REVIEW" | grep -qE "🔴 Critical|🟡 Major"; then
+          HAS_CRITICAL=$(echo "$REVIEW" | sed -n 's/^HAS_CRITICAL:[[:space:]]*//p' | head -1)
+          HAS_MAJOR=$(echo "$REVIEW" | sed -n 's/^HAS_MAJOR:[[:space:]]*//p' | head -1)
+
+          # Critical/Major フラグが yes の場合にのみ Issue を作成
+          if [ "$HAS_CRITICAL" = "yes" ] || [ "$HAS_MAJOR" = "yes" ]; then
             ISSUE_TITLE="🤖 AIレビュー: ${PR_TITLE} (#${PR_NUMBER}) - 要修正"
             ISSUE_BODY="## AIレビュー結果
 
@@ -198,6 +213,9 @@ jobs:
   ai-fix-review-comment:
     if: github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     permissions:
       contents: write
       pull-requests: write
@@ -223,8 +241,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
-          COMMENTS=$(gh api /repos/${{ github.repository }}/pulls/${PR_NUMBER}/comments \
-            --jq '.[] | select(.body | contains("修正") or contains("fix") or contains("改善")) | .body' | head -5)
+          # submitted review の本文（総評）を優先して取得し、無ければ inline comments を拾う
+          COMMENTS=$(printf "%s\n" "${{ github.event.review.body }}" | sed '/^\s*$/d' | head -50)
+          if [ -z "$COMMENTS" ]; then
+            COMMENTS=$(gh api "/repos/${{ github.repository }}/pulls/${PR_NUMBER}/comments" \
+              --jq '.[] | select(.body | (contains("修正") or contains("fix") or contains("改善"))) | .body' | head -5)
+          fi
 
           if [ -n "$COMMENTS" ]; then
             echo "comments<<EOF" >> $GITHUB_OUTPUT

@@ -1,0 +1,60 @@
+name: Claude AI Agent (Cached)
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  ai-fix:
+    # "ai-fix" ラベルがついた時だけ実行
+    if: github.event.label.name == 'ai-fix'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: リポジトリのコードをチェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 全履歴を取得（AIがgit操作をするため推奨）
+
+      - name: Node.jsのセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: npmキャッシュの設定
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-claude-code
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Claude Codeのインストール
+        # キャッシュがあっても最新版を保つためインストールは行いますが、
+        # キャッシュがあればダウンロード時間が大幅に短縮されます
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: AIエージェントの実行
+        env:
+          # カスタムAPI設定（Secretsに登録したもの）
+          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
+          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+          # 必要に応じてモデル名を固定する場合（任意）
+          # ANTHROPIC_MODEL: "claude-3-7-sonnet-latest"
+        run: |
+          # 1. Issueの情報を変数に格納
+          ISSUE_NUMBER="${{ github.event.issue.number }}"
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          
+          # 2. Claudeを実行
+          # --dangerously-skip-permissions: 権限確認をスキップ
+          # --yes: 全ての提案に自動同意
+          claude "Issue #${ISSUE_NUMBER}: ${ISSUE_TITLE} を解決するためのコード修正を行い、新しいブランチを作成してプルリクエストを出してください。" \
+            --dangerously-skip-permissions \
+            --yes

@@ -1,6 +1,7 @@
 name: Claude AI Coder
 
-"on":
+on:
+  workflow_dispatch:
   push:
     branches:
       - Local50
@@ -29,6 +30,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
+          github_token: ${{ secrets.G_TOKEN }}
           prompt: |
             【自律実行モード】あなたは非対話環境の GitHub Actions 上で動作しています。
             - 人間との会話は不可能です。質問せず自己完結してください。
@@ -41,7 +43,7 @@ jobs:
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
 
   ai-review:
     if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target' || github.event_name == 'push') && github.actor != 'github-actions[bot]'
@@ -81,6 +83,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
+          github_token: ${{ secrets.G_TOKEN }}
           prompt: |
             あなたはシニアエンジニアです。以下のPRをレビューし、日本語でコメント文を作ってください。
 
@@ -101,12 +104,12 @@ jobs:
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
 
       - name: GitHub PRへのレビュー投稿
         if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
           OUTPUT='${{ steps.review.outputs.structured_output }}'
           REVIEW_BODY=$(echo "$OUTPUT" | jq -r '.body')
@@ -120,7 +123,7 @@ jobs:
       - name: Critical/Major問題があればIssueを作成
         if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
         run: |
           OUTPUT='${{ steps.review.outputs.structured_output }}'
           HAS_CRITICAL=$(echo "$OUTPUT" | jq -r '.has_critical')
@@ -159,6 +162,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
+          github_token: ${{ secrets.G_TOKEN }}
           prompt: |
             【PR修正モード】以下のレビューコメントを元にコードを修正してください。
             修正後はコミットしてプッシュしてください。
@@ -170,4 +174,4 @@ jobs:
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}

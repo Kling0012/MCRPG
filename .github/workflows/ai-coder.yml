@@ -48,10 +48,19 @@ jobs:
       issues: write
 
     steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: jq をインストール
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
+
+      - name: GitHub CLI を確認
+        run: |
+          command -v gh >/dev/null 2>&1 || { echo "gh not found"; exit 1; }
 
       - name: Claude に PR レビューを依頼（structured output）
         id: review
@@ -83,7 +92,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          REVIEW_BODY=$(echo '${{ steps.review.outputs.structured_output }}' | jq -r '.body')
+          OUTPUT='${{ steps.review.outputs.structured_output }}'
+          REVIEW_BODY=$(echo "$OUTPUT" | jq -r '.body')
           PR_NUMBER="${{ github.event.pull_request.number }}"
 
           # レビューをコメントとして投稿

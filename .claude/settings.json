@@ -22,7 +22,13 @@
 			"Bash(mvn clean *)"
 		],
 		"deny": [
-			"Bash(rm -rf /:*)"
+			"Bash(rm -rf /*)",
+			"Bash(rm -rf /:*)",
+			"Bash(rm -rf ~/*)",
+			"Bash(rmdir /)",
+			"Bash(dd if=)",
+			"Bash(:> *)",
+			"Bash(format c:)"
 		]
 	},
 	"claudeFlow": {

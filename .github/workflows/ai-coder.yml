@@ -5,6 +5,8 @@ on:
     types: [labeled]
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
   pull_request_review:
     types: [submitted]
   workflow_dispatch:
@@ -40,7 +42,7 @@ jobs:
   # --- Job 2: 作成されたPRを自動レビューする ---
   ai-review:
     # botによるPRはスキップ（無限ループ防止）
-    if: github.event_name == 'pull_request' && github.actor != 'github-actions[bot]'
+    if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target' || github.event_name == 'workflow_dispatch') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read

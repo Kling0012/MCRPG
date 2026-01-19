@@ -1,0 +1,3083 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPGPlugin スキルエディタ - Visual Node Editor</title>
+
+    <!-- React & ReactDOM (development version for better error messages) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- ReactFlow -->
+    <script src="https://unpkg.com/reactflow@11.10.1/dist/umd/index.js"></script>
+
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #252542;
+            --bg-card: #2d2d4a;
+
+            --accent-primary: #e94560;
+            --accent-secondary: #00d9ff;
+            --accent-success: #00ff88;
+            --accent-warning: #ffaa00;
+            --accent-danger: #ff4757;
+
+            --text-primary: #e4e4e4;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+
+            --border-color: #3a3a5a;
+
+            /* Component type colors */
+            --color-target: #00d9ff;
+            --color-mechanic: #e94560;
+            --color-condition: #ffe66d;
+            --color-filter: #a855f7;
+            --color-trigger: #00ff88;
+            --color-cost: #ffaa00;
+            --color-cooldown: #ff4757;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            height: 56px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+            min-height: 44px;
+            min-width: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--bg-card);
+            border-color: var(--accent-secondary);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 217, 255, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid var(--accent-secondary);
+            outline-offset: 2px;
+        }
+
+        .btn.primary {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .btn.primary:hover {
+            background: #ff5c77;
+        }
+
+        .btn.success {
+            background: var(--accent-success);
+            border-color: var(--accent-success);
+            color: var(--bg-primary);
+        }
+
+        .btn.danger {
+            background: var(--accent-danger);
+            border-color: var(--accent-danger);
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .component-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .component-category {
+            margin-bottom: 16px;
+        }
+
+        .category-title {
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding: 0 4px;
+        }
+
+        .component-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: grab;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 6px;
+            border: 1px solid transparent;
+            min-height: 44px;
+        }
+
+        .component-item:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-secondary);
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .component-item:active {
+            cursor: grabbing;
+            transform: translateX(2px);
+        }
+
+        .component-item:focus-visible {
+            outline: 2px solid var(--accent-secondary);
+            outline-offset: 2px;
+        }
+
+        .component-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .component-name {
+            font-size: 0.9em;
+        }
+
+        /* Component type colors */
+        .type-TARGET .component-icon { background: rgba(0, 217, 255, 0.2); color: var(--color-target); }
+        .type-MECHANIC .component-icon { background: rgba(233, 69, 96, 0.2); color: var(--color-mechanic); }
+        .type-CONDITION .component-icon { background: rgba(255, 230, 109, 0.2); color: var(--color-condition); }
+        .type-FILTER .component-icon { background: rgba(168, 85, 247, 0.2); color: var(--color-filter); }
+        .type-TRIGGER .component-icon { background: rgba(0, 255, 136, 0.2); color: var(--color-trigger); }
+        .type-COST .component-icon { background: rgba(255, 170, 0, 0.2); color: var(--color-cost); }
+        .type-COOLDOWN .component-icon { background: rgba(255, 71, 87, 0.2); color: var(--color-cooldown); }
+
+        /* Node editor */
+        .node-editor {
+            flex: 1;
+            position: relative;
+        }
+
+        .react-flow-wrapper {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: visible !important;
+        }
+
+        /* Smooth viewport transitions for field optimization */
+        .react-flow__viewport {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Optimize field for better visibility */
+        .react-flow__zoompane {
+            cursor: grab;
+        }
+
+        .react-flow__zoompane:active {
+            cursor: grabbing;
+        }
+
+        /* ReactFlow viewport and node wrapper positioning fixes */
+        .react-flow__viewport {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        /* Background should be behind nodes */
+        .react-flow__background {
+            z-index: 0 !important;
+        }
+        
+        .react-flow__node {
+            position: absolute !important;
+            width: auto !important;
+            z-index: 2 !important;
+        }
+
+        /* Custom node styles */
+        .custom-node {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-width: 180px;
+            max-width: 280px;
+            width: fit-content;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: grab;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .custom-node:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .custom-node.selected {
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.3), 0 4px 12px rgba(0, 217, 255, 0.2);
+            z-index: 10;
+        }
+
+        .custom-node:focus-visible {
+            outline: 3px solid var(--accent-secondary);
+            outline-offset: 2px;
+        }
+
+        .custom-node .node-content input:focus,
+        .custom-node .node-content select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.3);
+        }
+
+        .node-header {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .node-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .node-title {
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .node-content {
+            padding: 10px 12px;
+        }
+
+        .node-parameter {
+            margin-bottom: 8px;
+        }
+
+        .node-parameter:last-child {
+            margin-bottom: 0;
+        }
+
+        .parameter-label {
+            font-size: 0.75em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .parameter-input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.85em;
+        }
+
+        .parameter-input:focus {
+            outline: none;
+            border-color: var(--accent-secondary);
+        }
+
+        /* Handles - larger size for easier clicking */
+        .custom-handle {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--border-color);
+            border: 3px solid var(--bg-card);
+            cursor: crosshair;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute;
+            z-index: 10;
+        }
+
+        .custom-handle:hover {
+            transform: scale(1.4);
+            box-shadow: 0 0 12px currentColor;
+        }
+
+        .custom-handle:active {
+            transform: scale(1.2);
+        }
+
+        .custom-handle:focus-visible {
+            outline: 3px solid var(--accent-secondary);
+            outline-offset: 2px;
+        }
+
+        .custom-handle.source {
+            background: var(--accent-success);
+            color: var(--accent-success);
+        }
+
+        .custom-handle.source:hover {
+            box-shadow: 0 0 16px var(--accent-success), inset 0 0 8px rgba(0, 255, 136, 0.5);
+        }
+
+        .custom-handle.target {
+            background: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .custom-handle.target:hover {
+            box-shadow: 0 0 16px var(--accent-primary), inset 0 0 8px rgba(233, 69, 96, 0.5);
+        }
+
+        /* Connection line while dragging - ReactFlow 11 structure */
+        /* The connection line is rendered as an SVG path inside .react-flow__connection */
+        .react-flow__connection {
+            pointer-events: none !important;
+            z-index: 10000 !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .react-flow__connection path,
+        .react-flow__connection-path {
+            stroke: #e94560 !important;
+            stroke-width: 5 !important;
+            stroke-dasharray: 10 5 !important;
+            stroke-linecap: round !important;
+            stroke-linejoin: round !important;
+            fill: none !important;
+            animation: connection-dash 0.4s linear infinite !important;
+            filter: drop-shadow(0 0 8px #e94560) drop-shadow(0 0 16px rgba(233, 69, 96, 0.5)) !important;
+            pointer-events: none !important;
+            transition: stroke-width 0.1s ease;
+        }
+
+        @keyframes connection-dash {
+            from { stroke-dashoffset: 15; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Enhanced connection line glow effect */
+        .react-flow__connection path:hover,
+        .react-flow__connection-path:hover {
+            stroke-width: 6 !important;
+            filter: drop-shadow(0 0 10px #e94560) drop-shadow(0 0 20px rgba(233, 69, 96, 0.7)) !important;
+        }
+
+        /* Edge (connected line) styles */
+        .react-flow__edge-path {
+            stroke: var(--accent-secondary) !important;
+            stroke-width: 2.5 !important;
+            transition: stroke-width 0.2s ease;
+        }
+
+        .react-flow__edge:hover .react-flow__edge-path,
+        .react-flow__edge.selected .react-flow__edge-path {
+            stroke-width: 4 !important;
+            filter: drop-shadow(0 0 4px var(--accent-secondary));
+        }
+
+
+        /* Edge updater (circle on edge endpoints for reconnecting) */
+        /* Custom style for edge updater - smaller and styled */
+        .react-flow__edgeupdater {
+            width: 16px !important;
+            height: 16px !important;
+            border-radius: 50% !important;
+            background: var(--accent-secondary) !important;
+            border: 2px solid var(--bg-secondary) !important;
+            cursor: grab !important;
+            opacity: 0.8 !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .react-flow__edgeupdater:hover {
+            width: 20px !important;
+            height: 20px !important;
+            opacity: 1 !important;
+            box-shadow: 0 0 8px var(--accent-secondary) !important;
+            cursor: grabbing !important;
+        }
+
+        /* Edge hover area - larger hit target */
+        .react-flow__edge-path {
+            transition: stroke-width 0.2s ease, stroke 0.2s ease;
+            cursor: pointer;
+        }
+
+        .react-flow__edge:hover .react-flow__edge-path {
+            stroke: var(--accent-secondary) !important;
+            stroke-width: 4 !important;
+            filter: drop-shadow(0 0 6px var(--accent-secondary));
+        }
+
+        /* Connection line during drag - always visible */
+        .react-flow__connection-line {
+            stroke: #e94560 !important;
+            stroke-width: 5 !important;
+            stroke-dasharray: 10 5;
+            stroke-linecap: round !important;
+            stroke-linejoin: round !important;
+            opacity: 1 !important;
+            pointer-events: none !important;
+            z-index: 10000 !important;
+            filter: drop-shadow(0 0 8px #e94560) drop-shadow(0 0 16px rgba(233, 69, 96, 0.5)) !important;
+            animation: connection-dash 0.4s linear infinite !important;
+        }
+
+        /* Fallback custom connection overlay (always visible during drag) */
+        .connection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10001;
+        }
+
+        .connection-overlay path {
+            stroke: #e94560;
+            stroke-width: 5;
+            stroke-dasharray: 10 5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            filter: drop-shadow(0 0 8px #e94560) drop-shadow(0 0 16px rgba(233, 69, 96, 0.5));
+            animation: connection-dash 0.4s linear infinite;
+        }
+
+        .connection-overlay circle {
+            fill: #e94560;
+            stroke: #fff;
+            stroke-width: 2;
+        }
+
+        /* Edge being updated */
+        .react-flow__edge.updating .react-flow__edge-path {
+            stroke: var(--accent-secondary) !important;
+            stroke-dasharray: 8 4 !important;
+        }
+
+        /* Handle connecting state */
+        .react-flow__handle.connecting {
+            background: var(--accent-secondary) !important;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+        }
+
+        /* Source handle being connected (highlight during drag) */
+        .react-flow__handle.connecting-source {
+            background: #e94560 !important;
+            transform: scale(1.5);
+            box-shadow: 0 0 20px #e94560, 0 0 40px rgba(233, 69, 96, 0.5);
+            animation: source-glow 0.8s ease-in-out infinite;
+        }
+
+        @keyframes source-glow {
+            0%, 100% {
+                box-shadow: 0 0 20px #e94560, 0 0 40px rgba(233, 69, 96, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 30px #e94560, 0 0 60px rgba(233, 69, 96, 0.7);
+            }
+        }
+
+        /* Valid connection target highlight - no yellow, use accent-secondary */
+        .react-flow__handle.valid {
+            background: var(--accent-secondary) !important;
+            box-shadow: 0 0 12px var(--accent-secondary), 0 0 24px rgba(0, 217, 255, 0.5);
+            transform: scale(1.3);
+            animation: valid-pulse 0.6s ease-in-out infinite;
+        }
+
+        @keyframes valid-pulse {
+            0%, 100% {
+                box-shadow: 0 0 12px var(--accent-secondary), 0 0 24px rgba(0, 217, 255, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 16px var(--accent-secondary), 0 0 32px rgba(0, 217, 255, 0.7);
+            }
+        }
+
+        /* All handles show indication when connection line is active */
+        .react-flow__connection ~ .react-flow__handle {
+            transition: all 0.2s ease;
+        }
+
+        .react-flow__connection ~ .react-flow__handle:hover {
+            transform: scale(1.4);
+            filter: brightness(1.3);
+        }
+
+        /* Custom cursor during connection drag */
+        .react-flow-wrapper.connecting-drag {
+            cursor: crosshair;
+        }
+
+        .react-flow-wrapper.connecting-drag .react-flow__zoompane {
+            cursor: crosshair !important;
+        }
+
+        /* Enhanced handle visibility when connection is active */
+        .react-flow__wrapper .react-flow__handle {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Make handles pulse when connection line passes near them */
+        .react-flow__handle:hover {
+            transform: scale(1.3);
+            filter: brightness(1.4);
+        }
+
+        .react-flow__handle:active {
+            transform: scale(1.5);
+        }
+
+        /* Fix handle positioning */
+        .react-flow__handle {
+            position: absolute !important;
+        }
+
+        .react-flow__handle-left {
+            left: -7px !important;
+        }
+
+        .react-flow__handle-right {
+            right: -7px !important;
+            left: auto !important;
+        }
+
+        .react-flow__handle-top {
+            top: -7px !important;
+        }
+
+        .react-flow__handle-bottom {
+            bottom: -7px !important;
+            top: auto !important;
+        }
+
+        /* Validation panel */
+        .validation-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            min-width: 280px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transition: box-shadow 0.2s ease;
+        }
+
+        .validation-panel:hover {
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .validation-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .validation-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85em;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.valid { background: var(--accent-success); }
+        .status-dot.warning { background: var(--accent-warning); }
+        .status-dot.error { background: var(--accent-danger); }
+
+        .validation-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 0.85em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .validation-item:last-child {
+            border-bottom: none;
+        }
+
+        .validation-item.error {
+            color: var(--accent-danger);
+        }
+
+        .validation-item.warning {
+            color: var(--accent-warning);
+        }
+
+        /* YAML Panel */
+        .yaml-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 400px;
+            max-height: 400px;
+            display: none;
+        }
+
+        .yaml-panel.visible {
+            display: block;
+        }
+
+        .yaml-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .yaml-panel-content {
+            padding: 12px 16px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .yaml-output {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 12px;
+            font-family: "SF Mono", "Consolas", monospace;
+            font-size: 0.85em;
+            color: var(--accent-success);
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* ReactFlow dark theme overrides */
+        .react-flow__edge-path {
+            stroke: var(--border-color);
+            stroke-width: 2;
+        }
+
+        .react-flow__edge.selected .react-flow__edge-path {
+            stroke: var(--accent-secondary);
+        }
+
+        .react-flow__edge-text {
+            fill: var(--text-muted);
+            font-size: 10px;
+        }
+
+        .react-flow__background {
+            background-color: var(--bg-primary);
+        }
+
+        .react-flow__grid-path {
+            stroke: var(--border-color);
+            stroke-opacity: 0.3;
+        }
+
+        .react-flow__minimap {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .react-flow__controls {
+            button {
+                background: var(--bg-card);
+                border: 1px solid var(--border-color);
+                fill: var(--text-primary);
+                width: 36px !important;
+                height: 36px !important;
+                min-width: 36px !important;
+                min-height: 36px !important;
+                border-radius: 6px !important;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: pointer;
+            }
+
+            button:hover {
+                background: var(--bg-tertiary);
+                border-color: var(--accent-secondary);
+                transform: scale(1.1);
+                box-shadow: 0 2px 8px rgba(0, 217, 255, 0.2);
+            }
+
+            button:active {
+                transform: scale(0.95);
+            }
+
+            button:focus-visible {
+                outline: 2px solid var(--accent-secondary);
+                outline-offset: 2px;
+            }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .modal-close {
+            float: right;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        /* Context menu */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 0;
+            min-width: 180px;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .context-menu-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9em;
+        }
+
+        .context-menu-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .context-menu-item.danger {
+            color: var(--accent-danger);
+        }
+
+        /* Improved scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-secondary);
+        }
+
+        /* Drag and drop feedback */
+        .react-flow-wrapper.dragging-over {
+            background: rgba(0, 217, 255, 0.05);
+            outline: 2px dashed var(--accent-secondary);
+            outline-offset: -4px;
+        }
+
+        .component-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        /* Tooltip hint */
+        .shortcut-hint {
+            position: absolute;
+            bottom: 4px;
+            right: 8px;
+            font-size: 0.7em;
+            color: var(--text-muted);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        /* Minimap improvements */
+        .react-flow__minimap {
+            border-radius: 8px !important;
+            overflow: hidden !important;
+            transition: opacity 0.2s;
+        }
+
+        .react-flow__minimap:hover {
+            opacity: 0.9 !important;
+        }
+
+        /* Selection box */
+        .react-flow__selection {
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid var(--accent-secondary);
+        }
+
+        /* Loading state */
+        @keyframes pulse-opacity {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse-opacity 1.5s ease-in-out infinite;
+        }
+
+        /* Better focus states for keyboard navigation */
+        *:focus-visible {
+            outline: 2px solid var(--accent-secondary);
+            outline-offset: 2px;
+        }
+
+        /* Prevent outline for mouse users */
+        *:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        /* ==================== Mode Switcher ==================== */
+        .mode-switcher {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mode-btn:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .mode-btn.active {
+            background: var(--accent-primary);
+            color: #fff;
+        }
+
+        .metadata-toggle {
+            font-size: 0.85em;
+            padding: 6px 12px;
+        }
+
+        /* ==================== Metadata Panel ==================== */
+        .metadata-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .metadata-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .metadata-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2em;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .metadata-close:hover {
+            background: var(--bg-card);
+            color: var(--accent-danger);
+        }
+
+        .metadata-content {
+            padding: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .metadata-field {
+            margin-bottom: 12px;
+        }
+
+        .metadata-field.half {
+            flex: 1;
+            margin-bottom: 8px;
+        }
+
+        .metadata-field label {
+            display: block;
+            font-size: 0.75em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .metadata-field small {
+            display: block;
+            font-size: 0.7em;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .metadata-subheader {
+            font-size: 0.85em;
+            font-weight: 600;
+            color: var(--accent-secondary);
+            margin: 12px 0 8px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .metadata-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ==================== Class Mode Preview ==================== */
+        .class-mode-preview {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .class-preview-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .class-mode-yaml {
+            background: var(--bg-primary);
+            border: none;
+            border-radius: 0;
+            padding: 16px;
+            margin: 0;
+            height: calc(100% - 45px);
+            overflow-y: auto;
+        }
+
+        /* ==================== Class Mode Message ==================== */
+        .class-mode-message {
+            background: var(--bg-card);
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .message-icon {
+            font-size: 2.5em;
+            margin-bottom: 12px;
+        }
+
+        .message-text {
+            font-size: 0.9em;
+        }
+
+        .message-text small {
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useCallback, useMemo, useRef, useEffect } = React;
+
+        // ReactFlow UMD exports - the main component is ReactFlow.default or ReactFlow.ReactFlow
+        const ReactFlowLib = window.ReactFlow;
+        const ReactFlowComponent = ReactFlowLib.default || ReactFlowLib.ReactFlow || ReactFlowLib;
+        const Background = ReactFlowLib.Background;
+        const Controls = ReactFlowLib.Controls;
+        const MiniMap = ReactFlowLib.MiniMap;
+        const addEdge = ReactFlowLib.addEdge;
+        const Handle = ReactFlowLib.Handle;
+        const Position = ReactFlowLib.Position || { Left: 'left', Right: 'right', Top: 'top', Bottom: 'bottom' };
+        const ConnectionLineType = ReactFlowLib.ConnectionLineType;
+        const ConnectionMode = ReactFlowLib.ConnectionMode;
+        const MarkerType = ReactFlowLib.MarkerType;
+        const SmoothStepEdge = ReactFlowLib.SmoothStepEdge;
+        const updateEdge = ReactFlowLib.updateEdge;
+        const useUpdateNodeInternals = ReactFlowLib.useUpdateNodeInternals;
+
+        // Debug: Check what's available
+        console.log('ReactFlowLib:', ReactFlowLib);
+        console.log('ReactFlowComponent:', ReactFlowComponent);
+        console.log('Handle:', Handle);
+        console.log('Position:', Position);
+        console.log('ConnectionLineType:', ConnectionLineType);
+
+        // ==================== Component Definitions ====================
+        const COMPONENT_TYPES = {
+            TARGET: {
+                id: 'TARGET',
+                label: 'Target',
+                color: 'var(--color-target)',
+                components: [
+                    { id: 'SELF', label: 'Self', description: 'キャスター自身' },
+                    { id: 'SINGLE', label: 'Single', description: '単体ターゲット' },
+                    { id: 'CONE', label: 'Cone', description: 'コーン状範囲' },
+                    { id: 'SPHERE', label: 'Sphere', description: '球形範囲' },
+                    { id: 'SECTOR', label: 'Sector', description: '扇形範囲' },
+                    { id: 'AREA', label: 'Area', description: '指定座標範囲' },
+                    { id: 'LINE', label: 'Line', description: '直線状範囲' },
+                    { id: 'NEAREST_HOSTILE', label: 'Nearest Hostile', description: '最寄りの敵対的' }
+                ]
+            },
+            MECHANIC: {
+                id: 'MECHANIC',
+                label: 'Mechanic',
+                color: 'var(--color-mechanic)',
+                components: [
+                    { id: 'DAMAGE', label: 'Damage', description: 'ダメージを与える' },
+                    { id: 'HEAL', label: 'Heal', description: '回復する' },
+                    { id: 'PUSH', label: 'Push', description: '吹き飛ばす' },
+                    { id: 'FIRE', label: 'Fire', description: '燃焼効果' },
+                    { id: 'POTION', label: 'Potion', description: 'ポーション効果' },
+                    { id: 'COMMAND', label: 'Command', description: 'コマンド実行' },
+                    { id: 'MESSAGE', label: 'Message', description: 'メッセージ送信' },
+                    { id: 'SPEED', label: 'Speed', description: '移動速度変化' },
+                    { id: 'LAUNCH', label: 'Launch', description: '投射物発射' },
+                    { id: 'SOUND', label: 'Sound', description: 'サウンド再生' },
+                    { id: 'PARTICLE', label: 'Particle', description: 'パーティクル表示' },
+                    { id: 'CLEANSE', label: 'Cleanse', description: 'ポーション効果解除' },
+                    { id: 'LIGHTNING', label: 'Lightning', description: '稲妻落とし' },
+                    { id: 'EXPLOSION', label: 'Explosion', description: '爆発' },
+                    { id: 'DELAY', label: 'Delay', description: '遅延実行' },
+                    { id: 'CHANNEL', label: 'Channel', description: 'チャネル詠唱' }
+                ]
+            },
+            CONDITION: {
+                id: 'CONDITION',
+                label: 'Condition',
+                color: 'var(--color-condition)',
+                components: [
+                    { id: 'HEALTH', label: 'Health', description: 'HP条件' },
+                    { id: 'CHANCE', label: 'Chance', description: '確率' },
+                    { id: 'MANA', label: 'Mana', description: 'MP条件' },
+                    { id: 'BIOME', label: 'Biome', description: 'バイオーム' },
+                    { id: 'CLASS', label: 'Class', description: 'クラス' },
+                    { id: 'ARMOR', label: 'Armor', description: '装備防具' },
+                    { id: 'TIME', label: 'Time', description: '時刻' },
+                    { id: 'FIRE', label: 'Fire', description: '燃焼中' },
+                    { id: 'WATER', label: 'Water', description: '水中' },
+                    { id: 'COMBAT', label: 'Combat', description: '戦闘状態' },
+                    { id: 'POTION', label: 'Potion', description: 'ポーション効果有無' },
+                    { id: 'STATUS', label: 'Status', description: 'ステータス値' },
+                    { id: 'TOOL', label: 'Tool', description: '手持ちツール' },
+                    { id: 'EVENT', label: 'Event', description: 'イベント発火' }
+                ]
+            },
+            FILTER: {
+                id: 'FILTER',
+                label: 'Filter',
+                color: 'var(--color-filter)',
+                components: [
+                    { id: 'ENTITY_TYPE', label: 'Entity Type', description: 'エンティティタイプ' },
+                    { id: 'GROUP', label: 'Group', description: '敵味方グループ' }
+                ]
+            },
+            TRIGGER: {
+                id: 'TRIGGER',
+                label: 'Trigger',
+                color: 'var(--color-trigger)',
+                components: [
+                    { id: 'CAST', label: 'Cast', description: 'スキル使用時' },
+                    { id: 'CROUCH', label: 'Crouch', description: 'スニーク時' },
+                    { id: 'LAND', label: 'Land', description: '着地時' },
+                    { id: 'DEATH', label: 'Death', description: '死亡時' },
+                    { id: 'KILL', label: 'Kill', description: 'キル時' },
+                    { id: 'PHYSICAL_DEALT', label: 'Physical Dealt', description: '物理ダメージ与時' },
+                    { id: 'PHYSICAL_TAKEN', label: 'Physical Taken', description: '物理ダメージ被時' },
+                    { id: 'LAUNCH', label: 'Launch', description: '投射物発射時' },
+                    { id: 'ENVIRONMENTAL', label: 'Environmental', description: '環境ダメージ時' }
+                ]
+            },
+            COST: {
+                id: 'COST',
+                label: 'Cost',
+                color: 'var(--color-cost)',
+                components: [
+                    { id: 'MANA', label: 'Mana Cost', description: 'MP消費' },
+                    { id: 'HP', label: 'HP Cost', description: 'HP消費' },
+                    { id: 'STAMINA', label: 'Stamina Cost', description: 'スタミナ消費' },
+                    { id: 'ITEM', label: 'Item Cost', description: 'アイテム消費' }
+                ]
+            },
+            COOLDOWN: {
+                id: 'COOLDOWN',
+                label: 'Cooldown',
+                color: 'var(--color-cooldown)',
+                components: [
+                    { id: 'COOLDOWN', label: 'Cooldown', description: 'クールダウン' }
+                ]
+            }
+        };
+
+        // ==================== Component Placement Rules ====================
+        const PLACEMENT_RULES = {
+            // Valid parent types for each component type
+            canBeParentOf: {
+                TRIGGER: ['COST', 'COOLDOWN', 'TARGET'],
+                COST: [],
+                COOLDOWN: [],
+                TARGET: ['FILTER', 'CONDITION', 'MECHANIC', 'TARGET'],
+                MECHANIC: ['MECHANIC', 'TARGET', 'CONDITION'],
+                CONDITION: ['CONDITION', 'MECHANIC', 'TARGET'],
+                FILTER: ['FILTER', 'CONDITION', 'MECHANIC', 'TARGET']
+            },
+            // Valid parent types for each component type (reverse lookup)
+            canBeChildOf: {
+                TRIGGER: [],
+                COST: ['TRIGGER'],
+                COOLDOWN: ['TRIGGER'],
+                TARGET: ['TRIGGER', 'CONDITION', 'FILTER', 'MECHANIC'],
+                MECHANIC: ['TRIGGER', 'CONDITION', 'FILTER', 'TARGET', 'MECHANIC'],
+                CONDITION: ['TRIGGER', 'CONDITION', 'FILTER', 'TARGET', 'MECHANIC'],
+                FILTER: ['TRIGGER', 'CONDITION', 'FILTER', 'TARGET', 'MECHANIC']
+            },
+            // Max count per skill
+            maxCount: {
+                TRIGGER: 1,
+                COST: 1,
+                COOLDOWN: 1
+            }
+        };
+
+        // ==================== Validation Engine ====================
+        const validateConnection = (sourceType, targetType) => {
+            if (!sourceType || !targetType) {
+                return { valid: true, message: '' };
+            }
+
+            const allowedParents = PLACEMENT_RULES.canBeChildOf[targetType];
+            if (!allowedParents.includes(sourceType)) {
+                return {
+                    valid: false,
+                    message: `${targetType} は ${sourceType} の子になれません`
+                };
+            }
+
+            return { valid: true, message: '' };
+        };
+
+        const validateTree = (nodes, edges) => {
+            const issues = [];
+            const nodeCount = {};
+
+            // Count nodes by type
+            nodes.forEach(node => {
+                const type = node.data.componentType;
+                nodeCount[type] = (nodeCount[type] || 0) + 1;
+            });
+
+            // Check max count constraints
+            Object.entries(PLACEMENT_RULES.maxCount).forEach(([type, max]) => {
+                if ((nodeCount[type] || 0) > max) {
+                    issues.push({
+                        type: 'error',
+                        message: `${type} は最大 ${max} 個までです（現在: ${nodeCount[type]} 個）`
+                    });
+                }
+            });
+
+            // Check each connection
+            edges.forEach(edge => {
+                const sourceNode = nodes.find(n => n.id === edge.source);
+                const targetNode = nodes.find(n => n.id === edge.target);
+
+                if (sourceNode && targetNode) {
+                    const validation = validateConnection(
+                        sourceNode.data.componentType,
+                        targetNode.data.componentType
+                    );
+                    if (!validation.valid) {
+                        issues.push({
+                            type: 'error',
+                            message: validation.message,
+                            edgeId: edge.id
+                        });
+                    }
+                }
+            });
+
+            return issues;
+        };
+
+        // ==================== Custom Node Component ====================
+        const CustomNode = ({ data, selected, id }) => {
+            console.log('CustomNode rendering:', data);
+            const category = COMPONENT_TYPES[data.componentType] || { color: '#666' };
+            const updateNodeInternals = useUpdateNodeInternals();
+
+            // Update node internals when component mounts or data changes
+            useEffect(() => {
+                if (id) {
+                    updateNodeInternals(id);
+                }
+            }, [id, data.parameterConfig, updateNodeInternals]);
+
+            // Use data.parameters directly without local state to avoid hook issues
+            const handleParameterChange = (key, value) => {
+                const newParams = { ...data.parameters, [key]: value };
+                data.onParametersChange?.(data.id, newParams);
+            };
+
+            const renderParameterInput = (key, config) => {
+                const value = data.parameters?.[key] !== undefined ? data.parameters[key] : config.default;
+
+                if (config.type === 'select') {
+                    return (
+                        <select
+                            className="parameter-input"
+                            value={value}
+                            onChange={(e) => handleParameterChange(key, e.target.value)}
+                        >
+                            {config.options?.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    );
+                }
+
+                if (config.type === 'boolean') {
+                    return (
+                        <select
+                            className="parameter-input"
+                            value={value}
+                            onChange={(e) => handleParameterChange(key, e.target.value === 'true')}
+                        >
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                        </select>
+                    );
+                }
+
+                return (
+                    <input
+                        type={config.type === 'number' ? 'number' : 'text'}
+                        className="parameter-input"
+                        value={value}
+                        placeholder={config.default}
+                        onChange={(e) => handleParameterChange(key, e.target.value)}
+                        step={config.step || 1}
+                        min={config.min}
+                        max={config.max}
+                    />
+                );
+            };
+
+            return (
+                <div className={`custom-node ${selected ? 'selected' : ''}`}>
+                    <div className="node-header" style={{ borderBottomColor: category.color }}>
+                        <div className="node-icon" style={{ background: category.color, color: '#000' }}>
+                            {data.componentType?.[0] || '?'}
+                        </div>
+                        <span className="node-title">{data.label}</span>
+                        <button
+                            onClick={() => data.onDelete?.(data.id)}
+                            className="node-delete-btn"
+                            style={{
+                                marginLeft: 'auto',
+                                width: '28px',
+                                height: '28px',
+                                minWidth: '28px',
+                                minHeight: '28px',
+                                borderRadius: '6px',
+                                background: 'rgba(255, 71, 87, 0.1)',
+                                border: '1px solid rgba(255, 71, 87, 0.3)',
+                                color: 'var(--accent-danger)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '18px',
+                                fontWeight: 'bold',
+                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                padding: '0',
+                                lineHeight: '1'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 71, 87, 0.2)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 71, 87, 0.5)';
+                                e.currentTarget.style.transform = 'scale(1.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 71, 87, 0.1)';
+                                e.currentTarget.style.borderColor = 'rgba(255, 71, 87, 0.3)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div className="node-content">
+                        {Object.entries(data.parameterConfig || {}).map(([key, config]) => (
+                            <div key={key} className="node-parameter">
+                                <div className="parameter-label">{config.label}</div>
+                                {renderParameterInput(key, config)}
+                            </div>
+                        ))}
+                    </div>
+                    {/* Left side handles - fixed pixel positions */}
+                    {data.showTarget && (
+                        <Handle
+                            type="target"
+                            position={Position.Left}
+                            id="left-target"
+                            className="custom-handle target"
+                            style={{ top: 30 }}
+                            isConnectable={true}
+                            data-handleid="left-target"
+                            data-nodeid={data.id}
+                        />
+                    )}
+                    {data.showSource && (
+                        <Handle
+                            type="source"
+                            position={Position.Left}
+                            id="left-source"
+                            className="custom-handle source"
+                            style={{ top: 60 }}
+                            isConnectable={true}
+                            data-handleid="left-source"
+                            data-nodeid={data.id}
+                        />
+                    )}
+                    {/* Right side handles - fixed pixel positions */}
+                    {data.showTarget && (
+                        <Handle
+                            type="target"
+                            position={Position.Right}
+                            id="right-target"
+                            className="custom-handle target"
+                            style={{ top: 30 }}
+                            isConnectable={true}
+                            data-handleid="right-target"
+                            data-nodeid={data.id}
+                        />
+                    )}
+                    {data.showSource && (
+                        <Handle
+                            type="source"
+                            position={Position.Right}
+                            id="right-source"
+                            className="custom-handle source"
+                            style={{ top: 60 }}
+                            isConnectable={true}
+                            data-handleid="right-source"
+                            data-nodeid={data.id}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        // Define nodeTypes as a stable object outside component
+        const nodeTypes = { custom: CustomNode };
+        console.log('nodeTypes defined:', nodeTypes);
+
+        // ==================== Main App Component ====================
+        const SkillEditor = () => {
+            // Mode: 'skill' or 'class'
+            const [editorMode, setEditorMode] = useState('skill');
+
+            // Skill metadata state
+            const [skillMetadata, setSkillMetadata] = useState({
+                id: 'custom_skill',
+                name: 'カスタムスキル',
+                displayName: '&6カスタムスキル',
+                skillType: 'ACTIVE',  // ACTIVE, PASSIVE, TOGGLE
+                description: [],
+                maxLevel: 10,
+                availableClasses: [],
+                skillTreeCost: 0,
+                skillTreeParent: '',
+                skillTreeRequirements: []
+            });
+
+            // Class data state
+            const [classData, setClassData] = useState({
+                id: 'custom_class',
+                name: 'カスタムクラス',
+                displayName: '&6カスタムクラス',
+                description: [],
+                rank: 1,
+                maxLevel: 50,
+                icon: 'DIAMOND_SWORD',
+                statGrowth: { manualPoints: 3, health: 1, mana: 1, defense: 1, attack: 1 },
+                nextRankClassId: '',
+                manaRegen: 1.0,
+                passiveBonuses: []
+            });
+
+            const [nodes, setNodes] = useState([]);
+            const [edges, setEdges] = useState([]);
+            const [validationIssues, setValidationIssues] = useState([]);
+            const [showYaml, setShowYaml] = useState(false);
+            const [showMetadata, setShowMetadata] = useState(true);
+            const [isConnecting, setIsConnecting] = useState(false);
+            const [connectionLine, setConnectionLine] = useState({ fromX: 0, fromY: 0, toX: 0, toY: 0 });
+            const reactFlowWrapper = useRef(null);
+            const reactFlowInstance = useRef(null);
+            const nodesRef = useRef([]);
+            const connectStartRef = useRef(null);
+
+            // Debug: Log nodes state changes
+            useEffect(() => {
+                console.log('Nodes state updated:', nodes);
+            }, [nodes]);
+
+            // Keep nodesRef in sync with nodes state
+            useEffect(() => {
+                nodesRef.current = nodes;
+            }, [nodes]);
+
+            const getEventPoint = (event) => {
+                const point = event?.touches?.[0] || event?.changedTouches?.[0] || event;
+                if (!point) {
+                    return null;
+                }
+                return { x: point.clientX, y: point.clientY };
+            };
+
+            useEffect(() => {
+                if (!isConnecting) {
+                    return;
+                }
+
+                const handleMove = (event) => {
+                    const point = getEventPoint(event);
+                    if (!point || !reactFlowWrapper.current) {
+                        return;
+                    }
+                    const rect = reactFlowWrapper.current.getBoundingClientRect();
+                    setConnectionLine((prev) => ({
+                        ...prev,
+                        toX: point.x - rect.left,
+                        toY: point.y - rect.top
+                    }));
+                };
+
+                const handleUp = () => {
+                    setIsConnecting(false);
+                    connectStartRef.current = null;
+                };
+
+                window.addEventListener('mousemove', handleMove);
+                window.addEventListener('mouseup', handleUp);
+                window.addEventListener('touchmove', handleMove, { passive: true });
+                window.addEventListener('touchend', handleUp);
+
+                return () => {
+                    window.removeEventListener('mousemove', handleMove);
+                    window.removeEventListener('mouseup', handleUp);
+                    window.removeEventListener('touchmove', handleMove);
+                    window.removeEventListener('touchend', handleUp);
+                };
+            }, [isConnecting]);
+
+            // Wrap in useCallback to prevent re-creation on every render
+            const onNodesChange = useCallback((changes) => {
+                // ReactFlow UMD passes an array of NodeChange objects
+                // We need to manually apply these changes since applyNodeChanges is not available
+                setNodes((nds) => {
+                    let updatedNodes = [...nds];
+                    changes.forEach((change) => {
+                        const index = updatedNodes.findIndex((n) => n.id === change.id);
+                        if (index !== -1) {
+                            if (change.type === 'position' && change.position) {
+                                updatedNodes[index] = {
+                                    ...updatedNodes[index],
+                                    position: change.position
+                                };
+                            } else if (change.type === 'remove') {
+                                updatedNodes = updatedNodes.filter((n) => n.id !== change.id);
+                            } else if (change.type === 'select' && change.selected !== undefined) {
+                                updatedNodes[index] = {
+                                    ...updatedNodes[index],
+                                    selected: change.selected
+                                };
+                            }
+                        }
+                    });
+                    return updatedNodes;
+                });
+            }, []);
+
+            const onEdgesChange = useCallback((changes) => {
+                // ReactFlow UMD passes an array of EdgeChange objects
+                setEdges((eds) => {
+                    let updatedEdges = [...eds];
+                    changes.forEach((change) => {
+                        const index = updatedEdges.findIndex((e) => e.id === change.id);
+                        if (index !== -1) {
+                            if (change.type === 'remove') {
+                                updatedEdges = updatedEdges.filter((e) => e.id !== change.id);
+                            } else if (change.type === 'select' && change.selected !== undefined) {
+                                updatedEdges[index] = {
+                                    ...updatedEdges[index],
+                                    selected: change.selected
+                                };
+                            }
+                        }
+                    });
+                    return updatedEdges;
+                });
+            }, []);
+
+            // Delete node handler - must be defined before onDrop
+            const handleDeleteNode = useCallback((nodeId) => {
+                setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+                setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+            }, []);
+
+            // Parameters change handler - must be defined before onDrop
+            const handleParametersChange = useCallback((nodeId, params) => {
+                setNodes((nds) => nds.map((node) => {
+                    if (node.id === nodeId) {
+                        return {
+                            ...node,
+                            data: { ...node.data, parameters: params }
+                        };
+                    }
+                    return node;
+                }));
+            }, []);
+
+            // Generate unique ID
+            const generateId = useCallback(() => {
+                return `node_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            }, []);
+
+            // Add node to canvas
+            const onDragOver = useCallback((event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+            }, []);
+
+            const onDrop = useCallback((event) => {
+                event.preventDefault();
+                console.log('onDrop triggered');
+
+                const rawData = event.dataTransfer.getData('application/reactflow');
+                console.log('rawData:', rawData);
+                
+                if (!rawData) {
+                    console.log('No data in dataTransfer');
+                    return;
+                }
+
+                const componentData = JSON.parse(rawData);
+                console.log('componentData:', componentData);
+
+                // Calculate position - use fallback if reactFlowInstance is not available
+                let position;
+                console.log('reactFlowInstance.current:', reactFlowInstance.current);
+                
+                if (reactFlowInstance.current) {
+                    // Try screenToFlowPosition first (newer API), fall back to project (older API)
+                    const toFlowPosition = reactFlowInstance.current.screenToFlowPosition || reactFlowInstance.current.project;
+                    console.log('toFlowPosition function:', toFlowPosition);
+                    
+                    if (toFlowPosition) {
+                        position = toFlowPosition.call(reactFlowInstance.current, {
+                            x: event.clientX,
+                            y: event.clientY,
+                        });
+                        console.log('Position from ReactFlow:', position);
+                    }
+                }
+                
+                // Fallback: calculate position relative to wrapper
+                if (!position) {
+                    const bounds = reactFlowWrapper.current?.getBoundingClientRect();
+                    console.log('Wrapper bounds:', bounds);
+                    position = bounds ? {
+                        x: event.clientX - bounds.left,
+                        y: event.clientY - bounds.top
+                    } : { x: 100, y: 100 };
+                    console.log('Fallback position:', position);
+                }
+
+                const showSource = componentData.category !== 'COST' && componentData.category !== 'COOLDOWN';
+                const showTarget = componentData.category !== 'TRIGGER';
+
+                const nodeId = generateId();
+                const newNode = {
+                    id: nodeId,
+                    type: 'custom',
+                    position,
+                    data: {
+                        id: nodeId,  // Include id in data for CustomNode
+                        label: componentData.label,
+                        componentType: componentData.category,
+                        componentId: componentData.id,
+                        showSource,
+                        showTarget,
+                        parameterConfig: getParameterConfig(componentData.id),
+                        parameters: {},
+                        onDelete: handleDeleteNode,
+                        onParametersChange: handleParametersChange
+                    },
+                };
+
+                console.log('Creating newNode:', newNode);
+                setNodes((nds) => {
+                    const updated = [...nds, newNode];
+                    console.log('Updated nodes array:', updated);
+                    return updated;
+                });
+            }, [generateId, handleDeleteNode, handleParametersChange]);
+
+            // Custom connection line component to ensure visibility
+        const CustomConnectionLine = ({ fromX, fromY, toX, toY, connectionLineStyle }) => {
+            return (
+                <g>
+                    <path
+                        fill="none"
+                        stroke={connectionLineStyle.stroke || '#e94560'}
+                        strokeWidth={connectionLineStyle.strokeWidth || 5}
+                        strokeDasharray="10 5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="animated"
+                        d={`M${fromX},${fromY} L${toX},${toY}`}
+                        style={{
+                            filter: 'drop-shadow(0 0 8px #e94560) drop-shadow(0 0 16px rgba(233, 69, 96, 0.5))',
+                            animation: 'connection-dash 0.4s linear infinite'
+                        }}
+                    />
+                    <circle
+                        cx={toX}
+                        cy={toY}
+                        fill="#e94560"
+                        r={5}
+                        stroke="#fff"
+                        strokeWidth={2}
+                    />
+                </g>
+            );
+        };
+
+        const onConnect = useCallback((connection) => {
+                // Use ref to get current nodes without creating dependency
+                const currentNodes = nodesRef.current;
+                const sourceNode = currentNodes.find(n => n.id === connection.source);
+                const targetNode = currentNodes.find(n => n.id === connection.target);
+
+                if (sourceNode && targetNode) {
+                    const validation = validateConnection(
+                        sourceNode.data.componentType,
+                        targetNode.data.componentType
+                    );
+
+                    if (!validation.valid) {
+                        alert(validation.message);
+                        return;
+                    }
+                }
+
+                setEdges((eds) => addEdge({
+                    ...connection,
+                    type: 'straight',
+                    updatable: true,
+                    animated: true
+                }, eds));
+            }, []);
+
+            // Connection start/end handlers for cancelling connections
+            const onConnectStart = useCallback((event, params) => {
+                console.log('Connection START:', params);
+                connectStartRef.current = params;
+                setIsConnecting(true);
+
+                const point = getEventPoint(event);
+                if (point && reactFlowWrapper.current) {
+                    const rect = reactFlowWrapper.current.getBoundingClientRect();
+                    setConnectionLine({
+                        fromX: point.x - rect.left,
+                        fromY: point.y - rect.top,
+                        toX: point.x - rect.left,
+                        toY: point.y - rect.top
+                    });
+                }
+
+                // Highlight the source handle
+                const sourceHandle = document.querySelector(`[data-handleid="${params.handleId}"][data-nodeid="${params.nodeId}"]`);
+                if (sourceHandle) {
+                    sourceHandle.classList.add('connecting-source');
+                }
+                // Add cursor style to wrapper
+                const wrapper = document.querySelector('.react-flow-wrapper');
+                if (wrapper) {
+                    wrapper.classList.add('connecting-drag');
+                }
+            }, []);
+
+            const onConnectEnd = useCallback((event) => {
+                console.log('Connection END');
+                setIsConnecting(false);
+
+                const targetHandle = event?.target?.closest?.('.react-flow__handle');
+                if (!targetHandle && connectStartRef.current) {
+                    const { nodeId, handleId, handleType } = connectStartRef.current;
+                    const inferredType = handleType || (handleId?.includes('source') ? 'source' : 'target');
+                    setEdges((eds) => eds.filter((edge) => {
+                        if (inferredType === 'source') {
+                            return !(edge.source === nodeId && edge.sourceHandle === handleId);
+                        }
+                        return !(edge.target === nodeId && edge.targetHandle === handleId);
+                    }));
+                }
+
+                connectStartRef.current = null;
+
+                // Remove highlight from source handle
+                const connectingHandles = document.querySelectorAll('.connecting-source');
+                connectingHandles.forEach(handle => {
+                    handle.classList.remove('connecting-source');
+                });
+                // Remove cursor style from wrapper
+                const wrapper = document.querySelector('.react-flow-wrapper');
+                if (wrapper) {
+                    wrapper.classList.remove('connecting-drag');
+                }
+                // Note: ReactFlow handles connection cancellation automatically
+                // When user clicks outside of a handle while dragging, no edge is created
+            }, []);
+
+            // Edge update handlers - for reconnecting edges from handles
+            const edgeUpdateSuccessful = useRef(true);
+
+            const onEdgeUpdateStart = useCallback((event, edge) => {
+                console.log('Edge update START:', edge);
+                edgeUpdateSuccessful.current = false;
+            }, []);
+
+            const onEdgeUpdate = useCallback((oldEdge, newConnection) => {
+                console.log('Edge UPDATE:', oldEdge, newConnection);
+                edgeUpdateSuccessful.current = true;
+                // Use updateEdge from ReactFlow library
+                setEdges((eds) => updateEdge(oldEdge, newConnection, eds));
+            }, []);
+
+            const onEdgeUpdateEnd = useCallback((event, edge) => {
+                console.log('Edge update END:', edge, 'successful:', edgeUpdateSuccessful.current);
+                // If edge was not successfully updated (dropped in empty space), remove it
+                if (!edgeUpdateSuccessful.current) {
+                    setEdges((eds) => eds.filter(e => e.id !== edge.id));
+                }
+                edgeUpdateSuccessful.current = true;
+            }, []);
+
+            const validateFlow = useCallback((currentNodes, currentEdges) => {
+                const issues = validateTree(currentNodes, currentEdges);
+                setValidationIssues(issues);
+            }, []);
+
+            // Auto-validate when nodes or edges change
+            useEffect(() => {
+                validateFlow(nodes, edges);
+            }, [nodes, edges, validateFlow]);
+
+            // Convert camelCase to snake_case (with underscores for YAML to match Java loader)
+            const camelToSnake = (str) => {
+                return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+            };
+
+            // Generate YAML from nodes and edges
+            const generateYaml = useCallback(() => {
+                if (editorMode === 'class') {
+                    // Generate Class YAML (matching ClassLoader.java expected format)
+                    let yaml = `id: "${classData.id}"\n`;
+                    yaml += `name: "${classData.name}"\n`;
+                    yaml += `display_name: "${classData.displayName}"\n`;
+                    if (classData.description.length > 0) {
+                        yaml += `description:\n`;
+                        classData.description.forEach(line => {
+                            yaml += `  - "${line}"\n`;
+                        });
+                    }
+                    yaml += `rank: ${classData.rank}\n`;
+                    yaml += `max_level: ${classData.maxLevel}\n`;
+                    yaml += `icon: ${classData.icon}\n`;
+                    yaml += `stat_growth:\n`;
+                    yaml += `  manual_points: ${classData.statGrowth.manualPoints || 3}\n`;
+                    yaml += `  health: ${classData.statGrowth.health}\n`;
+                    yaml += `  mana: ${classData.statGrowth.mana}\n`;
+                    yaml += `  defense: ${classData.statGrowth.defense}\n`;
+                    yaml += `  attack: ${classData.statGrowth.attack}\n`;
+                    if (classData.nextRankClassId) {
+                        yaml += `next_rank:\n`;
+                        yaml += `  class_id: "${classData.nextRankClassId}"\n`;
+                        yaml += `  requirements:\n`;
+                        yaml += `    requirements: []\n`;
+                    }
+                    yaml += `mana_regen: ${classData.manaRegen}\n`;
+                    if (classData.passiveBonuses.length > 0) {
+                        yaml += `passive_bonuses:\n`;
+                        classData.passiveBonuses.forEach(bonus => {
+                            yaml += `  - type: "${bonus.type}"\n`;
+                            yaml += `    value: ${bonus.value}\n`;
+                        });
+                    }
+                    return yaml;
+                }
+
+                // Generate Skill YAML
+                if (nodes.length === 0) return '# ノードがありません';
+
+                // Build tree structure from edges
+                const buildTree = (nodeId) => {
+                    const node = nodes.find(n => n.id === nodeId);
+                    if (!node) return null;
+
+                    const childEdges = edges.filter(e => e.source === nodeId);
+                    const children = childEdges.map(e => buildTree(e.target)).filter(Boolean);
+
+                    const component = {
+                        type: node.data.componentId
+                    };
+
+                    // Add parameters with snake_case conversion
+                    Object.entries(node.data.parameters || {}).forEach(([key, value]) => {
+                        if (value !== '' && value !== null && value !== undefined) {
+                            // Convert camelCase to snake_case (hyphenated for YAML)
+                            const yamlKey = camelToSnake(key);
+                            component[yamlKey] = value;
+                        }
+                    });
+
+                    // Add nested components
+                    if (children.length > 0) {
+                        component.components = children;
+                    }
+
+                    return component;
+                };
+
+                // Find root nodes (no incoming edges)
+                const rootIds = nodes
+                    .filter(n => !edges.some(e => e.target === n.id))
+                    .map(n => n.id);
+
+                const components = rootIds.map(id => buildTree(id)).filter(Boolean);
+
+                // Generate YAML with metadata (matching SkillLoader.java expected format)
+                let yaml = `id: "${skillMetadata.id}"\n`;
+                yaml += `name: "${skillMetadata.name}"\n`;
+                yaml += `display_name: "${skillMetadata.displayName}"\n`;
+                yaml += `type: ${skillMetadata.skillType || 'ACTIVE'}\n`;  // Required field by SkillLoader
+                if (skillMetadata.description.length > 0) {
+                    yaml += `description:\n`;
+                    skillMetadata.description.forEach(line => {
+                        yaml += `  - "${line}"\n`;
+                    });
+                }
+                yaml += `max_level: ${skillMetadata.maxLevel}\n`;
+                if (skillMetadata.availableClasses.length > 0) {
+                    yaml += `available_classes:\n`;
+                    skillMetadata.availableClasses.forEach(cls => {
+                        yaml += `  - "${cls}"\n`;
+                    });
+                }
+                yaml += `skill_tree:\n`;
+                yaml += `  cost: ${skillMetadata.skillTreeCost}\n`;
+                if (skillMetadata.skillTreeParent) {
+                    yaml += `  parent: "${skillMetadata.skillTreeParent}"\n`;
+                }
+                yaml += `components:\n`;
+
+                const renderComponent = (comp, indent = 1) => {
+                    const spaces = '  '.repeat(indent);
+                    let result = `${spaces}- type: ${comp.type}\n`;
+
+                    Object.entries(comp).forEach(([key, value]) => {
+                        if (key === 'type' || key === 'components') return;
+                        result += `${spaces}  ${key}: ${JSON.stringify(value)}\n`;
+                    });
+
+                    if (comp.components && comp.components.length > 0) {
+                        result += `${spaces}  components:\n`;
+                        comp.components.forEach(child => {
+                            result += renderComponent(child, indent + 2);
+                        });
+                    }
+
+                    return result;
+                };
+
+                components.forEach(comp => {
+                    yaml += renderComponent(comp);
+                });
+
+                return yaml;
+            }, [nodes, edges, editorMode, skillMetadata, classData]);
+
+            // Export YAML
+            const handleExportYaml = useCallback(() => {
+                const yaml = generateYaml();
+                const blob = new Blob([yaml], { type: 'text/yaml' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'skill.yaml';
+                a.click();
+                URL.revokeObjectURL(url);
+            }, [generateYaml]);
+
+            // Convert snake_case or hyphenated to camelCase (supports both formats)
+            const snakeToCamel = (str) => {
+                // First convert underscores, then hyphens
+                return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+                          .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+            };
+
+            // Simple YAML parser for our skill format
+            const parseSkillYaml = (yamlText) => {
+                const lines = yamlText.split('\n');
+                const components = [];
+                const stack = [{ indent: -1, children: components }];
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (!line.trim() || line.trim().startsWith('#')) continue;
+
+                    const indent = line.search(/\S/);
+                    const trimmed = line.trim();
+
+                    // Pop stack to appropriate level
+                    while (stack.length > 1 && stack[stack.length - 1].indent >= indent) {
+                        stack.pop();
+                    }
+
+                    // Check for component entry (- type: XXX)
+                    const componentMatch = trimmed.match(/^-\s*type:\s*(\w+)/);
+                    if (componentMatch) {
+                        const component = { type: componentMatch[1], params: {}, components: [] };
+                        stack[stack.length - 1].children.push(component);
+                        stack.push({ indent, component });
+                        continue;
+                    }
+
+                    // Check for parameter (key: value)
+                    const paramMatch = trimmed.match(/^(\w[\w-]*):\s*(.+)$/);
+                    if (paramMatch && stack.length > 1) {
+                        const key = paramMatch[1];
+                        let value = paramMatch[2];
+
+                        // Parse value (remove quotes, handle booleans/numbers)
+                        if ((value.startsWith('"') && value.endsWith('"')) ||
+                            (value.startsWith("'") && value.endsWith("'"))) {
+                            value = value.slice(1, -1);
+                        } else if (value === 'true') {
+                            value = true;
+                        } else if (value === 'false') {
+                            value = false;
+                        } else if (!isNaN(value)) {
+                            value = Number(value);
+                        }
+
+                        // Convert key from snake_case to camelCase
+                        const camelKey = snakeToCamel(key);
+
+                        // Check if this is a nested components entry
+                        if (key === 'components') {
+                            stack[stack.length - 1].component.components = [];
+                            stack.push({ indent, children: stack[stack.length - 1].component.components });
+                        } else {
+                            stack[stack.length - 1].component.params[camelKey] = value;
+                        }
+                    }
+                }
+
+                return components;
+            };
+
+            // Calculate node positions in a tree layout
+            // Use useCallback to stabilize the function and its dependencies
+            const calculateLayout = useCallback((components, startX = 100, startY = 100, deleteHandler = null, paramsHandler = null) => {
+                const nodes = [];
+                const edges = [];
+                let nodeId = 0;
+
+                const processComponent = (component, x, y, parentId = null) => {
+                    const currentNodeId = `imported_node_${nodeId++}`;
+
+                    // Find component type and label
+                    let componentType = null;
+                    let label = component.type;
+
+                    for (const [catKey, category] of Object.entries(COMPONENT_TYPES)) {
+                        const found = category.components.find(c => c.id === component.type);
+                        if (found) {
+                            componentType = catKey;
+                            label = found.label;
+                            break;
+                        }
+                    }
+
+                    const showSource = componentType !== 'COST' && componentType !== 'COOLDOWN';
+                    const showTarget = componentType !== 'TRIGGER';
+
+                    nodes.push({
+                        id: currentNodeId,
+                        type: 'custom',
+                        position: { x, y },
+                        data: {
+                            label,
+                            componentType,
+                            componentId: component.type,
+                            showSource,
+                            showTarget,
+                            parameterConfig: getParameterConfig(component.type),
+                            parameters: component.params || {},
+                            onDelete: deleteHandler || handleDeleteNode,
+                            onParametersChange: paramsHandler || handleParametersChange
+                        }
+                    });
+
+                    if (parentId) {
+                        edges.push({
+                            id: `imported_edge_${parentId}_${currentNodeId}`,
+                            source: parentId,
+                            target: currentNodeId
+                        });
+                    }
+
+                    // Process children
+                    if (component.components && component.components.length > 0) {
+                        const childY = y + component.components.length * 120;
+                        component.components.forEach((child, index) => {
+                            processComponent(child, x + 300, startY + index * 150, currentNodeId);
+                        });
+                    }
+                };
+
+                components.forEach((comp, index) => {
+                    processComponent(comp, startX, startY + index * 200);
+                });
+
+                return { nodes, edges };
+            }, [handleDeleteNode, handleParametersChange]);
+
+            // Import YAML
+            const handleImportYaml = useCallback((event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const content = e.target?.result;
+                        const parsedComponents = parseSkillYaml(content);
+
+                        if (parsedComponents.length === 0) {
+                            alert('YAMLの解析に失敗しました。有効なコンポーネントが見つかりませんでした。');
+                            return;
+                        }
+
+                        const { nodes: newNodes, edges: newEdges } = calculateLayout(parsedComponents);
+
+                        // Confirm before replacing
+                        if (nodes.length > 0) {
+                            if (!confirm('現在のノードを削除してインポートしますか？')) {
+                                return;
+                            }
+                        }
+
+                        setNodes(newNodes);
+                        setEdges(newEdges);
+                        validateFlow(newNodes, newEdges);
+
+                        // Reset file input
+                        event.target.value = '';
+                    } catch (error) {
+                        alert('YAMLの解析に失敗しました: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            }, [nodes, edges, calculateLayout, validateFlow]);
+
+            // Clear canvas
+            const handleClear = useCallback(() => {
+                if (confirm('全てのノードを削除しますか？')) {
+                    setNodes([]);
+                    setEdges([]);
+                    setValidationIssues([]);
+                }
+            }, []);
+
+            // Get parameter config for component
+            function getParameterConfig(componentId) {
+                const configs = {
+                    // ==================== TARGET ====================
+                    SELF: {},
+                    SINGLE: {
+                        range: { label: '範囲', type: 'number', default: 10.0, min: 0.1, max: 1000, step: 0.1 },
+                        range_per_level: { label: '範囲/レベル', type: 'number', default: 0.0, step: 0.1 },
+                        select_nearest: { label: '最近を選択', type: 'boolean', default: true },
+                        target_self: { label: '自分を対象', type: 'boolean', default: false },
+                        hostile_only: { label: '敵対的のみ', type: 'boolean', default: true },
+                        relative_to: { label: '基準', type: 'select', default: 'caster', options: ['caster', 'target'] }
+                    },
+                    CONE: {
+                        angle: { label: '角度(°)', type: 'number', default: 90.0, min: 1.0, max: 360.0, step: 1.0 },
+                        angle_per_level: { label: '角度/レベル', type: 'number', default: 0.0, step: 1.0 },
+                        range: { label: '範囲', type: 'number', default: 10.0, min: 0.1, max: 1000, step: 0.1 },
+                        range_per_level: { label: '範囲/レベル', type: 'number', default: 0.0, step: 0.1 },
+                        max_targets: { label: '最大数', type: 'number', default: 5, min: 1, max: 1000 },
+                        max_targets_per_level: { label: '最大数/レベル', type: 'number', default: 0, min: 0, max: 100 },
+                        relative_to: { label: '基準', type: 'select', default: 'caster', options: ['caster', 'target'] }
+                    },
+                    SPHERE: {
+                        radius: { label: '半径', type: 'number', default: 5.0, min: 0.1, max: 500, step: 0.1 },
+                        radius_per_level: { label: '半径/レベル', type: 'number', default: 0.0, step: 0.1 },
+                        max_targets: { label: '最大数', type: 'number', default: 10, min: 1, max: 1000 },
+                        max_targets_per_level: { label: '最大数/レベル', type: 'number', default: 0, min: 0, max: 100 },
+                        include_caster: { label: '自分を含む', type: 'boolean', default: false },
+                        relative_to: { label: '基準', type: 'select', default: 'caster', options: ['caster', 'target'] }
+                    },
+                    SECTOR: {
+                        angle: { label: '角度(°)', type: 'number', default: 60.0, min: 1.0, max: 360.0, step: 1.0 },
+                        angle_per_level: { label: '角度/レベル', type: 'number', default: 0.0, step: 1.0 },
+                        radius: { label: '半径', type: 'number', default: 8.0, min: 0.1, max: 1000, step: 0.1 },
+                        radius_per_level: { label: '半径/レベル', type: 'number', default: 0.0, step: 0.1 },
+                        max_targets: { label: '最大数', type: 'number', default: 8, min: 1, max: 1000 },
+                        max_targets_per_level: { label: '最大数/レベル', type: 'number', default: 0, min: 0, max: 100 },
+                        relative_to: { label: '基準', type: 'select', default: 'caster', options: ['caster', 'target'] }
+                    },
+                    AREA: {
+                        area_shape: { label: '形状', type: 'select', default: 'CIRCLE', options: ['CIRCLE', 'RECTANGLE'] },
+                        radius: { label: '半径', type: 'number', default: 10.0, min: 0.1, max: 500, step: 0.1 },
+                        width: { label: '幅', type: 'number', default: 10.0, min: 0.1, max: 500, step: 0.1 },
+                        depth: { label: '奥行', type: 'number', default: 10.0, min: 0.1, max: 500, step: 0.1 },
+                        max_targets: { label: '最大数', type: 'number', default: 15, min: 1, max: 1000 },
+                        max_targets_per_level: { label: '最大数/レベル', type: 'number', default: 0, min: 0, max: 100 },
+                        include_caster: { label: '自分を含む', type: 'boolean', default: false },
+                        relative_to: { label: '基準', type: 'select', default: 'caster', options: ['caster', 'target'] }
+                    },
+                    LINE: {
+                        length: { label: '長さ', type: 'number', default: 15.0, min: 0.1, max: 500, step: 0.1 },
+                        length_per_level: { label: '長さ/レベル', type: 'number', default: 0.0, step: 0.1 },
+                        width: { label: '幅', type: 'number', default: 2.0, min: 0.1, max: 100, step: 0.1 },
+                        width_per_level: { label: '幅/レベル', type: 'number', default: 0.0, step: 0.1 },
+                        max_targets: { label: '最大数', type: 'number', default: 5, min: 1, max: 1000 },
+                        max_targets_per_level: { label: '最大数/レベル', type: 'number', default: 0, min: 0, max: 100 },
+                        relative_to: { label: '基準', type: 'select', default: 'caster', options: ['caster', 'target'] }
+                    },
+                    NEAREST_HOSTILE: {
+                        range: { label: '検索範囲', type: 'number', default: 15.0, min: 0.1, max: 1000, step: 0.1 },
+                        range_per_level: { label: '範囲/レベル', type: 'number', default: 0.0, step: 0.1 },
+                        relative_to: { label: '基準', type: 'select', default: 'caster', options: ['caster', 'target'] }
+                    },
+
+                    // ==================== MECHANIC ====================
+                    DAMAGE: {
+                        value_base: { label: '基本ダメージ', type: 'number', default: 10, step: 1 },
+                        value_scale: { label: 'レベル増加', type: 'number', default: 2, step: 1 },
+                        type: { label: 'ダメージ種別', type: 'select', default: 'damage', options: ['damage', 'percent', 'multiplier', 'percent missing', 'percent left'] },
+                        true_damage: { label: '防具無視', type: 'boolean', default: false }
+                    },
+                    HEAL: {
+                        value_base: { label: '基本回復量', type: 'number', default: 10, step: 1 },
+                        value_scale: { label: 'レベル増加', type: 'number', default: 2, step: 1 },
+                        type: { label: '回復種別', type: 'select', default: 'value', options: ['value', 'percent', 'percent missing'] }
+                    },
+                    PUSH: {
+                        speed: { label: '水平強さ', type: 'number', default: 1.0, step: 0.1 },
+                        vertical: { label: '垂直強さ', type: 'number', default: 0.3, step: 0.1 }
+                    },
+                    FIRE: {
+                        seconds: { label: '時間(秒)', type: 'number', default: 3, min: 1, max: 1000 },
+                        ticks: { label: '時間(tick)', type: 'number', default: 60, min: 1, max: 20000 }
+                    },
+                    POTION: {
+                        potion: { label: 'ポーション', type: 'text', default: 'SPEED' },
+                        duration: { label: '時間(秒)', type: 'number', default: 3.0, min: 0.1, max: 100000, step: 0.1 },
+                        amplifier: { label: '強度', type: 'number', default: 0, min: 0, max: 15 },
+                        ambient: { label: 'アンビエント', type: 'boolean', default: true }
+                    },
+                    COMMAND: {
+                        command: { label: 'コマンド', type: 'text', default: '' },
+                        type: { label: '実行タイプ', type: 'select', default: 'console', options: ['op', 'console', 'player'] }
+                    },
+                    MESSAGE: {
+                        text: { label: 'メッセージ', type: 'text', default: '' },
+                        to_caster: { label: 'キャスターへ', type: 'boolean', default: false },
+                        to_target: { label: 'ターゲットへ', type: 'boolean', default: false }
+                    },
+                    SPEED: {
+                        duration: { label: '時間(秒)', type: 'number', default: 3.0, min: 0.1, max: 100000, step: 0.1 },
+                        amplifier: { label: '強度', type: 'number', default: 0, min: 0, max: 15 },
+                        ambient: { label: 'アンビエント', type: 'boolean', default: true }
+                    },
+                    LAUNCH: {
+                        projectile: { label: '投射物', type: 'text', default: 'arrow' },
+                        speed: { label: '速度', type: 'number', default: 2.0, min: 0.1, max: 10.0, step: 0.1 },
+                        spread: { label: '散布率', type: 'number', default: 0.1, min: 0.0, max: 1.0, step: 0.01 }
+                    },
+                    SOUND: {
+                        sound: { label: 'サウンド', type: 'text', default: '' },
+                        volume: { label: '音量', type: 'number', default: 1.0, min: 0.0, max: 2.0, step: 0.1 },
+                        pitch: { label: 'ピッチ', type: 'number', default: 1.0, min: 0.0, max: 2.0, step: 0.1 }
+                    },
+                    PARTICLE: {
+                        particle: { label: 'パーティクル', type: 'text', default: '' },
+                        count: { label: '数', type: 'number', default: 10, min: 1, max: 1000 },
+                        offset: { label: 'オフセット', type: 'number', default: 0.5, min: 0.0, max: 10.0, step: 0.1 },
+                        speed: { label: '速度', type: 'number', default: 0.0, min: 0.0, max: 5.0, step: 0.1 }
+                    },
+                    CLEANSE: {
+                        bad_only: { label: '悪い効果のみ', type: 'boolean', default: true },
+                        potion: { label: '特定ポーション', type: 'text', default: '' }
+                    },
+                    LIGHTNING: {
+                        damage: { label: 'ダメージ', type: 'number', default: 5.0, step: 1 },
+                        forward: { label: '前方オフセット', type: 'number', default: 0.0, step: 0.1 },
+                        right: { label: '右方オフセット', type: 'number', default: 0.0, step: 0.1 }
+                    },
+                    EXPLOSION: {
+                        power: { label: '爆発力', type: 'number', default: 3.0, step: 0.5 },
+                        fire: { label: '火災', type: 'boolean', default: false },
+                        damage: { label: 'ダメージ', type: 'boolean', default: true }
+                    },
+                    DELAY: {
+                        delay: { label: '遅延時間', type: 'number', default: 1.0, min: 0, step: 0.1 },
+                        ticks: { label: 'tick単位', type: 'boolean', default: false }
+                    },
+                    CHANNEL: {
+                        duration: { label: '詠唱時間(tick)', type: 'number', default: 60, min: 1, max: 60000 },
+                        ticks: { label: 'tick単位', type: 'boolean', default: true }
+                    },
+
+                    // ==================== CONDITION ====================
+                    HEALTH: {
+                        type: { label: '比較種別', type: 'select', default: 'value', options: ['value', 'percent', 'difference', 'difference percent'] },
+                        min_value: { label: '最小値', type: 'number', default: 0.0, step: 1 },
+                        max_value: { label: '最大値', type: 'number', default: 999999, step: 1 }
+                    },
+                    CHANCE: {
+                        chance: { label: '確率(%)', type: 'number', default: 50, min: 0, max: 100, step: 1 }
+                    },
+                    MANA: {
+                        min_value: { label: '最小MP', type: 'number', default: 0, min: 0, step: 1 }
+                    },
+                    BIOME: {
+                        biome: { label: 'バイオーム', type: 'text', default: '' }
+                    },
+                    CLASS: {
+                        class: { label: 'クラス名', type: 'text', default: '' },
+                        exact: { label: '完全一致', type: 'boolean', default: false }
+                    },
+                    ARMOR: {
+                        material: { label: '素材', type: 'text', default: '' },
+                        slot: { label: 'スロット', type: 'select', default: 'any', options: ['boots', 'leggings', 'chestplate', 'helmet', 'any'] }
+                    },
+                    TIME: {
+                        time: { label: '時刻', type: 'select', default: 'any', options: ['any', 'day', 'night', 'dawn', 'dusk', 'noon', 'midnight', 'morning', 'midday', 'evening'] }
+                    },
+                    FIRE: {
+                        ticks: { label: '最小tick', type: 'number', default: 0, min: 0, step: 1 }
+                    },
+                    WATER: {
+                        depth: { label: '最小水深', type: 'number', default: 1, min: 1, step: 1 }
+                    },
+                    COMBAT: {
+                        mode: { label: 'モード', type: 'select', default: 'enter', options: ['enter', 'exit', 'both'] },
+                        seconds: { label: '期間(秒)', type: 'number', default: 5, min: 1, step: 1 }
+                    },
+                    POTION: {
+                        potion: { label: 'ポーション', type: 'text', default: '' },
+                        min_level: { label: '最小強度', type: 'number', default: 1, min: 1, max: 255 }
+                    },
+                    STATUS: {
+                        stat: { label: 'ステータス', type: 'select', default: 'health', options: ['health', 'max_health', 'food', 'air', 'exp', 'level'] },
+                        min: { label: '最小値', type: 'number', default: 0, step: 1 },
+                        max: { label: '最大値', type: 'number', default: 999999, step: 1 },
+                        percent: { label: 'パーセント指定', type: 'boolean', default: false }
+                    },
+                    TOOL: {
+                        material: { label: '素材', type: 'text', default: '' },
+                        hand: { label: '手', type: 'select', default: 'any', options: ['main', 'off', 'any'] }
+                    },
+                    EVENT: {
+                        event: { label: 'イベント', type: 'select', default: 'PHYSICAL_DEALT', options: ['PHYSICAL_DEALT', 'PHYSICAL_TAKEN', 'CROUCH', 'LAND', 'DEATH', 'KILL', 'LAUNCH', 'ENVIRONMENTAL'] },
+                        duration: { label: '有効期間(秒)', type: 'number', default: 0, min: 0, step: 1 }
+                    },
+
+                    // ==================== FILTER ====================
+                    ENTITY_TYPE: {
+                        type: { label: '種別', type: 'select', default: 'ALL', options: ['SELF', 'PLAYER', 'MOB', 'ALL'] }
+                    },
+                    GROUP: {
+                        group: { label: 'グループ', type: 'select', default: 'ENEMY', options: ['ENEMY', 'ALLY', 'BOTH'] }
+                    },
+
+                    // ==================== TRIGGER ====================
+                    CAST: {},
+                    CROUCH: {},
+                    LAND: {},
+                    DEATH: {},
+                    KILL: {},
+                    PHYSICAL_DEALT: {},
+                    PHYSICAL_TAKEN: {},
+                    LAUNCH: {},
+                    ENVIRONMENTAL: {},
+
+                    // ==================== COST ====================
+                    MANA: {
+                        value_base: { label: '基本MP', type: 'number', default: 10, min: 0, step: 1 },
+                        value_scale: { label: 'レベル増加', type: 'number', default: 0, step: 1 }
+                    },
+                    HP: {
+                        value_base: { label: '基本HP', type: 'number', default: 5, min: 0, step: 1 },
+                        value_scale: { label: 'レベル増加', type: 'number', default: 0, step: 1 }
+                    },
+                    STAMINA: {
+                        value_base: { label: '基本スタミナ', type: 'number', default: 5, min: 0, step: 1 },
+                        value_scale: { label: 'レベル増加', type: 'number', default: 0, step: 1 }
+                    },
+                    ITEM: {
+                        item: { label: 'アイテム', type: 'text', default: '' },
+                        amount: { label: '数量', type: 'number', default: 1, min: 1 }
+                    },
+
+                    // ==================== COOLDOWN ====================
+                    COOLDOWN: {
+                        duration: { label: '時間(秒)', type: 'number', default: 10, min: 0, step: 1 },
+                        duration_per_level: { label: '時間/レベル', type: 'number', default: 0, step: 1 }
+                    }
+                };
+                return configs[componentId] || {};
+            }
+
+            // Calculate validation status
+            const validationStatus = useMemo(() => {
+                const errors = validationIssues.filter(i => i.type === 'error');
+                const warnings = validationIssues.filter(i => i.type === 'warning');
+
+                if (errors.length > 0) return { dot: 'error', text: `${errors.length} エラー` };
+                if (warnings.length > 0) return { dot: 'warning', text: `${warnings.length} 警告` };
+                return { dot: 'valid', text: '有効' };
+            }, [validationIssues]);
+
+            return (
+                <div className="app-container">
+                    {/* Header */}
+                    <header className="header">
+                        <div className="logo">
+                            <div className="logo-icon">⚡</div>
+                            <span>
+                                {editorMode === 'skill' ? 'RPGPlugin スキルエディタ' : 'RPGPlugin クラスエディタ'}
+                            </span>
+                        </div>
+
+                        {/* Mode Switcher */}
+                        <div className="mode-switcher">
+                            <button
+                                className={`mode-btn ${editorMode === 'skill' ? 'active' : ''}`}
+                                onClick={() => setEditorMode('skill')}
+                            >
+                                🎯 スキル
+                            </button>
+                            <button
+                                className={`mode-btn ${editorMode === 'class' ? 'active' : ''}`}
+                                onClick={() => setEditorMode('class')}
+                            >
+                                🛡️ クラス
+                            </button>
+                        </div>
+
+                        {/* Metadata Toggle (skill mode only) */}
+                        {editorMode === 'skill' && (
+                            <button
+                                className="btn metadata-toggle"
+                                onClick={() => setShowMetadata(!showMetadata)}
+                            >
+                                {showMetadata ? '▼ メタデータ' : '▲ メタデータ'}
+                            </button>
+                        )}
+
+                        <div className="header-actions">
+                            <button className="btn" onClick={handleClear}>クリア</button>
+                            <button className="btn" onClick={() => {
+                                const yaml = generateYaml();
+                                navigator.clipboard.writeText(yaml).then(() => {
+                                    alert('YAMLをクリップボードにコピーしました！');
+                                });
+                            }}>
+                                クリップボードにコピー
+                            </button>
+                            <button className="btn" onClick={() => setShowYaml(!showYaml)}>
+                                {showYaml ? 'YAML非表示' : 'YAML表示'}
+                            </button>
+                            <label className="btn">
+                                インポート
+                                <input
+                                    type="file"
+                                    accept=".yaml,.yml"
+                                    onChange={handleImportYaml}
+                                    style={{ display: 'none' }}
+                                />
+                            </label>
+                            <button className="btn primary" onClick={handleExportYaml}>
+                                エクスポート
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <div className="main-content">
+                        {/* Sidebar */}
+                        <aside className="sidebar">
+                            {/* Skill Metadata Panel */}
+                            {editorMode === 'skill' && showMetadata && (
+                                <div className="metadata-panel">
+                                    <div className="metadata-header">
+                                        <span>📋 スキルメタデータ</span>
+                                        <button
+                                            className="metadata-close"
+                                            onClick={() => setShowMetadata(false)}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                    <div className="metadata-content">
+                                        <div className="metadata-field">
+                                            <label>スキルID</label>
+                                            <input
+                                                type="text"
+                                                className="parameter-input"
+                                                value={skillMetadata.id}
+                                                onChange={(e) => setSkillMetadata({...skillMetadata, id: e.target.value})}
+                                                placeholder="custom_skill"
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>スキル名</label>
+                                            <input
+                                                type="text"
+                                                className="parameter-input"
+                                                value={skillMetadata.name}
+                                                onChange={(e) => setSkillMetadata({...skillMetadata, name: e.target.value})}
+                                                placeholder="カスタムスキル"
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>表示名</label>
+                                            <input
+                                                type="text"
+                                                className="parameter-input"
+                                                value={skillMetadata.displayName}
+                                                onChange={(e) => setSkillMetadata({...skillMetadata, displayName: e.target.value})}
+                                                placeholder="&6カスタムスキル"
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>スキルタイプ</label>
+                                            <select
+                                                className="parameter-input"
+                                                value={skillMetadata.skillType || 'ACTIVE'}
+                                                onChange={(e) => setSkillMetadata({...skillMetadata, skillType: e.target.value})}
+                                            >
+                                                <option value="ACTIVE">ACTIVE（アクティブ）</option>
+                                                <option value="PASSIVE">PASSIVE（パッシブ）</option>
+                                                <option value="TOGGLE">TOGGLE（トグル）</option>
+                                            </select>
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>最大レベル</label>
+                                            <input
+                                                type="number"
+                                                className="parameter-input"
+                                                value={skillMetadata.maxLevel}
+                                                onChange={(e) => setSkillMetadata({...skillMetadata, maxLevel: parseInt(e.target.value) || 1})}
+                                                min={1}
+                                                max={999}
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>利用可能クラス</label>
+                                            <input
+                                                type="text"
+                                                className="parameter-input"
+                                                value={skillMetadata.availableClasses.join(', ')}
+                                                onChange={(e) => setSkillMetadata({...skillMetadata, availableClasses: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                                                placeholder="WARRIOR, MAGE (空で全クラス)"
+                                            />
+                                            <small style={{ color: 'var(--text-muted)' }}>カンマ区切り、空欄で全クラス</small>
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>スキルツリーコスト</label>
+                                            <input
+                                                type="number"
+                                                className="parameter-input"
+                                                value={skillMetadata.skillTreeCost}
+                                                onChange={(e) => setSkillMetadata({...skillMetadata, skillTreeCost: parseInt(e.target.value) || 0})}
+                                                min={0}
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>親スキルID</label>
+                                            <input
+                                                type="text"
+                                                className="parameter-input"
+                                                value={skillMetadata.skillTreeParent}
+                                                onChange={(e) => setSkillMetadata({...skillMetadata, skillTreeParent: e.target.value})}
+                                                placeholder="親スキルのID (空でなし)"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Class Metadata Panel */}
+                            {editorMode === 'class' && (
+                                <div className="metadata-panel">
+                                    <div className="metadata-header">
+                                        <span>📋 クラス情報</span>
+                                    </div>
+                                    <div className="metadata-content">
+                                        <div className="metadata-field">
+                                            <label>クラスID</label>
+                                            <input
+                                                type="text"
+                                                className="parameter-input"
+                                                value={classData.id}
+                                                onChange={(e) => setClassData({...classData, id: e.target.value})}
+                                                placeholder="custom_class"
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>クラス名</label>
+                                            <input
+                                                type="text"
+                                                className="parameter-input"
+                                                value={classData.name}
+                                                onChange={(e) => setClassData({...classData, name: e.target.value})}
+                                                placeholder="カスタムクラス"
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>表示名</label>
+                                            <input
+                                                type="text"
+                                                className="parameter-input"
+                                                value={classData.displayName}
+                                                onChange={(e) => setClassData({...classData, displayName: e.target.value})}
+                                                placeholder="&6カスタムクラス"
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>ランク (1-6)</label>
+                                            <input
+                                                type="number"
+                                                className="parameter-input"
+                                                value={classData.rank}
+                                                onChange={(e) => setClassData({...classData, rank: Math.min(6, Math.max(1, parseInt(e.target.value) || 1))})}
+                                                min={1}
+                                                max={6}
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>最大レベル</label>
+                                            <input
+                                                type="number"
+                                                className="parameter-input"
+                                                value={classData.maxLevel}
+                                                onChange={(e) => setClassData({...classData, maxLevel: parseInt(e.target.value) || 1})}
+                                                min={1}
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>アイコン</label>
+                                            <select
+                                                className="parameter-input"
+                                                value={classData.icon}
+                                                onChange={(e) => setClassData({...classData, icon: e.target.value})}
+                                            >
+                                                <option value="DIAMOND_SWORD">💎 ダイヤモンドの剣</option>
+                                                <option value="IRON_SWORD">⚔️ 鉄の剣</option>
+                                                <option value="BOW">🏹 弓</option>
+                                                <option value="BLAZE_ROD">🔥 ブレイズロッド</option>
+                                                <option value="GOLDEN_SWORD">🗡️ 金の剣</option>
+                                                <option value="SHIELD">🛡️ 盾</option>
+                                                <option value="ENCHANTED_BOOK">📖 エンチャント本</option>
+                                                <option value="ENDER_PEARL">🟪 エンダーパール</option>
+                                                <option value="TOTEM">🗿 トーテム</option>
+                                                <option value="FEATHER">🪶 羽</option>
+                                                <option value="LEATHER_CHESTPLATE">👕 革のチェストプレート</option>
+                                                <option value="DIAMOND_CHESTPLATE">💠 ダイヤモンドのチェストプレート</option>
+                                            </select>
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>MP回復/秒</label>
+                                            <input
+                                                type="number"
+                                                className="parameter-input"
+                                                value={classData.manaRegen}
+                                                onChange={(e) => setClassData({...classData, manaRegen: parseFloat(e.target.value) || 0})}
+                                                min={0}
+                                                step={0.1}
+                                            />
+                                        </div>
+                                        <div className="metadata-field">
+                                            <label>次ランククラスID</label>
+                                            <input
+                                                type="text"
+                                                className="parameter-input"
+                                                value={classData.nextRankClassId}
+                                                onChange={(e) => setClassData({...classData, nextRankClassId: e.target.value})}
+                                                placeholder="次のランクのクラスID"
+                                            />
+                                        </div>
+                                        <div className="metadata-subheader">ステータス成長</div>
+                                        <div className="metadata-field">
+                                            <label>マニュアルポイント</label>
+                                            <input
+                                                type="number"
+                                                className="parameter-input"
+                                                value={classData.statGrowth.manualPoints || 3}
+                                                onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, manualPoints: parseInt(e.target.value) || 0}})}
+                                                min={0}
+                                                step={1}
+                                            />
+                                            <small style={{ color: 'var(--text-muted)' }}>レベルアップ時に獲得する割り振りポイント</small>
+                                        </div>
+                                        <div className="metadata-row">
+                                            <div className="metadata-field half">
+                                                <label>HP</label>
+                                                <input
+                                                    type="number"
+                                                    className="parameter-input"
+                                                    value={classData.statGrowth.health}
+                                                    onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, health: parseInt(e.target.value) || 0}})}
+                                                    min={0}
+                                                    step={1}
+                                                />
+                                            </div>
+                                            <div className="metadata-field half">
+                                                <label>MP</label>
+                                                <input
+                                                    type="number"
+                                                    className="parameter-input"
+                                                    value={classData.statGrowth.mana}
+                                                    onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, mana: parseInt(e.target.value) || 0}})}
+                                                    min={0}
+                                                    step={1}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="metadata-row">
+                                            <div className="metadata-field half">
+                                                <label>防御</label>
+                                                <input
+                                                    type="number"
+                                                    className="parameter-input"
+                                                    value={classData.statGrowth.defense}
+                                                    onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, defense: parseInt(e.target.value) || 0}})}
+                                                    min={0}
+                                                    step={1}
+                                                />
+                                            </div>
+                                            <div className="metadata-field half">
+                                                <label>攻撃</label>
+                                                <input
+                                                    type="number"
+                                                    className="parameter-input"
+                                                    value={classData.statGrowth.attack}
+                                                    onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, attack: parseInt(e.target.value) || 0}})}
+                                                    min={0}
+                                                    step={1}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Component List (skill mode only) */}
+                            {editorMode === 'skill' && (
+                                <>
+                                    <div className="sidebar-header">
+                                        <span>コンポーネント</span>
+                                        <span style={{ fontSize: '0.8em', color: 'var(--text-muted)' }}>
+                                            ドラッグ&ドロップ
+                                        </span>
+                                    </div>
+                                    <div className="component-list">
+                                        {Object.values(COMPONENT_TYPES).map(category => (
+                                            <div key={category.id} className="component-category">
+                                                <div className="category-title">{category.label}</div>
+                                                {category.components.map(comp => (
+                                                    <div
+                                                        key={comp.id}
+                                                        className={`component-item type-${category.id}`}
+                                                        draggable
+                                                        onDragStart={(e) => {
+                                                            e.dataTransfer.setData('application/reactflow', JSON.stringify({
+                                                                id: comp.id,
+                                                                label: comp.label,
+                                                                category: category.id
+                                                            }));
+                                                        }}
+                                                    >
+                                                        <div className="component-icon">{comp.id[0]}</div>
+                                                        <div>
+                                                            <div className="component-name">{comp.label}</div>
+                                                            <div style={{ fontSize: '0.75em', color: 'var(--text-muted)' }}>
+                                                                {comp.description}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Class Mode Message */}
+                            {editorMode === 'class' && (
+                                <div className="class-mode-message">
+                                    <div className="message-icon">🛡️</div>
+                                    <div className="message-text">
+                                        クラス編集モード<br />
+                                        <small>左のパネルでクラス情報を設定し、YAMLをエクスポートしてください</small>
+                                    </div>
+                                </div>
+                            )}
+                        </aside>
+
+                        {/* Node Editor */}
+                        <main className="node-editor">
+                            {/* Skill Node Editor (only in skill mode) */}
+                            {editorMode === 'skill' ? (
+                                <div className="react-flow-wrapper" ref={reactFlowWrapper}>
+                                    <ReactFlowComponent
+                                    nodes={nodes}
+                                    edges={edges}
+                                    onNodesChange={onNodesChange}
+                                    onEdgesChange={onEdgesChange}
+                                    onConnect={onConnect}
+                                    onConnectStart={onConnectStart}
+                                    onConnectEnd={onConnectEnd}
+                                    onEdgeUpdate={onEdgeUpdate}
+                                    onEdgeUpdateStart={onEdgeUpdateStart}
+                                    onEdgeUpdateEnd={onEdgeUpdateEnd}
+                                    onNodeDragStop={undefined}
+                                    nodeTypes={nodeTypes}
+                                    nodesConnectable={true}
+                                    elementsSelectable={true}
+                                    fitView={false}
+                                    zoomOnDoubleClick={false}
+                                    defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+                                    minZoom={0.2}
+                                    maxZoom={2}
+                                    onDrop={onDrop}
+                                    onDragOver={onDragOver}
+                                    onInit={(instance) => {
+                                        reactFlowInstance.current = instance;
+                                    }}
+                                    connectionRadius={30}
+                                    connectionMode={ConnectionMode.Loose}
+                                    snapToGrid={true}
+                                    snapGrid={[15, 15]}
+                                    connectionLineStyle={{
+                                        stroke: '#e94560',
+                                        strokeWidth: 5,
+                                        strokeLinecap: 'round',
+                                        strokeLinejoin: 'round',
+                                        opacity: 0.95
+                                    }}
+                                    connectionLineType={ConnectionLineType.Straight}
+                                    connectionLineComponent={CustomConnectionLine}
+                                    edgeUpdaterRadius={25}
+                                    defaultEdgeOptions={{
+                                        type: 'straight',
+                                        animated: true,
+                                        updatable: true,
+                                        style: { stroke: 'var(--accent-secondary)', strokeWidth: 2.5 }
+                                    }}
+                                >
+                                    <Background />
+                                    <Controls />
+                                    <MiniMap />
+                                </ReactFlowComponent>
+                                {isConnecting && (
+                                    <svg className="connection-overlay">
+                                        <path d={`M${connectionLine.fromX},${connectionLine.fromY} L${connectionLine.toX},${connectionLine.toY}`} />
+                                        <circle cx={connectionLine.toX} cy={connectionLine.toY} r={5} />
+                                    </svg>
+                                )}
+                                </div>
+                            ) : (
+                                /* Class Mode - Show YAML Preview */
+                                <div className="class-mode-preview">
+                                    <div className="class-preview-header">
+                                        <span>📄 YAML プレビュー</span>
+                                    </div>
+                                    <pre className="yaml-output class-mode-yaml">{generateYaml()}</pre>
+                                </div>
+                            )}
+
+                            {/* Validation Panel (skill mode only) */}
+                            {editorMode === 'skill' && (
+                                <div className="validation-panel">
+                                    <div className="validation-header">
+                                        <span>バリデーション</span>
+                                        <div className="validation-status">
+                                            <span className={`status-dot ${validationStatus.dot}`}></span>
+                                            <span>{validationStatus.text}</span>
+                                        </div>
+                                    </div>
+                                    {validationIssues.length > 0 ? (
+                                        validationIssues.map((issue, index) => (
+                                            <div key={index} className={`validation-item ${issue.type}`}>
+                                                <span>●</span>
+                                                <span>{issue.message}</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ color: 'var(--text-muted)', fontSize: '0.85em' }}>
+                                            問題はありません
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* YAML Panel */}
+                            {showYaml && (
+                                <div className="yaml-panel visible">
+                                    <div className="yaml-panel-header">
+                                        <span>YAMLプレビュー</span>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button
+                                                className="btn"
+                                                style={{ padding: '4px 8px', fontSize: '0.85em' }}
+                                                onClick={() => {
+                                                    const yaml = generateYaml();
+                                                    navigator.clipboard.writeText(yaml).then(() => {
+                                                        alert('YAMLをクリップボードにコピーしました！');
+                                                    });
+                                                }}
+                                            >
+                                                コピー
+                                            </button>
+                                            <button
+                                                onClick={() => setShowYaml(false)}
+                                                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="yaml-panel-content">
+                                        <pre className="yaml-output">{generateYaml()}</pre>
+                                    </div>
+                                </div>
+                            )}
+                        </main>
+                    </div>
+                </div>
+            );
+        };
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SkillEditor />);
+    </script>
+</body>
+</html>

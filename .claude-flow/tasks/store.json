@@ -1,0 +1,90 @@
+{
+  "tasks": {
+    "task-1768529752384-p5d36x": {
+      "taskId": "task-1768529752384-p5d36x",
+      "type": "research",
+      "description": "問1: ユーザー導入設計 - チュートリアル、ガイド、テンプレート、ファーストラン体験の調査と設計提案",
+      "priority": "high",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [
+        "ux",
+        "onboarding",
+        "tutorial"
+      ],
+      "createdAt": "2026-01-16T02:15:52.384Z",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "task-1768529752524-ewnyah": {
+      "taskId": "task-1768529752524-ewnyah",
+      "type": "feature",
+      "description": "問2: 情報の階層化・簡略化設計 - 基本/詳細分離、アコーディオンUI、用語平易化の戦略立案",
+      "priority": "high",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [
+        "ux",
+        "information-architecture",
+        "ui-design"
+      ],
+      "createdAt": "2026-01-16T02:15:52.524Z",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "task-1768529752667-yvs1u0": {
+      "taskId": "task-1768529752667-yvs1u0",
+      "type": "feature",
+      "description": "問3: エラー体験設計 - バリデーション表示、エラーUI、修正提案（auto-fix）の設計",
+      "priority": "high",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [
+        "ux",
+        "error-handling",
+        "validation"
+      ],
+      "createdAt": "2026-01-16T02:15:52.667Z",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "task-1768529752816-ej52vq": {
+      "taskId": "task-1768529752816-ej52vq",
+      "type": "feature",
+      "description": "問4: 成功体験設計 - 5分で作れるフロー、達成感フィードバックの設計提案",
+      "priority": "high",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [
+        "ux",
+        "gamification",
+        "success-flow"
+      ],
+      "createdAt": "2026-01-16T02:15:52.816Z",
+      "startedAt": null,
+      "completedAt": null
+    },
+    "task-1768529752968-qqaq1l": {
+      "taskId": "task-1768529752968-qqaq1l",
+      "type": "research",
+      "description": "成功事例調査 - 他ツールのUXベストプラクティス（Notion, Figma, Minecraftプラグイン等）の研究",
+      "priority": "normal",
+      "status": "pending",
+      "progress": 0,
+      "assignedTo": [],
+      "tags": [
+        "research",
+        "benchmark",
+        "case-study"
+      ],
+      "createdAt": "2026-01-16T02:15:52.968Z",
+      "startedAt": null,
+      "completedAt": null
+    }
+  },
+  "version": "3.0.0"
+}

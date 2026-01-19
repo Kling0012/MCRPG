@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-01-19T04:10:41.314Z",
+  "projectRoot": "/workspaces/java/Minecraft-Java-Plaugin-forRPG",
+  "structure": {
+    "hasPackageJson": false,
+    "hasTsConfig": false,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1768795841314
+}

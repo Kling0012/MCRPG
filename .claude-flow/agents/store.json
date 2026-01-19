@@ -1,0 +1,47 @@
+{
+  "agents": {
+    "agent-1768530371095-4x3ebl": {
+      "agentId": "agent-1768530371095-4x3ebl",
+      "agentType": "coder",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "provider": "anthropic",
+        "task": "サーバーレスな職業・スキルエディタの技術設計をレビューしてください。Bukkit GUIベース、WatchServiceによるホットリロード、Book APIによる簡易編集という案について、「安全かつ簡単」が実現できるか、技術的リスクと改善案を簡潔に日本語で答えてください。"
+      },
+      "createdAt": "2026-01-16T02:26:11.111Z",
+      "model": "haiku",
+      "modelRoutedBy": "router"
+    },
+    "agent-1768530373922-c31zic": {
+      "agentId": "agent-1768530373922-c31zic",
+      "agentType": "researcher",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "provider": "anthropic",
+        "task": "サーバーレスな職業・スキルエディタのUX設計をレビューしてください。ゲーム内GUI完結、5分で最初の職業を作れるフロー、テンプレート選択、スライダー調整という案について、新規ユーザーがストレスなく使えるか、改善案を簡潔に日本語で答えてください。"
+      },
+      "createdAt": "2026-01-16T02:26:13.937Z",
+      "model": "haiku",
+      "modelRoutedBy": "router"
+    },
+    "agent-1768530390170-sjejxk": {
+      "agentId": "agent-1768530390170-sjejxk",
+      "agentType": "coordinator",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "provider": "anthropic",
+        "task": "サーバーレスな職業・スキルエディタのワークフロー設計をレビューしてください。サーバーレス制約下で最適なワークフロー、複数人連携の方法、MVPの範囲と優先順位を簡潔に日本語で答えてください。"
+      },
+      "createdAt": "2026-01-16T02:26:30.185Z",
+      "model": "haiku",
+      "modelRoutedBy": "router"
+    }
+  },
+  "version": "3.0.0"
+}

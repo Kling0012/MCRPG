@@ -9,16 +9,6 @@
 					}
 				]
 			}
-		],
-		"Stop": [
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "DESC=$(cat .claude/.task-description 2>/dev/null || echo ''); bash ./.scripts/workflow-complete.sh --non-interactive \"$DESC\""
-					}
-				]
-			}
 		]
 	},
 	"statusLine": {

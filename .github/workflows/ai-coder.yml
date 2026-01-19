@@ -14,163 +14,76 @@ jobs:
   ai-fix:
     if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'ai-fix') && !contains(github.event.issue.labels.*.name, 'auto-generated')
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
     permissions:
       contents: write
       issues: write
       pull-requests: write
 
     steps:
-      - name: リポジトリのコードをチェックアウト
-        uses: actions/checkout@v4
+      - name: Claude に Issue 対応を依頼
+        uses: anthropics/claude-code-action@v1
         with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
+          prompt: |
+            【自律実行モード】あなたは非対話環境の GitHub Actions 上で動作しています。
+            - 人間との会話は不可能です。質問せず自己完結してください。
+            - 修正後は必ずブランチを作成し、PRを作成して終了してください。
+            - 作業完了後、必ず git push してください。
 
-      - name: Node.jsのセットアップ
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: npmキャッシュの設定
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-claude-integrated
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Claude Code と MCPのインストール
-        run: |
-          npm install -g @anthropic-ai/claude-code
-          npm install -g @modelcontextprotocol/server-sequential-thinking
-          npm install -g @modelcontextprotocol/server-open-websearch
-
-      - name: AIエージェントの自律実行
+            指示内容: Issue #${{ github.event.issue.number }} ${{ github.event.issue.title }}
+          claude_args: |
+            --dangerously-skip-permissions
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          SYSTEM_PROMPT="【自律実行モード】あなたは非対話環境のGitHub Actions上で動作しています。
-          - 人間との会話は不可能です。質問せず、MCPツールを活用して自己完結してください。
-          - 論理的思考には 'sequential-thinking' を、調査には 'open-websearch' を使用してください。
-          - 修正後は必ずブランチを作成し、PRを作成して終了してください。
-          - 作業完了後、必ず git push してください。"
-
-          claude "$SYSTEM_PROMPT \n\n 指示内容: Issue #${{ github.event.issue.number }} ${{ github.event.issue.title }}" \
-            --mcp "npx @modelcontextprotocol/server-sequential-thinking" \
-            --mcp "npx @modelcontextprotocol/server-open-websearch" \
-            --dangerously-skip-permissions \
-            --yes
 
   # --- Job 2: 作成されたPRを自動レビューする ---
   ai-review:
     # botによるPRはスキップ（無限ループ防止）
     if: github.event_name == 'pull_request' && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
     permissions:
       contents: read
       pull-requests: write
       issues: write
 
     steps:
-      - name: コードのチェックアウト
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Node.jsのセットアップ
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Claude Codeのインストール
-        run: npm install -g @anthropic-ai/claude-code
-
-      - name: PR情報の取得
-        id: pr-info
+      - name: jq をインストール
         run: |
-          echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
-          echo "pr_title=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
-          echo "base_ref=${{ github.base_ref }}" >> $GITHUB_OUTPUT
-          echo "head_ref=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+          sudo apt-get update
+          sudo apt-get install -y jq
 
-      - name: 差分の取得
-        id: diff
-        run: |
-          # base branch を確実に取得して、PRの差分を安定して生成する
-          git fetch --no-tags --prune --depth=1 origin \
-            "+refs/heads/${{ steps.pr-info.outputs.base_ref }}:refs/remotes/origin/${{ steps.pr-info.outputs.base_ref }}"
-          DIFF=$(git diff --no-color --unified=3 "origin/${{ steps.pr-info.outputs.base_ref }}...HEAD")
-          echo "diff<<EOF" >> $GITHUB_OUTPUT
-          echo "$DIFF" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: AIレビュー実行
+      - name: Claude に PR レビューを依頼（structured output）
         id: review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
+          prompt: |
+            あなたはシニアエンジニアです。PRをレビューし、日本語でコメント文も作ってください。
+
+            レビュー観点:
+            1. バグの可能性
+            2. 可読性
+            3. パフォーマンス
+            4. セキュリティ
+            5. SOLID原則
+
+            出力要件:
+            - has_critical: boolean
+            - has_major: boolean
+            - body: string（GitHubに投稿する本文。Critical/Major/Minor/良い点の見出しを含める）
+          claude_args: |
+            --dangerously-skip-permissions
+            --json-schema '{"type":"object","properties":{"has_critical":{"type":"boolean"},"has_major":{"type":"boolean"},"body":{"type":"string"}},"required":["has_critical","has_major","body"]}'
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-        run: |
-          REVIEW_PROMPT="あなたはシニアエンジニアです。以下のPRの差分を分析し、日本語でレビューしてください。
-
-          ## レビュー観点
-          1. バグの可能性
-          2. 可読性
-          3. パフォーマンス
-          4. セキュリティ
-          5. SOLID原則の遵守
-
-          ## 出力形式（重要）
-          - 次のマーカー行を必ずそのまま含めてください（機械判定に使います）
-            HAS_CRITICAL: yes|no
-            HAS_MAJOR: yes|no
-
-          ## レビュー結果
-
-          ### 🔴 Critical（重大な問題）
-          - 問題がなければ「- なし」
-
-          ### 🟡 Major（改善推奨）
-          - 問題がなければ「- なし」
-
-          ### 🟢 Minor（軽微な問題）
-          - 問題がなければ「- なし」
-
-          ### ✅ 良い点
-          - （良かった点を記述）
-
-          ## 差分:
-          ${{ steps.diff.outputs.diff }}"
-
-          # レビュー結果を取得してファイルに保存
-          claude "$REVIEW_PROMPT" \
-            --dangerously-skip-permissions \
-            --yes > /tmp/review_result.txt 2>&1
-
-          # 結果を確認
-          if [ -s /tmp/review_result.txt ]; then
-            echo "review_result<<EOF" >> $GITHUB_OUTPUT
-            cat /tmp/review_result.txt >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "レビューの取得に失敗しました" > /tmp/review_result.txt
-            echo "review_result<<EOF" >> $GITHUB_OUTPUT
-            cat /tmp/review_result.txt >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: GitHub PRへのレビュー投稿
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          REVIEW_BODY="${{ steps.review.outputs.review_result }}"
+          REVIEW_BODY=$(echo '${{ steps.review.outputs.structured_output }}' | jq -r '.body')
           PR_NUMBER="${{ github.event.pull_request.number }}"
 
           # レビューをコメントとして投稿
@@ -183,21 +96,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          REVIEW="${{ steps.review.outputs.review_result }}"
+          OUTPUT='${{ steps.review.outputs.structured_output }}'
+          HAS_CRITICAL=$(echo "$OUTPUT" | jq -r '.has_critical')
+          HAS_MAJOR=$(echo "$OUTPUT" | jq -r '.has_major')
           PR_NUMBER="${{ github.event.pull_request.number }}"
           PR_TITLE="${{ github.event.pull_request.title }}"
 
-          HAS_CRITICAL=$(echo "$REVIEW" | sed -n 's/^HAS_CRITICAL:[[:space:]]*//p' | head -1)
-          HAS_MAJOR=$(echo "$REVIEW" | sed -n 's/^HAS_MAJOR:[[:space:]]*//p' | head -1)
-
-          # Critical/Major フラグが yes の場合にのみ Issue を作成
-          if [ "$HAS_CRITICAL" = "yes" ] || [ "$HAS_MAJOR" = "yes" ]; then
+          if [ "$HAS_CRITICAL" = "true" ] || [ "$HAS_MAJOR" = "true" ]; then
             ISSUE_TITLE="🤖 AIレビュー: ${PR_TITLE} (#${PR_NUMBER}) - 要修正"
             ISSUE_BODY="## AIレビュー結果
 
             PR #${PR_NUMBER} 「${PR_TITLE}」 のレビューで重大な問題が見つかりました。
 
-            ${{ steps.review.outputs.review_result }}
+            $(echo "$OUTPUT" | jq -r '.body')
 
             ---
             - PR: #${PR_NUMBER}
@@ -213,60 +124,23 @@ jobs:
   ai-fix-review-comment:
     if: github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
     permissions:
       contents: write
       pull-requests: write
 
     steps:
-      - name: リポジトリのコードをチェックアウト
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Node.jsのセットアップ
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Claude Codeのインストール
-        run: npm install -g @anthropic-ai/claude-code
-
-      - name: レビューコメントの取得
-        id: comments
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          # submitted review の本文（総評）を優先して取得し、無ければ inline comments を拾う
-          COMMENTS=$(printf "%s\n" "${{ github.event.review.body }}" | sed '/^\s*$/d' | head -50)
-          if [ -z "$COMMENTS" ]; then
-            COMMENTS=$(gh api "/repos/${{ github.repository }}/pulls/${PR_NUMBER}/comments" \
-              --jq '.[] | select(.body | (contains("修正") or contains("fix") or contains("改善"))) | .body' | head -5)
-          fi
-
-          if [ -n "$COMMENTS" ]; then
-            echo "comments<<EOF" >> $GITHUB_OUTPUT
-            echo "$COMMENTS" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
-
       - name: AIによる修正実行
-        if: steps.comments.outputs.comments != ''
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
+          prompt: |
+            【PR修正モード】以下のレビューコメントを元にコードを修正してください。
+            修正後はコミットしてプッシュしてください。
+
+            ## レビューコメント:
+            ${{ github.event.review.body }}
+          claude_args: |
+            --dangerously-skip-permissions
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PROMPT="【PR修正モード】以下のレビューコメントを元にコードを修正してください。
-          修正後はコミットしてプッシュしてください。
-
-          ## レビューコメント:
-          ${{ steps.comments.outputs.comments }}"
-
-          claude "$PROMPT" \
-            --dangerously-skip-permissions \
-            --yes

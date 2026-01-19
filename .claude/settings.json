@@ -1,9 +1,11 @@
 {
 	"hooks": {
-		"postTask": {
-			"command": "bash ./.scripts/workflow-complete.sh \"{{description}}\" \"作業完了: {{taskId}}\"",
-			"enabled": true
-		}
+		"postTask": [
+			{
+				"command": "bash ./.scripts/workflow-complete.sh \"{{description}}\" \"作業完了: {{taskId}}\"",
+				"enabled": true
+			}
+		]
 	},
 	"statusLine": {
 		"type": "command",

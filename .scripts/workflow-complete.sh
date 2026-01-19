@@ -1,18 +1,18 @@
 #!/bin/bash
 ##############################################################################
-# 作業完了後ワークフロースクリプト（最適化版）
+# 作業完了後ワークフロースクリプト（Claude Codeフック用）
 #
 # 機能: 変更検出 → タイプ推測 → ビルド → コミット → プッシュ → PR作成
 #
 # 使用方法:
-#   ./.scripts/workflow-complete.sh [タイトル] [説明] [オプション]
+#   ./.scripts/workflow-complete.sh [タイトル] [説明]
 #
 # オプション:
 #   --dry-run         : シミュレーションのみ
 #   --no-build        : ビルドスキップ
 #   --no-pr           : PR作成スキップ
-#   --non-interactive : 対話なしで自動実行（フック用）
-#   --type <TYPE>     : コミットタイプ指定（feat/fix/refactor/docs/style/test/chore）
+#   --non-interactive : 対話なしで自動実行
+#   --type <TYPE>     : コミットタイプ指定
 ##############################################################################
 
 set -e
@@ -29,6 +29,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_ROOT"
 
+# ログファイル
+LOG_FILE="$PROJECT_ROOT/.claude/workflow.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+
 # デフォルト値
 DRY_RUN=false
 SKIP_BUILD=false
@@ -40,7 +44,7 @@ DESCRIPTION=""
 BASE_BRANCH="main"
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "HEAD")
 
-# コミットタイプの定義
+# コミットタイプ定義
 declare -A COMMIT_TYPES=(
     ["feat"]="新機能"
     ["fix"]="バグ修正"
@@ -56,11 +60,18 @@ declare -A COMMIT_TYPES=(
 ##############################################################################
 # ログ関数
 ##############################################################################
-log_info()  { echo -e "${BLUE}[INFO]${NC} $1" >&2; }
-log_success() { echo -e "${GREEN}[OK]${NC} $1" >&2; }
-log_warn()   { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
-log_error()  { echo -e "${RED}[ERROR]${NC} $1" >&2; }
-log_step()   { echo -e "\n${BLUE}=== $1 ===${NC}" >&2; }
+log_info()  { echo -e "${BLUE}[INFO]${NC} $1" | tee -a "$LOG_FILE" >&2; }
+log_success() { echo -e "${GREEN}[OK]${NC} $1" | tee -a "$LOG_FILE" >&2; }
+log_warn()   { echo -e "${YELLOW}[WARN]${NC} $1" | tee -a "$LOG_FILE" >&2; }
+log_error()  { echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE" >&2; }
+log_step()   { echo -e "\n${BLUE}=== $1 ===${NC}" | tee -a "$LOG_FILE" >&2; }
+
+# デバッグログ
+log_debug() {
+    if [[ "${DEBUG:-false}" == "true" ]]; then
+        echo "[DEBUG] $1" | tee -a "$LOG_FILE" >&2
+    fi
+}
 
 ##############################################################################
 # 変更ファイルからコミットタイプを推測
@@ -71,35 +82,33 @@ detect_commit_type() {
         return
     fi
 
-    # 変更ファイルのパスから推測
-    local changed_files=$(git diff --cached --name-only --diff-filter=M 2>/dev/null | head -20)
-
-    if echo "$changed_files" | grep -qE "\.md$|docs/|README"; then
-        echo "docs"
-    elif echo "$changed_files" | grep -qE "\.yml$|\.yaml$|\.github/|Dockerfile"; then
-        echo "ci"
-    elif echo "$changed_files" | grep -qE "test/|.*Test\.java"; then
-        echo "test"
-    elif echo "$changed_files" | grep -qiE "fix|bug|修正"; then
+    # タイトルや説明から推測（優先）
+    if [[ "$TITLE" =~ [Ff]ix|[Bb]ug|[修しゅう]直 ]]; then
         echo "fix"
-    elif echo "$changed_files" | grep -qiE "refactor|簡素|整理"; then
+    elif [[ "$TITLE" =~ [Rr]efactor|[簡素]んしょう|[整]理 ]]; then
         echo "refactor"
-    elif echo "$changed_files" | grep -qiE "perf|optim|最適"; then
+    elif [[ "$TITLE" =~ [Pp]erf|[Oo]ptim|[最適]速 ]]; then
         echo "perf"
+    elif [[ "$TITLE" =~ [Dd]oc|[文書] }; then
+        echo "docs"
     else
-        echo "chore"
+        # 変更ファイルのパスから推測
+        local changed_files=$(git diff --cached --name-only --diff-filter=M 2>/dev/null | head -20)
+
+        if echo "$changed_files" | grep -qE "\.md$|docs/|README"; then
+            echo "docs"
+        elif echo "$changed_files" | grep -qE "\.yml$|\.yaml$|\.github/|Dockerfile"; then
+            echo "ci"
+        elif echo "$changed_files" | grep -qE "test/|.*Test\.java"; then
+            echo "test"
+        else
+            echo "chore"
+        fi
     fi
 }
 
 ##############################################################################
 # 変更の有無をチェック
-##############################################################################
-has_changes() {
-    ! git diff --quiet || ! git diff --cached --quiet
-}
-
-##############################################################################
-# ファイルが変わったか（新規・修正・削除）
 ##############################################################################
 has_file_changes() {
     [[ $(git diff --name-only | wc -l) -gt 0 ]] || [[ $(git diff --cached --name-only | wc -l) -gt 0 ]]
@@ -109,6 +118,10 @@ has_file_changes() {
 # メイン処理
 ##############################################################################
 
+# ログ開始
+echo "===== Workflow started at $(date) =====" >> "$LOG_FILE"
+log_debug "Arguments: $@"
+
 # オプション解析
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -117,6 +130,7 @@ while [[ $# -gt 0 ]]; do
         --no-pr)           SKIP_PR=true; shift ;;
         --non-interactive) NON_INTERACTIVE=true; shift ;;
         --type)            COMMIT_TYPE="$2"; shift 2 ;;
+        --debug)           DEBUG=true; shift ;;
         *)
             if [[ -z "$TITLE" ]]; then
                 TITLE="$1"
@@ -128,9 +142,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# 引数のデフォルト値
+# 引数のデフォルト値（空の場合は適切な値を設定）
 TITLE="${TITLE:-作業完了}"
-DESCRIPTION="${DESCRIPTION:-作業完了による変更}"
+DESCRIPTION="${DESCRIPTION:-}"
+
+# デバッグ情報
+log_debug "TITLE=$TITLE"
+log_debug "DESCRIPTION=$DESCRIPTION"
+log_debug "NON_INTERACTIVE=$NON_INTERACTIVE"
+log_debug "CURRENT_BRANCH=$CURRENT_BRANCH"
 
 log_info "🚀 ワークフロー開始"
 log_info "ブランチ: $CURRENT_BRANCH"
@@ -139,6 +159,7 @@ log_info "ブランチ: $CURRENT_BRANCH"
 log_step "変更チェック"
 if ! has_file_changes; then
     log_warn "変更がないためワークフローをスキップします"
+    echo "===== Skipped (no changes) at $(date) =====" >> "$LOG_FILE"
     exit 0
 fi
 log_success "変更を検出しました"
@@ -153,7 +174,10 @@ if [[ "$SKIP_BUILD" == false ]]; then
             log_success "ビルド成功"
         else
             log_error "ビルド失敗"
-            [[ "$NON_INTERACTIVE" == true ]] && exit 1
+            if [[ "$NON_INTERACTIVE" == true ]]; then
+                echo "===== Build failed at $(date) =====" >> "$LOG_FILE"
+                exit 1
+            fi
             read -p "続行しますか? (y/N): " -n 1 -r && [[ $REPLY =~ ^[Yy]$ ]] || exit 1
         fi
     fi
@@ -165,12 +189,13 @@ log_info "コミットタイプ: $TYPE (${COMMIT_TYPES[$TYPE]})"
 
 # 4. コミット
 log_step "コミット作成"
-git add -A
+git add -A 2>/dev/null || true
 
-# 既にステージされているコミットがあるかチェック
+# 既にステージされている変更があるかチェック
 if git diff --cached --quiet; then
     log_warn "ステージする変更がないためスキップします"
 else
+    # コミットメッセージ生成
     COMMIT_MSG="${TYPE}: ${TITLE}
 
 ${DESCRIPTION}
@@ -179,10 +204,14 @@ ${DESCRIPTION}
 Co-authored-by: Claude Code <claude@anthropic.com>"
 
     if [[ "$DRY_RUN" == true ]]; then
-        log_info "[DRY-RUN] コミットメッセージ: $COMMIT_MSG"
+        log_info "[DRY-RUN] コミットメッセージ:"
+        echo "$COMMIT_MSG" | tee -a "$LOG_FILE" >&2
     else
-        git commit -m "$COMMIT_MSG"
-        log_success "コミット作成: $(git log -1 --oneline)"
+        if git commit -m "$COMMIT_MSG"; then
+            log_success "コミット作成: $(git log -1 --oneline)"
+        else
+            log_error "コミット失敗"
+        fi
     fi
 fi
 
@@ -220,11 +249,14 @@ if [[ "$SKIP_PR" == false ]]; then
         if [[ "$DRY_RUN" == true ]]; then
             log_info "[DRY-RUN] gh pr create"
         else
-            gh pr create --base "$BASE_BRANCH" --title "$TITLE" --body "$DESCRIPTION" 2>/dev/null && \
-                log_success "PR作成完了" || \
+            if gh pr create --base "$BASE_BRANCH" --title "$TITLE" --body "$DESCRIPTION" 2>/dev/null; then
+                log_success "PR作成完了"
+            else
                 log_warn "PR作成をスキップしました（既に存在する可能性）"
+            fi
         fi
     fi
 fi
 
 log_success "✅ ワークフロー完了"
+echo "===== Workflow completed at $(date) =====" >> "$LOG_FILE"

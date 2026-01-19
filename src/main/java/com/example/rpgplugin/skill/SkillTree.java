@@ -26,6 +26,16 @@ public class SkillTree {
     private final List<SkillNode> rootNodes;
 
     /**
+     * 親スキルがないことを示す定数
+     */
+    private static final String NO_PARENT = "none";
+
+    /**
+     * デフォルトのスキルポイントコスト
+     */
+    private static final int DEFAULT_COST = 1;
+
+    /**
      * コンストラクタ
      *
      * @param classId クラスID
@@ -113,7 +123,7 @@ public class SkillTree {
         }
 
         // 親スキルの習得チェック
-        if (!"none".equalsIgnoreCase(treeConfig.getParent())) {
+        if (!NO_PARENT.equalsIgnoreCase(treeConfig.getParent())) {
             SkillNode parent = getNode(treeConfig.getParent());
             if (parent == null) {
                 return false;
@@ -176,7 +186,7 @@ public class SkillTree {
 
         Skill.SkillTreeConfig treeConfig = node.getSkill().getSkillTree();
         if (treeConfig == null) {
-            return 1;
+            return DEFAULT_COST;
         }
 
         return treeConfig.getCost();
@@ -200,7 +210,7 @@ public class SkillTree {
         }
 
         String parentId = treeConfig.getParent();
-        return "none".equalsIgnoreCase(parentId) ? null : parentId;
+        return NO_PARENT.equalsIgnoreCase(parentId) ? null : parentId;
     }
 
     /**

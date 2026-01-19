@@ -21,14 +21,18 @@ public class FireMechanic extends MechanicComponent {
         super("fire");
     }
 
+    /**
+     * 秒からティックへの変換定数
+     */
+    private static final int TICKS_PER_SECOND = 20;
+
     @Override
     protected boolean apply(LivingEntity caster, int level, LivingEntity target) {
         int ticks;
-        String secondsKey = SECONDS; // Use the constant directly
 
-        if (getSettings().has(secondsKey)) {
+        if (getSettings().has(SECONDS)) {
             int seconds = getInt(SECONDS, 3);
-            ticks = seconds * 20;
+            ticks = seconds * TICKS_PER_SECOND;
         } else {
             ticks = getInt(TICKS, 60);
         }

@@ -4,21 +4,21 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * スキルのターゲット設定を表すクラス
+ * スキルのターゲット設定を表す値オブジェクト（Value Object）
  *
  * <p>YAML設定からパースされ、ターゲット選択と範囲計算に使用されます。</p>
  *
  * <p>設計原則:</p>
  * <ul>
+ *   <li>Value Objectパターン: 不変で等価性に基づくデータクラス</li>
  *   <li>SOLID-S: ターゲット設定の表現に専念</li>
- *   <li>DRY: 不変クラスで安全にデータを保持</li>
- *   <li>YAGNI: 必要な設定のみ保持</li>
+ *   <li>バリデーションと計算はTargetValidatorとTargetCalculatorに委譲</li>
  * </ul>
  *
  * @author RPGPlugin Team
- * @version 1.0.0
+ * @version 2.0.0 - Value Objectへのリファクタリング
  */
-public class SkillTarget {
+public final class SkillTarget {
 
     private final TargetType type;
     private final AreaShape areaShape;
@@ -28,14 +28,9 @@ public class SkillTarget {
     private final CircleConfig circle;
     private final EntityTypeFilter entityTypeFilter;
     private final Integer maxTargets;
-
-    // グループフィルタ（敵味方フィルタ、SkillAPI参考）
     private final TargetGroupFilter groupFilter;
-    // 壁を通すかどうか（SkillAPI参考）
     private final boolean throughWall;
-    // ランダム順序（SkillAPI参考）
     private final boolean randomOrder;
-    // フィルタ無視でキャスターを含める（SkillAPI参考）
     private final boolean includeCaster;
 
     // 汎用ターゲット設定（LINE, LOOKING, CONE, SPHERE用）
@@ -45,7 +40,30 @@ public class SkillTarget {
     private final Double sphereRadius;
 
     /**
-     * コンストラクタ
+     * プライベートコンストラクタ
+     * <p>ビルダーパターンを使用してインスタンスを作成してください。</p>
+     */
+    private SkillTarget(Builder builder) {
+        this.type = builder.type != null ? builder.type : TargetType.NEAREST_HOSTILE;
+        this.areaShape = builder.areaShape != null ? builder.areaShape : AreaShape.SINGLE;
+        this.singleTarget = builder.singleTarget;
+        this.cone = builder.cone;
+        this.rect = builder.rect;
+        this.circle = builder.circle;
+        this.entityTypeFilter = builder.entityTypeFilter != null ? builder.entityTypeFilter : EntityTypeFilter.ALL;
+        this.maxTargets = builder.maxTargets;
+        this.groupFilter = builder.groupFilter != null ? builder.groupFilter : TargetGroupFilter.BOTH;
+        this.throughWall = builder.throughWall;
+        this.randomOrder = builder.randomOrder;
+        this.includeCaster = builder.includeCaster;
+        this.range = builder.range;
+        this.lineWidth = builder.lineWidth;
+        this.coneAngle = builder.coneAngle;
+        this.sphereRadius = builder.sphereRadius;
+    }
+
+    /**
+     * レガシーコンストラクタ（後方互換性）
      *
      * @param type ターゲットタイプ
      * @param areaShape 範囲形状
@@ -53,16 +71,19 @@ public class SkillTarget {
      * @param cone 扇状範囲設定
      * @param rect 四角形範囲設定
      * @param circle 円形範囲設定
-     * @param entityTypeFilter エンティティタイプフィルタ
-     * @param maxTargets 最大ターゲット数（nullで制限なし）
-     * @param groupFilter グループフィルタ（敵味方フィルタ）
-     * @param throughWall 壁を通すかどうか
-     * @param randomOrder ランダム順序
-     * @param includeCaster フィルタ無視でキャスターを含める
-     * @param range 汎用範囲（LINE, LOOKING用）
-     * @param lineWidth 直線の幅（LINE, LOOKING用）
-     * @param coneAngle コーンの角度（CONE用、度数法）
-     * @param sphereRadius 球形の半径（SPHERE用）
+     * @deprecated ビルダーの使用を推奨
+     */
+    @Deprecated
+    public SkillTarget(TargetType type, AreaShape areaShape,
+                       SingleTargetConfig singleTarget, ConeConfig cone,
+                       RectConfig rect, CircleConfig circle) {
+        this(type, areaShape, singleTarget, cone, rect, circle,
+                EntityTypeFilter.ALL, null, TargetGroupFilter.BOTH,
+                false, false, false, null, null, null, null);
+    }
+
+    /**
+     * 全パラメータコンストラクタ（後方互換性）
      */
     public SkillTarget(TargetType type, AreaShape areaShape,
                        SingleTargetConfig singleTarget, ConeConfig cone,
@@ -90,57 +111,28 @@ public class SkillTarget {
     }
 
     /**
-     * レガシーコンストラクタ（後方互換性）
-     * <p>注意: グループフィルタはBOTH（敵味方両方）がデフォルトです。</p>
-     */
-    public SkillTarget(TargetType type, AreaShape areaShape,
-                       SingleTargetConfig singleTarget, ConeConfig cone,
-                       RectConfig rect, CircleConfig circle) {
-        this(type, areaShape, singleTarget, cone, rect, circle,
-                EntityTypeFilter.ALL, null, TargetGroupFilter.BOTH, false, false, false,
-                null, null, null, null);
-    }
-
-    /**
-     * 汎用コンストラクタ（LINE, LOOKING, CONE, SPHERE用）
-     */
-    public SkillTarget(TargetType type, Double range, Double lineWidth,
-                       Double coneAngle, Double sphereRadius,
-                       EntityTypeFilter entityTypeFilter, Integer maxTargets) {
-        this(type, AreaShape.SINGLE, null, null, null, null,
-                entityTypeFilter, maxTargets, TargetGroupFilter.BOTH, false, false, false,
-                range, lineWidth, coneAngle, sphereRadius);
-    }
-
-    /**
-     * 拡張コンストラクタ（グループフィルタ、壁、ランダム対応）
-     */
-    public SkillTarget(TargetType type, AreaShape areaShape,
-                       SingleTargetConfig singleTarget, ConeConfig cone,
-                       RectConfig rect, CircleConfig circle,
-                       EntityTypeFilter entityTypeFilter, Integer maxTargets,
-                       TargetGroupFilter groupFilter, boolean throughWall,
-                       boolean randomOrder, boolean includeCaster) {
-        this(type, areaShape, singleTarget, cone, rect, circle,
-                entityTypeFilter, maxTargets, groupFilter, throughWall, randomOrder, includeCaster,
-                null, null, null, null);
-    }
-
-    /**
      * デフォルト設定のインスタンスを作成します
      *
      * @return デフォルト設定のSkillTarget
      */
     public static SkillTarget createDefault() {
-        return new SkillTarget(
-                TargetType.NEAREST_HOSTILE,
-                AreaShape.SINGLE,
-                new SingleTargetConfig(true, false),
-                null,
-                null,
-                null
-        );
+        return new Builder()
+                .type(TargetType.NEAREST_HOSTILE)
+                .areaShape(AreaShape.SINGLE)
+                .singleTarget(new SingleTargetConfig(true, false))
+                .build();
     }
+
+    /**
+     * ビルダーを取得します
+     *
+     * @return 新しいビルダーインスタンス
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    // ==================== ゲッターメソッド ====================
 
     public TargetType getType() {
         return type;
@@ -174,152 +166,302 @@ public class SkillTarget {
         return maxTargets;
     }
 
-    /**
-     * 最大ターゲット数を取得します（制限なしの場合はInteger.MAX_VALUE）
-     *
-     * @return 最大ターゲット数
-     */
-    public int getMaxTargetsOrUnlimited() {
-        return maxTargets != null ? maxTargets : Integer.MAX_VALUE;
-    }
-
-    // ==================== グループフィルタ・壁判定ゲッター ====================
-
-    /**
-     * グループフィルタを取得します
-     *
-     * @return グループフィルタ（敵味方フィルタ）
-     */
     public TargetGroupFilter getGroupFilter() {
         return groupFilter;
     }
 
-    /**
-     * 壁を通すかどうかを取得します
-     *
-     * @return 壁を通す場合はtrue
-     */
     public boolean isThroughWall() {
         return throughWall;
     }
 
-    /**
-     * ランダム順序でターゲットを選択するかを取得します
-     *
-     * @return ランダム順序の場合はtrue
-     */
     public boolean isRandomOrder() {
         return randomOrder;
     }
 
-    /**
-     * フィルタ無視でキャスターを含めるかを取得します
-     *
-     * @return キャスターを含める場合はtrue
-     */
     public boolean isIncludeCaster() {
         return includeCaster;
     }
 
-    // ==================== 汎用ターゲット設定ゲッター ====================
+    // ==================== Raw値取得メソッド（計算なし） ====================
 
     /**
-     * 汎用範囲を取得します（LINE, LOOKING用）
+     * 汎用範囲パラメータを取得します（生値）
+     * <p>計算済みの値が必要な場合はTargetCalculator.getEffectiveRange()を使用してください。</p>
      *
-     * @return 範囲（未設定の場合はデフォルト値）
+     * @return 範囲（未設定の場合はnull）
      */
+    public Double getRawRange() {
+        return range;
+    }
+
+    /**
+     * 直線の幅パラメータを取得します（生値）
+     * <p>計算済みの値が必要な場合はTargetCalculator.getEffectiveLineWidth()を使用してください。</p>
+     *
+     * @return 幅（未設定の場合はnull）
+     */
+    public Double getRawLineWidth() {
+        return lineWidth;
+    }
+
+    /**
+     * コーンの角度パラメータを取得します（生値）
+     * <p>計算済みの値が必要な場合はTargetCalculator.getEffectiveConeAngle()を使用してください。</p>
+     *
+     * @return 角度（未設定の場合はnull）
+     */
+    public Double getRawConeAngle() {
+        return coneAngle;
+    }
+
+    /**
+     * 球形の半径パラメータを取得します（生値）
+     * <p>計算済みの値が必要な場合はTargetCalculator.getEffectiveSphereRadius()を使用してください。</p>
+     *
+     * @return 半径（未設定の場合はnull）
+     */
+    public Double getRawSphereRadius() {
+        return sphereRadius;
+    }
+
+    // ==================== 互換性のための計算メソッド（委譲） ====================
+
+    /**
+     * 最大ターゲット数を取得します（制限なしの場合はInteger.MAX_VALUE）
+     * <p>内部的にはTargetCalculator.getEffectiveMaxTargets()に委譲しています。</p>
+     *
+     * @return 最大ターゲット数
+     * @deprecated TargetCalculator.getEffectiveMaxTargets()の使用を推奨
+     */
+    @Deprecated
+    public int getMaxTargetsOrUnlimited() {
+        return TargetCalculator.getEffectiveMaxTargets(this);
+    }
+
+    /**
+     * 有効な範囲を取得します
+     * <p>内部的にはTargetCalculator.getEffectiveRange()に委譲しています。</p>
+     *
+     * @return 有効な範囲
+     * @deprecated TargetCalculator.getEffectiveRange()の使用を推奨
+     */
+    @Deprecated
     public double getRange() {
-        if (range != null) {
-            return range;
-        }
-        // ConeConfigから取得を試みる
-        if (cone != null) {
-            return cone.getRange();
-        }
-        return 10.0; // デフォルト値
+        return TargetCalculator.getEffectiveRange(this);
     }
 
     /**
-     * 直線の幅を取得します（LINE, LOOKING用）
+     * 有効な直線の幅を取得します
+     * <p>内部的にはTargetCalculator.getEffectiveLineWidth()に委譲しています。</p>
      *
-     * @return 幅（未設定の場合はデフォルト値）
+     * @return 有効な幅
+     * @deprecated TargetCalculator.getEffectiveLineWidth()の使用を推奨
      */
+    @Deprecated
     public double getLineWidth() {
-        return lineWidth != null ? lineWidth : 2.0; // デフォルト値
+        return TargetCalculator.getEffectiveLineWidth(this);
     }
 
     /**
-     * コーンの角度を取得します（度数法）
+     * 有効なコーンの角度を取得します（度数法）
+     * <p>内部的にはTargetCalculator.getEffectiveConeAngle()に委譲しています。</p>
      *
-     * @return 角度（未設定の場合はConeConfigから取得、デフォルト60度）
+     * @return 有効な角度
+     * @deprecated TargetCalculator.getEffectiveConeAngle()の使用を推奨
      */
+    @Deprecated
     public double getConeAngle() {
-        if (coneAngle != null) {
-            return coneAngle;
-        }
-        // ConeConfigから取得を試みる
-        if (cone != null) {
-            return cone.getAngle();
-        }
-        return 60.0; // デフォルト値
+        return TargetCalculator.getEffectiveConeAngle(this);
     }
 
     /**
-     * 球形の半径を取得します（SPHERE用）
+     * 有効な球形の半径を取得します
+     * <p>内部的にはTargetCalculator.getEffectiveSphereRadius()に委譲しています。</p>
      *
-     * @return 半径（未設定の場合はデフォルト値）
+     * @return 有効な半径
+     * @deprecated TargetCalculator.getEffectiveSphereRadius()の使用を推奨
      */
+    @Deprecated
     public double getSphereRadius() {
-        if (sphereRadius != null) {
-            return sphereRadius;
-        }
-        // CircleConfigから取得を試みる
-        if (circle != null) {
-            return circle.getRadius();
-        }
-        return 5.0; // デフォルト値
+        return TargetCalculator.getEffectiveSphereRadius(this);
     }
 
-    /**
-     * 扇状範囲設定をOptionalで取得します
-     *
-     * @return 扇状範囲設定
-     */
+    // ==================== Optional取得メソッド ====================
+
     public Optional<ConeConfig> getConeAsOptional() {
         return Optional.ofNullable(cone);
     }
 
-    /**
-     * 四角形範囲設定をOptionalで取得します
-     *
-     * @return 四角形範囲設定
-     */
     public Optional<RectConfig> getRectAsOptional() {
         return Optional.ofNullable(rect);
     }
 
-    /**
-     * 円形範囲設定をOptionalで取得します
-     *
-     * @return 円形範囲設定
-     */
     public Optional<CircleConfig> getCircleAsOptional() {
         return Optional.ofNullable(circle);
     }
 
-    /**
-     * 単体ターゲット設定をOptionalで取得します
-     *
-     * @return 単体ターゲット設定
-     */
     public Optional<SingleTargetConfig> getSingleTargetAsOptional() {
         return Optional.ofNullable(singleTarget);
     }
 
+    // ==================== Value Objectとしての実装 ====================
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SkillTarget that = (SkillTarget) o;
+        return throughWall == that.throughWall &&
+                randomOrder == that.randomOrder &&
+                includeCaster == that.includeCaster &&
+                type == that.type &&
+                areaShape == that.areaShape &&
+                groupFilter == that.groupFilter &&
+                entityTypeFilter == that.entityTypeFilter &&
+                Objects.equals(singleTarget, that.singleTarget) &&
+                Objects.equals(cone, that.cone) &&
+                Objects.equals(rect, that.rect) &&
+                Objects.equals(circle, that.circle) &&
+                Objects.equals(maxTargets, that.maxTargets) &&
+                Objects.equals(range, that.range) &&
+                Objects.equals(lineWidth, that.lineWidth) &&
+                Objects.equals(coneAngle, that.coneAngle) &&
+                Objects.equals(sphereRadius, that.sphereRadius);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, areaShape, singleTarget, cone, rect, circle,
+                entityTypeFilter, maxTargets, groupFilter, throughWall, randomOrder, includeCaster,
+                range, lineWidth, coneAngle, sphereRadius);
+    }
+
+    @Override
+    public String toString() {
+        return "SkillTarget{" +
+                "type=" + type +
+                ", areaShape=" + areaShape +
+                ", maxTargets=" + maxTargets +
+                ", groupFilter=" + groupFilter +
+                '}';
+    }
+
+    // ==================== ビルダークラス ====================
+
     /**
-     * 単体ターゲット設定
+     * SkillTargetのビルダークラス
      */
-    public static class SingleTargetConfig {
+    public static final class Builder {
+        private TargetType type;
+        private AreaShape areaShape;
+        private SingleTargetConfig singleTarget;
+        private ConeConfig cone;
+        private RectConfig rect;
+        private CircleConfig circle;
+        private EntityTypeFilter entityTypeFilter;
+        private Integer maxTargets;
+        private TargetGroupFilter groupFilter;
+        private boolean throughWall;
+        private boolean randomOrder;
+        private boolean includeCaster;
+        private Double range;
+        private Double lineWidth;
+        private Double coneAngle;
+        private Double sphereRadius;
+
+        private Builder() {}
+
+        public Builder type(TargetType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Builder areaShape(AreaShape areaShape) {
+            this.areaShape = areaShape;
+            return this;
+        }
+
+        public Builder singleTarget(SingleTargetConfig singleTarget) {
+            this.singleTarget = singleTarget;
+            return this;
+        }
+
+        public Builder cone(ConeConfig cone) {
+            this.cone = cone;
+            return this;
+        }
+
+        public Builder rect(RectConfig rect) {
+            this.rect = rect;
+            return this;
+        }
+
+        public Builder circle(CircleConfig circle) {
+            this.circle = circle;
+            return this;
+        }
+
+        public Builder entityTypeFilter(EntityTypeFilter entityTypeFilter) {
+            this.entityTypeFilter = entityTypeFilter;
+            return this;
+        }
+
+        public Builder maxTargets(Integer maxTargets) {
+            this.maxTargets = maxTargets;
+            return this;
+        }
+
+        public Builder groupFilter(TargetGroupFilter groupFilter) {
+            this.groupFilter = groupFilter;
+            return this;
+        }
+
+        public Builder throughWall(boolean throughWall) {
+            this.throughWall = throughWall;
+            return this;
+        }
+
+        public Builder randomOrder(boolean randomOrder) {
+            this.randomOrder = randomOrder;
+            return this;
+        }
+
+        public Builder includeCaster(boolean includeCaster) {
+            this.includeCaster = includeCaster;
+            return this;
+        }
+
+        public Builder range(Double range) {
+            this.range = range;
+            return this;
+        }
+
+        public Builder lineWidth(Double lineWidth) {
+            this.lineWidth = lineWidth;
+            return this;
+        }
+
+        public Builder coneAngle(Double coneAngle) {
+            this.coneAngle = coneAngle;
+            return this;
+        }
+
+        public Builder sphereRadius(Double sphereRadius) {
+            this.sphereRadius = sphereRadius;
+            return this;
+        }
+
+        public SkillTarget build() {
+            return new SkillTarget(this);
+        }
+    }
+
+    // ==================== 内部クラス：設定値 ====================
+
+    /**
+     * 単体ターゲット設定（不変）
+     */
+    public static final class SingleTargetConfig {
         private final boolean selectNearest;
         private final boolean targetSelf;
 
@@ -335,12 +477,25 @@ public class SkillTarget {
         public boolean isTargetSelf() {
             return targetSelf;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            SingleTargetConfig that = (SingleTargetConfig) o;
+            return selectNearest == that.selectNearest && targetSelf == that.targetSelf;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(selectNearest, targetSelf);
+        }
     }
 
     /**
-     * 扇状範囲設定
+     * 扇状範囲設定（不変）
      */
-    public static class ConeConfig {
+    public static final class ConeConfig {
         private final double angle;
         private final double range;
 
@@ -356,12 +511,25 @@ public class SkillTarget {
         public double getRange() {
             return range;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ConeConfig that = (ConeConfig) o;
+            return Double.compare(that.angle, angle) == 0 && Double.compare(that.range, range) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(angle, range);
+        }
     }
 
     /**
-     * 四角形範囲設定
+     * 四角形範囲設定（不変）
      */
-    public static class RectConfig {
+    public static final class RectConfig {
         private final double width;
         private final double depth;
 
@@ -377,12 +545,25 @@ public class SkillTarget {
         public double getDepth() {
             return depth;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            RectConfig that = (RectConfig) o;
+            return Double.compare(that.width, width) == 0 && Double.compare(that.depth, depth) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(width, depth);
+        }
     }
 
     /**
-     * 円形範囲設定
+     * 円形範囲設定（不変）
      */
-    public static class CircleConfig {
+    public static final class CircleConfig {
         private final double radius;
 
         public CircleConfig(double radius) {
@@ -392,26 +573,18 @@ public class SkillTarget {
         public double getRadius() {
             return radius;
         }
-    }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SkillTarget that = (SkillTarget) o;
-        return type == that.type && areaShape == that.areaShape;
-    }
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            CircleConfig that = (CircleConfig) o;
+            return Double.compare(that.radius, radius) == 0;
+        }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(type, areaShape);
-    }
-
-    @Override
-    public String toString() {
-        return "SkillTarget{" +
-                "type=" + type +
-                ", areaShape=" + areaShape +
-                '}';
+        @Override
+        public int hashCode() {
+            return Objects.hash(radius);
+        }
     }
 }

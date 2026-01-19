@@ -1,5 +1,6 @@
 package com.example.rpgplugin.skill.component.mechanic;
 
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 
 /**
@@ -14,6 +15,11 @@ public class DamageMechanic extends MechanicComponent {
     private static final String VALUE = "value";
     private static final String TYPE = "type";
     private static final String TRUE_DAMAGE = "true-damage";
+
+    /**
+     * パーセンテージ計算の分母定数
+     */
+    private static final double PERCENT_DIVISOR = 100.0;
 
     /**
      * コンストラクタ
@@ -33,17 +39,15 @@ public class DamageMechanic extends MechanicComponent {
             case "percent":
             case "multiplier":
                 // 最大HPに対する割合ダメージ
-                amount = base * target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue() / 100.0;
+                amount = base * getMaxHealth(target) / PERCENT_DIVISOR;
                 break;
             case "percent missing":
                 // 失ったHPに対する割合ダメージ
-                double maxHp = target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
-                double missing = maxHp - target.getHealth();
-                amount = base * missing / 100.0;
+                amount = base * getMissingHealth(target) / PERCENT_DIVISOR;
                 break;
             case "percent left":
                 // 現在HPに対する割合ダメージ
-                amount = base * target.getHealth() / 100.0;
+                amount = base * target.getHealth() / PERCENT_DIVISOR;
                 break;
             case "damage":
             default:
@@ -65,5 +69,19 @@ public class DamageMechanic extends MechanicComponent {
         }
 
         return true;
+    }
+
+    /**
+     * ターゲットの最大HPを取得します
+     */
+    private double getMaxHealth(LivingEntity target) {
+        return target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+    }
+
+    /**
+     * ターゲットの失ったHPを取得します
+     */
+    private double getMissingHealth(LivingEntity target) {
+        return getMaxHealth(target) - target.getHealth();
     }
 }

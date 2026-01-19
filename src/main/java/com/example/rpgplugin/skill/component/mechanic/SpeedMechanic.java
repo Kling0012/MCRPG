@@ -19,6 +19,11 @@ public class SpeedMechanic extends MechanicComponent {
     private static final String AMBIENT = "ambient";
 
     /**
+     * 秒からティックへの変換定数
+     */
+    private static final int TICKS_PER_SECOND = 20;
+
+    /**
      * コンストラクタ
      */
     public SpeedMechanic() {
@@ -36,7 +41,7 @@ public class SpeedMechanic extends MechanicComponent {
         int amplifier = settings.getInt(AMPLIFIER, 0);
         boolean ambient = settings.getBoolean(AMBIENT, true);
 
-        int ticks = (int) (duration * 20);
+        int ticks = (int) (duration * TICKS_PER_SECOND);
         // Paper 1.20.6: boolean overrideパラメータは削除された
         target.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, ticks, amplifier, ambient));
         return true;

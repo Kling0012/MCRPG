@@ -142,13 +142,15 @@ public class ComponentSettings {
     }
 
     /**
-     * 値を追加します
+     * 値を設定します（setメソッドのエイリアス）
      *
      * @param key   キー
      * @param value 値
+     * @deprecated {@link #set(String, Object)}を使用してください
      */
+    @Deprecated
     public void put(String key, Object value) {
-        data.put(key, value);
+        set(key, value);
     }
 
     /**

@@ -3,6 +3,11 @@ package com.example.rpgplugin.skill.calculator;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillCostType;
+import com.example.rpgplugin.model.skill.CooldownConfig;
+import com.example.rpgplugin.model.skill.CostConfig;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 import com.example.rpgplugin.skill.evaluator.FormulaDamageCalculator;
 import com.example.rpgplugin.skill.evaluator.FormulaEvaluator;
 import com.example.rpgplugin.skill.target.SkillTarget;
@@ -43,7 +48,7 @@ public final class SkillCalculator {
      * @param skillLevel スキルレベル
      * @return 計算されたダメージ
      */
-    public static double calculateDamage(Skill.DamageCalculation damage, double statValue, int skillLevel) {
+    public static double calculateDamage(DamageCalculation damage, double statValue, int skillLevel) {
         if (damage == null) {
             return 0.0;
         }
@@ -60,7 +65,7 @@ public final class SkillCalculator {
      * @param skillLevel スキルレベル
      * @return 計算されたダメージ
      */
-    public static double calculateDamage(Skill.DamageCalculation damage, RPGPlayer rpgPlayer, int skillLevel) {
+    public static double calculateDamage(DamageCalculation damage, RPGPlayer rpgPlayer, int skillLevel) {
         if (damage == null || damage.getStatMultiplier() == null) {
             return calculateDamage(damage, 0.0, skillLevel);
         }
@@ -78,7 +83,7 @@ public final class SkillCalculator {
      * @return 計算されたダメージ、エラー時は0.0
      */
     public static double calculateFormulaDamage(
-            Skill.FormulaDamageConfig formulaDamage,
+            FormulaDamageConfig formulaDamage,
             FormulaDamageCalculator calculator,
             RPGPlayer rpgPlayer,
             int skillLevel) {
@@ -127,7 +132,7 @@ public final class SkillCalculator {
      * @param level スキルレベル
      * @return コスト値
      */
-    public static int calculateCost(Skill.CostConfig costConfig, int level) {
+    public static int calculateCost(CostConfig costConfig, int level) {
         if (costConfig == null) {
             return 0;
         }
@@ -161,7 +166,7 @@ public final class SkillCalculator {
      * @param level スキルレベル
      * @return クールダウン（秒）
      */
-    public static double calculateCooldown(Skill.CooldownConfig cooldownConfig, int level) {
+    public static double calculateCooldown(CooldownConfig cooldownConfig, int level) {
         if (cooldownConfig == null) {
             return 0.0;
         }
@@ -176,10 +181,10 @@ public final class SkillCalculator {
      * @param variables カスタム変数定義リスト
      * @return 変数名と値のマップ
      */
-    public static Map<String, Double> getVariableMap(List<Skill.VariableDefinition> variables) {
+    public static Map<String, Double> getVariableMap(List<VariableDefinition> variables) {
         Map<String, Double> map = new HashMap<>();
         if (variables != null) {
-            for (Skill.VariableDefinition var : variables) {
+            for (VariableDefinition var : variables) {
                 map.put(var.getName(), var.getValue());
             }
         }
@@ -192,7 +197,7 @@ public final class SkillCalculator {
      * @param variables カスタム変数定義リスト
      * @return カスタム変数がある場合はtrue
      */
-    public static boolean hasVariables(List<Skill.VariableDefinition> variables) {
+    public static boolean hasVariables(List<VariableDefinition> variables) {
         return variables != null && !variables.isEmpty();
     }
 
@@ -206,7 +211,7 @@ public final class SkillCalculator {
      * @return 数式ダメージ計算機、数式設定がない場合はnull
      */
     public static FormulaDamageCalculator createFormulaDamageCalculator(
-            Skill.FormulaDamageConfig formulaDamage,
+            FormulaDamageConfig formulaDamage,
             FormulaEvaluator evaluator) {
         if (formulaDamage == null || evaluator == null) {
             return null;

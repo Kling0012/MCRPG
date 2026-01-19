@@ -1,5 +1,6 @@
 package com.example.rpgplugin.skill.repository;
 
+import com.example.rpgplugin.model.skill.DamageCalculation;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.skill.Skill;
@@ -175,7 +176,7 @@ public class SkillExecutor {
      */
     public double calculateDamage(Skill skill, RPGPlayer rpgPlayer, int skillLevel,
                                    Map<String, Double> customVariables) {
-        Skill.DamageCalculation damageConfig = skill.getDamage();
+        DamageCalculation damageConfig = skill.getDamage();
         if (damageConfig == null) {
             return 0.0;
         }

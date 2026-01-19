@@ -4,6 +4,12 @@ import com.example.rpgplugin.skill.LevelDependentParameter;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillCostType;
 import com.example.rpgplugin.skill.SkillType;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 import com.example.rpgplugin.skill.target.SkillTarget;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -111,7 +117,7 @@ public class LegacyConverter {
      * @param fileName ファイル名
      * @return ダメージ計算設定
      */
-    public Skill.DamageCalculation parseDamageCalculation(FileConfiguration config, String fileName) {
+    public DamageCalculation parseDamageCalculation(FileConfiguration config, String fileName) {
         if (!config.contains("damage")) {
             return null;
         }
@@ -129,7 +135,7 @@ public class LegacyConverter {
      * @param fileName ファイル名
      * @return 数式ダメージ設定
      */
-    public Skill.FormulaDamageConfig parseFormulaDamage(FileConfiguration config, String fileName) {
+    public FormulaDamageConfig parseFormulaDamage(FileConfiguration config, String fileName) {
         if (!config.contains("damage")) {
             return null;
         }
@@ -147,7 +153,7 @@ public class LegacyConverter {
      * @param skillTree スキルツリー設定
      * @return アイコン素材名
      */
-    public String parseIconMaterial(FileConfiguration config, Skill.SkillTreeConfig skillTree) {
+    public String parseIconMaterial(FileConfiguration config, SkillTreeConfig skillTree) {
         if (skillTree != null && skillTree.getIcon() != null) {
             return skillTree.getIcon();
         }
@@ -163,7 +169,7 @@ public class LegacyConverter {
      * @param config 設定
      * @return 変数定義リスト
      */
-    public List<Skill.VariableDefinition> parseVariables(FileConfiguration config) {
+    public List<VariableDefinition> parseVariables(FileConfiguration config) {
         return VariableParser.parse(config, logger);
     }
 
@@ -174,7 +180,7 @@ public class LegacyConverter {
      * @param fileName ファイル名
      * @return ターゲティング設定
      */
-    public Skill.TargetingConfig parseTargeting(FileConfiguration config, String fileName) {
+    public TargetingConfig parseTargeting(FileConfiguration config, String fileName) {
         return TargetingParser.parse(config, fileName, validator, logger);
     }
 
@@ -196,7 +202,7 @@ public class LegacyConverter {
      * @param fileName ファイル名
      * @return スキルツリー設定
      */
-    public Skill.SkillTreeConfig parseSkillTree(FileConfiguration config, String fileName) {
+    public SkillTreeConfig parseSkillTree(FileConfiguration config, String fileName) {
         return SkillTreeParser.parse(config, fileName, logger);
     }
 
@@ -229,8 +235,8 @@ public class LegacyConverter {
      */
     private static class VariableParser {
 
-        static List<Skill.VariableDefinition> parse(FileConfiguration config, Logger logger) {
-            List<Skill.VariableDefinition> variables = new ArrayList<>();
+        static List<VariableDefinition> parse(FileConfiguration config, Logger logger) {
+            List<VariableDefinition> variables = new ArrayList<>();
 
             if (!config.contains("variables")) {
                 return variables;
@@ -243,7 +249,7 @@ public class LegacyConverter {
 
             for (String key : variablesSection.getKeys(false)) {
                 double value = variablesSection.getDouble(key, 0.0);
-                variables.add(new Skill.VariableDefinition(key, value));
+                variables.add(new VariableDefinition(key, value));
             }
 
             return variables;
@@ -255,7 +261,7 @@ public class LegacyConverter {
      */
     private static class DamageCalculationParser {
 
-        static Skill.DamageCalculation parse(ConfigurationSection section, String fileName, Logger logger) {
+        static DamageCalculation parse(ConfigurationSection section, String fileName, Logger logger) {
             if (section == null) {
                 return null;
             }
@@ -280,7 +286,7 @@ public class LegacyConverter {
 
             double levelMultiplier = section.getDouble("level_multiplier", 0.0);
 
-            return new Skill.DamageCalculation(base, stat, multiplier, levelMultiplier);
+            return new DamageCalculation(base, stat, multiplier, levelMultiplier);
         }
     }
 
@@ -289,7 +295,7 @@ public class LegacyConverter {
      */
     private static class FormulaDamageParser {
 
-        static Skill.FormulaDamageConfig parse(ConfigurationSection section, String fileName,
+        static FormulaDamageConfig parse(ConfigurationSection section, String fileName,
                                                SkillValidator validator, Logger logger) {
             if (section == null) {
                 return null;
@@ -307,7 +313,7 @@ public class LegacyConverter {
 
             Map<Integer, String> levelFormulas = parseLevelFormulas(section, fileName, validator, logger);
 
-            return new Skill.FormulaDamageConfig(formula, levelFormulas);
+            return new FormulaDamageConfig(formula, levelFormulas);
         }
 
         private static Map<Integer, String> parseLevelFormulas(ConfigurationSection section, String fileName,
@@ -344,7 +350,7 @@ public class LegacyConverter {
      */
     private static class TargetingParser {
 
-        static Skill.TargetingConfig parse(FileConfiguration config, String fileName,
+        static TargetingConfig parse(FileConfiguration config, String fileName,
                                            SkillValidator validator, Logger logger) {
             if (!config.contains("targeting")) {
                 return null;
@@ -356,12 +362,12 @@ public class LegacyConverter {
             }
 
             String type = targetingSection.getString("type", "single");
-            Skill.TargetingConfig.TargetingParams params = parseParams(targetingSection, type, fileName, validator, logger);
+            TargetingConfig.TargetingParams params = parseParams(targetingSection, type, fileName, validator, logger);
 
-            return new Skill.TargetingConfig(type, params);
+            return new TargetingConfig(type, params);
         }
 
-        private static Skill.TargetingConfig.TargetingParams parseParams(ConfigurationSection section, String type,
+        private static TargetingConfig.TargetingParams parseParams(ConfigurationSection section, String type,
                                                                          String fileName, SkillValidator validator, Logger logger) {
             return switch (type.toLowerCase()) {
                 case "cone" -> parseConeParams(section, fileName, validator, logger);
@@ -371,7 +377,7 @@ public class LegacyConverter {
             };
         }
 
-        private static Skill.TargetingConfig.ConeParams parseConeParams(ConfigurationSection section, String fileName,
+        private static TargetingConfig.ConeParams parseConeParams(ConfigurationSection section, String fileName,
                                                                          SkillValidator validator, Logger logger) {
             ConfigurationSection coneSection = section.getConfigurationSection("cone");
             if (coneSection == null) {
@@ -384,10 +390,10 @@ public class LegacyConverter {
             validator.validateRange(angle, 1.0, 360.0, "targeting.cone.angle", fileName);
             validator.validateRange(range, 0.1, 100.0, "targeting.cone.range", fileName);
 
-            return new Skill.TargetingConfig.ConeParams(angle, range);
+            return new TargetingConfig.ConeParams(angle, range);
         }
 
-        private static Skill.TargetingConfig.SphereParams parseSphereParams(ConfigurationSection section, String fileName,
+        private static TargetingConfig.SphereParams parseSphereParams(ConfigurationSection section, String fileName,
                                                                             SkillValidator validator, Logger logger) {
             ConfigurationSection sphereSection = section.getConfigurationSection("sphere");
             if (sphereSection == null) {
@@ -400,10 +406,10 @@ public class LegacyConverter {
             double radius = sphereSection.getDouble("radius", sphereSection.getDouble("range", 5.0));
             validator.validateRange(radius, 0.1, 100.0, "targeting.sphere.radius", fileName);
 
-            return new Skill.TargetingConfig.SphereParams(radius);
+            return new TargetingConfig.SphereParams(radius);
         }
 
-        private static Skill.TargetingConfig.SectorParams parseSectorParams(ConfigurationSection section, String fileName,
+        private static TargetingConfig.SectorParams parseSectorParams(ConfigurationSection section, String fileName,
                                                                              SkillValidator validator, Logger logger) {
             ConfigurationSection sectorSection = section.getConfigurationSection("sector");
             if (sectorSection == null) {
@@ -416,7 +422,7 @@ public class LegacyConverter {
             validator.validateRange(angle, 1.0, 360.0, "targeting.sector.angle", fileName);
             validator.validateRange(radius, 0.1, 100.0, "targeting.sector.radius", fileName);
 
-            return new Skill.TargetingConfig.SectorParams(angle, radius);
+            return new TargetingConfig.SectorParams(angle, radius);
         }
     }
 
@@ -579,7 +585,7 @@ public class LegacyConverter {
      */
     private static class SkillTreeParser {
 
-        static Skill.SkillTreeConfig parse(FileConfiguration config, String fileName, Logger logger) {
+        static SkillTreeConfig parse(FileConfiguration config, String fileName, Logger logger) {
             if (!config.contains("skill_tree")) {
                 return null;
             }
@@ -593,13 +599,13 @@ public class LegacyConverter {
             int cost = section.getInt("cost", 1);
             String icon = section.getString("icon", null);
 
-            List<Skill.UnlockRequirement> requirements = parseUnlockRequirements(section, fileName, logger);
+            List<UnlockRequirement> requirements = parseUnlockRequirements(section, fileName, logger);
 
-            return new Skill.SkillTreeConfig(parent, requirements, cost, icon);
+            return new SkillTreeConfig(parent, requirements, cost, icon);
         }
 
-        private static List<Skill.UnlockRequirement> parseUnlockRequirements(ConfigurationSection section, String fileName, Logger logger) {
-            List<Skill.UnlockRequirement> requirements = new ArrayList<>();
+        private static List<UnlockRequirement> parseUnlockRequirements(ConfigurationSection section, String fileName, Logger logger) {
+            List<UnlockRequirement> requirements = new ArrayList<>();
 
             if (!section.contains("unlock_requirements")) {
                 return requirements;
@@ -611,7 +617,7 @@ public class LegacyConverter {
             }
 
             for (Object reqObj : requirementList) {
-                Skill.UnlockRequirement requirement = parseRequirement(reqObj, fileName, logger);
+                UnlockRequirement requirement = parseRequirement(reqObj, fileName, logger);
                 if (requirement != null) {
                     requirements.add(requirement);
                 }
@@ -620,7 +626,7 @@ public class LegacyConverter {
             return requirements;
         }
 
-        private static Skill.UnlockRequirement parseRequirement(Object reqObj, String fileName, Logger logger) {
+        private static UnlockRequirement parseRequirement(Object reqObj, String fileName, Logger logger) {
             if (reqObj instanceof ConfigurationSection) {
                 return parseRequirementFromSection((ConfigurationSection) reqObj, fileName, logger);
             }
@@ -632,7 +638,7 @@ public class LegacyConverter {
             return null;
         }
 
-        private static Skill.UnlockRequirement parseRequirementFromSection(ConfigurationSection section, String fileName, Logger logger) {
+        private static UnlockRequirement parseRequirementFromSection(ConfigurationSection section, String fileName, Logger logger) {
             String type = section.getString("type");
             if (type == null) {
                 logger.warning("unlock_requirements type is missing in " + fileName);
@@ -651,10 +657,10 @@ public class LegacyConverter {
             }
 
             double value = section.getDouble("value", 0.0);
-            return new Skill.UnlockRequirement(type, stat, value);
+            return new UnlockRequirement(type, stat, value);
         }
 
-        private static Skill.UnlockRequirement parseRequirementFromMap(Map<String, Object> reqMap, String fileName, Logger logger) {
+        private static UnlockRequirement parseRequirementFromMap(Map<String, Object> reqMap, String fileName, Logger logger) {
             if (reqMap == null) {
                 return null;
             }
@@ -685,7 +691,7 @@ public class LegacyConverter {
                 value = ((Number) valueObj).doubleValue();
             }
 
-            return new Skill.UnlockRequirement(type, stat, value);
+            return new UnlockRequirement(type, stat, value);
         }
     }
 }

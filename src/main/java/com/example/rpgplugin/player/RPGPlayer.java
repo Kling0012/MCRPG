@@ -346,80 +346,32 @@ public class RPGPlayer {
         return statManager.resetAllocation();
     }
 
-    // ==================== Mana管理メソッド ====================
+    // ==================== Stat/Mana管理への簡素化アクセス ====================
 
     /**
-     * 最大HP修飾子を取得します
+     * ステータスおよびマナ管理への簡素化アクセスを提供します
      *
-     * @return 最大HP修飾子
+     * <p>委譲メソッドを削減し、マネージャーへの直接アクセスを提供します。</p>
+     *
+     * @return プレイヤーステータスマネージャー
      */
-    public int getMaxHealthModifier() {
-        return statManager.getMaxHealthModifier();
+    public PlayerStatManager stats() {
+        return statManager;
     }
 
-    /**
-     * 最大HP修飾子を設定します
-     *
-     * @param modifier 最大HP修飾子
-     */
-    public void setMaxHealthModifier(int modifier) {
-        statManager.setMaxHealthModifier(modifier);
-    }
+    // ==================== 互換性のための主要委譲メソッド ====================
+    // 下位互換性維持のため、よく使用されるメソッドのみ保持
 
     /**
-     * 最大MPを取得します
+     * スキル発動時のコストを消費します
      *
-     * @return 最大MP
+     * @param amount コスト量
+     * @return 消費に成功した場合はtrue
+     * @deprecated {@link #stats()}経由で{@code stats().consumeSkillCost(amount)}を使用してください
      */
-    public int getMaxMana() {
-        return statManager.getMaxMana();
-    }
-
-    /**
-     * 最大MPを設定します
-     *
-     * @param maxMana 最大MP
-     */
-    public void setMaxMana(int maxMana) {
-        statManager.setMaxMana(maxMana);
-    }
-
-    /**
-     * 現在MPを取得します
-     *
-     * @return 現在MP
-     */
-    public int getCurrentMana() {
-        return statManager.getCurrentMana();
-    }
-
-    /**
-     * 現在MPを設定します
-     *
-     * @param currentMana 現在MP
-     */
-    public void setCurrentMana(int currentMana) {
-        statManager.setCurrentMana(currentMana);
-    }
-
-    /**
-     * MPを追加します
-     *
-     * @param amount 追加するMP量
-     * @return 実際に追加されたMP量
-     */
-    public int addMana(int amount) {
-        return statManager.addMana(amount);
-    }
-
-    /**
-     * MPを消費します
-     *
-     * @param amount 消費するMP量
-     * @return 消費に成功した場合はtrue、MP不足の場合はfalse
-     */
-    public boolean consumeMana(int amount) {
-        return statManager.consumeMana(amount);
+    @Deprecated
+    public boolean consumeSkillCost(int amount) {
+        return statManager.consumeSkillCost(amount);
     }
 
     /**
@@ -427,123 +379,90 @@ public class RPGPlayer {
      *
      * @param amount 必要なMP量
      * @return MPが足りている場合はtrue
+     * @deprecated {@link #stats()}経由で{@code stats().hasMana(amount)}を使用してください
      */
+    @Deprecated
     public boolean hasMana(int amount) {
         return statManager.hasMana(amount);
-    }
-
-    /**
-     * MPが満タンか確認します
-     *
-     * @return 満タンの場合はtrue
-     */
-    public boolean isFullMana() {
-        return statManager.isFullMana();
-    }
-
-    /**
-     * MPが空か確認します
-     *
-     * @return 空の場合はtrue
-     */
-    public boolean isEmptyMana() {
-        return statManager.isEmptyMana();
-    }
-
-    /**
-     * MPの割合を取得します
-     *
-     * @return MPの割合（0.0～1.0）
-     */
-    public double getManaRatio() {
-        return statManager.getManaRatio();
-    }
-
-    /**
-     * MPを回復します
-     *
-     * <p>精神値（SPI）に基づいて回復量を計算します。</p>
-     *
-     * @param baseRegene 基礎回復量
-     * @return 実際に回復したMP量
-     */
-    public int regenerateMana(double baseRegene) {
-        return statManager.regenerateMana(baseRegene);
-    }
-
-    /**
-     * コストタイプを取得します
-     *
-     * @return コストタイプ
-     */
-    public ManaManager.CostType getCostType() {
-        return statManager.getCostType();
-    }
-
-    /**
-     * コストタイプを設定します
-     *
-     * @param costType コストタイプ
-     */
-    public void setCostType(ManaManager.CostType costType) {
-        statManager.setCostType(costType);
     }
 
     /**
      * コストタイプがMPか確認します
      *
      * @return MP消費モードの場合はtrue
+     * @deprecated {@link #stats()}経由で{@code stats().isManaCostType()}を使用してください
      */
+    @Deprecated
     public boolean isManaCostType() {
         return statManager.isManaCostType();
     }
 
     /**
-     * コストタイプを切り替えます
+     * MPを消費します
      *
-     * @return 新しいコストタイプ
+     * @param amount 消費するMP量
+     * @return 消費に成功した場合はtrue
+     * @deprecated {@link #stats()}経由で{@code stats().consumeMana(amount)}を使用してください
      */
-    public ManaManager.CostType toggleCostType() {
-        return statManager.toggleCostType();
+    @Deprecated
+    public boolean consumeMana(int amount) {
+        return statManager.consumeMana(amount);
     }
 
     /**
-     * スキル発動時のコストを消費します
+     * 現在のMPを取得します
      *
-     * <p>現在のコストタイプに応じてMPまたはHPを消費します。</p>
-     *
-     * @param amount コスト量
-     * @return 消費に成功した場合はtrue、リソース不足の場合はfalse
+     * @return 現在MP
+     * @deprecated {@link #stats()}経由で{@code stats().getCurrentMana()}を使用してください
      */
-    public boolean consumeSkillCost(int amount) {
-        return statManager.consumeSkillCost(amount);
+    @Deprecated
+    public int getCurrentMana() {
+        return statManager.getCurrentMana();
     }
 
     /**
-     * MP情報をフォーマットして返します
+     * 最大MPを取得します
      *
-     * @return フォーマットされたMP情報
+     * @return 最大MP
+     * @deprecated {@link #stats()}経由で{@code stats().getMaxMana()}を使用してください
      */
-    public String formatManaInfo() {
-        return statManager.formatManaInfo();
+    @Deprecated
+    public int getMaxMana() {
+        return statManager.getMaxMana();
     }
 
     /**
-     * ManaManagerの状態をPlayerDataに同期します
+     * MPの割合を取得します
      *
-     * <p>データベース保存前に呼び出して、メモリ上のMP状態をPlayerDataに反映します。</p>
+     * @return MPの割合（0.0～1.0）
+     * @deprecated {@link #stats()}経由で{@code stats().getManaRatio()}を使用してください
      */
-    public void syncManaToData() {
-        statManager.syncManaToData();
+    @Deprecated
+    public double getManaRatio() {
+        return statManager.getManaRatio();
     }
 
     /**
-     * ステータス情報をフォーマットして返します
+     * MPが満タンか確認します
      *
-     * @return フォーマットされたステータス情報
+     * @return 満タンの場合はtrue
+     * @deprecated {@link #stats()}経由で{@code stats().isFullMana()}を使用してください
      */
-    public String formatStats() {
-        return statManager.formatStats();
+    @Deprecated
+    public boolean isFullMana() {
+        return statManager.isFullMana();
+    }
+
+    /**
+     * MPを回復します
+     *
+     * @param baseRegene 基礎回復量
+     * @return 実際に回復したMP量
+     * @deprecated {@link #stats()}経由で{@code stats().regenerateMana(baseRegene)}を使用してください
+     */
+    @Deprecated
+    public int regenerateMana(double baseRegene) {
+        return statManager.regenerateMana(baseRegene);
     }
 
     // ==================== PlayerSkillManager委譲 ====================

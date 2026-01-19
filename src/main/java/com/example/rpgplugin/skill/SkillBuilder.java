@@ -1,5 +1,13 @@
 package com.example.rpgplugin.skill;
 
+import com.example.rpgplugin.model.skill.CooldownConfig;
+import com.example.rpgplugin.model.skill.CostConfig;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 import com.example.rpgplugin.skill.component.SkillEffect;
 import com.example.rpgplugin.skill.target.SkillTarget;
 
@@ -34,13 +42,13 @@ public final class SkillBuilder {
     private LevelDependentParameter cooldownParameter;
     private LevelDependentParameter costParameter;
     private SkillCostType costType = SkillCostType.MANA;
-    private Skill.DamageCalculation damage;
-    private Skill.SkillTreeConfig skillTree;
+    private DamageCalculation damage;
+    private SkillTreeConfig skillTree;
     private String iconMaterial = "DIAMOND_SWORD";
     private List<String> availableClasses = new ArrayList<>();
-    private List<Skill.VariableDefinition> variables = new ArrayList<>();
-    private Skill.FormulaDamageConfig formulaDamage;
-    private Skill.TargetingConfig targeting;
+    private List<VariableDefinition> variables = new ArrayList<>();
+    private FormulaDamageConfig formulaDamage;
+    private TargetingConfig targeting;
     private SkillTarget skillTarget;
     private SkillEffect componentEffect;
 
@@ -175,7 +183,7 @@ public final class SkillBuilder {
      * @param cooldownConfig クールダウン設定
      * @return this
      */
-    public SkillBuilder cooldownConfig(Skill.CooldownConfig cooldownConfig) {
+    public SkillBuilder cooldownConfig(CooldownConfig cooldownConfig) {
         if (cooldownConfig != null) {
             this.cooldownParameter = cooldownConfig.getParameter();
         }
@@ -210,7 +218,7 @@ public final class SkillBuilder {
      * @param costConfig コスト設定
      * @return this
      */
-    public SkillBuilder costConfig(Skill.CostConfig costConfig) {
+    public SkillBuilder costConfig(CostConfig costConfig) {
         if (costConfig != null) {
             this.costParameter = costConfig.getParameter();
             this.costType = costConfig.getType();
@@ -237,7 +245,7 @@ public final class SkillBuilder {
      * @param damage ダメージ計算設定
      * @return this
      */
-    public SkillBuilder damage(Skill.DamageCalculation damage) {
+    public SkillBuilder damage(DamageCalculation damage) {
         this.damage = damage;
         return this;
     }
@@ -252,7 +260,7 @@ public final class SkillBuilder {
      * @return this
      */
     public SkillBuilder damage(double base, com.example.rpgplugin.stats.Stat stat, double multiplier, double levelMultiplier) {
-        this.damage = new Skill.DamageCalculation(base, stat, multiplier, levelMultiplier);
+        this.damage = new DamageCalculation(base, stat, multiplier, levelMultiplier);
         return this;
     }
 
@@ -262,7 +270,7 @@ public final class SkillBuilder {
      * @param formulaDamage 数式ダメージ設定
      * @return this
      */
-    public SkillBuilder formulaDamage(Skill.FormulaDamageConfig formulaDamage) {
+    public SkillBuilder formulaDamage(FormulaDamageConfig formulaDamage) {
         this.formulaDamage = formulaDamage;
         return this;
     }
@@ -275,7 +283,7 @@ public final class SkillBuilder {
      * @param skillTree スキルツリー設定
      * @return this
      */
-    public SkillBuilder skillTree(Skill.SkillTreeConfig skillTree) {
+    public SkillBuilder skillTree(SkillTreeConfig skillTree) {
         this.skillTree = skillTree;
         return this;
     }
@@ -323,7 +331,7 @@ public final class SkillBuilder {
      * @param variables カスタム変数定義リスト
      * @return this
      */
-    public SkillBuilder variables(List<Skill.VariableDefinition> variables) {
+    public SkillBuilder variables(List<VariableDefinition> variables) {
         this.variables = variables != null ? new ArrayList<>(variables) : new ArrayList<>();
         return this;
     }
@@ -336,7 +344,7 @@ public final class SkillBuilder {
      * @return this
      */
     public SkillBuilder addVariable(String name, double value) {
-        this.variables.add(new Skill.VariableDefinition(name, value));
+        this.variables.add(new VariableDefinition(name, value));
         return this;
     }
 
@@ -348,7 +356,7 @@ public final class SkillBuilder {
      * @param targeting ターゲット設定
      * @return this
      */
-    public SkillBuilder targeting(Skill.TargetingConfig targeting) {
+    public SkillBuilder targeting(TargetingConfig targeting) {
         this.targeting = targeting;
         return this;
     }

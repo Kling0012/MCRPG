@@ -1,6 +1,7 @@
 package com.example.rpgplugin.skill.executor;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.model.skill.DamageCalculation;
 import com.example.rpgplugin.api.skript.events.EvtRPGSkillCast.RPGSkillCastEvent;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.player.PlayerManager;
@@ -361,7 +362,7 @@ public class ActiveSkillExecutor implements SkillExecutor {
      * @return 計算されたダメージ
      */
     private double calculateDamage(RPGPlayer rpgPlayer, Skill skill, int level) {
-        Skill.DamageCalculation damageConfig = skill.getDamage();
+        DamageCalculation damageConfig = skill.getDamage();
         if (damageConfig == null) {
             return 0.0;
         }

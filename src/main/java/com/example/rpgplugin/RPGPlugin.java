@@ -15,7 +15,7 @@ import com.example.rpgplugin.player.VanillaExpHandler;
 import com.example.rpgplugin.rpgclass.ClassManager;
 import com.example.rpgplugin.rpgclass.RPGClass;
 import com.example.rpgplugin.skill.SkillManager;
-import com.example.rpgplugin.skill.config.SkillConfig;
+import com.example.rpgplugin.model.skill.SkillConfig;
 import com.example.rpgplugin.skill.executor.ActiveSkillExecutor;
 import com.example.rpgplugin.skill.executor.PassiveSkillExecutor;
 import com.example.rpgplugin.stats.StatManager;
@@ -180,105 +180,125 @@ public class RPGPlugin extends JavaPlugin {
      */
     private void setupConfigWatcher() {
         ConfigWatcher configWatcher = coreSystem.getConfigWatcher();
-
-        // ホットリロード設定を確認
         YamlConfigManager configManager = coreSystem.getConfigManager();
-        boolean hotReloadClasses = configManager.getBoolean("main", "hot_reload.classes", true);
-        boolean hotReloadSkills = configManager.getBoolean("main", "hot_reload.skills", true);
-        boolean hotReloadExp = configManager.getBoolean("main", "hot_reload.exp_diminish", true);
-        boolean hotReloadTemplates = configManager.getBoolean("main", "hot_reload.templates", false);
-        boolean hotReloadDamage = configManager.getBoolean("main", "hot_reload.damage", true);
 
-        // クラス定義の監視
-        if (hotReloadClasses) {
-            configWatcher.watchDirectory("classes");
-            configWatcher.addDirectoryListener("classes", path -> {
-                try {
-                    getLogger().info("[HotReload] Class file modified: " + path.getFileName());
-                    com.example.rpgplugin.rpgclass.ClassLoader classLoader = gameSystem.getClassLoader();
-                    Map<String, RPGClass> classes = classLoader.loadAllClasses();
-                    ClassManager.ReloadResult result = gameSystem.getClassManager().reloadWithCleanup(classes);
-                    getLogger().info("[HotReload] Reloaded " + result.getLoadedClassCount() + " classes." +
-                        (result.hasRemovedClasses() ? " Removed: " + result.getRemovedClasses().size() : ""));
-                } catch (Exception e) {
-                    getLogger().warning("[HotReload] Failed to reload classes: " + e.getMessage());
-                }
-            });
+        // クラス定義のホットリロード
+        setupHotReload(configWatcher, configManager, "hot_reload.classes", "classes",
+            () -> reloadClasses());
+
+        // スキル定義のホットリロード（複数ディレクトリ）
+        if (configManager.getBoolean("main", "hot_reload.skills", true)) {
+            setupHotReloadForMultipleDirs(configWatcher, "skills/active", "skills/passive",
+                () -> reloadSkillsWithCleanup());
         }
 
-        // スキル定義の監視
-        if (hotReloadSkills) {
-            // スキルディレクトリ（サブディレクトリも監視）
-            configWatcher.watchDirectory("skills/active");
-            configWatcher.watchDirectory("skills/passive");
+        // 経験値減衰設定のホットリロード
+        setupHotReload(configWatcher, configManager, "hot_reload.exp_diminish", "exp",
+            () -> reloadExpConfig());
 
-            configWatcher.addDirectoryListener("skills/active", path -> {
-                reloadSkillsWithCleanup();
-            });
-            configWatcher.addDirectoryListener("skills/passive", path -> {
-                reloadSkillsWithCleanup();
-            });
-        }
-
-        // 経験値減衰設定の監視
-        if (hotReloadExp) {
-            configWatcher.watchDirectory("exp");
-            configWatcher.addDirectoryListener("exp", path -> {
-                try {
-                    if (path.getFileName().toString().equals("diminish_config.yml")) {
-                        getLogger().info("[HotReload] Exp config modified");
-                        getExpDiminisher().loadConfig();
-                        getLogger().info("[HotReload] Reloaded diminish_config.yml");
-                    }
-                } catch (Exception e) {
-                    getLogger().warning("[HotReload] Failed to reload exp config: " + e.getMessage());
-                }
-            });
-        }
-
-        // ダメージ設定の監視（ルートディレクトリ）
-        if (hotReloadDamage) {
-            configWatcher.watchDirectory("");
-            configWatcher.addFileListener("damage_config.yml", path -> {
-                try {
-                    getLogger().info("[HotReload] Damage config modified");
-                    gameSystem.getDamageManager().reloadDamageConfig();
-                    getLogger().info("[HotReload] Reloaded damage_config.yml");
-                } catch (Exception e) {
-                    getLogger().warning("[HotReload] Failed to reload damage config: " + e.getMessage());
-                }
-            });
-        }
-
-        // モブドロップ設定の監視（MythicMobs連携は削除済み）
-        // 以前のモブドロップ設定監視は削除されました
+        // ダメージ設定のホットリロード
+        setupHotReload(configWatcher, configManager, "hot_reload.damage", "",
+            () -> reloadDamageConfig());
 
         // テンプレートファイルの監視（ログ出力のみ）
-        if (hotReloadTemplates) {
+        if (configManager.getBoolean("main", "hot_reload.templates", false)) {
             configWatcher.watchDirectory("templates");
-            configWatcher.addDirectoryListener("templates", path -> {
-                getLogger().info("[HotReload] Template file modified: " + path.getFileName() + ". Copy template to use as new skill/class.");
-            });
+            configWatcher.addDirectoryListener("templates", path ->
+                getLogger().info("[HotReload] Template file modified: " + path.getFileName()
+                    + ". Copy template to use as new skill/class."));
         }
 
         getLogger().info("ConfigWatcher initialized with " + configWatcher.getWatchedDirectoryCount() + " directories.");
     }
 
     /**
+     * ホットリロード設定を登録します
+     *
+     * @param configWatcher ConfigWatcherインスタンス
+     * @param configManager 設定マネージャー
+     * @param configKey 設定キー
+     * @param directory 監視ディレクトリ
+     * @param reloadHandler リロードハンドラー
+     */
+    private void setupHotReload(ConfigWatcher configWatcher, YamlConfigManager configManager,
+                               String configKey, String directory, Runnable reloadHandler) {
+        if (configManager.getBoolean("main", configKey, true)) {
+            configWatcher.watchDirectory(directory);
+            configWatcher.addDirectoryListener(directory, path -> executeSafeReload(reloadHandler));
+        }
+    }
+
+    /**
+     * 複数ディレクトリのホットリロード設定を登録します
+     *
+     * @param configWatcher ConfigWatcherインスタンス
+     * @param firstDir 監視ディレクトリ1
+     * @param secondDir 監視ディレクトリ2
+     * @param reloadHandler リロードハンドラー
+     */
+    private void setupHotReloadForMultipleDirs(ConfigWatcher configWatcher, String firstDir,
+                                              String secondDir, Runnable reloadHandler) {
+        configWatcher.watchDirectory(firstDir);
+        configWatcher.watchDirectory(secondDir);
+        configWatcher.addDirectoryListener(firstDir, path -> executeSafeReload(reloadHandler));
+        configWatcher.addDirectoryListener(secondDir, path -> executeSafeReload(reloadHandler));
+    }
+
+    /**
+     * リロードを安全に実行します
+     *
+     * @param reloadHandler リロードハンドラー
+     */
+    private void executeSafeReload(Runnable reloadHandler) {
+        try {
+            reloadHandler.run();
+        } catch (Exception e) {
+            getLogger().warning("[HotReload] Failed to reload: " + e.getMessage());
+        }
+    }
+
+    /**
+     * クラス定義をリロードします
+     */
+    private void reloadClasses() {
+        getLogger().info("[HotReload] Class file modified");
+        com.example.rpgplugin.rpgclass.ClassLoader classLoader = gameSystem.getClassLoader();
+        Map<String, RPGClass> classes = classLoader.loadAllClasses();
+        ClassManager.ReloadResult result = gameSystem.getClassManager().reloadWithCleanup(classes);
+        getLogger().info("[HotReload] Reloaded " + result.getLoadedClassCount() + " classes."
+            + (result.hasRemovedClasses() ? " Removed: " + result.getRemovedClasses().size() : ""));
+    }
+
+    /**
+     * 経験値設定をリロードします
+     */
+    private void reloadExpConfig() {
+        getLogger().info("[HotReload] Exp config modified");
+        getExpDiminisher().loadConfig();
+        getLogger().info("[HotReload] Reloaded diminish_config.yml");
+    }
+
+    /**
+     * ダメージ設定をリロードします
+     */
+    private void reloadDamageConfig() {
+        getLogger().info("[HotReload] Damage config modified");
+        gameSystem.getDamageManager().reloadDamageConfig();
+        getLogger().info("[HotReload] Reloaded damage_config.yml");
+    }
+
+    /**
      * スキルをクリーンアップ付きでリロードするヘルパーメソッド
      */
     private void reloadSkillsWithCleanup() {
-        try {
-            com.example.rpgplugin.skill.SkillLoader skillLoader = gameSystem.getSkillLoader();
-            var newSkills = skillLoader.loadAllSkills();
-            var newSkillMap = newSkills.stream()
-                    .collect(Collectors.toMap(s -> s.getId(), s -> s));
-            SkillManager.ReloadResult result = gameSystem.getSkillManager().reloadWithCleanup(newSkillMap);
-            getLogger().info("[HotReload] Reloaded " + result.getLoadedSkillCount() + " skills." +
-                    (result.hasRemovedSkills() ? " Removed: " + result.getRemovedSkills().size() : ""));
-        } catch (Exception e) {
-            getLogger().warning("[HotReload] Failed to reload skills: " + e.getMessage());
-        }
+        getLogger().info("[HotReload] Skill file modified");
+        com.example.rpgplugin.skill.SkillLoader skillLoader = gameSystem.getSkillLoader();
+        var newSkills = skillLoader.loadAllSkills();
+        var newSkillMap = newSkills.stream()
+                .collect(Collectors.toMap(s -> s.getId(), s -> s));
+        SkillManager.ReloadResult result = gameSystem.getSkillManager().reloadWithCleanup(newSkillMap);
+        getLogger().info("[HotReload] Reloaded " + result.getLoadedSkillCount() + " skills." +
+                (result.hasRemovedSkills() ? " Removed: " + result.getRemovedSkills().size() : ""));
     }
 
     /**

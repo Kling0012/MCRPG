@@ -1,5 +1,6 @@
 package com.example.rpgplugin;
 
+import com.example.rpgplugin.command.Messages;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillManager;
 import com.example.rpgplugin.gui.SkillTreeGUI;
@@ -46,17 +47,17 @@ public class RPGCommand implements CommandExecutor, TabCompleter {
         // コンソールからも実行可能なコマンド
         if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission("rpg.admin")) {
-                sender.sendMessage(Component.text("権限がありません", NamedTextColor.RED));
+                sender.sendMessage(Messages.NO_PERMISSION);
                 return true;
             }
 
             long startTime = System.currentTimeMillis();
 
-            sender.sendMessage(Component.text("=== RPGPlugin リロード中 ===", NamedTextColor.YELLOW));
+            sender.sendMessage(Messages.Reload.TITLE);
             RPGPlugin.getInstance().reloadPlugin();
 
             long duration = System.currentTimeMillis() - startTime;
-            sender.sendMessage(Component.text("リロード完了!(" + duration + "ms)", NamedTextColor.GREEN));
+            sender.sendMessage(Component.text(String.format(Messages.Reload.SUCCESS_FORMAT, duration), NamedTextColor.GREEN));
             return true;
         }
 
@@ -69,23 +70,23 @@ public class RPGCommand implements CommandExecutor, TabCompleter {
 
         // プレイヤーのみのコマンド
         if (!(sender instanceof Player)) {
-            sender.sendMessage("このコマンドはプレイヤーのみ使用できます");
+            sender.sendMessage(Messages.CONSOLE_ONLY);
             return true;
         }
 
         Player player = (Player) sender;
 
         if (args.length == 0) {
-            player.sendMessage(Component.text("=== RPG Plugin ===", NamedTextColor.YELLOW));
-            player.sendMessage(Component.text("/rpg stats - ステータスを表示", NamedTextColor.GRAY));
-            player.sendMessage(Component.text("/rpg skill - スキル情報を表示", NamedTextColor.GRAY));
-            player.sendMessage(Component.text("/rpg class list - クラス一覧を表示", NamedTextColor.GRAY));
-            player.sendMessage(Component.text("/rpg class change <クラスID> [level] - クラスを変更", NamedTextColor.GRAY));
-            player.sendMessage(Component.text("/rpg cast <スキルID> - スキルを発動", NamedTextColor.GRAY));
-            player.sendMessage(Component.text("/rpg help - ヘルプを表示", NamedTextColor.GRAY));
+            player.sendMessage(Messages.GUI.TITLE);
+            player.sendMessage(Component.text(Messages.GUI.STATS, NamedTextColor.GRAY));
+            player.sendMessage(Component.text(Messages.GUI.SKILL, NamedTextColor.GRAY));
+            player.sendMessage(Component.text(Messages.GUI.CLASS_LIST, NamedTextColor.GRAY));
+            player.sendMessage(Component.text(Messages.GUI.CLASS_CHANGE, NamedTextColor.GRAY));
+            player.sendMessage(Component.text(Messages.GUI.CAST_SKILL, NamedTextColor.GRAY));
+            player.sendMessage(Component.text(Messages.GUI.HELP_CMD, NamedTextColor.GRAY));
             if (player.hasPermission("rpg.admin")) {
-                player.sendMessage(Component.text("/rpg class change <player> <classId> [level] - 他プレイヤーのクラスを変更", NamedTextColor.GRAY));
-                player.sendMessage(Component.text("/rpg reload - 設定をリロード", NamedTextColor.GRAY));
+                player.sendMessage(Component.text(Messages.GUI.ADMIN_CLASS_CHANGE, NamedTextColor.GRAY));
+                player.sendMessage(Component.text(Messages.GUI.ADMIN_RELOAD, NamedTextColor.GRAY));
             }
             return true;
         }
@@ -117,8 +118,8 @@ public class RPGCommand implements CommandExecutor, TabCompleter {
                 break;
 
             default:
-                player.sendMessage(Component.text("不明なコマンドです", NamedTextColor.RED));
-                player.sendMessage(Component.text("/rpg help でヘルプを表示", NamedTextColor.GRAY));
+                player.sendMessage(Messages.UNKNOWN_COMMAND);
+                player.sendMessage(Messages.UNKNOWN_COMMAND_HINT);
                 break;
         }
 
@@ -134,20 +135,20 @@ public class RPGCommand implements CommandExecutor, TabCompleter {
      */
     private void handleStatsCommand(Player player) {
         // 外部GUIプラグイン用のプレースホルダー案内
-        player.sendMessage(Component.text("=== RPGPlugin PlaceholderAPI ===", NamedTextColor.YELLOW));
-        player.sendMessage(Component.text("ステータスは外部GUIプラグインで表示できます", NamedTextColor.GRAY));
+        player.sendMessage(Messages.Stats.TITLE);
+        player.sendMessage(Messages.Stats.INFO);
         player.sendMessage(Component.empty());
-        player.sendMessage(Component.text("主なプレースホルダー:", NamedTextColor.WHITE));
-        player.sendMessage(Component.text("  %rpg_level% - レベル", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("  %rpg_class% - クラス名", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("  %rpg_stat_strength% - STR", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("  %rpg_stat_intelligence% - INT", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("  %rpg_stat_spirit% - SPI", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("  %rpg_stat_vitality% - VIT", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("  %rpg_stat_dexterity% - DEX", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("  %rpg_available_points% - 振り分け可能ポイント", NamedTextColor.GRAY));
+        player.sendMessage(Messages.Stats.MAIN_PLACEHOLDERS);
+        player.sendMessage(Component.text(Messages.Stats.PLACEHOLDER_LEVEL, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Stats.PLACEHOLDER_CLASS, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Stats.PLACEHOLDER_STR, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Stats.PLACEHOLDER_INT, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Stats.PLACEHOLDER_SPI, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Stats.PLACEHOLDER_VIT, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Stats.PLACEHOLDER_DEX, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Stats.PLACEHOLDER_POINTS, NamedTextColor.GRAY));
         player.sendMessage(Component.empty());
-        player.sendMessage(Component.text("/rpg help で全コマンドを表示", NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Help.HELP, NamedTextColor.GRAY));
     }
 
     /**
@@ -180,20 +181,20 @@ private void handleSkillCommand(Player player) {
      */
     private void handleCastCommand(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage(Component.text("使用法: /rpg cast <スキルID>", NamedTextColor.RED));
+            player.sendMessage(Messages.Skill.CAST_USAGE);
             return;
         }
 
         String skillId = args[1];
         SkillManager skillManager = RPGPlugin.getInstance().getSkillManager();
         if (skillManager == null) {
-            player.sendMessage(Component.text("スキルマネージャーが初期化されていません", NamedTextColor.RED));
+            player.sendMessage(Messages.Cast.MANAGER_NOT_INITIALIZED);
             return;
         }
 
         Skill skill = skillManager.getSkill(skillId);
         if (skill == null) {
-            player.sendMessage(Component.text("スキルが見つかりません: " + skillId, NamedTextColor.RED));
+            player.sendMessage(Messages.Cast.SKILL_NOT_FOUND.append(Component.text(skillId)));
             return;
         }
 
@@ -202,27 +203,27 @@ private void handleSkillCommand(Player player) {
         // 習得チェック
         int level = skillManager.getSkillLevel(player, skillId);
         if (level == 0) {
-            player.sendMessage(Component.text("このスキルを習得していません: " + skill.getColoredDisplayName(), NamedTextColor.RED));
+            player.sendMessage(Messages.Cast.NOT_ACQUIRED.append(Component.text(skill.getColoredDisplayName())));
             return;
         }
 
         // クールダウンチェック
         if (!skillManager.checkCooldown(player, skillId)) {
-            player.sendMessage(Component.text("クールダウン中です", NamedTextColor.RED));
+            player.sendMessage(Messages.Cast.COOLDOWN);
             return;
         }
 
         // スキル発動
         ActiveSkillExecutor executor = RPGPlugin.getInstance().getActiveSkillExecutor();
         if (executor == null) {
-            player.sendMessage(Component.text("スキル実行システムが初期化されていません", NamedTextColor.RED));
+            player.sendMessage(Messages.Cast.EXECUTOR_NOT_INITIALIZED);
             return;
         }
 
         boolean success = executor.execute(player, skill, level);
         if (!success) {
             // 詳細なエラーメッセージは executor.execute() 内で送信される
-            player.sendMessage(Component.text("スキルの発動に失敗しました: " + skill.getColoredDisplayName(), NamedTextColor.RED));
+            player.sendMessage(Messages.Cast.CAST_FAILED.append(Component.text(skill.getDisplayName())));
         }
     }
 
@@ -245,9 +246,9 @@ private void handleSkillCommand(Player player) {
 
         // 引数なし: クラス情報を表示
         if (args.length == 1) {
-            player.sendMessage(Component.text("=== クラスシステム ===", NamedTextColor.YELLOW));
-            player.sendMessage(Component.text("/rpg class list - 利用可能なクラス一覧", NamedTextColor.GRAY));
-            player.sendMessage(Component.text("/rpg class change <クラスID> [level] - クラスを変更", NamedTextColor.GRAY));
+            player.sendMessage(Component.text(Messages.ClassCmd.TITLE, NamedTextColor.YELLOW));
+            player.sendMessage(Component.text(Messages.ClassCmd.LIST, NamedTextColor.GRAY));
+            player.sendMessage(Component.text(Messages.ClassCmd.CHANGE_USAGE_SHORT, NamedTextColor.GRAY));
             return;
         }
 
@@ -260,7 +261,7 @@ private void handleSkillCommand(Player player) {
 
             case "change":
                 if (args.length < 3) {
-                    player.sendMessage(Component.text("使用法: /rpg class change <クラスID> [level]", NamedTextColor.RED));
+                    player.sendMessage(Messages.ClassCmd.CHANGE_USAGE);
                     return;
                 }
                 String classId = args[2];
@@ -269,7 +270,7 @@ private void handleSkillCommand(Player player) {
                     try {
                         level = Integer.parseInt(args[3]);
                     } catch (NumberFormatException e) {
-                        player.sendMessage(Component.text("レベルは数値で指定してください", NamedTextColor.RED));
+                        player.sendMessage(Messages.Cast.NUMBER_FORMAT_ERROR);
                         return;
                     }
                 }
@@ -278,7 +279,7 @@ private void handleSkillCommand(Player player) {
 
             default:
                 player.sendMessage(Component.text("不明なサブコマンド: " + subCommand, NamedTextColor.RED));
-                player.sendMessage(Component.text("使用法: /rpg class [list|change]", NamedTextColor.GRAY));
+                player.sendMessage(Component.text(Messages.ClassCmd.USAGE, NamedTextColor.GRAY));
                 break;
         }
     }
@@ -313,14 +314,14 @@ private void handleSkillCommand(Player player) {
     private void handleClassChangeCommand(Player player, com.example.rpgplugin.rpgclass.ClassManager clsManager, String classId, int level) {
         // 権限チェック
         if (!player.hasPermission("rpg.admin.class.change")) {
-            player.sendMessage(Component.text("このコマンドを実行する権限がありません", NamedTextColor.RED));
+            player.sendMessage(Messages.NO_PERMISSION);
             return;
         }
 
         // クラス存在確認
         if (!clsManager.getClass(classId).isPresent()) {
-            player.sendMessage(Component.text("クラスが見つかりません: " + classId, NamedTextColor.RED));
-            player.sendMessage(Component.text("使用法: /rpg class list でクラス一覧を確認", NamedTextColor.GRAY));
+            player.sendMessage(Messages.ClassCmd.NOT_FOUND.append(Component.text(classId)));
+            player.sendMessage(Messages.ClassCmd.CHECK_LIST);
             return;
         }
 
@@ -328,14 +329,14 @@ private void handleSkillCommand(Player player) {
         boolean success = clsManager.changeClass(player, classId, level);
         if (success) {
             com.example.rpgplugin.rpgclass.RPGClass rpgClass = clsManager.getClass(classId).get();
-            player.sendMessage(Component.text("クラスを変更しました: " + rpgClass.getDisplayName(), NamedTextColor.GREEN));
-            player.sendMessage(Component.text("レベル: " + Math.max(0, level), NamedTextColor.GRAY));
+            player.sendMessage(Messages.ClassCmd.CHANGE_SUCCESS.append(Component.text(rpgClass.getDisplayName())));
+            player.sendMessage(Component.text(Messages.ClassCmd.LEVEL_FORMAT + Math.max(0, level), NamedTextColor.GRAY));
             // 説明文を送信
             for (String line : rpgClass.getDescription()) {
                 player.sendMessage(Component.text(line, NamedTextColor.GRAY));
             }
         } else {
-            player.sendMessage(Component.text("クラスの変更に失敗しました", NamedTextColor.RED));
+            player.sendMessage(Messages.ClassCmd.CHANGE_FAILED);
         }
     }
 
@@ -352,14 +353,14 @@ private void handleSkillCommand(Player player) {
     private boolean handleAdminClassChangeCommand(CommandSender sender, String[] args) {
         // 権限チェック
         if (!sender.hasPermission("rpg.admin.class.change")) {
-            sender.sendMessage(Component.text("このコマンドを実行する権限がありません", NamedTextColor.RED));
+            sender.sendMessage(Messages.NO_PERMISSION);
             return true;
         }
 
         // 引数チェック: /rpg class change <player> <classId> [level]
         // args[0]="class", args[1]="change", args[2]=<player>, args[3]=<classId>, args[4]=[level]
         if (args.length < 4) {
-            sender.sendMessage(Component.text("使用法: /rpg class change <player> <classId> [level]", NamedTextColor.RED));
+            sender.sendMessage(Messages.ClassCmd.CHANGE_ADMIN_USAGE);
             return true;
         }
 
@@ -371,7 +372,7 @@ private void handleSkillCommand(Player player) {
             try {
                 level = Integer.parseInt(args[4]);
             } catch (NumberFormatException e) {
-                sender.sendMessage(Component.text("レベルは数値で指定してください", NamedTextColor.RED));
+                sender.sendMessage(Messages.Cast.NUMBER_FORMAT_ERROR);
                 return true;
             }
         }
@@ -379,7 +380,7 @@ private void handleSkillCommand(Player player) {
         // ターゲットプレイヤーを取得
         Player targetPlayer = Bukkit.getPlayer(targetPlayerName);
         if (targetPlayer == null || !targetPlayer.isOnline()) {
-            sender.sendMessage(Component.text("プレイヤーが見つかりません、またはオフラインです: " + targetPlayerName, NamedTextColor.RED));
+            sender.sendMessage(Messages.Reload.PLAYER_NOT_FOUND.append(Component.text(targetPlayerName)));
             return true;
         }
 
@@ -391,7 +392,7 @@ private void handleSkillCommand(Player player) {
 
         // クラス存在確認
         if (!clsManager.getClass(classId).isPresent()) {
-            sender.sendMessage(Component.text("クラスが見つかりません: " + classId, NamedTextColor.RED));
+            sender.sendMessage(Messages.ClassCmd.NOT_FOUND.append(Component.text(classId)));
             return true;
         }
 
@@ -399,11 +400,11 @@ private void handleSkillCommand(Player player) {
         boolean success = clsManager.changeClass(targetPlayer, classId, level);
         if (success) {
             com.example.rpgplugin.rpgclass.RPGClass rpgClass = clsManager.getClass(classId).get();
-            sender.sendMessage(Component.text(targetPlayer.getName() + " のクラスを変更しました: " + rpgClass.getDisplayName(), NamedTextColor.GREEN));
-            targetPlayer.sendMessage(Component.text("クラスを変更されました: " + rpgClass.getDisplayName(), NamedTextColor.GREEN));
-            targetPlayer.sendMessage(Component.text("レベル: " + Math.max(0, level), NamedTextColor.GRAY));
+            sender.sendMessage(Component.text(targetPlayer.getName()).append(Messages.ClassCmd.ADMIN_CHANGE_SUCCESS).append(Component.text(rpgClass.getDisplayName())));
+            targetPlayer.sendMessage(Messages.ClassCmd.ADMIN_CHANGE_NOTIFICATION.append(Component.text(rpgClass.getDisplayName())));
+            targetPlayer.sendMessage(Component.text(Messages.ClassCmd.LEVEL_FORMAT + Math.max(0, level), NamedTextColor.GRAY));
         } else {
-            sender.sendMessage(Component.text("クラスの変更に失敗しました", NamedTextColor.RED));
+            sender.sendMessage(Messages.ClassCmd.CHANGE_FAILED);
         }
 
         return true;
@@ -415,41 +416,41 @@ private void handleSkillCommand(Player player) {
      * @param player プレイヤー
      */
     private void showHelp(Player player) {
-        player.sendMessage(Component.text("========================================", NamedTextColor.DARK_GRAY));
-        player.sendMessage(Component.text("           RPGPlugin ヘルプ", NamedTextColor.GOLD, TextDecoration.BOLD));
-        player.sendMessage(Component.text("========================================", NamedTextColor.DARK_GRAY));
+        player.sendMessage(Messages.Help.BORDER);
+        player.sendMessage(Messages.Help.TITLE);
+        player.sendMessage(Messages.Help.BORDER);
         player.sendMessage(Component.empty());
 
         // 基本コマンド
-        player.sendMessage(Component.text("【基本コマンド】", NamedTextColor.YELLOW, TextDecoration.BOLD));
-        player.sendMessage(Component.text("/rpg - メインメニューを表示", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("/rpg help - このヘルプを表示", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("/rpg stats - ステータスを表示", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("/rpg skill - スキル情報を表示", NamedTextColor.GRAY));
+        player.sendMessage(Messages.Help.BASIC_COMMANDS_TITLE);
+        player.sendMessage(Component.text(Messages.Help.MAIN_MENU, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Help.HELP, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Help.STATS, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Help.SKILL, NamedTextColor.GRAY));
         player.sendMessage(Component.empty());
 
         // クラスコマンド
-        player.sendMessage(Component.text("【クラスコマンド】", NamedTextColor.YELLOW, TextDecoration.BOLD));
-        player.sendMessage(Component.text("/rpg class - クラス情報を表示", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("/rpg class list - クラス一覧を表示", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("/rpg class <クラスID> - クラスを選択", NamedTextColor.GRAY));
+        player.sendMessage(Messages.Help.CLASS_COMMANDS_TITLE);
+        player.sendMessage(Component.text(Messages.Help.CLASS_INFO, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Help.CLASS_LIST, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Help.CLASS_SELECT, NamedTextColor.GRAY));
         player.sendMessage(Component.empty());
 
         // スキルコマンド
-        player.sendMessage(Component.text("【スキルコマンド】", NamedTextColor.YELLOW, TextDecoration.BOLD));
-        player.sendMessage(Component.text("/rpg cast <スキルID> - スキルを発動", NamedTextColor.GRAY));
+        player.sendMessage(Messages.Help.SKILL_COMMANDS_TITLE);
+        player.sendMessage(Component.text(Messages.Help.CAST, NamedTextColor.GRAY));
         player.sendMessage(Component.empty());
 
         // 管理者コマンド
         if (player.hasPermission("rpg.admin")) {
-            player.sendMessage(Component.text("【管理者コマンド】", NamedTextColor.RED, TextDecoration.BOLD));
-            player.sendMessage(Component.text("/rpg reload - 設定をリロード", NamedTextColor.GRAY));
+            player.sendMessage(Messages.Help.ADMIN_COMMANDS_TITLE);
+            player.sendMessage(Component.text(Messages.Help.RELOAD, NamedTextColor.GRAY));
             player.sendMessage(Component.empty());
         }
 
         // ヒント
-        player.sendMessage(Component.text("ヒント: Tabキーでコマンド補完が利用できます", NamedTextColor.GRAY, TextDecoration.ITALIC));
-        player.sendMessage(Component.text("========================================", NamedTextColor.DARK_GRAY));
+        player.sendMessage(Messages.Help.HINT);
+        player.sendMessage(Messages.Help.BORDER);
     }
 
     /**
@@ -481,15 +482,14 @@ private void handleSkillCommand(Player player) {
      * @param player プレイヤー
      */
     private void showClassHelp(Player player) {
-        player.sendMessage(Component.text("========================================", NamedTextColor.DARK_GRAY));
+        player.sendMessage(Messages.Help.BORDER);
         player.sendMessage(Component.text("           クラスヘルプ", NamedTextColor.AQUA, TextDecoration.BOLD));
-        player.sendMessage(Component.text("========================================", NamedTextColor.DARK_GRAY));
+        player.sendMessage(Messages.Help.BORDER);
         player.sendMessage(Component.empty());
-        player.sendMessage(Component.text("/rpg class list - 利用可能なクラスを表示", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("/rpg class info <クラスID> - クラス情報を表示", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("/rpg class change <クラスID> - クラスを変更", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("/rpg class upgrade - クラスをアップグレード", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("========================================", NamedTextColor.DARK_GRAY));
+        player.sendMessage(Component.text(Messages.ClassCmd.INFO_USAGE, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.ClassCmd.CHANGE_USAGE_SHORT, NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.ClassCmd.UPGRADE, NamedTextColor.GRAY));
+        player.sendMessage(Messages.Help.BORDER);
     }
 
     /**
@@ -498,17 +498,17 @@ private void handleSkillCommand(Player player) {
      * @param player プレイヤー
      */
     private void showSkillHelp(Player player) {
-        player.sendMessage(Component.text("========================================", NamedTextColor.DARK_GRAY));
-        player.sendMessage(Component.text("           スキルヘルプ", NamedTextColor.BLUE, TextDecoration.BOLD));
-        player.sendMessage(Component.text("========================================", NamedTextColor.DARK_GRAY));
+        player.sendMessage(Messages.Skill.BORDER);
+        player.sendMessage(Messages.Skill.TITLE);
+        player.sendMessage(Messages.Skill.BORDER);
         player.sendMessage(Component.empty());
-        player.sendMessage(Component.text("/rpg cast <スキルID> - スキルを発動します", NamedTextColor.GRAY));
+        player.sendMessage(Component.text(Messages.Skill.CAST_DESC, NamedTextColor.GRAY));
         player.sendMessage(Component.empty());
-        player.sendMessage(Component.text("発動条件:", NamedTextColor.WHITE));
-        player.sendMessage(Component.text("  • スキルを習得している必要があります", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("  • クールダウン中ではない必要があります", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("  • 十分なMPを持っている必要があります", NamedTextColor.GRAY));
-        player.sendMessage(Component.text("========================================", NamedTextColor.DARK_GRAY));
+        player.sendMessage(Messages.Skill.CONDITION_TITLE);
+        player.sendMessage(Messages.Skill.CONDITION_ACQUIRED);
+        player.sendMessage(Messages.Skill.CONDITION_COOLDOWN);
+        player.sendMessage(Messages.Skill.CONDITION_MANA);
+        player.sendMessage(Messages.Skill.BORDER);
     }
 
     @Override

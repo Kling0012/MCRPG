@@ -1,6 +1,9 @@
 package com.example.rpgplugin.gui;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.gui.service.SkillTreeService;
+import com.example.rpgplugin.gui.service.SkillTreeService.SkillAcquireResult;
+import com.example.rpgplugin.gui.service.SkillTreeService.SkillRefundResult;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillManager;
@@ -29,6 +32,12 @@ import java.util.UUID;
  * スキルポイントを消費してスキルを習得・強化するGUIを提供する。
  * YAMLから自動的にGUIを構成し、親子関係を表示する。
  * </p>
+ *
+ * <p>設計原則:</p>
+ * <ul>
+ *   <li>SOLID-S: GUIの表示とイベント処理に専念</li>
+ *   <li>ビジネスロジックはSkillTreeServiceに委譲</li>
+ * </ul>
  */
 public class SkillTreeGUI {
 
@@ -37,6 +46,7 @@ public class SkillTreeGUI {
     private final UUID playerUuid;
     private final String classId;
     private final SkillTree skillTree;
+    private final SkillTreeService service;
 
     // GUIサイズ（行数 - 1行につき9スロット）
     private static final int INVENTORY_ROWS = 6;
@@ -66,6 +76,7 @@ public class SkillTreeGUI {
         this.player = player;
         this.playerUuid = player.getUniqueId();
         this.classId = classId != null ? classId : getDefaultClassId();
+        this.service = new SkillTreeService(plugin);
 
         SkillManager skillManager = plugin.getSkillManager();
         this.skillTree = skillManager.getTreeRegistry().getTree(this.classId);
@@ -162,7 +173,7 @@ public class SkillTreeGUI {
      * @return スキルポイント表示アイテム
      */
     private ItemStack createSkillPointDisplay() {
-        int skillPoints = getAvailableSkillPoints();
+        int skillPoints = service.getAvailableSkillPoints(player, classId);
 
         List<String> lore = new ArrayList<>();
         lore.add("");
@@ -215,7 +226,7 @@ public class SkillTreeGUI {
     private ItemStack createSkillItem(SkillNode node) {
         Skill skill = node.getSkill();
         String skillId = skill.getId();
-        int currentLevel = getCurrentSkillLevel(skillId);
+        int currentLevel = service.getSkillLevel(player, skillId);
         int maxLevel = skill.getMaxLevel();
         int cost = skillTree.getCost(skillId);
 
@@ -254,7 +265,7 @@ public class SkillTreeGUI {
                 Skill parentSkill = plugin.getSkillManager().getSkill(parentId);
                 String parentName = parentSkill != null ? parentSkill.getDisplayName() : parentId;
 
-                int parentLevel = getCurrentSkillLevel(parentId);
+                int parentLevel = service.getSkillLevel(player, parentId);
                 if (parentLevel > 0) {
                     lore.add("<green>前提: " + parentName + " (習得済み)");
                 } else {
@@ -265,7 +276,7 @@ public class SkillTreeGUI {
 
         // 習得可能状態
         lore.add("");
-        if (canAcquireSkill(node)) {
+        if (service.canAcquireSkill(player, skillId, classId)) {
             lore.add("<green>▶ 習得可能");
         } else {
             lore.add("<red>✖ 習得条件を満たしていません");
@@ -346,126 +357,18 @@ public class SkillTreeGUI {
     }
 
     /**
-     * 現在のスキルレベルを取得します
-     *
-     * @param skillId スキルID
-     * @return スキルレベル
-     */
-    private int getCurrentSkillLevel(String skillId) {
-        SkillManager skillManager = plugin.getSkillManager();
-        return skillManager.getSkillLevel(player, skillId);
-    }
-
-    /**
-     * 利用可能なスキルポイントを取得します
-     *
-     * @return スキルポイント
-     */
-    private int getAvailableSkillPoints() {
-        // TODO: プレイヤーデータにスキルポイントを追加する必要がある
-        // 現状はプレイヤーレベルに基づいて計算
-        int playerLevel = player.getLevel();
-        SkillManager skillManager = plugin.getSkillManager();
-
-        // 習得済みスキルの総コストを計算
-        int usedPoints = 0;
-        for (Skill skill : skillManager.getSkillsForClass(classId)) {
-            int level = getCurrentSkillLevel(skill.getId());
-            if (level > 0) {
-                int cost = skillTree.getCost(skill.getId());
-                usedPoints += cost * level;
-            }
-        }
-
-        // 基礎スキルポイント（レベル * 1 + 5）
-        int basePoints = playerLevel + 5;
-
-        return Math.max(0, basePoints - usedPoints);
-    }
-
-    /**
-     * スキルを習得可能かチェックします
-     *
-     * @param node スキルノード
-     * @return 習得可能な場合はtrue
-     */
-    private boolean canAcquireSkill(SkillNode node) {
-        Skill skill = node.getSkill();
-        String skillId = skill.getId();
-        int currentLevel = getCurrentSkillLevel(skillId);
-
-        // 最大レベルチェック
-        if (currentLevel >= skill.getMaxLevel()) {
-            return false;
-        }
-
-        // 親スキルチェック
-        if (!node.isRoot()) {
-            String parentId = skillTree.getParentSkillId(skillId);
-            if (parentId != null && !"none".equalsIgnoreCase(parentId)) {
-                int parentLevel = getCurrentSkillLevel(parentId);
-                if (parentLevel == 0) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * スキルを習得します
      *
      * @param skillId スキルID
      * @return 成功した場合はtrue
      */
     public boolean acquireSkill(String skillId) {
-        SkillManager skillManager = plugin.getSkillManager();
-        Skill skill = skillManager.getSkill(skillId);
-
-        if (skill == null) {
-            player.sendMessage(Component.text("スキルが見つかりません: " + skillId, NamedTextColor.RED));
-            return false;
+        SkillAcquireResult result = service.acquireSkill(player, skillId, classId);
+        result.sendMessageTo(player);
+        if (result.isSuccess()) {
+            refreshGUI();
         }
-
-        int currentLevel = getCurrentSkillLevel(skillId);
-        int availablePoints = getAvailableSkillPoints();
-        int cost = skillTree.getCost(skillId);
-
-        // スキルポイントチェック
-        if (availablePoints < cost) {
-            player.sendMessage(Component.text("スキルポイントが足りません（必要: " + cost + "、所持: " + availablePoints + "）", NamedTextColor.RED));
-            return false;
-        }
-
-        // 習得条件チェック
-        SkillNode node = skillTree.getNode(skillId);
-        if (node != null && !canAcquireSkill(node)) {
-            player.sendMessage(Component.text("習得条件を満たしていません", NamedTextColor.RED));
-            return false;
-        }
-
-        // 習得処理
-        if (currentLevel == 0) {
-            // 新規習得
-            if (skillManager.acquireSkill(player, skillId, 1)) {
-                player.sendMessage(Component.text("スキルを習得しました: " + skill.getColoredDisplayName(), NamedTextColor.GREEN));
-                refreshGUI();
-                return true;
-            }
-        } else {
-            // レベルアップ
-            if (currentLevel >= skill.getMaxLevel()) {
-                player.sendMessage(Component.text("既に最大レベルに達しています", NamedTextColor.RED));
-                return false;
-            }
-            if (skillManager.upgradeSkill(player, skillId)) {
-                refreshGUI();
-                return true;
-            }
-        }
-
-        return false;
+        return result.isSuccess();
     }
 
     /**
@@ -475,45 +378,12 @@ public class SkillTreeGUI {
      * @return 成功した場合はtrue
      */
     public boolean refundSkill(String skillId) {
-        SkillManager skillManager = plugin.getSkillManager();
-        Skill skill = skillManager.getSkill(skillId);
-
-        if (skill == null) {
-            player.sendMessage(Component.text("スキルが見つかりません: " + skillId, NamedTextColor.RED));
-            return false;
+        SkillRefundResult result = service.refundSkill(player, skillId, classId);
+        result.sendMessageTo(player);
+        if (result.isSuccess()) {
+            refreshGUI();
         }
-
-        int currentLevel = getCurrentSkillLevel(skillId);
-
-        if (currentLevel == 0) {
-            player.sendMessage(Component.text("このスキルは習得していません", NamedTextColor.RED));
-            return false;
-        }
-
-        // 子スキルチェック
-        SkillNode node = skillTree.getNode(skillId);
-        if (node != null && !node.isLeaf()) {
-            for (SkillNode child : node.getChildren()) {
-                if (getCurrentSkillLevel(child.getSkill().getId()) > 0) {
-                    player.sendMessage(Component.text("子スキルを先に解除してください", NamedTextColor.RED));
-                    return false;
-                }
-            }
-        }
-
-        // 解除処理
-        if (currentLevel == 1) {
-            // 完全に削除
-            skillManager.getPlayerSkillData(player).removeSkill(skillId);
-            player.sendMessage(Component.text("スキルを解除しました: " + skill.getColoredDisplayName(), NamedTextColor.YELLOW));
-        } else {
-            // レベルダウン
-            skillManager.getPlayerSkillData(player).setSkillLevel(skillId, currentLevel - 1);
-            player.sendMessage(Component.text("スキルレベルを下げました: " + skill.getColoredDisplayName() + " Lv." + (currentLevel - 1), NamedTextColor.YELLOW));
-        }
-
-        refreshGUI();
-        return true;
+        return result.isSuccess();
     }
 
     /**

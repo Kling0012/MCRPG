@@ -1,5 +1,6 @@
 package com.example.rpgplugin.skill.parser;
 
+import com.example.rpgplugin.model.skill.VariableDefinition;
 import com.example.rpgplugin.skill.Skill;
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -85,7 +86,7 @@ public class SkillParserFactory {
         int manaCostFallback = config.getInt("mana_cost", 0);
 
         // カスタム変数
-        List<Skill.VariableDefinition> variables = legacyConverter.parseVariables(config);
+        List<VariableDefinition> variables = legacyConverter.parseVariables(config);
 
         // コンポーネントベーススキル
         var componentEffect = componentParser.parse(config, id);

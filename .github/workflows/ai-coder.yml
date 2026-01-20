@@ -33,7 +33,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
-          github_token: ${{ secrets.G_TOKEN }}
+          github_token: ${{ github.token }}
           show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
           prompt: |
             【自律実行モード】あなたは非対話環境の GitHub Actions 上で動作しています。
@@ -47,7 +47,7 @@ jobs:
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
   ai-review:
     if: (github.event_name == 'pull_request_target' || github.event_name == 'push') && github.actor != 'github-actions[bot]'
@@ -61,8 +61,8 @@ jobs:
       ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
       ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
       GH_REPO: ${{ github.repository }}
-      GH_TOKEN: ${{ secrets.G_TOKEN }}
-      GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
 
     steps:
       - name: push（検証用）
@@ -81,7 +81,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
-          github_token: ${{ secrets.G_TOKEN }}
+          github_token: ${{ github.token }}
           show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
           track_progress: true
           use_sticky_comment: true
@@ -131,7 +131,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
-          github_token: ${{ secrets.G_TOKEN }}
+          github_token: ${{ github.token }}
           show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
           prompt: |
             【PR修正モード】以下のレビューコメントを元にコードを修正してください。
@@ -144,4 +144,4 @@ jobs:
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}

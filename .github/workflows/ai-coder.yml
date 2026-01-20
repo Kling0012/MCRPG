@@ -50,7 +50,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
   ai-review:
-    if: (github.event_name == 'pull_request_target' || github.event_name == 'push') && github.actor != 'github-actions[bot]'
+    if: (github.event_name == 'pull_request_target') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -65,11 +65,6 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
 
     steps:
-      - name: push（検証用）
-        if: github.event_name == 'push'
-        run: |
-          echo "pushイベントは検証用の起動確認のみ（Claudeレビューは実行しません）"
-
       - name: リポジトリのチェックアウト
         if: github.event_name != 'push'
         uses: actions/checkout@v4
@@ -94,8 +89,8 @@ jobs:
             必須要件:
             - `gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` と `gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` を使って変更内容/文脈を把握する
             - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する（`gh api /issues/.../comments` は使わない）
-            - 重大度を `CRITICAL / MAJOR / MINOR / NONE` で判定する
-            - 指摘があり「追跡したほうが良い」と判断した場合は、重大度に関係なく Issue を自動作成して良い（`ai-fix,auto-generated` ラベル付与）
+
+            - 指摘がある場合は、重大度に関係なく Issue を自動作成して（`ai-fix,auto-generated` ラベル付与）
               - タイトル例: `🤖 AIレビュー: <PRタイトル> (#<PR番号>) - フォローアップ`
               - 本文にPRリンク（`${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}`）と、指摘要約、対応案を含める
 
@@ -105,43 +100,12 @@ jobs:
             3. パフォーマンス
             4. セキュリティ
             5. SOLID原則
+            6. 他危険性のあるコード
 
             PRコメント本文の構成:
             - 見出し: Critical / Major / Minor / 良い点
-            - 可能なら該当ファイルや行の根拠も添える
+            - 必ず該当ファイルと前後行の根拠を添える
           claude_args: |
             --dangerously-skip-permissions
             --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*)"
 
-  ai-fix-review-comment:
-    if: github.event_name == 'pull_request_review'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-      pull-requests: write
-
-    steps:
-      - name: リポジトリのチェックアウト
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: AIによる修正実行
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
-          github_token: ${{ github.token }}
-          show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
-          prompt: |
-            【PR修正モード】以下のレビューコメントを元にコードを修正してください。
-            修正後はコミットしてプッシュしてください。
-
-            ## レビューコメント:
-            ${{ github.event.review.body }}
-          claude_args: |
-            --dangerously-skip-permissions
-        env:
-          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ github.token }}

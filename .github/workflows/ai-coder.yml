@@ -85,7 +85,7 @@ jobs:
             PR NUMBER: ${{ github.event.pull_request.number }}
 
             あなたはシニアエンジニアです。このPRをレビューして日本語でフィードバックしてください。
-
+            KISSの原則に従い、簡潔に具体的に指摘してください。
             必須要件:
             - `gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` と `gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` を使って変更内容/文脈を把握する
             - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する（`gh api /issues/.../comments` は使わない）

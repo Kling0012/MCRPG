@@ -1,0 +1,72 @@
+name: AI Issue Fix
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+
+jobs:
+  ai-issue-fix:
+    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'ai-fix'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      CLAUDE_CODE_VERSION: 2.1.9
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+      ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
+
+    steps:
+      - name: Cache Bun
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun
+            ~/.cache/bun
+          key: ${{ runner.os }}-bun
+
+      - name: Cache Claude Code
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/bin/claude
+            ~/.claude
+          key: ${{ runner.os }}-claude-code-${{ env.CLAUDE_CODE_VERSION }}
+
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Claude に Issue 修正を依頼（PRへ追コミット）
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
+          github_token: ${{ github.token }}
+          track_progress: true
+          use_sticky_comment: true
+          show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            ISSUE NUMBER: ${{ github.event.issue.number }}
+
+            あなたは自律実行エージェントです。Issue本文の「---」ブロックから PR_NUMBER/PR_BRANCH/BASE_BRANCH/FIX_MODE/PR_URL を読み取り、修正をPRに追コミットしてください。
+
+            実行手順:
+            1) `gh pr view <PR_NUMBER> --repo ${{ github.repository }}` と `gh pr diff <PR_NUMBER> --repo ${{ github.repository }}` で内容把握
+            2) `gh pr checkout <PR_NUMBER> --repo ${{ github.repository }}` でPRブランチをチェックアウト
+            3) 修正 → `git add` → `git commit` → `git push`（同一リポジトリ内PRなので原則 push で直接更新）
+            4) Issueに「何を直したか」「PR URL」「主なコミット/差分」を必ずコメント
+            5) pushできた場合は Issue を close し、`ai-fix` ラベルが付いていれば外す（ループ防止）
+               ※ push 後は PR の synchronize で ai-review が自動再実行されるため、手動で再レビュー起動はしない
+
+            例外:
+            - どうしても push できない場合のみ、新規ブランチ+新規PR（new_pr）を作ってリンクを残す
+          claude_args: |
+            --dangerously-skip-permissions
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr checkout:*),Bash(gh pr create:*),Bash(gh issue comment:*),Bash(gh issue edit:*),Bash(git status:*),Bash(git diff:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git checkout:*),Bash(git branch:*),Bash(git log:*),Bash(git fetch:*),Bash(git reset:*),Bash(gh api:*)"

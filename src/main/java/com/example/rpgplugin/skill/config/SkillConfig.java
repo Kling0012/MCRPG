@@ -101,9 +101,8 @@ public class SkillConfig {
                 return false;
             }
 
-            // 既存のスキルを一度削除して再登録
-            skillManager.clearAllSkills();
-            loadSkills();
+            // 該当スキルのみを更新
+            skillManager.updateSkill(skill);
 
             plugin.getLogger().info("スキルをリロードしました: " + skill.getId());
             return true;

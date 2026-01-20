@@ -1,5 +1,15 @@
 {
 	"hooks": {
+		"UserPromptSubmit": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "echo \"{{prompt}}\" > .claude/.task-description"
+					}
+				]
+			}
+		],
 		"postTask": "bash ./.scripts/workflow-complete.sh --non-interactive \"{{description}}\"",
 		"preEdit": "bash -c 'git diff --name-only \"$1\" | head -5'",
 		"postEdit": "echo \"[$(date +%Y-%m-%d\\ %H:%M:%S)] Edited: $1\" >> .claude/edit.log"

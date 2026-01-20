@@ -1,4 +1,4 @@
-package com.example.rpgplugin.skill.config;
+package com.example.rpgplugin.model.skill;
 
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.skill.Skill;
@@ -101,8 +101,9 @@ public class SkillConfig {
                 return false;
             }
 
-            // 該当スキルのみを更新
-            skillManager.updateSkill(skill);
+            // 既存のスキルを一度削除して再登録
+            skillManager.clearAllSkills();
+            loadSkills();
 
             plugin.getLogger().info("スキルをリロードしました: " + skill.getId());
             return true;

@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill;
 
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -117,7 +119,7 @@ public class SkillTree {
         }
 
         Skill skill = node.getSkill();
-        Skill.SkillTreeConfig treeConfig = skill.getSkillTree();
+        SkillTreeConfig treeConfig = skill.getSkillTree();
         if (treeConfig == null) {
             return true;
         }
@@ -134,7 +136,7 @@ public class SkillTree {
         }
 
         // 習得要件チェック
-        for (Skill.UnlockRequirement requirement : treeConfig.getUnlockRequirements()) {
+        for (UnlockRequirement requirement : treeConfig.getUnlockRequirements()) {
             if (!meetsRequirement(requirement, playerLevel, stats)) {
                 return false;
             }
@@ -151,7 +153,7 @@ public class SkillTree {
      * @param stats ステータス値のマップ
      * @return 要件を満たしている場合はtrue
      */
-    private boolean meetsRequirement(Skill.UnlockRequirement requirement, int playerLevel,
+    private boolean meetsRequirement(UnlockRequirement requirement, int playerLevel,
                                      Map<com.example.rpgplugin.stats.Stat, Double> stats) {
         String type = requirement.getType();
 
@@ -184,7 +186,7 @@ public class SkillTree {
             return 0;
         }
 
-        Skill.SkillTreeConfig treeConfig = node.getSkill().getSkillTree();
+        SkillTreeConfig treeConfig = node.getSkill().getSkillTree();
         if (treeConfig == null) {
             return DEFAULT_COST;
         }
@@ -204,7 +206,7 @@ public class SkillTree {
             return null;
         }
 
-        Skill.SkillTreeConfig treeConfig = node.getSkill().getSkillTree();
+        SkillTreeConfig treeConfig = node.getSkill().getSkillTree();
         if (treeConfig == null) {
             return null;
         }

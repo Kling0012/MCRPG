@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill;
 
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -215,7 +217,7 @@ public class SkillTreeRegistry {
                 continue;
             }
 
-            Skill.SkillTreeConfig treeConfig = skill.getSkillTree();
+            SkillTreeConfig treeConfig = skill.getSkillTree();
             if (treeConfig != null) {
                 String parentId = treeConfig.getParent();
                 if (parentId != null && !"none".equalsIgnoreCase(parentId)) {

@@ -1,5 +1,13 @@
 package com.example.rpgplugin.skill;
 
+import com.example.rpgplugin.model.skill.CooldownConfig;
+import com.example.rpgplugin.model.skill.CostConfig;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 import com.example.rpgplugin.stats.Stat;
 
 import java.util.ArrayList;
@@ -50,372 +58,6 @@ public class Skill {
 
     // コンポーネントベーススキルシステム
     private final com.example.rpgplugin.skill.component.SkillEffect componentEffect;
-
-    /**
-     * ダメージ計算設定
-     */
-    public static class DamageCalculation {
-        private final double base;
-        private final Stat statMultiplier;
-        private final double multiplierValue;
-        private final double levelMultiplier;
-
-        public DamageCalculation(double base, Stat statMultiplier, double multiplierValue, double levelMultiplier) {
-            this.base = base;
-            this.statMultiplier = statMultiplier;
-            this.multiplierValue = multiplierValue;
-            this.levelMultiplier = levelMultiplier;
-        }
-
-        public double getBase() {
-            return base;
-        }
-
-        public Stat getStatMultiplier() {
-            return statMultiplier;
-        }
-
-        public double getMultiplierValue() {
-            return multiplierValue;
-        }
-
-        public double getLevelMultiplier() {
-            return levelMultiplier;
-        }
-
-        /**
-         * ダメージを計算します
-         *
-         * @param statValue ステータス値
-         * @param skillLevel スキルレベル
-         * @return 計算されたダメージ
-         */
-        public double calculateDamage(double statValue, int skillLevel) {
-            return base + (statValue * multiplierValue) + (skillLevel * levelMultiplier);
-        }
-    }
-
-    /**
-     * スキルツリー設定
-     */
-    public static class SkillTreeConfig {
-        private final String parent;
-        private final List<UnlockRequirement> unlockRequirements;
-        private final int cost;
-        private final String icon;  // GUI表示用アイコン名
-
-        public SkillTreeConfig(String parent, List<UnlockRequirement> unlockRequirements, int cost, String icon) {
-            this.parent = parent;
-            this.unlockRequirements = unlockRequirements != null ? unlockRequirements : new ArrayList<>();
-            this.cost = cost;
-            this.icon = icon;
-        }
-
-        public String getParent() {
-            return parent;
-        }
-
-        public List<UnlockRequirement> getUnlockRequirements() {
-            return unlockRequirements;
-        }
-
-        public int getCost() {
-            return cost;
-        }
-
-        public String getIcon() {
-            return icon;
-        }
-    }
-
-    /**
-     * 習得要件
-     */
-    public static class UnlockRequirement {
-        private final String type;
-        private final Stat stat;
-        private final double value;
-
-        public UnlockRequirement(String type, Stat stat, double value) {
-            this.type = type;
-            this.stat = stat;
-            this.value = value;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public Stat getStat() {
-            return stat;
-        }
-
-        public double getValue() {
-            return value;
-        }
-    }
-
-    /**
-     * カスタム変数定義
-     * 
-     * <p>YAMLのvariablesセクションで定義されるカスタム変数を表します。</p>
-     * 
-     * <p>YAML例:</p>
-     * <pre>
-     * variables:
-     *   base_mod: 1.0
-     *   str_scale: 1.5
-     * </pre>
-     */
-    public static class VariableDefinition {
-        private final String name;
-        private final double value;
-        
-        public VariableDefinition(String name, double value) {
-            this.name = name;
-            this.value = value;
-        }
-        
-        public String getName() {
-            return name;
-        }
-        
-        public double getValue() {
-            return value;
-        }
-    }
-
-    /**
-     * コスト設定
-     * 
-     * <p>レベル依存のコスト設定を表します。</p>
-     * 
-     * <p>YAML例:</p>
-     * <pre>
-     * cost:
-     *   type: mana
-     *   base: 10
-     *   per_level: -1
-     *   min: 0
-     * </pre>
-     */
-    public static class CostConfig {
-        private final SkillCostType type;
-        private final LevelDependentParameter parameter;
-        
-        public CostConfig(SkillCostType type, LevelDependentParameter parameter) {
-            this.type = type != null ? type : SkillCostType.MANA;
-            this.parameter = parameter;
-        }
-        
-        public SkillCostType getType() {
-            return type;
-        }
-        
-        public LevelDependentParameter getParameter() {
-            return parameter;
-        }
-        
-        /**
-         * 指定レベルでのコストを取得します
-         *
-         * @param level スキルレベル
-         * @return コスト値
-         */
-        public int getCost(int level) {
-            if (parameter != null) {
-                return parameter.getIntValue(level);
-            }
-            return 0;
-        }
-    }
-
-    /**
-     * クールダウン設定
-     * 
-     * <p>レベル依存のクールダウン設定を表します。</p>
-     * 
-     * <p>YAML例:</p>
-     * <pre>
-     * cooldown:
-     *   base: 5.0
-     *   per_level: -0.5
-     *   min: 1.0
-     * </pre>
-     */
-    public static class CooldownConfig {
-        private final LevelDependentParameter parameter;
-        
-        public CooldownConfig(LevelDependentParameter parameter) {
-            this.parameter = parameter;
-        }
-        
-        public LevelDependentParameter getParameter() {
-            return parameter;
-        }
-        
-        /**
-         * 指定レベルでのクールダウンを取得します
-         *
-         * @param level スキルレベル
-         * @return クールダウン（秒）
-         */
-        public double getCooldown(int level) {
-            if (parameter != null) {
-                return parameter.getValue(level);
-            }
-            return 0.0;
-        }
-    }
-
-    /**
-     * ターゲット設定
-     * 
-     * <p>スキルのターゲット範囲設定を表します。</p>
-     * 
-     * <p>YAML例:</p>
-     * <pre>
-     * targeting:
-     *   type: cone
-     *   cone:
-     *     angle: 90
-     *     range: 5.0
-     * </pre>
-     */
-    public static class TargetingConfig {
-        private final String type;
-        private final TargetingParams params;
-        
-        public TargetingConfig(String type, TargetingParams params) {
-            this.type = type != null ? type : "single";
-            this.params = params;
-        }
-        
-        public String getType() {
-            return type;
-        }
-        
-        public TargetingParams getParams() {
-            return params;
-        }
-        
-        /**
-         * ターゲットパラメータの基底クラス
-         */
-        public static class TargetingParams {
-            private final double range;
-            
-            public TargetingParams(double range) {
-                this.range = range;
-            }
-            
-            public double getRange() {
-                return range;
-            }
-        }
-        
-        /**
-         * コーン型範囲パラメータ
-         */
-        public static class ConeParams extends TargetingParams {
-            private final double angle;
-            
-            public ConeParams(double angle, double range) {
-                super(range);
-                this.angle = angle;
-            }
-            
-            public double getAngle() {
-                return angle;
-            }
-        }
-        
-        /**
-         * 球形範囲パラメータ
-         */
-        public static class SphereParams extends TargetingParams {
-            private final double radius;
-            
-            public SphereParams(double radius) {
-                super(radius);
-                this.radius = radius;
-            }
-            
-            public double getRadius() {
-                return radius;
-            }
-        }
-        
-        /**
-         * 扇形パラメータ
-         */
-        public static class SectorParams extends TargetingParams {
-            private final double angle;
-            private final double radius;
-            
-            public SectorParams(double angle, double radius) {
-                super(radius);
-                this.angle = angle;
-                this.radius = radius;
-            }
-            
-            public double getAngle() {
-                return angle;
-            }
-            
-            public double getRadius() {
-                return radius;
-            }
-        }
-    }
-
-    /**
-     * 数式ダメージ設定
-     * 
-     * <p>数式を使用したダメージ計算設定を表します。</p>
-     * 
-     * <p>YAML例:</p>
-     * <pre>
-     * damage:
-     *   formula: "STR * str_scale + (Lv * 5) + base_mod * 10"
-     * </pre>
-     */
-    public static class FormulaDamageConfig {
-        private final String formula;
-        private final java.util.Map<Integer, String> levelFormulas;
-        
-        public FormulaDamageConfig(String formula, java.util.Map<Integer, String> levelFormulas) {
-            this.formula = formula;
-            this.levelFormulas = levelFormulas != null ? levelFormulas : new java.util.HashMap<>();
-        }
-        
-        public String getFormula() {
-            return formula;
-        }
-        
-        public java.util.Map<Integer, String> getLevelFormulas() {
-            return new java.util.HashMap<>(levelFormulas);
-        }
-        
-        /**
-         * 指定レベルの数式を取得します
-         *
-         * @param level スキルレベル
-         * @return 数式、レベル別定義がない場合は基本数式
-         */
-        public String getFormula(int level) {
-            return levelFormulas.getOrDefault(level, formula);
-        }
-        
-        /**
-         * レベル別数式が定義されているかチェックします
-         *
-         * @return レベル別数式が存在する場合はtrue
-         */
-        public boolean hasLevelFormulas() {
-            return !levelFormulas.isEmpty();
-        }
-    }
 
     /**
      * コンストラクタ（レベル依存パラメータ対応版）
@@ -525,6 +167,31 @@ public class Skill {
                  SkillTreeConfig skillTree, String iconMaterial, List<String> availableClasses) {
         this(id, name, displayName, type, description, maxLevel, cooldown, manaCost,
                 null, null, SkillCostType.MANA, damage, skillTree, iconMaterial, availableClasses);
+    }
+
+    // ==================== Builderパターン ====================
+
+    /**
+     * SkillBuilderを作成します
+     *
+     * <p>Builderパターンを使用してSkillインスタンスを構築します。</p>
+     *
+     * @return 新しいSkillBuilderインスタンス
+     */
+    public static SkillBuilder builder() {
+        return new SkillBuilder();
+    }
+
+    /**
+     * 必須フィールドを指定してSkillBuilderを作成します
+     *
+     * @param id スキルID
+     * @param name スキル名
+     * @param type スキルタイプ
+     * @return 必須フィールドが設定されたSkillBuilder
+     */
+    public static SkillBuilder builder(String id, String name, SkillType type) {
+        return SkillBuilder.create(id, name, type);
     }
 
     // Getters

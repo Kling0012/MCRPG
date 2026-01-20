@@ -46,7 +46,7 @@ public class GameSystemManager {
 
     // スキルシステム
     private final SkillManager skillManager;
-    private final com.example.rpgplugin.skill.config.SkillConfig skillConfig;
+    private final com.example.rpgplugin.model.skill.SkillConfig skillConfig;
     private final com.example.rpgplugin.skill.executor.ActiveSkillExecutor activeSkillExecutor;
     private final com.example.rpgplugin.skill.executor.PassiveSkillExecutor passiveSkillExecutor;
 
@@ -83,7 +83,7 @@ public class GameSystemManager {
 
         // 3. その他のマネージャー
         this.skillManager = new SkillManager(plugin, playerManager);
-        this.skillConfig = new com.example.rpgplugin.skill.config.SkillConfig(plugin, skillManager);
+        this.skillConfig = new com.example.rpgplugin.model.skill.SkillConfig(plugin, skillManager);
         this.activeSkillExecutor = new com.example.rpgplugin.skill.executor.ActiveSkillExecutor(plugin, skillManager, playerManager);
         this.passiveSkillExecutor = new com.example.rpgplugin.skill.executor.PassiveSkillExecutor(plugin, skillManager, playerManager);
         // DamageManagerはPlayerManagerに依存するため、初期化順序を考慮して渡す
@@ -188,7 +188,7 @@ public class GameSystemManager {
      *
      * @return SkillConfig スキル設定
      */
-    public com.example.rpgplugin.skill.config.SkillConfig getSkillConfig() {
+    public com.example.rpgplugin.model.skill.SkillConfig getSkillConfig() {
         return skillConfig;
     }
 

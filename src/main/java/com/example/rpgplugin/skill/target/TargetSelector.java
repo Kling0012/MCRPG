@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -148,7 +149,7 @@ public final class TargetSelector {
     }
 
     /**
-     * 最も近い敵対MOBを選択します
+     * 最も近いターゲットをタイプ別に選択します（統合メソッド）
      *
      * @param caster 発動者
      * @param config ターゲット設定
@@ -156,79 +157,12 @@ public final class TargetSelector {
      * @param origin 中心位置
      * @param direction 方向ベクトル
      * @param result 結果を追加するリスト
+     * @param typeFilter エンティティタイプフィルタ（Player/Mob/全て）
      */
-    private static void selectNearestHostile(Player caster, SkillTarget config,
-                                              List<Entity> candidates, Location origin,
-                                              Vector direction, List<Entity> result) {
-        // 自分をターゲットにする設定の場合
-        if (config.getSingleTarget() != null && config.getSingleTarget().isTargetSelf()) {
-            result.add(caster);
-            return;
-        }
-
-        // ENEMYグループフィルタとMobフィルタを組み合わせて適用
-        List<Entity> filtered = applyFilters(candidates, config, caster, origin);
-        filtered = filtered.stream()
-                .filter(e -> e != null)
-                .filter(e -> !(e instanceof Player)) // Mobのみ
-                .filter(e -> isInRange(e, origin, direction, config))
-                .toList();
-
-        if (filtered.isEmpty()) {
-            return;
-        }
-
-        // 最も近いエンティティを選択
-        findNearest(origin, filtered).ifPresent(result::add);
-    }
-
-    /**
-     * 最も近いプレイヤーを選択します
-     *
-     * @param caster 発動者
-     * @param config ターゲット設定
-     * @param candidates 候補エンティティリスト
-     * @param origin 中心位置
-     * @param direction 方向ベクトル
-     * @param result 結果を追加するリスト
-     */
-    private static void selectNearestPlayer(Player caster, SkillTarget config,
+    private static void selectNearestByType(Player caster, SkillTarget config,
                                              List<Entity> candidates, Location origin,
-                                             Vector direction, List<Entity> result) {
-        // 自分をターゲットにする設定の場合
-        if (config.getSingleTarget() != null && config.getSingleTarget().isTargetSelf()) {
-            result.add(caster);
-            return;
-        }
-
-        // 統合フィルタを適用（ALLYグループ＋プレイヤーのみ）
-        List<Entity> filtered = applyFilters(candidates, config, caster, origin);
-        filtered = filtered.stream()
-                .filter(e -> e instanceof Player) // プレイヤーのみ
-                .filter(e -> isInRange(e, origin, direction, config))
-                .toList();
-
-        if (filtered.isEmpty()) {
-            return;
-        }
-
-        // 最も近いプレイヤーを選択
-        findNearest(origin, filtered).ifPresent(result::add);
-    }
-
-    /**
-     * 最も近いエンティティを選択します
-     *
-     * @param caster 発動者
-     * @param config ターゲット設定
-     * @param candidates 候補エンティティリスト
-     * @param origin 中心位置
-     * @param direction 方向ベクトル
-     * @param result 結果を追加するリスト
-     */
-    private static void selectNearestEntity(Player caster, SkillTarget config,
-                                             List<Entity> candidates, Location origin,
-                                             Vector direction, List<Entity> result) {
+                                             Vector direction, List<Entity> result,
+                                             java.util.function.Predicate<Entity> typeFilter) {
         // 自分をターゲットにする設定の場合
         if (config.getSingleTarget() != null && config.getSingleTarget().isTargetSelf()) {
             result.add(caster);
@@ -238,8 +172,8 @@ public final class TargetSelector {
         // 統合フィルタを適用
         List<Entity> filtered = applyFilters(candidates, config, caster, origin);
         filtered = filtered.stream()
-                .filter(e -> e != null)
-                .filter(e -> !e.getUniqueId().equals(caster.getUniqueId()))
+                .filter(Objects::nonNull)
+                .filter(typeFilter)
                 .filter(e -> isInRange(e, origin, direction, config))
                 .toList();
 
@@ -248,6 +182,36 @@ public final class TargetSelector {
         }
 
         findNearest(origin, filtered).ifPresent(result::add);
+    }
+
+    /**
+     * 最も近い敵対MOBを選択します
+     */
+    private static void selectNearestHostile(Player caster, SkillTarget config,
+                                              List<Entity> candidates, Location origin,
+                                              Vector direction, List<Entity> result) {
+        selectNearestByType(caster, config, candidates, origin, direction, result,
+            e -> !(e instanceof Player)); // Mobのみ
+    }
+
+    /**
+     * 最も近いプレイヤーを選択します
+     */
+    private static void selectNearestPlayer(Player caster, SkillTarget config,
+                                             List<Entity> candidates, Location origin,
+                                             Vector direction, List<Entity> result) {
+        selectNearestByType(caster, config, candidates, origin, direction, result,
+            e -> e instanceof Player); // プレイヤーのみ
+    }
+
+    /**
+     * 最も近いエンティティを選択します
+     */
+    private static void selectNearestEntity(Player caster, SkillTarget config,
+                                             List<Entity> candidates, Location origin,
+                                             Vector direction, List<Entity> result) {
+        selectNearestByType(caster, config, candidates, origin, direction, result,
+            e -> !e.getUniqueId().equals(caster.getUniqueId())); // 自分以外
     }
 
     /**

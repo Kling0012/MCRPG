@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill;
 
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -152,7 +154,7 @@ public class SkillTreeBuilder {
      */
     private void addNodeToTree(SkillTree tree, SkillNode node, Map<String, SkillNode> nodeMap) {
         Skill skill = node.getSkill();
-        Skill.SkillTreeConfig treeConfig = skill.getSkillTree();
+        SkillTreeConfig treeConfig = skill.getSkillTree();
 
         if (treeConfig == null) {
             // ツリー設定がない場合はルートとして追加
@@ -219,7 +221,7 @@ public class SkillTreeBuilder {
 
         SkillNode node = nodeMap.get(skillId);
         if (node != null) {
-            Skill.SkillTreeConfig config = node.getSkill().getSkillTree();
+            SkillTreeConfig config = node.getSkill().getSkillTree();
             if (config != null) {
                 String parentId = config.getParent();
                 if (parentId != null && !"none".equalsIgnoreCase(parentId)) {

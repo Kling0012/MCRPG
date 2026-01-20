@@ -13,7 +13,7 @@ import java.util.Map;
  * 数式ベースダメージ計算機
  *
  * <p>数式エバリュエーターを使用してダメージを計算します。</p>
- * <p>既存の {@code Skill.DamageCalculation} の機能を拡張・置換します。</p>
+ * <p>既存の {@code DamageCalculation} の機能を拡張・置換します。</p>
  *
  * <p>設計原則:</p>
  * <ul>
@@ -134,7 +134,7 @@ public class FormulaDamageCalculator {
     /**
      * 指定ステータスを使用してダメージを計算します（レガシー互換）
      *
-     * <p>既存の {@code Skill.DamageCalculation.calculateDamage()} と互換性を持たせます。</p>
+     * <p>既存の {@code DamageCalculation.calculateDamage()} と互換性を持たせます。</p>
      *
      * @param statValue ステータス値
      * @param skillLevel スキルレベル

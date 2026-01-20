@@ -8,8 +8,6 @@ on:
       - main
   issues:
     types: [labeled]
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
   pull_request_review:
@@ -29,9 +27,10 @@ jobs:
       - name: Claude に Issue 対応を依頼
         uses: anthropics/claude-code-action@v1
         with:
+          anthropic_base_url: ${{ secrets.CUSTOM_BASE_URL }}
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
           github_token: ${{ secrets.G_TOKEN }}
-          show_full_output: true
+          show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
           prompt: |
             【自律実行モード】あなたは非対話環境の GitHub Actions 上で動作しています。
             - 人間との会話は不可能です。質問せず自己完結してください。
@@ -47,13 +46,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
 
   ai-review:
-    if: (github.event_name == 'pull_request' || github.event_name == 'pull_request_target' || github.event_name == 'push') && github.actor != 'github-actions[bot]'
+    if: (github.event_name == 'pull_request_target' || github.event_name == 'push') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
       pull-requests: write
       issues: write
+    env:
+        ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+        ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
+        GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
 
     steps:
       - name: push（検証用）
@@ -61,33 +64,27 @@ jobs:
         run: |
           echo "pushイベントは検証用の起動確認のみ（Claudeレビューは実行しません）"
 
-      - name: リポジトリのチェックアウト
-        if: github.event_name != 'push'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: jq をインストール
-        if: github.event_name != 'push'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
-
-      - name: GitHub CLI を確認
-        if: github.event_name != 'push'
-        run: |
-          command -v gh >/dev/null 2>&1 || { echo "gh not found"; exit 1; }
-
-      - name: Claude に PR レビューを依頼（structured output）
-        if: github.event_name != 'push' && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target')
-        id: review
+      - name: Claude に PR レビューを依頼（コメント投稿も含む）
+        if: github.event_name != 'push' && github.event_name == 'pull_request_target'
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
-          github_token: ${{ secrets.G_TOKEN }}
-          show_full_output: true
+          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+          show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
           prompt: |
-            あなたはシニアエンジニアです。以下のPRをレビューし、日本語でコメント文を作ってください。
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            あなたはシニアエンジニアです。このPRをレビューして日本語でフィードバックしてください。
+
+            必須要件:
+            - `gh pr diff ${{ github.event.pull_request.number }}` と `gh pr view ${{ github.event.pull_request.number }}` を使って変更内容/文脈を把握する
+            - レビューは `gh pr review ${{ github.event.pull_request.number }} --comment -b "<本文>"` でPRに直接投稿する（`gh api /issues/.../comments` は使わない）
+            - 重大度を `CRITICAL / MAJOR / MINOR / NONE` で判定する
+            - 指摘があり「追跡したほうが良い」と判断した場合は、重大度に関係なく Issue を自動作成して良い（`ai-fix,auto-generated` ラベル付与）
+              - タイトル例: `🤖 AIレビュー: <PRタイトル> (#<PR番号>) - フォローアップ`
+              - 本文にPRリンク（`${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}`）と、指摘要約、対応案を含める
 
             レビュー観点:
             1. バグの可能性
@@ -96,60 +93,16 @@ jobs:
             4. セキュリティ
             5. SOLID原則
 
-            出力要件:
-            - has_critical: boolean
-            - has_major: boolean
-            - body: string（GitHubに投稿する本文。Critical/Major/Minor/良い点の見出しを含める）
+            PRコメント本文の構成:
+            - 見出し: Critical / Major / Minor / 良い点
+            - 可能なら該当ファイルや行の根拠も添える
           claude_args: |
             --dangerously-skip-permissions
-            --json-schema '{"type":"object","properties":{"has_critical":{"type":"boolean"},"has_major":{"type":"boolean"},"body":{"type":"string"}},"required":["has_critical","has_major","body"]}'
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*)"
         env:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
-
-      - name: GitHub PRへのレビュー投稿
-        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
-        env:
-          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
-        run: |
-          OUTPUT='${{ steps.review.outputs.structured_output }}'
-          REVIEW_BODY=$(echo "$OUTPUT" | jq -r '.body')
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-
-          gh api \
-            --method POST \
-            /repos/${{ github.repository }}/issues/${PR_NUMBER}/comments \
-            -f body="$REVIEW_BODY"
-
-      - name: Critical/Major問題があればIssueを作成
-        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
-        env:
-          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
-        run: |
-          OUTPUT='${{ steps.review.outputs.structured_output }}'
-          HAS_CRITICAL=$(echo "$OUTPUT" | jq -r '.has_critical')
-          HAS_MAJOR=$(echo "$OUTPUT" | jq -r '.has_major')
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-
-          if [ "$HAS_CRITICAL" = "true" ] || [ "$HAS_MAJOR" = "true" ]; then
-            ISSUE_TITLE="🤖 AIレビュー: ${PR_TITLE} (#${PR_NUMBER}) - 要修正"
-            ISSUE_BODY="## AIレビュー結果
-
-            PR #${PR_NUMBER} 「${PR_TITLE}」 のレビューで重大な問題が見つかりました。
-
-            $(echo "$OUTPUT" | jq -r '.body')
-
-            ---
-            - PR: #${PR_NUMBER}
-            - 自動作成者: Claude AI Coder"
-
-            gh issue create \
-              --title "$ISSUE_TITLE" \
-              --body "$ISSUE_BODY" \
-              --label "ai-fix,auto-generated"
-          fi
 
   ai-fix-review-comment:
     if: github.event_name == 'pull_request_review'
@@ -163,9 +116,10 @@ jobs:
       - name: AIによる修正実行
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
-          github_token: ${{ secrets.G_TOKEN }}
-          show_full_output: true
+          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+          show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
           prompt: |
             【PR修正モード】以下のレビューコメントを元にコードを修正してください。
             修正後はコミットしてプッシュしてください。

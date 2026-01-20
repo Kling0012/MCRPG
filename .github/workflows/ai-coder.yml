@@ -24,10 +24,14 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Claude に Issue 対応を依頼
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_base_url: ${{ secrets.CUSTOM_BASE_URL }}
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
           github_token: ${{ secrets.G_TOKEN }}
           show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
@@ -54,9 +58,11 @@ jobs:
       pull-requests: write
       issues: write
     env:
-        ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-        ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-        GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+      ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.G_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
 
     steps:
       - name: push（検証用）
@@ -64,14 +70,21 @@ jobs:
         run: |
           echo "pushイベントは検証用の起動確認のみ（Claudeレビューは実行しません）"
 
+      - name: リポジトリのチェックアウト
+        if: github.event_name != 'push'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Claude に PR レビューを依頼（コメント投稿も含む）
         if: github.event_name != 'push' && github.event_name == 'pull_request_target'
         uses: anthropics/claude-code-action@v1
         with:
-          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
+          github_token: ${{ secrets.G_TOKEN }}
           show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
+          track_progress: true
+          use_sticky_comment: true
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
@@ -79,8 +92,8 @@ jobs:
             あなたはシニアエンジニアです。このPRをレビューして日本語でフィードバックしてください。
 
             必須要件:
-            - `gh pr diff ${{ github.event.pull_request.number }}` と `gh pr view ${{ github.event.pull_request.number }}` を使って変更内容/文脈を把握する
-            - レビューは `gh pr review ${{ github.event.pull_request.number }} --comment -b "<本文>"` でPRに直接投稿する（`gh api /issues/.../comments` は使わない）
+            - `gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` と `gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` を使って変更内容/文脈を把握する
+            - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する（`gh api /issues/.../comments` は使わない）
             - 重大度を `CRITICAL / MAJOR / MINOR / NONE` で判定する
             - 指摘があり「追跡したほうが良い」と判断した場合は、重大度に関係なく Issue を自動作成して良い（`ai-fix,auto-generated` ラベル付与）
               - タイトル例: `🤖 AIレビュー: <PRタイトル> (#<PR番号>) - フォローアップ`
@@ -99,10 +112,6 @@ jobs:
           claude_args: |
             --dangerously-skip-permissions
             --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*)"
-        env:
-          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
 
   ai-fix-review-comment:
     if: github.event_name == 'pull_request_review'
@@ -113,12 +122,16 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: AIによる修正実行
         uses: anthropics/claude-code-action@v1
         with:
-          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.G_TOKEN }}
+          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
+          github_token: ${{ secrets.G_TOKEN }}
           show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
           prompt: |
             【PR修正モード】以下のレビューコメントを元にコードを修正してください。

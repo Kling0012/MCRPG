@@ -6,49 +6,12 @@ on:
     branches:
       - Local50
       - main
-  issues:
-    types: [labeled]
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
   pull_request_review:
     types: [submitted]
 
 jobs:
-  ai-fix:
-    if: github.event_name == 'issues' && contains(github.event.issue.labels.*.name, 'ai-fix') && !contains(github.event.issue.labels.*.name, 'auto-generated')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-      issues: write
-      pull-requests: write
-
-    steps:
-      - name: リポジトリのチェックアウト
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Claude に Issue 対応を依頼
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
-          github_token: ${{ github.token }}
-          show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
-          prompt: |
-            【自律実行モード】あなたは非対話環境の GitHub Actions 上で動作しています。
-            - 人間との会話は不可能です。質問せず自己完結してください。
-            - 修正後は必ずブランチを作成し、PRを作成して終了してください。
-            - 作業完了後、必ず git push してください。
-
-            指示内容: Issue #${{ github.event.issue.number }} ${{ github.event.issue.title }}
-          claude_args: |
-            --dangerously-skip-permissions
-        env:
-          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ github.token }}
-
   ai-review:
     if: (github.event_name == 'pull_request_target') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
@@ -63,8 +26,25 @@ jobs:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ github.token }}
       GITHUB_TOKEN: ${{ github.token }}
+      CLAUDE_CODE_VERSION: 2.1.9
 
     steps:
+      - name: Cache Bun
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.bun
+            ~/.cache/bun
+          key: ${{ runner.os }}-bun
+
+      - name: Cache Claude Code
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/bin/claude
+            ~/.claude
+          key: ${{ runner.os }}-claude-code-${{ env.CLAUDE_CODE_VERSION }}
+
       - name: リポジトリのチェックアウト
         if: github.event_name != 'push'
         uses: actions/checkout@v4
@@ -83,6 +63,9 @@ jobs:
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
+            PR BRANCH: ${{ github.event.pull_request.head.ref }}
+            BASE BRANCH: ${{ github.event.pull_request.base.ref }}
+            PR URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
 
             あなたはシニアエンジニアです。このPRをレビューして日本語でフィードバックしてください。
             KISSの原則に従い、簡潔に具体的に指摘してください。
@@ -91,8 +74,16 @@ jobs:
             - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する（`gh api /issues/.../comments` は使わない）
 
             - 指摘がある場合は、重大度に関係なく Issue を自動作成して（`ai-fix,auto-generated` ラベル付与）
-              - タイトル例: `🤖 AIレビュー: <PRタイトル> (#<PR番号>) - フォローアップ`
-              - 本文にPRリンク（`${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}`）と、指摘要約、対応案を含める
+              - ai-issue-fix が自動実行できるよう、Issue本文の先頭に以下のブロックを必ず含める:
+                ---
+                PR_NUMBER: ${{ github.event.pull_request.number }}
+                PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+                BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+                FIX_MODE: update_pr
+                PR_URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
+                ---
+              - 本文には「修正すべき項目（チェックリスト）」「推奨修正方針」「影響範囲」を含める
+            - 指摘が「無い」場合は Issue を作成しない（レビューコメントのみ投稿して終了）
 
             レビュー観点:
             1. バグの可能性

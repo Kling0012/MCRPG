@@ -80,6 +80,18 @@ public class SkillManager implements SkillEventListener {
     }
 
     /**
+     * 既存のスキルを更新します
+     *
+     * <p>スキルが存在しない場合は登録します。</p>
+     *
+     * @param skill 更新するスキル
+     * @return 成功した場合はtrue
+     */
+    public boolean updateSkill(Skill skill) {
+        return skillRepository.updateSkill(skill);
+    }
+
+    /**
      * スキルを取得します
      *
      * @param skillId スキルID

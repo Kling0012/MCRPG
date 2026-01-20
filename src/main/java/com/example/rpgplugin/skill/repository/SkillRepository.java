@@ -66,6 +66,35 @@ public class SkillRepository {
     }
 
     /**
+     * 既存のスキルを更新します
+     *
+     * <p>スキルが存在しない場合は登録します。</p>
+     *
+     * @param skill 更新するスキル
+     * @return 成功した場合はtrue
+     */
+    public boolean updateSkill(Skill skill) {
+        if (skill == null || skill.getId() == null) {
+            LOGGER.warning("Cannot update null skill or skill with null ID");
+            return false;
+        }
+
+        boolean wasExisting = skills.containsKey(skill.getId());
+        skills.put(skill.getId(), skill);
+
+        // スキルツリーレジストリを更新
+        treeRegistry.registerSkill(skill);
+
+        if (wasExisting) {
+            LOGGER.info(() -> "Skill updated: " + skill.getId());
+        } else {
+            LOGGER.info(() -> "Skill registered (via update): " + skill.getId());
+        }
+
+        return true;
+    }
+
+    /**
      * スキルを取得します
      *
      * @param skillId スキルID

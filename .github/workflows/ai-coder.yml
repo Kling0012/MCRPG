@@ -109,8 +109,6 @@ jobs:
             --dangerously-skip-permissions
             --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*)"
 
-<<<<<<< HEAD
-=======
   ai-fix-review-comment:
     if: github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
@@ -143,4 +141,3 @@ jobs:
           ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
           ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
->>>>>>> 1eb39e0009fd12fd404a5a908674a2575b84267d

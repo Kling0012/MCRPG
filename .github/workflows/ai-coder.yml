@@ -88,7 +88,10 @@ jobs:
           fi
 
       - name: Claude AI Review
-        if: (github.event_name == 'pull_request_target') && github.actor != 'github-actions[bot]'
+        if: |
+          (github.event_name == 'pull_request_target') &&
+          github.actor != 'github-actions[bot]' &&
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}

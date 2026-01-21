@@ -8,8 +8,6 @@ on:
       - main
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
-  pull_request_review:
-    types: [submitted]
 
 permissions:
   contents: read
@@ -105,36 +103,3 @@ jobs:
           claude_args: |
             --dangerously-skip-permissions
             --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*)"
-
-  ai-fix-review-comment:
-    if: github.event_name == 'pull_request_review'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-      pull-requests: write
-
-    steps:
-      - name: リポジトリのチェックアウト
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: AIによる修正実行
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
-          github_token: ${{ github.token }}
-          show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
-          prompt: |
-            【PR修正モード】以下のレビューコメントを元にコードを修正してください。
-            修正後はコミットしてプッシュしてください。
-
-            ## レビューコメント:
-            ${{ github.event.review.body }}
-          claude_args: |
-            --dangerously-skip-permissions
-        env:
-          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ github.token }}

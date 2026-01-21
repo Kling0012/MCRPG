@@ -16,7 +16,59 @@ permissions:
   issues: write
 
 jobs:
+  build-validate:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    outputs:
+      build-success: ${{ steps.build.outcome == 'success' }}
+      compile-success: ${{ steps.compile.outcome == 'success' }}
+      jar-path: ${{ steps.jar-name.outputs.jar }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build
+        id: build
+        run: mvn clean package -Dmaven.test.skip=true -B
+
+      - name: Compile Check
+        id: compile
+        run: mvn compile -B
+
+      - name: Get JAR Name
+        id: jar-name
+        run: |
+          JAR=$(ls target/*.jar 2>/dev/null | head -1 || echo "")
+          echo "jar=$JAR" >> $GITHUB_OUTPUT
+          echo "JAR: $JAR"
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "## 🔍 ビルド結果" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ steps.build.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Compile | ${{ steps.compile.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.build.outcome }}" == "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 成果物" >> $GITHUB_STEP_SUMMARY
+            ls -lh target/*.jar 2>/dev/null | awk '{print "- **" $9 "**: " $5}' >> $GITHUB_STEP_SUMMARY
+          fi
+
   ai-review:
+    name: AI Review
+    needs: build-validate
     if: (github.event_name == 'pull_request_target') && github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
@@ -31,6 +83,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GITHUB_TOKEN: ${{ github.token }}
       CLAUDE_CODE_VERSION: 2.1.9
+      BUILD_SUCCESS: ${{ needs.build-validate.outputs.build-success }}
+      COMPILE_SUCCESS: ${{ needs.build-validate.outputs.compile-success }}
 
     steps:
       - name: Cache Bun
@@ -49,14 +103,12 @@ jobs:
             ~/.claude
           key: ${{ runner.os }}-claude-code-${{ env.CLAUDE_CODE_VERSION }}
 
-      - name: リポジトリのチェックアウト
-        if: github.event_name != 'push'
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Claude に PR レビューを依頼（コメント投稿も含む）
-        if: github.event_name != 'push' && github.event_name == 'pull_request_target'
+      - name: Claude AI Review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
@@ -71,11 +123,16 @@ jobs:
             BASE BRANCH: ${{ github.event.pull_request.base.ref }}
             PR URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
 
+            ## ビルド検証結果
+            - Build: ${{ env.BUILD_SUCCESS == 'true' && '✅ 成功' || '❌ 失敗' }}
+            - Compile: ${{ env.COMPILE_SUCCESS == 'true' && '✅ 成功' || '❌ 失敗' }}
+
             あなたはシニアエンジニアです。このPRをレビューして日本語でフィードバックしてください。
             KISSの原則に従い、簡潔に具体的に指摘してください。
+
             必須要件:
             - `gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` と `gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` を使って変更内容/文脈を把握する
-            - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する（`gh api /issues/.../comments` は使わない）
+            - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する
 
             - 指摘がある場合は、重大度に関係なく Issue を自動作成して（`ai-fix,auto-generated` ラベル付与）
               - ai-issue-fix が自動実行できるよう、Issue本文の先頭に以下のブロックを必ず含める:
@@ -86,8 +143,8 @@ jobs:
                 FIX_MODE: update_pr
                 PR_URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
                 ---
-              - 本文には「修正すべき項目（チェックリスト）」「推奨修正方針」「影響範囲」を含める
-            - 指摘が「無い」場合は Issue を作成しない（レビューコメントのみ投稿して終了）
+              - 本文には「修正すべき項目」「推奨修正方針」「影響範囲」を含める
+            - 指摘が「無い」場合は Issue を作成しない
 
             レビュー観点:
             1. バグの可能性
@@ -95,7 +152,7 @@ jobs:
             3. パフォーマンス
             4. セキュリティ
             5. SOLID原則
-            6. 他危険性のあるコード
+            6. 危険性のあるコード
 
             PRコメント本文の構成:
             - 見出し: Critical / Major / Minor / 良い点

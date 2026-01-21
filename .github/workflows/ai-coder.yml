@@ -11,6 +11,12 @@ on:
   pull_request_review:
     types: [submitted]
 
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+  issues: write
+
 jobs:
   ai-review:
     if: (github.event_name == 'pull_request_target') && github.actor != 'github-actions[bot]'

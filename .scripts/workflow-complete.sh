@@ -90,6 +90,7 @@ detect_commit_type() {
     elif [[ "$TITLE" =~ [Pp]erf|[Oo]ptim|[最適]速 ]]; then
         echo "perf"
     elif [[ "$TITLE" =~ [Dd]oc|[Dd]ocumentation|[文書ぶんしょ] ]]; then
+
         echo "docs"
     else
         # 変更ファイルのパスから推測

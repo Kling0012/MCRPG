@@ -96,7 +96,7 @@ jobs:
             !*javadoc.jar
           retention-days: 1
           if-no-files-found: ignore
-
+jobs:
   ai-review:
     name: AI Review
     runs-on: ubuntu-latest
@@ -118,7 +118,9 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GITHUB_TOKEN: ${{ github.token }}
       CLAUDE_CODE_VERSION: 2.1.9
+
       BUILD_OUTCOME: ${{ needs.build.result }}
+
 
     steps:
       - name: Cache Bun

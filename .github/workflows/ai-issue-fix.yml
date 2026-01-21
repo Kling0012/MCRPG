@@ -10,6 +10,7 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event.label.name == 'ai-fix' && !contains(github.event.issue.labels.*.name, 'auto-generated'))
+
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -78,6 +79,7 @@ jobs:
 
       - name: Claude に Issue 修正を依頼（PRへ追コミット）
         if: steps.check-auto-gen.outputs.skip != 'true'
+
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}

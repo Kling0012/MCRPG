@@ -45,16 +45,34 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: auto-generated チェック
+      - name: セキュリティチェック（auto-generated + 作成者検証）
         id: check-auto-gen
         run: |
-          LABELS=$(gh issue view ${{ github.event.issue.number }} --json labels --jq '.labels[].name' | tr '\n' ',')
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+
+          # auto-generated ラベルチェック（AIレビュー自動作成Issueをスキップ）
+          LABELS=$(gh issue view $ISSUE_NUMBER --json labels --jq '.labels[].name' | tr '\n' ',')
           echo "labels=$LABELS" >> $GITHUB_OUTPUT
+
           if [[ "$LABELS" == *"auto-generated"* ]]; then
             echo "Issue has 'auto-generated' label. Skipping."
             echo "skip=true" >> $GITHUB_OUTPUT
             exit 1
           fi
+
+          # 作成者がリポジトリメンバーかチェック（セキュリティ強化）
+          AUTHOR=$(gh issue view $ISSUE_NUMBER --json author --jq '.author.login')
+          echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+
+          # リポジトリのメンバーシップをチェック
+          if ! gh api /repos/${{ github.repository }}/collaborators/$AUTHOR --jq '.permissions.push' > /dev/null 2>&1; then
+            echo "❌ Issue author '$AUTHOR' is not a repository member with write access. Blocking for security."
+            gh issue comment $ISSUE_NUMBER --body "⚠️ セキュリティチェック: Issue作成者に書き込み権限がないため、自動修正をスキップしました。リポジトリメンバーに権限をリクエストしてください。"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "✅ Security checks passed: auto-generated=false, author=$AUTHOR has write access"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 

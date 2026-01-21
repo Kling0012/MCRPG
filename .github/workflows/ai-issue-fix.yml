@@ -7,7 +7,9 @@ on:
 
 jobs:
   ai-issue-fix:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'ai-fix'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.label.name == 'ai-fix' && !contains(github.event.issue.labels.*.name, 'auto-generated'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -43,7 +45,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: auto-generated チェック
+        id: check-auto-gen
+        run: |
+          LABELS=$(gh issue view ${{ github.event.issue.number }} --json labels --jq '.labels[].name' | tr '\n' ',')
+          echo "labels=$LABELS" >> $GITHUB_OUTPUT
+          if [[ "$LABELS" == *"auto-generated"* ]]; then
+            echo "Issue has 'auto-generated' label. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Claude に Issue 修正を依頼（PRへ追コミット）
+        if: steps.check-auto-gen.outputs.skip != 'true'
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}

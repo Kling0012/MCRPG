@@ -16,60 +16,8 @@ permissions:
   issues: write
 
 jobs:
-  build-validate:
-    name: Build & Validate
-    runs-on: ubuntu-latest
-    outputs:
-      build-success: ${{ steps.build.outcome == 'success' }}
-      compile-success: ${{ steps.compile.outcome == 'success' }}
-      jar-path: ${{ steps.jar-name.outputs.jar }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Build
-        id: build
-        run: mvn clean package -Dmaven.test.skip=true -B
-
-      - name: Compile Check
-        id: compile
-        run: mvn compile -B
-
-      - name: Get JAR Name
-        id: jar-name
-        run: |
-          JAR=$(ls target/*.jar 2>/dev/null | head -1 || echo "")
-          echo "jar=$JAR" >> $GITHUB_OUTPUT
-          echo "JAR: $JAR"
-
-      - name: Build Summary
-        if: always()
-        run: |
-          echo "## 🔍 ビルド結果" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Build | ${{ steps.build.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Compile | ${{ steps.compile.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
-
-          if [ "${{ steps.build.outcome }}" == "success" ]; then
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### 成果物" >> $GITHUB_STEP_SUMMARY
-            ls -lh target/*.jar 2>/dev/null | awk '{print "- **" $9 "**: " $5}' >> $GITHUB_STEP_SUMMARY
-          fi
-
-  ai-review:
-    name: AI Review
-    needs: build-validate
-    if: (github.event_name == 'pull_request_target') && github.actor != 'github-actions[bot]'
+  build-and-review:
+    name: Build & AI Review
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -83,8 +31,6 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       GITHUB_TOKEN: ${{ github.token }}
       CLAUDE_CODE_VERSION: 2.1.9
-      BUILD_SUCCESS: ${{ needs.build-validate.outputs.build-success }}
-      COMPILE_SUCCESS: ${{ needs.build-validate.outputs.compile-success }}
 
     steps:
       - name: Cache Bun
@@ -108,7 +54,41 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: |
+          mvn clean package -Dmaven.test.skip=true -B 2>&1 | tee build.log
+
+      - name: Compile Check
+        id: compile
+        continue-on-error: true
+        run: |
+          mvn compile -B 2>&1 | tee -a build.log
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "## 🔍 ビルド結果" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ steps.build.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Compile | ${{ steps.compile.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.build.outcome }}" == "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 成果物" >> $GITHUB_STEP_SUMMARY
+            ls -lh target/*.jar 2>/dev/null | awk '{print "- **" $9 "**: " $5}' >> $GITHUB_STEP_SUMMARY
+          fi
+
       - name: Claude AI Review
+        if: (github.event_name == 'pull_request_target') && github.actor != 'github-actions[bot]'
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
@@ -124,11 +104,11 @@ jobs:
             PR URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
 
             ## ビルド検証結果
-            - Build: ${{ env.BUILD_SUCCESS == 'true' && '✅ 成功' || '❌ 失敗' }}
-            - Compile: ${{ env.COMPILE_SUCCESS == 'true' && '✅ 成功' || '❌ 失敗' }}
+            - Build: ${{ steps.build.outcome == 'success' && '✅ 成功' || '❌ 失敗' }}
+            - Compile: ${{ steps.compile.outcome == 'success' && '✅ 成功' || '❌ 失敗' }}
 
             あなたはシニアエンジニアです。このPRをレビューして日本語でフィードバックしてください。
-            KISSの原則に従い、簡潔に具体的に指摘してください。
+            ビルド失敗時は、失敗ログを分析原因を特定してください。
 
             必須要件:
             - `gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` と `gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` を使って変更内容/文脈を把握する
@@ -159,4 +139,4 @@ jobs:
             - 必ず該当ファイルと前後行の根拠を添える
           claude_args: |
             --dangerously-skip-permissions
-            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*)"
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*),Bash(cat build.log:*)"

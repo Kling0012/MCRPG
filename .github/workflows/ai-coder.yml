@@ -10,7 +10,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
   pull-requests: write
   issues: write
@@ -202,3 +202,149 @@ jobs:
           claude_args: |
             --dangerously-skip-permissions
             --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*),Bash(cat build.log:*)"
+
+  auto-merge:
+    name: Auto Merge
+    runs-on: ubuntu-latest
+    needs: [build, ai-review]
+    if: |
+      always() &&
+      (github.event_name == 'pull_request_target') &&
+      github.actor != 'github-actions[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      GITHUB_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+      PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ github.token }}
+
+      - name: Check build and review status
+        id: check
+        run: |
+          echo "Build result: ${{ needs.build.result }}"
+          echo "AI Review result: ${{ needs.ai-review.result }}"
+
+          if [ "${{ needs.build.result }}" != "success" ]; then
+            echo "❌ Build failed. Skipping auto-merge."
+            echo "can_merge=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ "${{ needs.ai-review.result }}" != "success" ]; then
+            echo "❌ AI Review failed. Skipping auto-merge."
+            echo "can_merge=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if any issues were created for this PR
+          ISSUES=$(gh issue list \
+            --search "auto-generated PR_NUMBER:${{ github.event.pull_request.number }} in:title" \
+            --json number \
+            --jq '. | length' \
+            --limit 100 2>/dev/null || echo "0")
+
+          if [ "$ISSUES" -gt 0 ]; then
+            echo "⚠️ Found $ISSUES issue(s) for this PR. Skipping auto-merge."
+            echo "can_merge=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ No issues found. Can proceed with auto-merge."
+            echo "can_merge=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check PR mergeability
+        id: mergeable
+        if: steps.check.outputs.can_merge == 'true'
+        run: |
+          MERGEABLE=$(gh pr view ${{ github.event.pull_request.number }} \
+            --json mergeable \
+            --jq '.mergeable')
+
+          if [ "$MERGEABLE" == "true" ]; then
+            echo "✅ PR is mergeable"
+            echo "is_mergeable=true" >> $GITHUB_OUTPUT
+          elif [ "$MERGEABLE" == "false" ]; then
+            echo "⚠️ PR has conflicts. Will attempt to resolve."
+            echo "is_mergeable=false" >> $GITHUB_OUTPUT
+            echo "has_conflicts=true" >> $GITHUB_OUTPUT
+          else
+            echo "⏳ PR mergeability is being evaluated. Skipping."
+            echo "is_mergeable=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Resolve conflicts by rebase
+        if: steps.mergeable.outputs.has_conflicts == 'true'
+        run: |
+          echo "🔧 Attempting to resolve conflicts by rebasing..."
+
+          # Fetch all branches
+          git fetch origin ${{ env.PR_BASE_REF }}
+          git fetch origin ${{ env.PR_HEAD_REF }}
+
+          # Checkout the PR branch
+          git checkout ${{ env.PR_HEAD_REF }}
+
+          # Rebase onto base branch
+          if git rebase origin/${{ env.PR_BASE_REF }}; then
+            echo "✅ Rebase successful"
+
+            # Force push the rebased branch
+            git push origin ${{ env.PR_HEAD_REF }} --force-with-lease
+
+            # Wait a moment for GitHub to update
+            sleep 5
+
+            # Check if PR is now mergeable
+            MERGEABLE=$(gh pr view ${{ env.PR_NUMBER }} \
+              --json mergeable \
+              --jq '.mergeable')
+
+            if [ "$MERGEABLE" == "true" ]; then
+              echo "✅ PR is now mergeable after rebase"
+              echo "REBASE_SUCCESS=true" >> $GITHUB_ENV
+            else
+              echo "⚠️ PR still has conflicts after rebase"
+              gh pr comment ${{ env.PR_NUMBER }} --body "⚠️ 自動rebaseを実行しましたが、コンフリクトが解決できませんでした。手動での解決が必要です。"
+              echo "REBASE_SUCCESS=false" >> $GITHUB_ENV
+            fi
+          else
+            echo "❌ Rebase failed due to conflicts"
+            gh pr comment ${{ env.PR_NUMBER }} --body "⚠️ 自動rebaseが失敗しました。コンフリクトを手動で解決してください。"
+            echo "REBASE_SUCCESS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Merge PR
+        if: |
+          (steps.check.outputs.can_merge == 'true' &&
+           (steps.mergeable.outputs.is_mergeable == 'true' ||
+            env.REBASE_SUCCESS == 'true'))
+        run: |
+          echo "🎉 Merging PR #${{ env.PR_NUMBER }}..."
+
+          gh pr merge ${{ env.PR_NUMBER }} \
+            --squash \
+            --subject "Merge PR #${{ env.PR_NUMBER }} (auto-merged after AI review)" \
+            --body "AIレビューで指摘事項がなかったため、自動マージしました。" \
+            --delete-branch || {
+            echo "⚠️ Merge failed. PR may require approval or have restrictions."
+            gh pr comment ${{ env.PR_NUMBER }} --body "⚠️ 自動マージが失敗しました。ブランチ保護ルールや承認要件を確認してください。"
+          }
+
+      - name: Comment on successful merge
+        if: success() && steps.check.outputs.can_merge == 'true'
+        run: |
+          if gh pr view ${{ env.PR_NUMBER }} --json state --jq '.state' | grep -q "CLOSED"; then
+            echo "✅ PR was successfully merged"
+          fi

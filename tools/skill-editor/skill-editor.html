@@ -169,6 +169,90 @@
             flex-direction: column;
         }
 
+        /* Inspector (right panel) */
+        .inspector-panel {
+            width: 320px;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inspector-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .inspector-content {
+            padding: 12px 14px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .inspector-section {
+            margin-bottom: 16px;
+        }
+
+        .inspector-section-title {
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .inspector-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .inspector-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            font-size: 0.85em;
+        }
+
+        .inspector-var-name,
+        .inspector-var-value {
+            font-family: "SF Mono", "Consolas", monospace;
+        }
+
+        .inspector-var-name {
+            color: var(--text-primary);
+        }
+
+        .inspector-var-value {
+            color: var(--accent-success);
+        }
+
+        .inspector-meta {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .inspector-placeholder {
+            color: var(--text-muted);
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+
         .sidebar-header {
             padding: 16px;
             border-bottom: 1px solid var(--border-color);
@@ -1509,41 +1593,16 @@
                             </div>
                         ))}
                     </div>
-                    {/* Left side handles - fixed pixel positions */}
+                    {/* Input (target) on the left, output (source) on the right */}
                     {data.showTarget && (
                         <Handle
                             type="target"
                             position={Position.Left}
                             id="left-target"
                             className="custom-handle target"
-                            style={{ top: 30 }}
+                            style={{ top: 45 }}
                             isConnectable={true}
                             data-handleid="left-target"
-                            data-nodeid={data.id}
-                        />
-                    )}
-                    {data.showSource && (
-                        <Handle
-                            type="source"
-                            position={Position.Left}
-                            id="left-source"
-                            className="custom-handle source"
-                            style={{ top: 60 }}
-                            isConnectable={true}
-                            data-handleid="left-source"
-                            data-nodeid={data.id}
-                        />
-                    )}
-                    {/* Right side handles - fixed pixel positions */}
-                    {data.showTarget && (
-                        <Handle
-                            type="target"
-                            position={Position.Right}
-                            id="right-target"
-                            className="custom-handle target"
-                            style={{ top: 30 }}
-                            isConnectable={true}
-                            data-handleid="right-target"
                             data-nodeid={data.id}
                         />
                     )}
@@ -1553,7 +1612,7 @@
                             position={Position.Right}
                             id="right-source"
                             className="custom-handle source"
-                            style={{ top: 60 }}
+                            style={{ top: 45 }}
                             isConnectable={true}
                             data-handleid="right-source"
                             data-nodeid={data.id}
@@ -1568,44 +1627,54 @@
         console.log('nodeTypes defined:', nodeTypes);
 
         // ==================== Main App Component ====================
-        const SkillEditor = () => {
-            // Mode: 'skill' or 'class'
-            const [editorMode, setEditorMode] = useState('skill');
-
-            // Skill metadata state
-            const [skillMetadata, setSkillMetadata] = useState({
-                id: 'custom_skill',
-                name: 'カスタムスキル',
-                displayName: '&6カスタムスキル',
-                skillType: 'ACTIVE',  // ACTIVE, PASSIVE, TOGGLE
-                description: [],
-                maxLevel: 10,
-                availableClasses: [],
-                skillTreeCost: 0,
-                skillTreeParent: '',
-                skillTreeRequirements: []
-            });
-
-            // Class data state
-            const [classData, setClassData] = useState({
-                id: 'custom_class',
-                name: 'カスタムクラス',
-                displayName: '&6カスタムクラス',
-                description: [],
-                rank: 1,
-                maxLevel: 50,
-                icon: 'DIAMOND_SWORD',
-                statGrowth: { manualPoints: 3, health: 1, mana: 1, defense: 1, attack: 1 },
-                nextRankClassId: '',
-                manaRegen: 1.0,
-                passiveBonuses: []
-            });
+	        const SkillEditor = () => {
+	            // Mode: 'skill' or 'class'
+	            const [editorMode, setEditorMode] = useState('skill');
+	
+	            // Skill metadata state
+	            const [skillMetadata, setSkillMetadata] = useState({
+	                id: 'custom_skill',
+	                name: 'カスタムスキル',
+	                displayName: '&6カスタムスキル',
+	                skillType: 'ACTIVE',  // ACTIVE, PASSIVE, TOGGLE
+	                description: [],
+	                variables: [],
+	                maxLevel: 10,
+	                availableClasses: [],
+	                skillTreeCost: 0,
+	                skillTreeParent: '',
+	                skillTreeIcon: '',
+	                skillTreeRequirements: [],
+	                iconMaterial: ''
+	            });
+	
+	            // Class data state
+	            const [classData, setClassData] = useState({
+	                id: 'custom_class',
+	                name: 'カスタムクラス',
+	                displayName: '&6カスタムクラス',
+	                description: [],
+	                rank: 1,
+	                maxLevel: 50,
+	                icon: 'DIAMOND_SWORD',
+	                statGrowth: {
+	                    manualPoints: 3,
+	                    auto: { strength: 0, intelligence: 0, spirit: 0, vitality: 0, dexterity: 0 }
+	                },
+	                nextRankClassId: '',
+	                manaRegen: 1.0,
+	                availableSkills: [],
+	                passiveBonuses: [],
+	                expDiminish: { startLevel: 30, reductionRate: 0.5 }
+	            });
 
             const [nodes, setNodes] = useState([]);
             const [edges, setEdges] = useState([]);
             const [validationIssues, setValidationIssues] = useState([]);
             const [showYaml, setShowYaml] = useState(false);
             const [showMetadata, setShowMetadata] = useState(true);
+            const [selectedNodeId, setSelectedNodeId] = useState(null);
+            const [variableSearch, setVariableSearch] = useState('');
             const [isConnecting, setIsConnecting] = useState(false);
             const [connectionLine, setConnectionLine] = useState({ fromX: 0, fromY: 0, toX: 0, toY: 0 });
             const reactFlowWrapper = useRef(null);
@@ -1621,6 +1690,12 @@
             // Keep nodesRef in sync with nodes state
             useEffect(() => {
                 nodesRef.current = nodes;
+            }, [nodes]);
+
+            // Track selected node for inspector panel
+            useEffect(() => {
+                const selected = nodes.find(n => n.selected);
+                setSelectedNodeId(selected ? selected.id : null);
             }, [nodes]);
 
             const getEventPoint = (event) => {
@@ -1734,6 +1809,66 @@
                     return node;
                 }));
             }, []);
+
+            const selectedNode = useMemo(() => {
+                if (!selectedNodeId) return null;
+                return nodes.find(n => n.id === selectedNodeId) || null;
+            }, [nodes, selectedNodeId]);
+
+            const filteredVariables = useMemo(() => {
+                const vars = skillMetadata.variables || [];
+                const term = variableSearch.trim().toLowerCase();
+                if (!term) return vars;
+                return vars.filter(v => (v?.name || '').toLowerCase().includes(term));
+            }, [skillMetadata.variables, variableSearch]);
+
+            const updateSelectedParameter = useCallback((key, value) => {
+                if (!selectedNode) return;
+                const nextParams = { ...(selectedNode.data.parameters || {}), [key]: value };
+                handleParametersChange(selectedNode.id, nextParams);
+            }, [selectedNode, handleParametersChange]);
+
+            const renderInspectorInput = (key, config, value) => {
+                if (config.type === 'select') {
+                    return (
+                        <select
+                            className="parameter-input"
+                            value={value}
+                            onChange={(e) => updateSelectedParameter(key, e.target.value)}
+                        >
+                            {config.options?.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                        </select>
+                    );
+                }
+
+                if (config.type === 'boolean') {
+                    return (
+                        <select
+                            className="parameter-input"
+                            value={value}
+                            onChange={(e) => updateSelectedParameter(key, e.target.value === 'true')}
+                        >
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                        </select>
+                    );
+                }
+
+                return (
+                    <input
+                        type={config.type === 'number' ? 'number' : 'text'}
+                        className="parameter-input"
+                        value={value}
+                        placeholder={config.default}
+                        onChange={(e) => updateSelectedParameter(key, e.target.value)}
+                        step={config.step || 1}
+                        min={config.min}
+                        max={config.max}
+                    />
+                );
+            };
 
             // Generate unique ID
             const generateId = useCallback(() => {
@@ -1851,6 +1986,12 @@
         };
 
         const onConnect = useCallback((connection) => {
+                if (!connection?.source || !connection?.target) return;
+                if (connection.source === connection.target) {
+                    alert('同じノード同士は接続できません');
+                    return;
+                }
+
                 // Use ref to get current nodes without creating dependency
                 const currentNodes = nodesRef.current;
                 const sourceNode = currentNodes.find(n => n.id === connection.source);
@@ -1945,12 +2086,37 @@
                 edgeUpdateSuccessful.current = false;
             }, []);
 
-            const onEdgeUpdate = useCallback((oldEdge, newConnection) => {
-                console.log('Edge UPDATE:', oldEdge, newConnection);
-                edgeUpdateSuccessful.current = true;
-                // Use updateEdge from ReactFlow library
-                setEdges((eds) => updateEdge(oldEdge, newConnection, eds));
-            }, []);
+	            const onEdgeUpdate = useCallback((oldEdge, newConnection) => {
+	                console.log('Edge UPDATE:', oldEdge, newConnection);
+	                edgeUpdateSuccessful.current = true;
+	                if (!newConnection?.source || !newConnection?.target) {
+	                    return;
+	                }
+	                if (newConnection.source === newConnection.target) {
+	                    alert('同じノード同士は接続できません');
+	                    edgeUpdateSuccessful.current = false;
+	                    return;
+	                }
+
+	                const currentNodes = nodesRef.current;
+	                const sourceNode = currentNodes.find(n => n.id === newConnection.source);
+	                const targetNode = currentNodes.find(n => n.id === newConnection.target);
+	
+	                if (sourceNode && targetNode) {
+	                    const validation = validateConnection(
+	                        sourceNode.data.componentType,
+	                        targetNode.data.componentType
+	                    );
+	                    if (!validation.valid) {
+	                        alert(validation.message);
+	                        edgeUpdateSuccessful.current = false;
+	                        return;
+	                    }
+	                }
+
+	                // Use updateEdge from ReactFlow library
+	                setEdges((eds) => updateEdge(oldEdge, newConnection, eds));
+	            }, []);
 
             const onEdgeUpdateEnd = useCallback((event, edge) => {
                 console.log('Edge update END:', edge, 'successful:', edgeUpdateSuccessful.current);
@@ -1977,43 +2143,63 @@
             };
 
             // Generate YAML from nodes and edges
-            const generateYaml = useCallback(() => {
-                if (editorMode === 'class') {
-                    // Generate Class YAML (matching ClassLoader.java expected format)
-                    let yaml = `id: "${classData.id}"\n`;
-                    yaml += `name: "${classData.name}"\n`;
-                    yaml += `display_name: "${classData.displayName}"\n`;
-                    if (classData.description.length > 0) {
-                        yaml += `description:\n`;
-                        classData.description.forEach(line => {
-                            yaml += `  - "${line}"\n`;
-                        });
-                    }
-                    yaml += `rank: ${classData.rank}\n`;
-                    yaml += `max_level: ${classData.maxLevel}\n`;
-                    yaml += `icon: ${classData.icon}\n`;
-                    yaml += `stat_growth:\n`;
-                    yaml += `  manual_points: ${classData.statGrowth.manualPoints || 3}\n`;
-                    yaml += `  health: ${classData.statGrowth.health}\n`;
-                    yaml += `  mana: ${classData.statGrowth.mana}\n`;
-                    yaml += `  defense: ${classData.statGrowth.defense}\n`;
-                    yaml += `  attack: ${classData.statGrowth.attack}\n`;
-                    if (classData.nextRankClassId) {
-                        yaml += `next_rank:\n`;
-                        yaml += `  class_id: "${classData.nextRankClassId}"\n`;
-                        yaml += `  requirements:\n`;
-                        yaml += `    requirements: []\n`;
-                    }
-                    yaml += `mana_regen: ${classData.manaRegen}\n`;
-                    if (classData.passiveBonuses.length > 0) {
-                        yaml += `passive_bonuses:\n`;
-                        classData.passiveBonuses.forEach(bonus => {
-                            yaml += `  - type: "${bonus.type}"\n`;
-                            yaml += `    value: ${bonus.value}\n`;
-                        });
-                    }
-                    return yaml;
-                }
+	            const generateYaml = useCallback(() => {
+	                if (editorMode === 'class') {
+	                    // Generate Class YAML (matching ClassLoader.java expected format)
+	                    let yaml = `id: "${classData.id}"\n`;
+	                    yaml += `name: "${classData.name}"\n`;
+	                    yaml += `display_name: "${classData.displayName}"\n`;
+	                    if (classData.description.length > 0) {
+	                        yaml += `description:\n`;
+	                        classData.description.forEach(line => {
+	                            yaml += `  - "${line}"\n`;
+	                        });
+	                    }
+	                    yaml += `rank: ${classData.rank}\n`;
+	                    yaml += `max_level: ${classData.maxLevel}\n`;
+	                    yaml += `icon: ${classData.icon}\n`;
+	                    yaml += `stat_growth:\n`;
+	                    const auto = classData.statGrowth?.auto || {};
+	                    const autoKeys = Object.keys(auto).filter(k => (parseInt(auto[k]) || 0) > 0);
+	                    if (autoKeys.length > 0) {
+	                        yaml += `  auto:\n`;
+	                        autoKeys.forEach(key => {
+	                            yaml += `    ${key}: ${parseInt(auto[key]) || 0}\n`;
+	                        });
+	                    }
+	                    yaml += `  manual_points: ${classData.statGrowth?.manualPoints ?? 3}\n`;
+	                    if (classData.nextRankClassId) {
+	                        yaml += `next_rank:\n`;
+	                        yaml += `  class_id: "${classData.nextRankClassId}"\n`;
+	                        yaml += `  requirements:\n`;
+	                        yaml += `    requirements: []\n`;
+	                    }
+	                    yaml += `mana_regen: ${classData.manaRegen}\n`;
+	                    if (classData.availableSkills && classData.availableSkills.length > 0) {
+	                        yaml += `available_skills:\n`;
+	                        classData.availableSkills.forEach(skillId => {
+	                            yaml += `  - "${skillId}"\n`;
+	                        });
+	                    }
+	                    if (classData.passiveBonuses.length > 0) {
+	                        yaml += `passive_bonuses:\n`;
+	                        classData.passiveBonuses.forEach(bonus => {
+	                            yaml += `  - type: "${bonus.type}"\n`;
+	                            if (bonus.value !== undefined && bonus.value !== null && bonus.value !== '') {
+	                                yaml += `    value: ${bonus.value}\n`;
+	                            }
+	                            if (bonus.formula) {
+	                                yaml += `    formula: "${bonus.formula}"\n`;
+	                            }
+	                        });
+	                    }
+	                    if (classData.expDiminish && (classData.expDiminish.startLevel !== undefined || classData.expDiminish.reductionRate !== undefined)) {
+	                        yaml += `exp_diminish:\n`;
+	                        yaml += `  start_level: ${parseInt(classData.expDiminish.startLevel) || 0}\n`;
+	                        yaml += `  reduction_rate: ${parseFloat(classData.expDiminish.reductionRate) || 0}\n`;
+	                    }
+	                    return yaml;
+	                }
 
                 // Generate Skill YAML
                 if (nodes.length === 0) return '# ノードがありません';
@@ -2059,25 +2245,57 @@
                 yaml += `name: "${skillMetadata.name}"\n`;
                 yaml += `display_name: "${skillMetadata.displayName}"\n`;
                 yaml += `type: ${skillMetadata.skillType || 'ACTIVE'}\n`;  // Required field by SkillLoader
-                if (skillMetadata.description.length > 0) {
-                    yaml += `description:\n`;
-                    skillMetadata.description.forEach(line => {
-                        yaml += `  - "${line}"\n`;
-                    });
-                }
-                yaml += `max_level: ${skillMetadata.maxLevel}\n`;
-                if (skillMetadata.availableClasses.length > 0) {
-                    yaml += `available_classes:\n`;
-                    skillMetadata.availableClasses.forEach(cls => {
-                        yaml += `  - "${cls}"\n`;
-                    });
-                }
-                yaml += `skill_tree:\n`;
-                yaml += `  cost: ${skillMetadata.skillTreeCost}\n`;
-                if (skillMetadata.skillTreeParent) {
-                    yaml += `  parent: "${skillMetadata.skillTreeParent}"\n`;
-                }
-                yaml += `components:\n`;
+	                if (skillMetadata.description.length > 0) {
+	                    yaml += `description:\n`;
+	                    skillMetadata.description.forEach(line => {
+	                        yaml += `  - "${line}"\n`;
+	                    });
+	                }
+	                if (skillMetadata.variables && skillMetadata.variables.length > 0) {
+	                    const vars = skillMetadata.variables
+	                        .filter(v => v && v.name && v.name.trim().length > 0)
+	                        .filter(v => v.value !== '' && v.value !== null && v.value !== undefined && !isNaN(v.value));
+	                    if (vars.length > 0) {
+	                        yaml += `variables:\n`;
+	                        vars.forEach(v => {
+	                            yaml += `  ${v.name.trim()}: ${Number(v.value)}\n`;
+	                        });
+	                    }
+	                }
+	                yaml += `max_level: ${skillMetadata.maxLevel}\n`;
+	                if (skillMetadata.availableClasses.length > 0) {
+	                    yaml += `available_classes:\n`;
+	                    skillMetadata.availableClasses.forEach(cls => {
+	                        yaml += `  - "${cls}"\n`;
+	                    });
+	                }
+	                yaml += `skill_tree:\n`;
+	                if (skillMetadata.skillTreeParent) {
+	                    yaml += `  parent: "${skillMetadata.skillTreeParent}"\n`;
+	                }
+	                if (skillMetadata.skillTreeIcon) {
+	                    yaml += `  icon: "${skillMetadata.skillTreeIcon}"\n`;
+	                }
+	                if (skillMetadata.skillTreeRequirements && skillMetadata.skillTreeRequirements.length > 0) {
+	                    const reqs = skillMetadata.skillTreeRequirements
+	                        .filter(r => r && r.type && String(r.type).trim().length > 0)
+	                        .filter(r => r.value !== '' && r.value !== null && r.value !== undefined && !isNaN(r.value));
+	                    if (reqs.length > 0) {
+	                        yaml += `  unlock_requirements:\n`;
+	                        reqs.forEach(r => {
+	                            yaml += `    - type: ${String(r.type).trim()}\n`;
+	                            if (String(r.type).trim().toLowerCase() === 'stat' && r.stat) {
+	                                yaml += `      stat: ${String(r.stat).trim()}\n`;
+	                            }
+	                            yaml += `      value: ${Number(r.value)}\n`;
+	                        });
+	                    }
+	                }
+	                yaml += `  cost: ${skillMetadata.skillTreeCost}\n`;
+	                if (skillMetadata.iconMaterial) {
+	                    yaml += `icon_material: ${skillMetadata.iconMaterial}\n`;
+	                }
+	                yaml += `components:\n`;
 
                 const renderComponent = (comp, indent = 1) => {
                     const spaces = '  '.repeat(indent);
@@ -2106,16 +2324,16 @@
             }, [nodes, edges, editorMode, skillMetadata, classData]);
 
             // Export YAML
-            const handleExportYaml = useCallback(() => {
-                const yaml = generateYaml();
-                const blob = new Blob([yaml], { type: 'text/yaml' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'skill.yaml';
-                a.click();
-                URL.revokeObjectURL(url);
-            }, [generateYaml]);
+	            const handleExportYaml = useCallback(() => {
+	                const yaml = generateYaml();
+	                const blob = new Blob([yaml], { type: 'text/yaml' });
+	                const url = URL.createObjectURL(blob);
+	                const a = document.createElement('a');
+	                a.href = url;
+	                a.download = editorMode === 'class' ? 'class.yml' : 'skill.yml';
+	                a.click();
+	                URL.revokeObjectURL(url);
+	            }, [generateYaml, editorMode]);
 
             // Convert snake_case or hyphenated to camelCase (supports both formats)
             const snakeToCamel = (str) => {
@@ -2187,10 +2405,10 @@
 
             // Calculate node positions in a tree layout
             // Use useCallback to stabilize the function and its dependencies
-            const calculateLayout = useCallback((components, startX = 100, startY = 100, deleteHandler = null, paramsHandler = null) => {
-                const nodes = [];
-                const edges = [];
-                let nodeId = 0;
+	            const calculateLayout = useCallback((components, startX = 100, startY = 100, deleteHandler = null, paramsHandler = null) => {
+	                const nodes = [];
+	                const edges = [];
+	                let nodeId = 0;
 
                 const processComponent = (component, x, y, parentId = null) => {
                     const currentNodeId = `imported_node_${nodeId++}`;
@@ -2248,47 +2466,357 @@
                 components.forEach((comp, index) => {
                     processComponent(comp, startX, startY + index * 200);
                 });
+	
+	                return { nodes, edges };
+	            }, [handleDeleteNode, handleParametersChange]);
+	
+	            // --- Minimal YAML helpers (no external dependency) ---
+	            const parseYamlScalar = (raw) => {
+	                if (raw === undefined || raw === null) return null;
+	                const trimmed = String(raw).trim();
+	                if (trimmed === '') return '';
+	                if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+	                    return trimmed.slice(1, -1);
+	                }
+	                if (trimmed === 'true') return true;
+	                if (trimmed === 'false') return false;
+	                if (!isNaN(trimmed)) return Number(trimmed);
+	                return trimmed;
+	            };
+	
+	            const getIndent = (line) => line.search(/\S/);
+	
+	            const findRootKeyIndex = (lines, key) => {
+	                const prefix = `${key}:`;
+	                for (let i = 0; i < lines.length; i++) {
+	                    const line = lines[i];
+	                    if (!line || !line.trim() || line.trim().startsWith('#')) continue;
+	                    if (getIndent(line) !== 0) continue;
+	                    if (line.startsWith(prefix)) return i;
+	                }
+	                return -1;
+	            };
+	
+	            const getBlockLines = (lines, keyIndex) => {
+	                const baseIndent = getIndent(lines[keyIndex]);
+	                const block = [];
+	                for (let i = keyIndex + 1; i < lines.length; i++) {
+	                    const line = lines[i];
+	                    if (!line) continue;
+	                    if (!line.trim() || line.trim().startsWith('#')) continue;
+	                    const indent = getIndent(line);
+	                    if (indent <= baseIndent) break;
+	                    block.push({ line, indent });
+	                }
+	                return block;
+	            };
+	
+	            const parseRootScalar = (lines, key) => {
+	                const idx = findRootKeyIndex(lines, key);
+	                if (idx === -1) return null;
+	                const raw = lines[idx].slice((`${key}:`).length).trim();
+	                if (raw === '') return null;
+	                return parseYamlScalar(raw);
+	            };
+	
+	            const parseRootList = (lines, key) => {
+	                const idx = findRootKeyIndex(lines, key);
+	                if (idx === -1) return [];
+	                const block = getBlockLines(lines, idx);
+	                const items = [];
+	                for (const { line } of block) {
+	                    const trimmed = line.trim();
+	                    if (!trimmed.startsWith('- ')) continue;
+	                    items.push(String(parseYamlScalar(trimmed.slice(2))).trim());
+	                }
+	                return items.filter(Boolean);
+	            };
+	
+	            const parseRootMapping = (lines, key) => {
+	                const idx = findRootKeyIndex(lines, key);
+	                if (idx === -1) return {};
+	                const block = getBlockLines(lines, idx);
+	                const map = {};
+	                for (const { line } of block) {
+	                    const trimmed = line.trim();
+	                    const m = trimmed.match(/^([^:#]+):\s*(.+)$/);
+	                    if (!m) continue;
+	                    map[m[1].trim()] = parseYamlScalar(m[2]);
+	                }
+	                return map;
+	            };
+	
+	            const parseListOfMapsFromBlock = (block, itemIndent) => {
+	                const items = [];
+	                let current = null;
+	                for (const { line, indent } of block) {
+	                    const trimmed = line.trim();
+	                    if (indent === itemIndent && trimmed.startsWith('- ')) {
+	                        if (current) items.push(current);
+	                        current = {};
+	                        const rest = trimmed.slice(2).trim();
+	                        const inline = rest.match(/^([^:#]+):\s*(.+)$/);
+	                        if (inline) {
+	                            current[inline[1].trim()] = parseYamlScalar(inline[2]);
+	                        }
+	                        continue;
+	                    }
+	                    if (!current) continue;
+	                    if (indent > itemIndent) {
+	                        const kv = trimmed.match(/^([^:#]+):\s*(.+)$/);
+	                        if (kv) {
+	                            current[kv[1].trim()] = parseYamlScalar(kv[2]);
+	                        }
+	                    }
+	                }
+	                if (current) items.push(current);
+	                return items;
+	            };
+	
+	            const normalizeSkillType = (t) => {
+	                if (!t) return null;
+	                const s = String(t).trim();
+	                const lower = s.toLowerCase();
+	                if (lower === 'active') return 'ACTIVE';
+	                if (lower === 'passive') return 'PASSIVE';
+	                if (lower === 'toggle') return 'TOGGLE';
+	                return s.toUpperCase();
+	            };
+	
+	            const parseSkillMetadataFromYaml = (yamlText) => {
+	                const lines = String(yamlText || '').split('\n');
+	                const next = {};
+	
+	                const id = parseRootScalar(lines, 'id');
+	                if (id) next.id = String(id);
+	                const name = parseRootScalar(lines, 'name');
+	                if (name !== null) next.name = String(name);
+	                const displayName = parseRootScalar(lines, 'display_name');
+	                if (displayName !== null) next.displayName = String(displayName);
+	                const type = parseRootScalar(lines, 'type');
+	                if (type !== null) next.skillType = normalizeSkillType(type);
+	
+	                const desc = parseRootList(lines, 'description');
+	                if (desc.length > 0) next.description = desc;
+	
+	                const maxLevel = parseRootScalar(lines, 'max_level');
+	                if (typeof maxLevel === 'number') next.maxLevel = maxLevel;
+	
+	                const avail = parseRootList(lines, 'available_classes');
+	                if (avail.length > 0) next.availableClasses = avail;
+	
+	                const variablesMap = parseRootMapping(lines, 'variables');
+	                const varEntries = Object.entries(variablesMap)
+	                    .filter(([, v]) => typeof v === 'number' && !isNaN(v));
+	                if (varEntries.length > 0) {
+	                    next.variables = varEntries.map(([k, v]) => ({ name: k, value: v }));
+	                }
+	
+	                const iconMat = parseRootScalar(lines, 'icon_material');
+	                if (iconMat !== null) next.iconMaterial = String(iconMat);
+	
+	                const stIdx = findRootKeyIndex(lines, 'skill_tree');
+	                if (stIdx !== -1) {
+	                    const stBlock = getBlockLines(lines, stIdx);
+	                    const baseIndent = getIndent(lines[stIdx]);
+	                    const directIndent = baseIndent + 2;
+	
+	                    for (const { line, indent } of stBlock) {
+	                        if (indent !== directIndent) continue;
+	                        const trimmed = line.trim();
+	                        const m = trimmed.match(/^([^:#]+):\s*(.+)$/);
+	                        if (!m) continue;
+	                        const k = m[1].trim();
+	                        const v = parseYamlScalar(m[2]);
+	                        if (k === 'parent') next.skillTreeParent = String(v);
+	                        if (k === 'cost' && typeof v === 'number') next.skillTreeCost = v;
+	                        if (k === 'icon') next.skillTreeIcon = String(v);
+	                    }
+	
+	                    // unlock_requirements
+	                    const urLineIdx = stBlock.findIndex(x => x.indent === directIndent && x.line.trim().startsWith('unlock_requirements:'));
+	                    if (urLineIdx !== -1) {
+	                        const after = stBlock.slice(urLineIdx + 1);
+	                        const reqs = parseListOfMapsFromBlock(after, directIndent + 2);
+	                        if (reqs.length > 0) {
+	                            next.skillTreeRequirements = reqs.map(r => ({
+	                                type: r.type ? String(r.type) : '',
+	                                stat: r.stat ? String(r.stat) : '',
+	                                value: r.value ?? ''
+	                            }));
+	                        }
+	                    }
+	                }
+	
+	                return next;
+	            };
+	
+	            const parseClassDataFromYaml = (yamlText) => {
+	                const lines = String(yamlText || '').split('\n');
+	                const next = {};
+	
+	                const id = parseRootScalar(lines, 'id');
+	                if (id) next.id = String(id);
+	                const name = parseRootScalar(lines, 'name');
+	                if (name !== null) next.name = String(name);
+	                const displayName = parseRootScalar(lines, 'display_name');
+	                if (displayName !== null) next.displayName = String(displayName);
+	
+	                const desc = parseRootList(lines, 'description');
+	                if (desc.length > 0) next.description = desc;
+	
+	                const rank = parseRootScalar(lines, 'rank');
+	                if (typeof rank === 'number') next.rank = rank;
+	                const maxLevel = parseRootScalar(lines, 'max_level');
+	                if (typeof maxLevel === 'number') next.maxLevel = maxLevel;
+	                const icon = parseRootScalar(lines, 'icon');
+	                if (icon !== null) next.icon = String(icon);
+	
+	                const manaRegen = parseRootScalar(lines, 'mana_regen');
+	                if (typeof manaRegen === 'number') next.manaRegen = manaRegen;
+	
+	                const skills = parseRootList(lines, 'available_skills');
+	                if (skills.length > 0) next.availableSkills = skills;
+	
+	                const sgIdx = findRootKeyIndex(lines, 'stat_growth');
+	                if (sgIdx !== -1) {
+	                    const sgBlock = getBlockLines(lines, sgIdx);
+	                    const baseIndent = getIndent(lines[sgIdx]);
+	                    const directIndent = baseIndent + 2;
+	                    const auto = {};
+	
+	                    for (const { line, indent } of sgBlock) {
+	                        if (indent !== directIndent) continue;
+	                        const trimmed = line.trim();
+	                        const m = trimmed.match(/^([^:#]+):\s*(.+)$/);
+	                        if (!m) continue;
+	                        const k = m[1].trim();
+	                        const v = parseYamlScalar(m[2]);
+	                        if (k === 'manual_points' && typeof v === 'number') {
+	                            next.statGrowth = next.statGrowth || {};
+	                            next.statGrowth.manualPoints = v;
+	                        }
+	                    }
+	
+	                    const autoLineIdx = sgBlock.findIndex(x => x.indent === directIndent && x.line.trim().startsWith('auto:'));
+	                    if (autoLineIdx !== -1) {
+	                        const after = sgBlock.slice(autoLineIdx + 1);
+	                        for (const { line, indent } of after) {
+	                            if (indent <= directIndent) break;
+	                            if (indent !== directIndent + 2) continue;
+	                            const m = line.trim().match(/^([^:#]+):\s*(.+)$/);
+	                            if (!m) continue;
+	                            const k = m[1].trim();
+	                            const v = parseYamlScalar(m[2]);
+	                            if (typeof v === 'number') auto[k] = v;
+	                        }
+	                    }
+	
+	                    next.statGrowth = next.statGrowth || {};
+	                    next.statGrowth.auto = auto;
+	                }
+	
+	                const passiveIdx = findRootKeyIndex(lines, 'passive_bonuses');
+	                if (passiveIdx !== -1) {
+	                    const block = getBlockLines(lines, passiveIdx);
+	                    const baseIndent = getIndent(lines[passiveIdx]);
+	                    const items = parseListOfMapsFromBlock(block, baseIndent + 2);
+	                    if (items.length > 0) {
+	                        next.passiveBonuses = items.map(b => ({
+	                            type: b.type ? String(b.type) : '',
+	                            value: b.value ?? '',
+	                            formula: b.formula ? String(b.formula) : ''
+	                        }));
+	                    }
+	                }
+	
+	                const edIdx = findRootKeyIndex(lines, 'exp_diminish');
+	                if (edIdx !== -1) {
+	                    const diminish = parseRootMapping(lines, 'exp_diminish');
+	                    next.expDiminish = {
+	                        startLevel: diminish.start_level ?? diminish.startLevel ?? 30,
+	                        reductionRate: diminish.reduction_rate ?? diminish.reductionRate ?? 0.5
+	                    };
+	                }
+	
+	                return next;
+	            };
+	
+	            // Import YAML
+	            const handleImportYaml = useCallback((event) => {
+	                const file = event.target.files?.[0];
+	                if (!file) return;
 
-                return { nodes, edges };
-            }, [handleDeleteNode, handleParametersChange]);
-
-            // Import YAML
-            const handleImportYaml = useCallback((event) => {
-                const file = event.target.files?.[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const content = e.target?.result;
-                        const parsedComponents = parseSkillYaml(content);
-
-                        if (parsedComponents.length === 0) {
-                            alert('YAMLの解析に失敗しました。有効なコンポーネントが見つかりませんでした。');
-                            return;
-                        }
-
-                        const { nodes: newNodes, edges: newEdges } = calculateLayout(parsedComponents);
-
-                        // Confirm before replacing
-                        if (nodes.length > 0) {
-                            if (!confirm('現在のノードを削除してインポートしますか？')) {
-                                return;
-                            }
-                        }
-
-                        setNodes(newNodes);
-                        setEdges(newEdges);
-                        validateFlow(newNodes, newEdges);
-
-                        // Reset file input
-                        event.target.value = '';
-                    } catch (error) {
-                        alert('YAMLの解析に失敗しました: ' + error.message);
-                    }
-                };
-                reader.readAsText(file);
-            }, [nodes, edges, calculateLayout, validateFlow]);
+	                const reader = new FileReader();
+	                reader.onload = (e) => {
+	                    try {
+	                        const content = String(e.target?.result ?? '');
+	
+	                        if (editorMode === 'class') {
+	                            const parsed = parseClassDataFromYaml(content);
+	                            setClassData(prev => ({
+	                                ...prev,
+	                                ...parsed,
+	                                statGrowth: {
+	                                    ...prev.statGrowth,
+	                                    ...(parsed.statGrowth || {}),
+	                                    auto: {
+	                                        ...(prev.statGrowth?.auto || {}),
+	                                        ...(parsed.statGrowth?.auto || {})
+	                                    }
+	                                },
+	                                expDiminish: parsed.expDiminish ? { ...prev.expDiminish, ...parsed.expDiminish } : prev.expDiminish
+	                            }));
+	                            alert('クラスYAMLをインポートしました（メタデータ反映）');
+	                            event.target.value = '';
+	                            return;
+	                        }
+	
+	                        // Skill mode: import metadata first (even if components not found)
+	                        const parsedMeta = parseSkillMetadataFromYaml(content);
+	                        if (Object.keys(parsedMeta).length > 0) {
+	                            setSkillMetadata(prev => ({
+	                                ...prev,
+	                                ...parsedMeta,
+	                                variables: parsedMeta.variables ?? prev.variables,
+	                                skillTreeRequirements: parsedMeta.skillTreeRequirements ?? prev.skillTreeRequirements
+	                            }));
+	                        }
+	
+	                        const looksLikeNodeYaml = content.includes('\ncomponents:') && /-\s*type:\s*\w+/.test(content);
+	                        if (!looksLikeNodeYaml) {
+	                            alert('スキルYAMLをインポートしました（メタデータのみ。components が見つかりません）');
+	                            event.target.value = '';
+	                            return;
+	                        }
+	
+	                        const parsedComponents = parseSkillYaml(content);
+	                        if (parsedComponents.length === 0) {
+	                            alert('YAMLの解析に失敗しました。有効なコンポーネントが見つかりませんでした。');
+	                            event.target.value = '';
+	                            return;
+	                        }
+	
+	                        const { nodes: newNodes, edges: newEdges } = calculateLayout(parsedComponents);
+	
+	                        if (nodes.length > 0) {
+	                            if (!confirm('現在のノードを削除してインポートしますか？')) {
+	                                event.target.value = '';
+	                                return;
+	                            }
+	                        }
+	
+	                        setNodes(newNodes);
+	                        setEdges(newEdges);
+	                        validateFlow(newNodes, newEdges);
+	                        event.target.value = '';
+	                    } catch (error) {
+	                        alert('YAMLの解析に失敗しました: ' + error.message);
+	                        event.target.value = '';
+	                    }
+	                };
+	                reader.readAsText(file);
+	            }, [nodes, edges, calculateLayout, validateFlow, editorMode]);
 
             // Clear canvas
             const handleClear = useCallback(() => {
@@ -2665,22 +3193,36 @@
                                                 placeholder="&6カスタムスキル"
                                             />
                                         </div>
-                                        <div className="metadata-field">
-                                            <label>スキルタイプ</label>
-                                            <select
-                                                className="parameter-input"
-                                                value={skillMetadata.skillType || 'ACTIVE'}
-                                                onChange={(e) => setSkillMetadata({...skillMetadata, skillType: e.target.value})}
-                                            >
-                                                <option value="ACTIVE">ACTIVE（アクティブ）</option>
-                                                <option value="PASSIVE">PASSIVE（パッシブ）</option>
-                                                <option value="TOGGLE">TOGGLE（トグル）</option>
-                                            </select>
-                                        </div>
-                                        <div className="metadata-field">
-                                            <label>最大レベル</label>
-                                            <input
-                                                type="number"
+	                                        <div className="metadata-field">
+	                                            <label>スキルタイプ</label>
+	                                            <select
+	                                                className="parameter-input"
+	                                                value={skillMetadata.skillType || 'ACTIVE'}
+	                                                onChange={(e) => setSkillMetadata({...skillMetadata, skillType: e.target.value})}
+	                                            >
+	                                                <option value="ACTIVE">ACTIVE（アクティブ）</option>
+	                                                <option value="PASSIVE">PASSIVE（パッシブ）</option>
+	                                                <option value="TOGGLE">TOGGLE（トグル）</option>
+	                                            </select>
+	                                        </div>
+	                                        <div className="metadata-field">
+	                                            <label>説明（複数行）</label>
+	                                            <textarea
+	                                                className="parameter-input"
+	                                                style={{ minHeight: '90px', resize: 'vertical' }}
+	                                                value={(skillMetadata.description || []).join('\n')}
+	                                                onChange={(e) => setSkillMetadata({
+	                                                    ...skillMetadata,
+	                                                    description: e.target.value.split('\n').map(s => s.trim()).filter(Boolean)
+	                                                })}
+	                                                placeholder={"例:\n&7剣で斬りつける\n&eLvで威力上昇"}
+	                                            />
+	                                            <small>1行=1項目（YAMLのリストになります）</small>
+	                                        </div>
+	                                        <div className="metadata-field">
+	                                            <label>最大レベル</label>
+	                                            <input
+	                                                type="number"
                                                 className="parameter-input"
                                                 value={skillMetadata.maxLevel}
                                                 onChange={(e) => setSkillMetadata({...skillMetadata, maxLevel: parseInt(e.target.value) || 1})}
@@ -2690,19 +3232,82 @@
                                         </div>
                                         <div className="metadata-field">
                                             <label>利用可能クラス</label>
-                                            <input
-                                                type="text"
-                                                className="parameter-input"
-                                                value={skillMetadata.availableClasses.join(', ')}
-                                                onChange={(e) => setSkillMetadata({...skillMetadata, availableClasses: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
-                                                placeholder="WARRIOR, MAGE (空で全クラス)"
-                                            />
-                                            <small style={{ color: 'var(--text-muted)' }}>カンマ区切り、空欄で全クラス</small>
-                                        </div>
-                                        <div className="metadata-field">
-                                            <label>スキルツリーコスト</label>
-                                            <input
-                                                type="number"
+	                                            <input
+	                                                type="text"
+	                                                className="parameter-input"
+	                                                value={skillMetadata.availableClasses.join(', ')}
+	                                                onChange={(e) => setSkillMetadata({...skillMetadata, availableClasses: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+	                                                placeholder="WARRIOR, MAGE (空で全クラス)"
+	                                            />
+	                                            <small style={{ color: 'var(--text-muted)' }}>カンマ区切り、空欄で全クラス</small>
+	                                        </div>
+	                                        <div className="metadata-subheader">Variables（数式用変数）</div>
+	                                        <div className="metadata-field">
+	                                            <small>
+	                                                現状このエディタのノード（components）の数値欄では変数/数式は評価されません。<br />
+	                                                `variables:` は主にテンプレート形式の `damage.formula` 等（数式システム）で参照される想定です。
+	                                            </small>
+	                                        </div>
+	                                        {(skillMetadata.variables || []).map((v, idx) => (
+	                                            <div key={idx} className="metadata-row" style={{ alignItems: 'flex-end' }}>
+	                                                <div className="metadata-field half">
+	                                                    <label>名前</label>
+	                                                    <input
+	                                                        type="text"
+	                                                        className="parameter-input"
+	                                                        value={v?.name ?? ''}
+	                                                        onChange={(e) => {
+	                                                            const next = [...(skillMetadata.variables || [])];
+	                                                            next[idx] = { ...(next[idx] || {}), name: e.target.value };
+	                                                            setSkillMetadata({ ...skillMetadata, variables: next });
+	                                                        }}
+	                                                        placeholder="dex_mod"
+	                                                    />
+	                                                </div>
+	                                                <div className="metadata-field half">
+	                                                    <label>値</label>
+	                                                    <input
+	                                                        type="number"
+	                                                        className="parameter-input"
+	                                                        value={v?.value ?? 0}
+	                                                        onChange={(e) => {
+	                                                            const next = [...(skillMetadata.variables || [])];
+	                                                            next[idx] = { ...(next[idx] || {}), value: parseFloat(e.target.value) };
+	                                                            setSkillMetadata({ ...skillMetadata, variables: next });
+	                                                        }}
+	                                                        step={0.1}
+	                                                    />
+	                                                </div>
+	                                                <button
+	                                                    className="btn danger"
+	                                                    style={{ padding: '4px 8px', minWidth: 'auto', minHeight: 'auto', marginBottom: '8px' }}
+	                                                    onClick={() => {
+	                                                        const next = [...(skillMetadata.variables || [])];
+	                                                        next.splice(idx, 1);
+	                                                        setSkillMetadata({ ...skillMetadata, variables: next });
+	                                                    }}
+	                                                    title="削除"
+	                                                >
+	                                                    ×
+	                                                </button>
+	                                            </div>
+	                                        ))}
+	                                        <button
+	                                            className="btn"
+	                                            style={{ width: '100%', padding: '8px 12px' }}
+	                                            onClick={() => setSkillMetadata({
+	                                                ...skillMetadata,
+	                                                variables: [...(skillMetadata.variables || []), { name: '', value: 0 }]
+	                                            })}
+	                                        >
+	                                            ＋ 変数を追加
+	                                        </button>
+	
+	                                        <div className="metadata-subheader">スキルツリー</div>
+	                                        <div className="metadata-field">
+	                                            <label>スキルツリーコスト</label>
+	                                            <input
+	                                                type="number"
                                                 className="parameter-input"
                                                 value={skillMetadata.skillTreeCost}
                                                 onChange={(e) => setSkillMetadata({...skillMetadata, skillTreeCost: parseInt(e.target.value) || 0})}
@@ -2711,17 +3316,133 @@
                                         </div>
                                         <div className="metadata-field">
                                             <label>親スキルID</label>
-                                            <input
-                                                type="text"
-                                                className="parameter-input"
-                                                value={skillMetadata.skillTreeParent}
-                                                onChange={(e) => setSkillMetadata({...skillMetadata, skillTreeParent: e.target.value})}
-                                                placeholder="親スキルのID (空でなし)"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+	                                            <input
+	                                                type="text"
+	                                                className="parameter-input"
+	                                                value={skillMetadata.skillTreeParent}
+	                                                onChange={(e) => setSkillMetadata({...skillMetadata, skillTreeParent: e.target.value})}
+	                                                placeholder="親スキルのID (空でなし)"
+	                                            />
+	                                        </div>
+	                                        <div className="metadata-field">
+	                                            <label>ツリー用アイコン（任意）</label>
+	                                            <input
+	                                                type="text"
+	                                                className="parameter-input"
+	                                                value={skillMetadata.skillTreeIcon || ''}
+	                                                onChange={(e) => setSkillMetadata({...skillMetadata, skillTreeIcon: e.target.value})}
+	                                                placeholder="IRON_SWORD (空でなし)"
+	                                            />
+	                                        </div>
+	                                        <div className="metadata-field">
+	                                            <label>解放条件（unlock_requirements）</label>
+	                                            <small>level / stat を推奨（type/stat/value）</small>
+	                                        </div>
+	                                        {(skillMetadata.skillTreeRequirements || []).map((req, idx) => (
+	                                            <div key={idx} className="metadata-row" style={{ alignItems: 'flex-end' }}>
+	                                                <div className="metadata-field half">
+	                                                    <label>type</label>
+	                                                    <select
+	                                                        className="parameter-input"
+	                                                        value={req?.type ?? 'level'}
+	                                                        onChange={(e) => {
+	                                                            const next = [...(skillMetadata.skillTreeRequirements || [])];
+	                                                            next[idx] = { ...(next[idx] || {}), type: e.target.value };
+	                                                            setSkillMetadata({ ...skillMetadata, skillTreeRequirements: next });
+	                                                        }}
+	                                                    >
+	                                                        <option value="level">level</option>
+	                                                        <option value="stat">stat</option>
+	                                                        <option value="custom">custom</option>
+	                                                    </select>
+	                                                </div>
+	                                                <div className="metadata-field half">
+	                                                    <label>{(req?.type ?? 'level') === 'stat' ? 'stat' : 'value'}</label>
+	                                                    {(req?.type ?? 'level') === 'stat' ? (
+	                                                        <select
+	                                                            className="parameter-input"
+	                                                            value={req?.stat ?? 'STRENGTH'}
+	                                                            onChange={(e) => {
+	                                                                const next = [...(skillMetadata.skillTreeRequirements || [])];
+	                                                                next[idx] = { ...(next[idx] || {}), stat: e.target.value };
+	                                                                setSkillMetadata({ ...skillMetadata, skillTreeRequirements: next });
+	                                                            }}
+	                                                        >
+	                                                            <option value="STRENGTH">STRENGTH</option>
+	                                                            <option value="INTELLIGENCE">INTELLIGENCE</option>
+	                                                            <option value="SPIRIT">SPIRIT</option>
+	                                                            <option value="VITALITY">VITALITY</option>
+	                                                            <option value="DEXTERITY">DEXTERITY</option>
+	                                                        </select>
+	                                                    ) : (
+	                                                        <input
+	                                                            type="number"
+	                                                            className="parameter-input"
+	                                                            value={req?.value ?? 1}
+	                                                            onChange={(e) => {
+	                                                                const next = [...(skillMetadata.skillTreeRequirements || [])];
+	                                                                next[idx] = { ...(next[idx] || {}), value: parseFloat(e.target.value) };
+	                                                                setSkillMetadata({ ...skillMetadata, skillTreeRequirements: next });
+	                                                            }}
+	                                                            step={1}
+	                                                        />
+	                                                    )}
+	                                                </div>
+	                                                {(req?.type ?? 'level') === 'stat' && (
+	                                                    <div className="metadata-field half">
+	                                                        <label>value</label>
+	                                                        <input
+	                                                            type="number"
+	                                                            className="parameter-input"
+	                                                            value={req?.value ?? 1}
+	                                                            onChange={(e) => {
+	                                                                const next = [...(skillMetadata.skillTreeRequirements || [])];
+	                                                                next[idx] = { ...(next[idx] || {}), value: parseFloat(e.target.value) };
+	                                                                setSkillMetadata({ ...skillMetadata, skillTreeRequirements: next });
+	                                                            }}
+	                                                            step={1}
+	                                                        />
+	                                                    </div>
+	                                                )}
+	                                                <button
+	                                                    className="btn danger"
+	                                                    style={{ padding: '4px 8px', minWidth: 'auto', minHeight: 'auto', marginBottom: '8px' }}
+	                                                    onClick={() => {
+	                                                        const next = [...(skillMetadata.skillTreeRequirements || [])];
+	                                                        next.splice(idx, 1);
+	                                                        setSkillMetadata({ ...skillMetadata, skillTreeRequirements: next });
+	                                                    }}
+	                                                    title="削除"
+	                                                >
+	                                                    ×
+	                                                </button>
+	                                            </div>
+	                                        ))}
+	                                        <button
+	                                            className="btn"
+	                                            style={{ width: '100%', padding: '8px 12px' }}
+	                                            onClick={() => setSkillMetadata({
+	                                                ...skillMetadata,
+	                                                skillTreeRequirements: [...(skillMetadata.skillTreeRequirements || []), { type: 'level', value: 1, stat: '' }]
+	                                            })}
+	                                        >
+	                                            ＋ 条件を追加
+	                                        </button>
+	
+	                                        <div className="metadata-subheader">表示</div>
+	                                        <div className="metadata-field">
+	                                            <label>アイコン素材（icon_material）</label>
+	                                            <input
+	                                                type="text"
+	                                                className="parameter-input"
+	                                                value={skillMetadata.iconMaterial || ''}
+	                                                onChange={(e) => setSkillMetadata({...skillMetadata, iconMaterial: e.target.value})}
+	                                                placeholder="IRON_SWORD"
+	                                            />
+	                                        </div>
+	                                    </div>
+	                                </div>
+	                            )}
 
                             {/* Class Metadata Panel */}
                             {editorMode === 'class' && (
@@ -2750,16 +3471,30 @@
                                                 placeholder="カスタムクラス"
                                             />
                                         </div>
-                                        <div className="metadata-field">
-                                            <label>表示名</label>
-                                            <input
-                                                type="text"
-                                                className="parameter-input"
-                                                value={classData.displayName}
-                                                onChange={(e) => setClassData({...classData, displayName: e.target.value})}
-                                                placeholder="&6カスタムクラス"
-                                            />
-                                        </div>
+	                                        <div className="metadata-field">
+	                                            <label>表示名</label>
+	                                            <input
+	                                                type="text"
+	                                                className="parameter-input"
+	                                                value={classData.displayName}
+	                                                onChange={(e) => setClassData({...classData, displayName: e.target.value})}
+	                                                placeholder="&6カスタムクラス"
+	                                            />
+	                                        </div>
+	                                        <div className="metadata-field">
+	                                            <label>説明（複数行）</label>
+	                                            <textarea
+	                                                className="parameter-input"
+	                                                style={{ minHeight: '90px', resize: 'vertical' }}
+	                                                value={(classData.description || []).join('\n')}
+	                                                onChange={(e) => setClassData({
+	                                                    ...classData,
+	                                                    description: e.target.value.split('\n').map(s => s.trim()).filter(Boolean)
+	                                                })}
+	                                                placeholder={"例:\n&f剣と盾で前線を守る\n&eSTR/VITが成長"}
+	                                            />
+	                                            <small>1行=1項目（YAMLのリストになります）</small>
+	                                        </div>
                                         <div className="metadata-field">
                                             <label>ランク (1-6)</label>
                                             <input
@@ -2823,70 +3558,241 @@
                                                 placeholder="次のランクのクラスID"
                                             />
                                         </div>
-                                        <div className="metadata-subheader">ステータス成長</div>
-                                        <div className="metadata-field">
-                                            <label>マニュアルポイント</label>
-                                            <input
-                                                type="number"
-                                                className="parameter-input"
-                                                value={classData.statGrowth.manualPoints || 3}
-                                                onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, manualPoints: parseInt(e.target.value) || 0}})}
-                                                min={0}
-                                                step={1}
-                                            />
-                                            <small style={{ color: 'var(--text-muted)' }}>レベルアップ時に獲得する割り振りポイント</small>
-                                        </div>
-                                        <div className="metadata-row">
-                                            <div className="metadata-field half">
-                                                <label>HP</label>
-                                                <input
-                                                    type="number"
-                                                    className="parameter-input"
-                                                    value={classData.statGrowth.health}
-                                                    onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, health: parseInt(e.target.value) || 0}})}
-                                                    min={0}
-                                                    step={1}
-                                                />
-                                            </div>
-                                            <div className="metadata-field half">
-                                                <label>MP</label>
-                                                <input
-                                                    type="number"
-                                                    className="parameter-input"
-                                                    value={classData.statGrowth.mana}
-                                                    onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, mana: parseInt(e.target.value) || 0}})}
-                                                    min={0}
-                                                    step={1}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="metadata-row">
-                                            <div className="metadata-field half">
-                                                <label>防御</label>
-                                                <input
-                                                    type="number"
-                                                    className="parameter-input"
-                                                    value={classData.statGrowth.defense}
-                                                    onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, defense: parseInt(e.target.value) || 0}})}
-                                                    min={0}
-                                                    step={1}
-                                                />
-                                            </div>
-                                            <div className="metadata-field half">
-                                                <label>攻撃</label>
-                                                <input
-                                                    type="number"
-                                                    className="parameter-input"
-                                                    value={classData.statGrowth.attack}
-                                                    onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, attack: parseInt(e.target.value) || 0}})}
-                                                    min={0}
-                                                    step={1}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+	                                        <div className="metadata-subheader">ステータス成長</div>
+	                                        <div className="metadata-field">
+	                                            <label>マニュアルポイント</label>
+	                                            <input
+	                                                type="number"
+	                                                className="parameter-input"
+	                                                value={classData.statGrowth.manualPoints || 3}
+	                                                onChange={(e) => setClassData({...classData, statGrowth: {...classData.statGrowth, manualPoints: parseInt(e.target.value) || 0}})}
+	                                                min={0}
+	                                                step={1}
+	                                            />
+	                                            <small style={{ color: 'var(--text-muted)' }}>レベルアップ時に獲得する割り振りポイント</small>
+	                                        </div>
+	                                        <div className="metadata-subheader">自動成長（stat_growth.auto）</div>
+	                                        <div className="metadata-row">
+	                                            <div className="metadata-field half">
+	                                                <label>STR（strength）</label>
+	                                                <input
+	                                                    type="number"
+	                                                    className="parameter-input"
+	                                                    value={classData.statGrowth?.auto?.strength ?? 0}
+	                                                    onChange={(e) => setClassData({
+	                                                        ...classData,
+	                                                        statGrowth: {
+	                                                            ...classData.statGrowth,
+	                                                            auto: { ...(classData.statGrowth?.auto || {}), strength: parseInt(e.target.value) || 0 }
+	                                                        }
+	                                                    })}
+	                                                    min={0}
+	                                                    step={1}
+	                                                />
+	                                            </div>
+	                                            <div className="metadata-field half">
+	                                                <label>VIT（vitality）</label>
+	                                                <input
+	                                                    type="number"
+	                                                    className="parameter-input"
+	                                                    value={classData.statGrowth?.auto?.vitality ?? 0}
+	                                                    onChange={(e) => setClassData({
+	                                                        ...classData,
+	                                                        statGrowth: {
+	                                                            ...classData.statGrowth,
+	                                                            auto: { ...(classData.statGrowth?.auto || {}), vitality: parseInt(e.target.value) || 0 }
+	                                                        }
+	                                                    })}
+	                                                    min={0}
+	                                                    step={1}
+	                                                />
+	                                            </div>
+	                                        </div>
+	                                        <div className="metadata-row">
+	                                            <div className="metadata-field half">
+	                                                <label>INT（intelligence）</label>
+	                                                <input
+	                                                    type="number"
+	                                                    className="parameter-input"
+	                                                    value={classData.statGrowth?.auto?.intelligence ?? 0}
+	                                                    onChange={(e) => setClassData({
+	                                                        ...classData,
+	                                                        statGrowth: {
+	                                                            ...classData.statGrowth,
+	                                                            auto: { ...(classData.statGrowth?.auto || {}), intelligence: parseInt(e.target.value) || 0 }
+	                                                        }
+	                                                    })}
+	                                                    min={0}
+	                                                    step={1}
+	                                                />
+	                                            </div>
+	                                            <div className="metadata-field half">
+	                                                <label>SPI（spirit）</label>
+	                                                <input
+	                                                    type="number"
+	                                                    className="parameter-input"
+	                                                    value={classData.statGrowth?.auto?.spirit ?? 0}
+	                                                    onChange={(e) => setClassData({
+	                                                        ...classData,
+	                                                        statGrowth: {
+	                                                            ...classData.statGrowth,
+	                                                            auto: { ...(classData.statGrowth?.auto || {}), spirit: parseInt(e.target.value) || 0 }
+	                                                        }
+	                                                    })}
+	                                                    min={0}
+	                                                    step={1}
+	                                                />
+	                                            </div>
+	                                        </div>
+	                                        <div className="metadata-field">
+	                                            <label>DEX（dexterity）</label>
+	                                            <input
+	                                                type="number"
+	                                                className="parameter-input"
+	                                                value={classData.statGrowth?.auto?.dexterity ?? 0}
+	                                                onChange={(e) => setClassData({
+	                                                    ...classData,
+	                                                    statGrowth: {
+	                                                        ...classData.statGrowth,
+	                                                        auto: { ...(classData.statGrowth?.auto || {}), dexterity: parseInt(e.target.value) || 0 }
+	                                                    }
+	                                                })}
+	                                                min={0}
+	                                                step={1}
+	                                            />
+	                                        </div>
+	
+	                                        <div className="metadata-subheader">使用可能スキル（available_skills）</div>
+	                                        <div className="metadata-field">
+	                                            <textarea
+	                                                className="parameter-input"
+	                                                style={{ minHeight: '90px', resize: 'vertical' }}
+	                                                value={(classData.availableSkills || []).join('\n')}
+	                                                onChange={(e) => setClassData({
+	                                                    ...classData,
+	                                                    availableSkills: e.target.value.split('\n').map(s => s.trim()).filter(Boolean)
+	                                                })}
+	                                                placeholder={"例:\npower_strike\nshield_bash"}
+	                                            />
+	                                            <small>1行=1スキルID</small>
+	                                        </div>
+	
+	                                        <div className="metadata-subheader">パッシブボーナス（passive_bonuses）</div>
+	                                        {(classData.passiveBonuses || []).map((b, idx) => (
+	                                            <div
+	                                                key={idx}
+	                                                style={{
+	                                                    marginBottom: '10px',
+	                                                    padding: '10px',
+	                                                    border: '1px solid var(--border-color)',
+	                                                    borderRadius: '8px',
+	                                                    background: 'var(--bg-tertiary)'
+	                                                }}
+	                                            >
+	                                                <div className="metadata-field">
+	                                                    <label>type</label>
+	                                                    <input
+	                                                        type="text"
+	                                                        className="parameter-input"
+	                                                        value={b?.type ?? ''}
+	                                                        onChange={(e) => {
+	                                                            const next = [...(classData.passiveBonuses || [])];
+	                                                            next[idx] = { ...(next[idx] || {}), type: e.target.value };
+	                                                            setClassData({ ...classData, passiveBonuses: next });
+	                                                        }}
+	                                                        placeholder="physical_damage"
+	                                                    />
+	                                                </div>
+	                                                <div className="metadata-row" style={{ alignItems: 'flex-end' }}>
+	                                                    <div className="metadata-field half">
+	                                                        <label>value（数値 / 任意）</label>
+	                                                        <input
+	                                                            type="number"
+	                                                            className="parameter-input"
+	                                                            value={b?.value ?? ''}
+	                                                            onChange={(e) => {
+	                                                                const next = [...(classData.passiveBonuses || [])];
+	                                                                next[idx] = { ...(next[idx] || {}), value: e.target.value };
+	                                                                setClassData({ ...classData, passiveBonuses: next });
+	                                                            }}
+	                                                            step={0.01}
+	                                                        />
+	                                                    </div>
+	                                                    <div className="metadata-field half">
+	                                                        <label>formula（任意）</label>
+	                                                        <input
+	                                                            type="text"
+	                                                            className="parameter-input"
+	                                                            value={b?.formula ?? ''}
+	                                                            onChange={(e) => {
+	                                                                const next = [...(classData.passiveBonuses || [])];
+	                                                                next[idx] = { ...(next[idx] || {}), formula: e.target.value };
+	                                                                setClassData({ ...classData, passiveBonuses: next });
+	                                                            }}
+	                                                            placeholder={'例: 10 + Lv * 2'}
+	                                                        />
+	                                                    </div>
+	                                                    <button
+	                                                        className="btn danger"
+	                                                        style={{ padding: '4px 8px', minWidth: 'auto', minHeight: 'auto', marginBottom: '8px' }}
+	                                                        onClick={() => {
+	                                                            const next = [...(classData.passiveBonuses || [])];
+	                                                            next.splice(idx, 1);
+	                                                            setClassData({ ...classData, passiveBonuses: next });
+	                                                        }}
+	                                                        title="削除"
+	                                                    >
+	                                                        ×
+	                                                    </button>
+	                                                </div>
+	                                            </div>
+	                                        ))}
+	                                        <button
+	                                            className="btn"
+	                                            style={{ width: '100%', padding: '8px 12px' }}
+	                                            onClick={() => setClassData({
+	                                                ...classData,
+	                                                passiveBonuses: [...(classData.passiveBonuses || []), { type: '', value: '', formula: '' }]
+	                                            })}
+	                                        >
+	                                            ＋ ボーナスを追加
+	                                        </button>
+	
+	                                        <div className="metadata-subheader">経験値減衰（exp_diminish）</div>
+	                                        <div className="metadata-row">
+	                                            <div className="metadata-field half">
+	                                                <label>start_level</label>
+	                                                <input
+	                                                    type="number"
+	                                                    className="parameter-input"
+	                                                    value={classData.expDiminish?.startLevel ?? 30}
+	                                                    onChange={(e) => setClassData({
+	                                                        ...classData,
+	                                                        expDiminish: { ...(classData.expDiminish || {}), startLevel: parseInt(e.target.value) || 0 }
+	                                                    })}
+	                                                    min={0}
+	                                                    step={1}
+	                                                />
+	                                            </div>
+	                                            <div className="metadata-field half">
+	                                                <label>reduction_rate</label>
+	                                                <input
+	                                                    type="number"
+	                                                    className="parameter-input"
+	                                                    value={classData.expDiminish?.reductionRate ?? 0.5}
+	                                                    onChange={(e) => setClassData({
+	                                                        ...classData,
+	                                                        expDiminish: { ...(classData.expDiminish || {}), reductionRate: parseFloat(e.target.value) || 0 }
+	                                                    })}
+	                                                    min={0}
+	                                                    max={1}
+	                                                    step={0.05}
+	                                                />
+	                                            </div>
+	                                        </div>
+	                                    </div>
+	                                </div>
+	                            )}
 
                             {/* Component List (skill mode only) */}
                             {editorMode === 'skill' && (
@@ -2971,8 +3877,9 @@
                                     onInit={(instance) => {
                                         reactFlowInstance.current = instance;
                                     }}
+                                    onPaneClick={() => setSelectedNodeId(null)}
                                     connectionRadius={30}
-                                    connectionMode={ConnectionMode.Loose}
+                                    connectionMode={ConnectionMode.Strict}
                                     snapToGrid={true}
                                     snapGrid={[15, 15]}
                                     connectionLineStyle={{
@@ -3070,6 +3977,74 @@
                                 </div>
                             )}
                         </main>
+                        {editorMode === 'skill' && (
+                            <aside className="inspector-panel">
+                                <div className="inspector-header">
+                                    <span>🧩 ノード設定</span>
+                                    {selectedNode && (
+                                        <button
+                                            className="btn"
+                                            style={{ padding: '4px 8px', fontSize: '0.85em' }}
+                                            onClick={() => setSelectedNodeId(null)}
+                                        >
+                                            ×
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="inspector-content">
+                                    <div className="inspector-section">
+                                        <div className="inspector-section-title">Variables</div>
+                                        <input
+                                            type="text"
+                                            className="parameter-input"
+                                            placeholder="変数名で検索 (例: dex)"
+                                            value={variableSearch}
+                                            onChange={(e) => setVariableSearch(e.target.value)}
+                                        />
+                                        <div className="inspector-list">
+                                            {filteredVariables.length > 0 ? (
+                                                filteredVariables.map((v, idx) => (
+                                                    <div key={`${v?.name || 'var'}_${idx}`} className="inspector-list-item">
+                                                        <span className="inspector-var-name">{v?.name || '(unnamed)'}</span>
+                                                        <span className="inspector-var-value">{v?.value ?? 0}</span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="inspector-placeholder">
+                                                    {variableSearch.trim()
+                                                        ? '一致する変数はありません'
+                                                        : '変数がまだ定義されていません'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {!selectedNode ? (
+                                        <div className="inspector-placeholder">
+                                            ノードを選択すると、ここで詳細を編集できます。
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="inspector-meta">
+                                                <div>名前: {selectedNode.data.label}</div>
+                                                <div>タイプ: {selectedNode.data.componentType}</div>
+                                                <div>ID: {selectedNode.data.componentId}</div>
+                                            </div>
+                                            {Object.entries(selectedNode.data.parameterConfig || {}).map(([key, config]) => {
+                                                const value = selectedNode.data.parameters?.[key] !== undefined
+                                                    ? selectedNode.data.parameters[key]
+                                                    : config.default;
+                                                return (
+                                                    <div key={key} className="node-parameter">
+                                                        <div className="parameter-label">{config.label}</div>
+                                                        {renderInspectorInput(key, config, value)}
+                                                    </div>
+                                                );
+                                            })}
+                                        </>
+                                    )}
+                                </div>
+                            </aside>
+                        )}
                     </div>
                 </div>
             );

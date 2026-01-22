@@ -8,8 +8,6 @@ on:
       - main
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
-  pull_request_review:
-    types: [submitted]
 
 permissions:
   contents: read
@@ -18,9 +16,98 @@ permissions:
   issues: write
 
 jobs:
-  ai-review:
-    if: (github.event_name == 'pull_request_target') && github.actor != 'github-actions[bot]'
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: |
+          mvn clean package -Dmaven.test.skip=true -B 2>&1 | tee build.log
+          BUILD_EXIT=${PIPESTATUS[0]}
+          echo "build_exit_code=$BUILD_EXIT" >> $GITHUB_OUTPUT
+          exit $BUILD_EXIT
+
+      - name: Compile Check
+        id: compile
+        continue-on-error: true
+        run: |
+          if [ -f build.log ]; then
+            mvn compile -B 2>&1 | tee -a build.log
+          else
+            mvn compile -B 2>&1 | tee build.log
+          fi
+
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "## 🔍 ビルド結果" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ steps.build.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Compile | ${{ steps.compile.outcome == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.build.outcome }}" == "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 成果物" >> $GITHUB_STEP_SUMMARY
+            ls -lh target/*.jar 2>/dev/null | awk '{print "- **" $9 "**: " $5}' >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 1
+
+      - name: Upload build results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-results
+          path: |
+            target/*.jar
+            !*sources.jar
+            !*javadoc.jar
+          retention-days: 1
+          if-no-files-found: ignore
+jobs:
+  ai-review:
+    name: AI Review
+    runs-on: ubuntu-latest
+    needs: build
+    if: |
+      always() &&
+      (github.event_name == 'pull_request_target') &&
+      github.actor != 'github-actions[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    # NOTE: ビルド失敗時にもAIレビューを実行します
+    # 目的: レビューの精度向上のためのログ提供（ビルドエラーの原因分析をAIに提供）
     permissions:
       contents: read
       id-token: write
@@ -34,31 +121,26 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
       CLAUDE_CODE_VERSION: 2.1.9
 
+      BUILD_OUTCOME: ${{ needs.build.result }}
+
+
     steps:
-      - name: Cache Bun
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun
-            ~/.cache/bun
-          key: ${{ runner.os }}-bun
+      - name: Setup Cache
+        uses: ./.github/actions/setup-cache
 
-      - name: Cache Claude Code
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.local/bin/claude
-            ~/.claude
-          key: ${{ runner.os }}-claude-code-${{ env.CLAUDE_CODE_VERSION }}
-
-      - name: リポジトリのチェックアウト
-        if: github.event_name != 'push'
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Claude に PR レビューを依頼（コメント投稿も含む）
-        if: github.event_name != 'push' && github.event_name == 'pull_request_target'
+      - name: Download build log
+        uses: actions/download-artifact@v4
+        with:
+          name: build-log
+          path: .
+          continue-on-error: true
+
+      - name: Claude AI Review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
@@ -73,13 +155,24 @@ jobs:
             BASE BRANCH: ${{ github.event.pull_request.base.ref }}
             PR URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
 
+            ## ビルド検証結果
+            - Build Outcome: ${{ needs.build.result }}
+            - Build: ${{ needs.build.result == 'success' && '✅ 成功' || '❌ 失敗' }}
+
+            ## AIレビューの目的について
+            ビルド失敗時にもAIレビューを実行する理由:
+            - レビューの精度向上のためのログ提供
+            - ビルドエラーの原因分析をAIが行うことで、開発者のデバッグ効率を向上
+
             あなたはシニアエンジニアです。このPRをレビューして日本語でフィードバックしてください。
-            KISSの原則に従い、簡潔に具体的に指摘してください。
+            ビルド失敗時は、build.logを確認して失敗原因を分析してください。
+
             必須要件:
             - `gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` と `gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` を使って変更内容/文脈を把握する
-            - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する（`gh api /issues/.../comments` は使わない）
+            - build.logが存在する場合は `cat build.log` でビルドログを確認する
+            - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する
 
-            - 指摘がある場合は、重大度に関係なく各指摘ごとに Issue を自動作成して（`ai-fix,auto-generated` ラベル付与）
+            - 指摘がある場合は、重大度に関係なく各指摘点ごとに Issue を自動作成して（`auto-generated` ラベル付与）
               - ai-issue-fix が自動実行できるよう、Issue本文の先頭に以下のブロックを必ず含める:
                 ---
                 PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -88,8 +181,8 @@ jobs:
                 FIX_MODE: update_pr
                 PR_URL: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number }}
                 ---
-              - 本文には「修正すべき項目（チェックリスト）」「推奨修正方針」「影響範囲」を含める
-            - 指摘が「無い」場合は Issue を作成しない（レビューコメントのみ投稿して終了）
+              - 本文には「修正すべき項目」「推奨修正方針」「影響範囲」，指摘箇所の行数前後引用を含める
+            - 指摘が「無い」場合は Issue を作成しない
 
             レビュー観点:
             1. バグの可能性
@@ -104,37 +197,4 @@ jobs:
             - 必ず該当ファイルと前後行の根拠を添える
           claude_args: |
             --dangerously-skip-permissions
-            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*)"
-
-  ai-fix-review-comment:
-    if: github.event_name == 'pull_request_review'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-      pull-requests: write
-
-    steps:
-      - name: リポジトリのチェックアウト
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: AIによる修正実行
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
-          github_token: ${{ github.token }}
-          show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
-          prompt: |
-            【PR修正モード】以下のレビューコメントを元にコードを修正してください。
-            修正後はコミットしてプッシュしてください。
-
-            ## レビューコメント:
-            ${{ github.event.review.body }}
-          claude_args: |
-            --dangerously-skip-permissions
-        env:
-          ANTHROPIC_BASE_URL: ${{ secrets.CUSTOM_BASE_URL }}
-          ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
-          GITHUB_TOKEN: ${{ github.token }}
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh api:*),Bash(cat build.log:*)"

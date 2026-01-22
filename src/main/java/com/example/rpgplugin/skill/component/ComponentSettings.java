@@ -17,6 +17,24 @@ public class ComponentSettings {
 
     private final Map<String, Object> data = new HashMap<>();
 
+    private Object getValue(String key) {
+        if (key == null) {
+            return null;
+        }
+        Object direct = data.get(key);
+        if (direct != null) {
+            return direct;
+        }
+        // Support both "kebab-case" and "snake_case" keys (editor compatibility)
+        if (key.indexOf('-') >= 0) {
+            return data.get(key.replace('-', '_'));
+        }
+        if (key.indexOf('_') >= 0) {
+            return data.get(key.replace('_', '-'));
+        }
+        return null;
+    }
+
     /**
      * 設定をロードします
      *
@@ -41,7 +59,19 @@ public class ComponentSettings {
      * @return 存在する場合はtrue
      */
     public boolean has(String key) {
-        return data.containsKey(key);
+        return getValue(key) != null;
+    }
+
+    /**
+     * 生の値を取得します（型変換なし）
+     *
+     * <p>kebab-case/snake_case の両方を許容します。</p>
+     *
+     * @param key キー
+     * @return 値、存在しない場合はnull
+     */
+    public Object getRaw(String key) {
+        return getValue(key);
     }
 
     /**
@@ -61,7 +91,7 @@ public class ComponentSettings {
      * @return 設定値
      */
     public String getString(String key, String fallback) {
-        Object value = data.get(key);
+        Object value = getValue(key);
         if (value == null) {
             return fallback;
         }
@@ -76,7 +106,7 @@ public class ComponentSettings {
      * @return 設定値
      */
     public int getInt(String key, int fallback) {
-        Object value = data.get(key);
+        Object value = getValue(key);
         if (value == null) {
             return fallback;
         }
@@ -98,7 +128,7 @@ public class ComponentSettings {
      * @return 設定値
      */
     public double getDouble(String key, double fallback) {
-        Object value = data.get(key);
+        Object value = getValue(key);
         if (value == null) {
             return fallback;
         }
@@ -120,7 +150,7 @@ public class ComponentSettings {
      * @return 設定値
      */
     public boolean getBoolean(String key, boolean fallback) {
-        Object value = data.get(key);
+        Object value = getValue(key);
         if (value == null) {
             return fallback;
         }

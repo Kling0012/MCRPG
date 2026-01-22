@@ -7,7 +7,11 @@ on:
 
 jobs:
   ai-issue-fix:
-    if: github.event_name == 'workflow_dispatch' || github.event.label.name == 'ai-fix'
+    # NOTE: contains()を使用して全ラベルをチェック（複数ラベル同時付与時の実行漏れを防止）
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (contains(github.event.issue.labels.*.name, 'ai-fix') && !contains(github.event.issue.labels.*.name, 'auto-generated'))
+
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -22,28 +26,48 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
 
     steps:
-      - name: Cache Bun
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun
-            ~/.cache/bun
-          key: ${{ runner.os }}-bun
-
-      - name: Cache Claude Code
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.local/bin/claude
-            ~/.claude
-          key: ${{ runner.os }}-claude-code-${{ env.CLAUDE_CODE_VERSION }}
+      - name: Setup Cache
+        uses: ./.github/actions/setup-cache
 
       - name: リポジトリのチェックアウト
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: セキュリティチェック（auto-generated + 作成者検証）
+        id: check-auto-gen
+        run: |
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+
+          # auto-generated ラベルチェック（AIレビュー自動作成Issueをスキップ）
+          LABELS=$(gh issue view $ISSUE_NUMBER --json labels --jq '.labels[].name' | tr '\n' ',')
+          echo "labels=$LABELS" >> $GITHUB_OUTPUT
+
+          if [[ "$LABELS" == *"auto-generated"* ]]; then
+            echo "Issue has 'auto-generated' label. Skipping."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          # 作成者がリポジトリメンバーかチェック（セキュリティ強化）
+          AUTHOR=$(gh issue view $ISSUE_NUMBER --json author --jq '.author.login')
+          echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+
+          # リポジトリのメンバーシップをチェック
+          if ! gh api /repos/${{ github.repository }}/collaborators/$AUTHOR --jq '.permissions.push' > /dev/null 2>&1; then
+            echo "❌ Issue author '$AUTHOR' is not a repository member with write access. Blocking for security."
+            gh issue comment $ISSUE_NUMBER --body "⚠️ セキュリティチェック: Issue作成者に書き込み権限がないため、自動修正をスキップしました。リポジトリメンバーに権限をリクエストしてください。"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          echo "✅ Security checks passed: auto-generated=false, author=$AUTHOR has write access"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Claude に Issue 修正を依頼（PRへ追コミット）
+        if: steps.check-auto-gen.outputs.skip != 'true'
+
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}

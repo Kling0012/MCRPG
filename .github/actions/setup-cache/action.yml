@@ -1,0 +1,36 @@
+name: 'Setup Cache'
+description: '共通キャッシュ設定（Bun, Claude Code, Maven）'
+
+inputs:
+  cache-maven:
+    description: 'Mavenキャッシュを有効にする'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache Bun
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.bun
+          ~/.cache/bun
+        key: ${{ runner.os }}-bun
+
+    - name: Cache Claude Code
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.local/bin/claude
+          ~/.claude
+        key: ${{ runner.os }}-claude-code-2.1.9
+
+    - name: Cache Maven
+      if: inputs.cache-maven == 'true'
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-

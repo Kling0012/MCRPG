@@ -8,6 +8,9 @@ import com.example.rpgplugin.skill.evaluator.FormulaEvaluator;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +32,7 @@ import java.util.Map;
  */
 public abstract class EffectComponent {
 
+    private static final Logger LOGGER = Logger.getLogger(EffectComponent.class.getName());
     private static final FormulaEvaluator FORMULA_EVALUATOR = new FormulaEvaluator();
 
     /**
@@ -271,8 +275,10 @@ public abstract class EffectComponent {
 
             return FORMULA_EVALUATOR.evaluate(str, rpgPlayer, skillLevel, variables);
         } catch (FormulaEvaluator.FormulaEvaluationException e) {
+            LOGGER.log(Level.WARNING, "[EffectComponent] 数式評価エラー: key=" + key + ", formula=" + str + ", error=" + e.getMessage(), e);
             return fallback;
         } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "[EffectComponent] 予期しないエラー: key=" + key + ", formula=" + str, e);
             return fallback;
         }
     }

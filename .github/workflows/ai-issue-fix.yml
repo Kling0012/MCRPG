@@ -7,9 +7,10 @@ on:
 
 jobs:
   ai-issue-fix:
+    # NOTE: contains()を使用して全ラベルをチェック（複数ラベル同時付与時の実行漏れを防止）
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event.label.name == 'ai-fix' && !contains(github.event.issue.labels.*.name, 'auto-generated'))
+      (contains(github.event.issue.labels.*.name, 'ai-fix') && !contains(github.event.issue.labels.*.name, 'auto-generated'))
 
     runs-on: ubuntu-latest
     permissions:
@@ -25,21 +26,8 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.CUSTOM_API_KEY }}
 
     steps:
-      - name: Cache Bun
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun
-            ~/.cache/bun
-          key: ${{ runner.os }}-bun
-
-      - name: Cache Claude Code
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.local/bin/claude
-            ~/.claude
-          key: ${{ runner.os }}-claude-code-${{ env.CLAUDE_CODE_VERSION }}
+      - name: Setup Cache
+        uses: ./.github/actions/setup-cache
 
       - name: リポジトリのチェックアウト
         uses: actions/checkout@v4

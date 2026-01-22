@@ -106,6 +106,8 @@ jobs:
       (github.event_name == 'pull_request_target') &&
       github.actor != 'github-actions[bot]' &&
       github.event.pull_request.head.repo.full_name == github.repository
+    # NOTE: ビルド失敗時にもAIレビューを実行します
+    # 目的: レビューの精度向上のためのログ提供（ビルドエラーの原因分析をAIに提供）
     permissions:
       contents: read
       id-token: write
@@ -123,21 +125,8 @@ jobs:
 
 
     steps:
-      - name: Cache Bun
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun
-            ~/.cache/bun
-          key: ${{ runner.os }}-bun
-
-      - name: Cache Claude Code
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.local/bin/claude
-            ~/.claude
-          key: ${{ runner.os }}-claude-code-${{ env.CLAUDE_CODE_VERSION }}
+      - name: Setup Cache
+        uses: ./.github/actions/setup-cache
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -170,6 +159,11 @@ jobs:
             - Build Outcome: ${{ needs.build.result }}
             - Build: ${{ needs.build.result == 'success' && '✅ 成功' || '❌ 失敗' }}
 
+            ## AIレビューの目的について
+            ビルド失敗時にもAIレビューを実行する理由:
+            - レビューの精度向上のためのログ提供
+            - ビルドエラーの原因分析をAIが行うことで、開発者のデバッグ効率を向上
+
             あなたはシニアエンジニアです。このPRをレビューして日本語でフィードバックしてください。
             ビルド失敗時は、build.logを確認して失敗原因を分析してください。
 
@@ -178,7 +172,7 @@ jobs:
             - build.logが存在する場合は `cat build.log` でビルドログを確認する
             - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する
 
-            - 指摘がある場合は、重大度に関係なく Issue を自動作成して（`ai-fix,auto-generated` ラベル付与）
+            - 指摘がある場合は、重大度に関係なく各指摘点ごとに Issue を自動作成して（`auto-generated` ラベル付与）
               - ai-issue-fix が自動実行できるよう、Issue本文の先頭に以下のブロックを必ず含める:
                 ---
                 PR_NUMBER: ${{ github.event.pull_request.number }}

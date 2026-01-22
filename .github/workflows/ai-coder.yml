@@ -96,7 +96,7 @@ jobs:
             !*javadoc.jar
           retention-days: 1
           if-no-files-found: ignore
-jobs:
+
   ai-review:
     name: AI Review
     runs-on: ubuntu-latest

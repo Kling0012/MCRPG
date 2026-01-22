@@ -1,5 +1,10 @@
 package com.example.rpgplugin.integration;
 
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.VariableDefinition;
+
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.skill.Skill;
@@ -560,7 +565,7 @@ class TargetingIntegrationTest {
      * 扇状範囲スキルを作成
      */
     private Skill createConeSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 30.0,
                 Stat.INTELLIGENCE,
                 1.5,
@@ -585,12 +590,12 @@ class TargetingIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 skillTarget,
                 null  // componentEffect
         );
@@ -600,7 +605,7 @@ class TargetingIntegrationTest {
      * 円形範囲スキルを作成
      */
     private Skill createCircleSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 25.0,
                 Stat.INTELLIGENCE,
                 1.0,
@@ -625,12 +630,12 @@ class TargetingIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 skillTarget,
                 null  // componentEffect
         );

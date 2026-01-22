@@ -91,7 +91,7 @@ class SkillExecutorTest {
     // ==================== ヘルパーメソッド ====================
 
     private Skill createTestSkill(String id, String displayName) {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, Stat.STRENGTH, 1.0, 0.0);
+        DamageCalculation damage = new DamageCalculation(10.0, Stat.STRENGTH, 1.0, 0.0);
         LevelDependentParameter cooldownParam = new LevelDependentParameter(5.0, 0.0, null, null);
         LevelDependentParameter costParam = new LevelDependentParameter(10.0, 0.0, null, null);
 
@@ -251,7 +251,7 @@ class SkillExecutorTest {
     @Test
     @DisplayName("calculateDamage: ステータスnull")
     void testCalculateDamage_NullStat() {
-        Skill.DamageCalculation damageConfig = new Skill.DamageCalculation(10.0, null, 1.0, 0.0);
+        DamageCalculation damageConfig = new DamageCalculation(10.0, null, 1.0, 0.0);
         Skill skillWithNullStat = new Skill(
                 "null_stat", "null_stat", "ステータスなし", SkillType.NORMAL, List.of(),
                 1, 0.0, 0, null, null, SkillCostType.MANA,

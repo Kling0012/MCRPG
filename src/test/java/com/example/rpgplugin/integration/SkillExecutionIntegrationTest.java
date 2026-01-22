@@ -1,5 +1,10 @@
 package com.example.rpgplugin.integration;
 
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.VariableDefinition;
+
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
@@ -466,7 +471,7 @@ class SkillExecutionIntegrationTest {
      */
     private Skill createSlashSkill() {
         // ダメージ設定（レガシー形式）
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 50.0,
                 Stat.STRENGTH,
                 1.5,
@@ -502,12 +507,12 @@ class SkillExecutionIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 skillTarget,
                 null  // componentEffect
         );
@@ -518,7 +523,7 @@ class SkillExecutionIntegrationTest {
      */
     private Skill createFireballSkill() {
         // ダメージ設定（INTELLIGENCEベース）
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 40.0,
                 Stat.INTELLIGENCE,
                 2.0,
@@ -554,12 +559,12 @@ class SkillExecutionIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 skillTarget,
                 null  // componentEffect
         );
@@ -570,7 +575,7 @@ class SkillExecutionIntegrationTest {
      */
     private Skill createFormulaSkill() {
         // 数式ダメージ設定
-        Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+        FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "STR * 1.5 + INT * 1.0 + Lv * 5",
                 null
         );
@@ -593,13 +598,13 @@ class SkillExecutionIntegrationTest {
                 cooldownParam,
                 costParam,
                 SkillCostType.MANA,
-                (Skill.DamageCalculation) null,
-                (Skill.SkillTreeConfig) null,
+                (DamageCalculation) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
+                (java.util.List<VariableDefinition>) null,
                 formulaDamage,
-                (Skill.TargetingConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -610,7 +615,7 @@ class SkillExecutionIntegrationTest {
      */
     private Skill createLevelBasedFormulaSkill() {
         // レベル別数式ダメージ設定
-        Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+        FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "STR * 2.0",
                 java.util.Map.of(
                         1, "STR * 2.0",
@@ -637,13 +642,13 @@ class SkillExecutionIntegrationTest {
                 cooldownParam,
                 costParam,
                 SkillCostType.MANA,
-                (Skill.DamageCalculation) null,
-                (Skill.SkillTreeConfig) null,
+                (DamageCalculation) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
+                (java.util.List<VariableDefinition>) null,
                 formulaDamage,
-                (Skill.TargetingConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );

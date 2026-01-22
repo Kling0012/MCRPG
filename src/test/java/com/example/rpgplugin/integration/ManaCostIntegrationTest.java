@@ -1,5 +1,10 @@
 package com.example.rpgplugin.integration;
 
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.VariableDefinition;
+
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
@@ -506,7 +511,7 @@ class ManaCostIntegrationTest {
      * MP消費スキルを作成（レベルで増加）
      */
     private Skill createManaCostSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 40.0,
                 Stat.INTELLIGENCE,
                 2.0,
@@ -529,12 +534,12 @@ class ManaCostIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -544,7 +549,7 @@ class ManaCostIntegrationTest {
      * 中程度MP消費スキルを作成
      */
     private Skill createMediumManaCostSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 25.0,
                 Stat.INTELLIGENCE,
                 1.5,
@@ -567,12 +572,12 @@ class ManaCostIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -582,7 +587,7 @@ class ManaCostIntegrationTest {
      * HP消費スキルを作成
      */
     private Skill createHPCostSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 100.0,
                 Stat.STRENGTH,
                 3.0,
@@ -605,12 +610,12 @@ class ManaCostIntegrationTest {
                 costParam,
                 SkillCostType.HP,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -620,7 +625,7 @@ class ManaCostIntegrationTest {
      * 可変コストスキルを作成（上限付き）
      */
     private Skill createVariableCostSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 50.0,
                 Stat.INTELLIGENCE,
                 2.5,
@@ -643,12 +648,12 @@ class ManaCostIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -658,7 +663,7 @@ class ManaCostIntegrationTest {
      * 減少コストスキルを作成（下限付き）
      */
     private Skill createDecreasingCostSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 30.0,
                 Stat.INTELLIGENCE,
                 1.5,
@@ -681,12 +686,12 @@ class ManaCostIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );

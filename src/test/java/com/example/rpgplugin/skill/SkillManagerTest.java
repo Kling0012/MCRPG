@@ -91,7 +91,7 @@ class SkillManagerTest {
     }
 
     private Skill createTestSkill(String id, String displayName, List<String> availableClasses) {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, Stat.STRENGTH, 1.0, 0.0);
+        DamageCalculation damage = new DamageCalculation(10.0, Stat.STRENGTH, 1.0, 0.0);
         LevelDependentParameter cooldownParam = new LevelDependentParameter(5.0, 0.0, null, null);
         LevelDependentParameter costParam = new LevelDependentParameter(10.0, 0.0, null, null);
 

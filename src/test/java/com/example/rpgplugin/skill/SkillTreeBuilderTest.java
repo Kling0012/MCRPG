@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill;
 
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -38,7 +40,7 @@ class SkillTreeBuilderTest {
     }
 
     private Skill createSkillWithTree(String id, String parentId, int cost) {
-        Skill.SkillTreeConfig treeConfig = new Skill.SkillTreeConfig(
+        SkillTreeConfig treeConfig = new SkillTreeConfig(
                 parentId,
                 List.of(),
                 cost,
@@ -54,8 +56,8 @@ class SkillTreeBuilderTest {
         );
     }
 
-    private Skill createSkillWithRequirements(String id, List<Skill.UnlockRequirement> requirements) {
-        Skill.SkillTreeConfig treeConfig = new Skill.SkillTreeConfig(
+    private Skill createSkillWithRequirements(String id, List<UnlockRequirement> requirements) {
+        SkillTreeConfig treeConfig = new SkillTreeConfig(
                 "none",
                 requirements,
                 1,
@@ -627,9 +629,9 @@ class SkillTreeBuilderTest {
         void testSkillWithRequirements() {
             SkillTreeBuilder builder = new SkillTreeBuilder(classId, logger);
 
-            List<Skill.UnlockRequirement> requirements = List.of(
-                    new Skill.UnlockRequirement("level", null, 5),
-                    new Skill.UnlockRequirement("stat",
+            List<UnlockRequirement> requirements = List.of(
+                    new UnlockRequirement("level", null, 5),
+                    new UnlockRequirement("stat",
                             com.example.rpgplugin.stats.Stat.STRENGTH, 10.0)
             );
 
@@ -752,7 +754,7 @@ class SkillTreeBuilderTest {
         @Test
         @DisplayName("親IDがnullのスキルはルートとして扱われること")
         void testNullParentId() {
-            Skill.SkillTreeConfig treeConfig = new Skill.SkillTreeConfig(
+            SkillTreeConfig treeConfig = new SkillTreeConfig(
                     null,
                     Collections.emptyList(),
                     1,
@@ -778,7 +780,7 @@ class SkillTreeBuilderTest {
         @Test
         @DisplayName("icon付きのスキルツリー設定が保持されること")
         void testSkillTreeWithIcon() {
-            Skill.SkillTreeConfig treeConfig = new Skill.SkillTreeConfig(
+            SkillTreeConfig treeConfig = new SkillTreeConfig(
                     "none",
                     Collections.emptyList(),
                     1,

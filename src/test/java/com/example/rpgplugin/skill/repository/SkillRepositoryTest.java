@@ -1,5 +1,6 @@
 package com.example.rpgplugin.skill.repository;
 
+import com.example.rpgplugin.model.skill.DamageCalculation;
 import com.example.rpgplugin.skill.LevelDependentParameter;
 import com.example.rpgplugin.skill.Skill;
 import com.example.rpgplugin.skill.SkillCostType;
@@ -372,7 +373,7 @@ class SkillRepositoryTest {
      * シンプルなスキルを作成します
      */
     private Skill createSimpleSkill(String id, String displayName) {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 10.0, Stat.STRENGTH, 1.0, 0.0
         );
         LevelDependentParameter cooldownParam = new LevelDependentParameter(
@@ -405,7 +406,7 @@ class SkillRepositoryTest {
      * 全クラス共通スキルを作成します
      */
     private Skill createClassCommonSkill(String id, String displayName) {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 5.0, Stat.STRENGTH, 1.0, 0.0
         );
         LevelDependentParameter cooldownParam = new LevelDependentParameter(

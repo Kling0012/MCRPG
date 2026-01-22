@@ -103,7 +103,7 @@ class PassiveSkillExecutorTest {
     }
 
     private Skill createTestSkill(String id, String displayName) {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(5.0, Stat.STRENGTH, 1.0, 0.0);
+        DamageCalculation damage = new DamageCalculation(5.0, Stat.STRENGTH, 1.0, 0.0);
         LevelDependentParameter cooldownParam = new LevelDependentParameter(0.0, 0.0, null, null);
         LevelDependentParameter costParam = new LevelDependentParameter(0.0, 0.0, null, null);
 
@@ -363,7 +363,7 @@ class PassiveSkillExecutorTest {
     @Test
     @DisplayName("applyPassive: null stat multiplier")
     void testApplyPassive_NullStatMultiplier() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, null, 0.0, 0.0);
+        DamageCalculation damage = new DamageCalculation(10.0, null, 0.0, 0.0);
         LevelDependentParameter cooldownParam = new LevelDependentParameter(0.0, 0.0, null, null);
         LevelDependentParameter costParam = new LevelDependentParameter(0.0, 0.0, null, null);
 

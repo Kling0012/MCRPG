@@ -517,7 +517,7 @@ class ComponentSystemIntegrationTest {
 
     @Nested
     @DisplayName("テスト5: コンポーネント設定")
-    class Test5ComponentSettings {
+        class Test5ComponentSettings {
 
         @Test
         @DisplayName("テスト5-1: ComponentSettingsに値を設定・取得できる")
@@ -581,9 +581,9 @@ class ComponentSystemIntegrationTest {
             assertThat(disabled).isFalse();
         }
 
-        @Test
-        @DisplayName("テスト5-5: ComponentSettingsでキー存在確認ができる")
-        void test5_5_ComponentSettingsHas() {
+            @Test
+            @DisplayName("テスト5-5: ComponentSettingsでキー存在確認ができる")
+            void test5_5_ComponentSettingsHas() {
             // Given: コンポーネント設定
             ComponentSettings settings = new ComponentSettings();
             settings.put("existing_key", "value");
@@ -593,10 +593,25 @@ class ComponentSystemIntegrationTest {
             boolean hasMissing = settings.has("missing_key");
 
             // Then: 正しい結果が返る
-            assertThat(hasExisting).isTrue();
-            assertThat(hasMissing).isFalse();
+                assertThat(hasExisting).isTrue();
+                assertThat(hasMissing).isFalse();
+            }
+
+            @Test
+            @DisplayName("テスト5-6: kebab-case/snake_case のキー互換がある")
+            void test5_6_ComponentSettingsKeyCompatibility() {
+                ComponentSettings settings = new ComponentSettings();
+                settings.put("value_base", "10.5");
+                settings.put("min-value", "3");
+
+                assertThat(settings.getDouble("value-base", 0.0)).isEqualTo(10.5);
+                assertThat(settings.getInt("min_value", 0)).isEqualTo(3);
+                assertThat(settings.has("value-base")).isTrue();
+                assertThat(settings.has("min_value")).isTrue();
+                assertThat(settings.getRaw("value-base")).isEqualTo("10.5");
+                assertThat(settings.getRaw("min_value")).isEqualTo("3");
+            }
         }
-    }
 
     // ==================== テスト6: コンポーネントタイプ ====================
 
@@ -631,6 +646,32 @@ class ComponentSystemIntegrationTest {
 
             // Then: タイプがMECHANICである
             assertThat(mechanic.getType()).isEqualTo(ComponentType.MECHANIC);
+        }
+    }
+
+    @Nested
+    @DisplayName("テストX: 数式/変数（components）")
+    class TestXComponentFormulaSupport {
+
+        @Test
+        @DisplayName("components の value_base/value_scale で数式(Lv)が使える")
+        void testX_1_DamageMechanicSupportsFormulaWithLv() {
+            DamageMechanic mechanic = new DamageMechanic();
+            ComponentSettings settings = mechanic.getSettings();
+            settings.put("value_base", "Lv * 2");
+            settings.put("value_scale", "1");
+            // default type=damage, true-damage=false
+
+            org.bukkit.entity.LivingEntity caster = mock(org.bukkit.entity.LivingEntity.class);
+            org.bukkit.entity.LivingEntity target = mock(org.bukkit.entity.LivingEntity.class);
+
+            // When
+            mechanic.execute(caster, 3, List.of(target));
+
+            // Then: amount = (Lv*2) + (Lv-1)*1 = 6 + 2 = 8
+            ArgumentCaptor<Double> amountCaptor = ArgumentCaptor.forClass(Double.class);
+            verify(target, times(1)).damage(amountCaptor.capture(), eq(caster));
+            assertThat(amountCaptor.getValue()).isEqualTo(8.0);
         }
     }
 

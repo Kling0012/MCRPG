@@ -1,6 +1,12 @@
 package com.example.rpgplugin.integration;
 
+import com.example.rpgplugin.model.skill.DamageCalculation;
+
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.LevelDependentParameter;
@@ -31,6 +37,11 @@ import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 
 /**
  * レベルアップによるパラメータ変化の結合テスト
@@ -484,7 +495,7 @@ class LevelUpIntegrationTest {
      * クールダウン短縮スキルを作成
      */
     private Skill createCooldownReductionSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 50.0,
                 Stat.STRENGTH,
                 1.5,
@@ -507,12 +518,12 @@ class LevelUpIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -522,7 +533,7 @@ class LevelUpIntegrationTest {
      * 固定クールダウンスキルを作成
      */
     private Skill createFixedCooldownSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 40.0,
                 Stat.STRENGTH,
                 1.0,
@@ -545,12 +556,12 @@ class LevelUpIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -560,7 +571,7 @@ class LevelUpIntegrationTest {
      * コスト増加スキルを作成
      */
     private Skill createCostIncreaseSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 60.0,
                 Stat.INTELLIGENCE,
                 2.0,
@@ -583,12 +594,12 @@ class LevelUpIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -598,7 +609,7 @@ class LevelUpIntegrationTest {
      * 固定コストスキルを作成
      */
     private Skill createFixedCostSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 100.0,
                 Stat.STRENGTH,
                 3.0,
@@ -621,12 +632,12 @@ class LevelUpIntegrationTest {
                 costParam,
                 SkillCostType.HP,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -636,7 +647,7 @@ class LevelUpIntegrationTest {
      * ダメージスキルを作成
      */
     private Skill createDamageSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 50.0,
                 Stat.STRENGTH,
                 1.5,
@@ -659,12 +670,12 @@ class LevelUpIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -674,7 +685,7 @@ class LevelUpIntegrationTest {
      * 全パラメータレベル依存スキルを作成
      */
     private Skill createFullLevelDependentSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 30.0,
                 Stat.INTELLIGENCE,
                 1.5,
@@ -697,12 +708,12 @@ class LevelUpIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );
@@ -712,7 +723,7 @@ class LevelUpIntegrationTest {
      * バランス設計スキルを作成
      */
     private Skill createBalancedSkill() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(
+        DamageCalculation damage = new DamageCalculation(
                 40.0,
                 Stat.STRENGTH,
                 1.2,
@@ -735,12 +746,12 @@ class LevelUpIntegrationTest {
                 costParam,
                 SkillCostType.MANA,
                 damage,
-                (Skill.SkillTreeConfig) null,
+                (SkillTreeConfig) null,
                 (String) null,
                 java.util.List.of(),
-                (java.util.List<Skill.VariableDefinition>) null,
-                (Skill.FormulaDamageConfig) null,
-                (Skill.TargetingConfig) null,
+                (java.util.List<VariableDefinition>) null,
+                (FormulaDamageConfig) null,
+                (TargetingConfig) null,
                 (com.example.rpgplugin.skill.target.SkillTarget) null,
                 null  // componentEffect
         );

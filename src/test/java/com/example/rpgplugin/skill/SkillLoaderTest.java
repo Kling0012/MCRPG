@@ -1,6 +1,12 @@
 package com.example.rpgplugin.skill;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +23,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 
 /**
  * SkillLoaderのテストクラス
@@ -146,7 +158,7 @@ class SkillLoaderTest {
         Skill skill = skills.get(0);
         assertTrue(skill.hasVariables(), "カスタム変数が存在すべき");
         
-        List<Skill.VariableDefinition> vars = skill.getVariables();
+        List<VariableDefinition> vars = skill.getVariables();
         assertFalse(vars.isEmpty());
         
         // 変数マップの検証
@@ -184,7 +196,7 @@ class SkillLoaderTest {
         Skill skill = skills.get(0);
         assertTrue(skill.hasFormulaDamage(), "数式ダメージ設定が存在すべき");
 
-        Skill.FormulaDamageConfig formulaDamage = skill.getFormulaDamage();
+        FormulaDamageConfig formulaDamage = skill.getFormulaDamage();
         assertNotNull(formulaDamage);
         assertEquals("STR * str_scale + Lv * 5", formulaDamage.getFormula());
         assertEquals("STR * str_scale + Lv * 5", formulaDamage.getFormula(1));
@@ -220,7 +232,7 @@ class SkillLoaderTest {
         Skill skill = skills.get(0);
         assertTrue(skill.hasFormulaDamage());
 
-        Skill.FormulaDamageConfig formulaDamage = skill.getFormulaDamage();
+        FormulaDamageConfig formulaDamage = skill.getFormulaDamage();
         assertTrue(formulaDamage.hasLevelFormulas(), "レベル別数式が存在すべき");
 
         assertEquals("STR * 2", formulaDamage.getFormula(1));
@@ -258,13 +270,13 @@ class SkillLoaderTest {
         Skill skill = skills.get(0);
         assertTrue(skill.hasTargeting(), "ターゲット設定が存在すべき");
 
-        Skill.TargetingConfig targeting = skill.getTargeting();
+        TargetingConfig targeting = skill.getTargeting();
         assertEquals("cone", targeting.getType());
         assertNotNull(targeting.getParams());
 
-        assertTrue(targeting.getParams() instanceof Skill.TargetingConfig.ConeParams);
-        Skill.TargetingConfig.ConeParams coneParams = 
-            (Skill.TargetingConfig.ConeParams) targeting.getParams();
+        assertTrue(targeting.getParams() instanceof TargetingConfig.ConeParams);
+        TargetingConfig.ConeParams coneParams = 
+            (TargetingConfig.ConeParams) targeting.getParams();
         assertEquals(90.0, coneParams.getAngle());
         assertEquals(5.0, coneParams.getRange());
     }
@@ -297,12 +309,12 @@ class SkillLoaderTest {
         Skill skill = skills.get(0);
         assertTrue(skill.hasTargeting());
 
-        Skill.TargetingConfig targeting = skill.getTargeting();
+        TargetingConfig targeting = skill.getTargeting();
         assertEquals("sphere", targeting.getType());
 
-        assertTrue(targeting.getParams() instanceof Skill.TargetingConfig.SphereParams);
-        Skill.TargetingConfig.SphereParams sphereParams = 
-            (Skill.TargetingConfig.SphereParams) targeting.getParams();
+        assertTrue(targeting.getParams() instanceof TargetingConfig.SphereParams);
+        TargetingConfig.SphereParams sphereParams = 
+            (TargetingConfig.SphereParams) targeting.getParams();
         assertEquals(3.0, sphereParams.getRadius());
     }
 
@@ -458,13 +470,13 @@ class SkillLoaderTest {
         assertEquals(1.5, skill.getVariableMap().get("str_scale"));
 
         // 数式の検証
-        Skill.FormulaDamageConfig formulaDamage = skill.getFormulaDamage();
+        FormulaDamageConfig formulaDamage = skill.getFormulaDamage();
         assertTrue(formulaDamage.hasLevelFormulas());
 
         // ターゲットの検証
-        Skill.TargetingConfig targeting = skill.getTargeting();
+        TargetingConfig targeting = skill.getTargeting();
         assertEquals("sector", targeting.getType());
-        assertTrue(targeting.getParams() instanceof Skill.TargetingConfig.SectorParams);
+        assertTrue(targeting.getParams() instanceof TargetingConfig.SectorParams);
     }
 
     // ===== 追加: 新YAMLフォーマットの拡張テスト =====
@@ -498,12 +510,12 @@ class SkillLoaderTest {
         Skill skill = skills.get(0);
         assertTrue(skill.hasTargeting());
 
-        Skill.TargetingConfig targeting = skill.getTargeting();
+        TargetingConfig targeting = skill.getTargeting();
         assertEquals("sector", targeting.getType());
-        assertTrue(targeting.getParams() instanceof Skill.TargetingConfig.SectorParams);
+        assertTrue(targeting.getParams() instanceof TargetingConfig.SectorParams);
 
-        Skill.TargetingConfig.SectorParams sectorParams =
-                (Skill.TargetingConfig.SectorParams) targeting.getParams();
+        TargetingConfig.SectorParams sectorParams =
+                (TargetingConfig.SectorParams) targeting.getParams();
         assertEquals(120.0, sectorParams.getAngle());
         assertEquals(6.0, sectorParams.getRadius());
     }
@@ -831,7 +843,7 @@ class SkillLoaderTest {
         Skill skill = skills.get(0);
         assertNotNull(skill.getDamage());
 
-        Skill.DamageCalculation damage = skill.getDamage();
+        DamageCalculation damage = skill.getDamage();
         assertEquals(30.0, damage.getBase());
         assertEquals(1.8, damage.getMultiplierValue());
         assertEquals(8.0, damage.getLevelMultiplier());
@@ -899,11 +911,11 @@ class SkillLoaderTest {
         assertNotNull(skill.getSkillTree());
 
         // Unlock要件が存在するか確認
-        List<Skill.UnlockRequirement> reqs = skill.getSkillTree().getUnlockRequirements();
+        List<UnlockRequirement> reqs = skill.getSkillTree().getUnlockRequirements();
         assertNotNull(reqs);
         // stat要件が含まれているか確認（要件が1つ以上あればOK）
         if (!reqs.isEmpty()) {
-            Skill.UnlockRequirement statReq = reqs.stream()
+            UnlockRequirement statReq = reqs.stream()
                     .filter(r -> "stat".equals(r.getType()))
                     .findFirst()
                     .orElse(null);
@@ -1106,12 +1118,12 @@ class SkillLoaderTest {
         // スキルツリーが正しくパースされていることを確認
         assertNotNull(skill.getSkillTree());
         // unlock_requirementsがパースされているか確認
-        List<Skill.UnlockRequirement> reqs = skill.getSkillTree().getUnlockRequirements();
+        List<UnlockRequirement> reqs = skill.getSkillTree().getUnlockRequirements();
         assertNotNull(reqs);
         // 要件が1つ以上あれば成功
         if (!reqs.isEmpty()) {
             // 最初の要件の確認
-            Skill.UnlockRequirement firstReq = reqs.get(0);
+            UnlockRequirement firstReq = reqs.get(0);
             assertNotNull(firstReq.getType());
         }
     }
@@ -1268,8 +1280,8 @@ class SkillLoaderTest {
         Skill skill = skills.get(0);
         assertTrue(skill.hasTargeting());
 
-        Skill.TargetingConfig.SectorParams params =
-                (Skill.TargetingConfig.SectorParams) skill.getTargeting().getParams();
+        TargetingConfig.SectorParams params =
+                (TargetingConfig.SectorParams) skill.getTargeting().getParams();
         assertEquals(360.0, params.getAngle());
         assertEquals(100.0, params.getRadius());
     }
@@ -1303,10 +1315,10 @@ class SkillLoaderTest {
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
 
-        List<Skill.UnlockRequirement> reqs = skill.getSkillTree().getUnlockRequirements();
+        List<UnlockRequirement> reqs = skill.getSkillTree().getUnlockRequirements();
         // 要件が存在し、statがnullであることを確認
         if (!reqs.isEmpty()) {
-            Skill.UnlockRequirement statReq = reqs.stream()
+            UnlockRequirement statReq = reqs.stream()
                     .filter(r -> "stat".equals(r.getType()))
                     .findFirst()
                     .orElse(null);
@@ -1429,7 +1441,7 @@ class SkillLoaderTest {
 
         // unlock_requirementsがパースされていることを確認
         // （パースに成功していれば空リストが返る）
-        List<Skill.UnlockRequirement> reqs = skill.getSkillTree().getUnlockRequirements();
+        List<UnlockRequirement> reqs = skill.getSkillTree().getUnlockRequirements();
         assertNotNull(reqs);
     }
 
@@ -1906,7 +1918,7 @@ class SkillLoaderTest {
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
 
-        Skill.SkillTreeConfig tree = skill.getSkillTree();
+        SkillTreeConfig tree = skill.getSkillTree();
         assertNotNull(tree);
         // unlock_requirementsは空リストの可能性がある
         var requirements = tree.getUnlockRequirements();
@@ -1941,11 +1953,11 @@ class SkillLoaderTest {
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
 
-        Skill.SkillTreeConfig tree = skill.getSkillTree();
+        SkillTreeConfig tree = skill.getSkillTree();
         var requirements = tree.getUnlockRequirements();
         assertNotNull(requirements);
         if (!requirements.isEmpty()) {
-            Skill.UnlockRequirement req = requirements.get(0);
+            UnlockRequirement req = requirements.get(0);
             assertEquals("level", req.getType());
             assertEquals(10.0, req.getValue());
         }
@@ -1980,11 +1992,11 @@ class SkillLoaderTest {
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
 
-        Skill.SkillTreeConfig tree = skill.getSkillTree();
+        SkillTreeConfig tree = skill.getSkillTree();
         var requirements = tree.getUnlockRequirements();
         assertNotNull(requirements);
         if (!requirements.isEmpty()) {
-            Skill.UnlockRequirement req = requirements.get(0);
+            UnlockRequirement req = requirements.get(0);
             assertEquals("stat", req.getType());
             assertEquals(com.example.rpgplugin.stats.Stat.STRENGTH, req.getStat());
         }
@@ -2019,11 +2031,11 @@ class SkillLoaderTest {
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
 
-        Skill.SkillTreeConfig tree = skill.getSkillTree();
+        SkillTreeConfig tree = skill.getSkillTree();
         var requirements = tree.getUnlockRequirements();
         assertNotNull(requirements);
         if (!requirements.isEmpty()) {
-            Skill.UnlockRequirement req = requirements.get(0);
+            UnlockRequirement req = requirements.get(0);
             assertEquals("stat", req.getType());
             assertEquals(com.example.rpgplugin.stats.Stat.STRENGTH, req.getStat());
         }
@@ -2577,11 +2589,11 @@ class SkillLoaderTest {
         List<Skill> skills = loader.loadAllSkills();
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
-        Skill.SkillTreeConfig tree = skill.getSkillTree();
+        SkillTreeConfig tree = skill.getSkillTree();
         assertNotNull(tree);
         var requirements = tree.getUnlockRequirements();
         assertFalse(requirements.isEmpty());
-        Skill.UnlockRequirement req = requirements.get(0);
+        UnlockRequirement req = requirements.get(0);
         assertEquals("stat", req.getType());
         assertEquals(com.example.rpgplugin.stats.Stat.STRENGTH, req.getStat());
         assertEquals(50.0, req.getValue());
@@ -2614,11 +2626,11 @@ class SkillLoaderTest {
         List<Skill> skills = loader.loadAllSkills();
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
-        Skill.SkillTreeConfig tree = skill.getSkillTree();
+        SkillTreeConfig tree = skill.getSkillTree();
         assertNotNull(tree);
         var requirements = tree.getUnlockRequirements();
         assertFalse(requirements.isEmpty());
-        Skill.UnlockRequirement req = requirements.get(0);
+        UnlockRequirement req = requirements.get(0);
         assertEquals("level", req.getType());
         assertEquals(10.0, req.getValue());
     }
@@ -2656,7 +2668,7 @@ class SkillLoaderTest {
         List<Skill> skills = loader.loadAllSkills();
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
-        Skill.SkillTreeConfig tree = skill.getSkillTree();
+        SkillTreeConfig tree = skill.getSkillTree();
         assertNotNull(tree);
         var requirements = tree.getUnlockRequirements();
         assertTrue(requirements.size() >= 2);
@@ -2689,11 +2701,11 @@ class SkillLoaderTest {
         List<Skill> skills = loader.loadAllSkills();
         assertFalse(skills.isEmpty());
         Skill skill = skills.get(0);
-        Skill.SkillTreeConfig tree = skill.getSkillTree();
+        SkillTreeConfig tree = skill.getSkillTree();
         assertNotNull(tree);
         var requirements = tree.getUnlockRequirements();
         assertFalse(requirements.isEmpty());
-        Skill.UnlockRequirement req = requirements.get(0);
+        UnlockRequirement req = requirements.get(0);
         assertEquals("stat", req.getType());
         assertNull(req.getStat());
     }

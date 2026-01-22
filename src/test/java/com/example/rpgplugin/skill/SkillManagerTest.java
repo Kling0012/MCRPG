@@ -1,6 +1,7 @@
 package com.example.rpgplugin.skill;
 
 import com.example.rpgplugin.RPGPlugin;
+import com.example.rpgplugin.model.skill.DamageCalculation;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.evaluator.FormulaEvaluator;
@@ -29,6 +30,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.DamageCalculation;
 
 /**
  * SkillManagerの単体テスト
@@ -91,7 +93,7 @@ class SkillManagerTest {
     }
 
     private Skill createTestSkill(String id, String displayName, List<String> availableClasses) {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, Stat.STRENGTH, 1.0, 0.0);
+        DamageCalculation damage = new DamageCalculation(10.0, Stat.STRENGTH, 1.0, 0.0);
         LevelDependentParameter cooldownParam = new LevelDependentParameter(5.0, 0.0, null, null);
         LevelDependentParameter costParam = new LevelDependentParameter(10.0, 0.0, null, null);
 

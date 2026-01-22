@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill.executor;
 
+import com.example.rpgplugin.model.skill.DamageCalculation;
+
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
@@ -34,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.DamageCalculation;
 
 /**
  * PassiveSkillExecutorの単体テスト
@@ -103,7 +106,7 @@ class PassiveSkillExecutorTest {
     }
 
     private Skill createTestSkill(String id, String displayName) {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(5.0, Stat.STRENGTH, 1.0, 0.0);
+        DamageCalculation damage = new DamageCalculation(5.0, Stat.STRENGTH, 1.0, 0.0);
         LevelDependentParameter cooldownParam = new LevelDependentParameter(0.0, 0.0, null, null);
         LevelDependentParameter costParam = new LevelDependentParameter(0.0, 0.0, null, null);
 
@@ -363,7 +366,7 @@ class PassiveSkillExecutorTest {
     @Test
     @DisplayName("applyPassive: null stat multiplier")
     void testApplyPassive_NullStatMultiplier() {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, null, 0.0, 0.0);
+        DamageCalculation damage = new DamageCalculation(10.0, null, 0.0, 0.0);
         LevelDependentParameter cooldownParam = new LevelDependentParameter(0.0, 0.0, null, null);
         LevelDependentParameter costParam = new LevelDependentParameter(0.0, 0.0, null, null);
 

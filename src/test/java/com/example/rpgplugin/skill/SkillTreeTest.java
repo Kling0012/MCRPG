@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill;
 
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +20,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
 
 /**
  * SkillTreeのテストクラス
@@ -34,10 +38,10 @@ class SkillTreeTest {
     private Skill mockSkill2;
 
     @Mock
-    private Skill.SkillTreeConfig mockTreeConfig;
+    private SkillTreeConfig mockTreeConfig;
 
     @Mock
-    private Skill.SkillTreeConfig mockTreeConfig2;
+    private SkillTreeConfig mockTreeConfig2;
 
     @Mock
     private Player mockPlayer;
@@ -386,11 +390,11 @@ class SkillTreeTest {
         @Test
         @DisplayName("test: レベル要件を満たしている")
         void testCanAcquireMeetsLevelRequirement() {
-            Skill.UnlockRequirement levelReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement levelReq = mock(UnlockRequirement.class);
             when(levelReq.getType()).thenReturn("level");
             when(levelReq.getValue()).thenReturn(10.0);
 
-            List<Skill.UnlockRequirement> reqs = new ArrayList<>();
+            List<UnlockRequirement> reqs = new ArrayList<>();
             reqs.add(levelReq);
 
             when(mockTreeConfig.getParent()).thenReturn("none");
@@ -410,12 +414,12 @@ class SkillTreeTest {
         @Test
         @DisplayName("test: ステータス要件を満たしている")
         void testCanAcquireMeetsStatRequirement() {
-            Skill.UnlockRequirement statReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement statReq = mock(UnlockRequirement.class);
             when(statReq.getType()).thenReturn("stat");
             when(statReq.getValue()).thenReturn(50.0);
             when(statReq.getStat()).thenReturn(mockStat);
 
-            List<Skill.UnlockRequirement> reqs = new ArrayList<>();
+            List<UnlockRequirement> reqs = new ArrayList<>();
             reqs.add(statReq);
 
             when(mockTreeConfig.getParent()).thenReturn("none");
@@ -433,12 +437,12 @@ class SkillTreeTest {
         @Test
         @DisplayName("test: ステータス要件を満たしていない")
         void testCanAcquireFailsStatRequirement() {
-            Skill.UnlockRequirement statReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement statReq = mock(UnlockRequirement.class);
             when(statReq.getType()).thenReturn("stat");
             when(statReq.getValue()).thenReturn(50.0);
             when(statReq.getStat()).thenReturn(mockStat);
 
-            List<Skill.UnlockRequirement> reqs = new ArrayList<>();
+            List<UnlockRequirement> reqs = new ArrayList<>();
             reqs.add(statReq);
 
             when(mockTreeConfig.getParent()).thenReturn("none");
@@ -456,12 +460,12 @@ class SkillTreeTest {
         @Test
         @DisplayName("test: ステータスがnullの場合はfalse")
         void testCanAcquireWithNullStat() {
-            Skill.UnlockRequirement statReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement statReq = mock(UnlockRequirement.class);
             when(statReq.getType()).thenReturn("stat");
             when(statReq.getValue()).thenReturn(50.0);
             when(statReq.getStat()).thenReturn(null);
 
-            List<Skill.UnlockRequirement> reqs = new ArrayList<>();
+            List<UnlockRequirement> reqs = new ArrayList<>();
             reqs.add(statReq);
 
             when(mockTreeConfig.getParent()).thenReturn("none");
@@ -478,11 +482,11 @@ class SkillTreeTest {
         @Test
         @DisplayName("test: 無効な要件タイプはfalse")
         void testCanAcquireWithInvalidRequirementType() {
-            Skill.UnlockRequirement invalidReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement invalidReq = mock(UnlockRequirement.class);
             when(invalidReq.getType()).thenReturn("invalid");
             when(invalidReq.getValue()).thenReturn(10.0);
 
-            List<Skill.UnlockRequirement> reqs = new ArrayList<>();
+            List<UnlockRequirement> reqs = new ArrayList<>();
             reqs.add(invalidReq);
 
             when(mockTreeConfig.getParent()).thenReturn("none");
@@ -499,11 +503,11 @@ class SkillTreeTest {
         @Test
         @DisplayName("test: 大文字小文字を区別しない要件タイプ")
         void testCanAcquireCaseInsensitiveRequirementType() {
-            Skill.UnlockRequirement levelReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement levelReq = mock(UnlockRequirement.class);
             when(levelReq.getType()).thenReturn("LEVEL"); // 大文字
             when(levelReq.getValue()).thenReturn(10.0);
 
-            List<Skill.UnlockRequirement> reqs = new ArrayList<>();
+            List<UnlockRequirement> reqs = new ArrayList<>();
             reqs.add(levelReq);
 
             when(mockTreeConfig.getParent()).thenReturn("none");
@@ -520,16 +524,16 @@ class SkillTreeTest {
         @Test
         @DisplayName("test: 複数の要件をすべて満たす")
         void testCanAcquireMeetsMultipleRequirements() {
-            Skill.UnlockRequirement levelReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement levelReq = mock(UnlockRequirement.class);
             when(levelReq.getType()).thenReturn("level");
             when(levelReq.getValue()).thenReturn(10.0);
 
-            Skill.UnlockRequirement statReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement statReq = mock(UnlockRequirement.class);
             when(statReq.getType()).thenReturn("stat");
             when(statReq.getValue()).thenReturn(50.0);
             when(statReq.getStat()).thenReturn(mockStat);
 
-            List<Skill.UnlockRequirement> reqs = new ArrayList<>();
+            List<UnlockRequirement> reqs = new ArrayList<>();
             reqs.add(levelReq);
             reqs.add(statReq);
 
@@ -548,16 +552,16 @@ class SkillTreeTest {
         @Test
         @DisplayName("test: いずれかの要件を満たさないとfalse")
         void testCanAcquireFailsOneRequirement() {
-            Skill.UnlockRequirement levelReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement levelReq = mock(UnlockRequirement.class);
             when(levelReq.getType()).thenReturn("level");
             when(levelReq.getValue()).thenReturn(10.0);
 
-            Skill.UnlockRequirement statReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement statReq = mock(UnlockRequirement.class);
             when(statReq.getType()).thenReturn("stat");
             when(statReq.getValue()).thenReturn(50.0);
             when(statReq.getStat()).thenReturn(mockStat);
 
-            List<Skill.UnlockRequirement> reqs = new ArrayList<>();
+            List<UnlockRequirement> reqs = new ArrayList<>();
             reqs.add(levelReq);
             reqs.add(statReq);
 
@@ -576,12 +580,12 @@ class SkillTreeTest {
         @Test
         @DisplayName("test: ステータス未設定時はデフォルト0を使用")
         void testCanAcquireUsesDefaultStatValue() {
-            Skill.UnlockRequirement statReq = mock(Skill.UnlockRequirement.class);
+            UnlockRequirement statReq = mock(UnlockRequirement.class);
             when(statReq.getType()).thenReturn("stat");
             when(statReq.getValue()).thenReturn(10.0);
             when(statReq.getStat()).thenReturn(mockStat);
 
-            List<Skill.UnlockRequirement> reqs = new ArrayList<>();
+            List<UnlockRequirement> reqs = new ArrayList<>();
             reqs.add(statReq);
 
             when(mockTreeConfig.getParent()).thenReturn("none");

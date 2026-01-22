@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill;
 
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +19,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
 
 /**
  * SkillTreeRegistryのテストクラス
@@ -33,10 +37,10 @@ class SkillTreeRegistryTest {
     private Skill mockSkill2;
 
     @Mock
-    private Skill.SkillTreeConfig mockTreeConfig;
+    private SkillTreeConfig mockTreeConfig;
 
     @Mock
-    private Skill.SkillTreeConfig mockTreeConfig2;
+    private SkillTreeConfig mockTreeConfig2;
 
     private SkillTreeRegistry registry;
 

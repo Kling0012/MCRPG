@@ -1,5 +1,13 @@
 package com.example.rpgplugin.skill;
 
+import com.example.rpgplugin.model.skill.CooldownConfig;
+import com.example.rpgplugin.model.skill.CostConfig;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,6 +24,14 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
+import com.example.rpgplugin.model.skill.CooldownConfig;
+import com.example.rpgplugin.model.skill.CostConfig;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 
 /**
  * Skillのテストクラス
@@ -476,7 +492,7 @@ class SkillTest {
         @Test
         @DisplayName("test: getDamageはダメージ計算設定を返す")
         void testGetDamage() {
-            Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, null, 1.5, 2.0);
+            DamageCalculation damage = new DamageCalculation(10.0, null, 1.5, 2.0);
             Skill skill = new Skill(
                 "testSkill",
                 "Test Skill",
@@ -511,7 +527,7 @@ class SkillTest {
         @Test
         @DisplayName("test: getSkillTreeはスキルツリー設定を返す")
         void testGetSkillTree() {
-            Skill.SkillTreeConfig skillTree = new Skill.SkillTreeConfig(
+            SkillTreeConfig skillTree = new SkillTreeConfig(
                 "parentSkill",
                 new ArrayList<>(),
                 5,
@@ -810,9 +826,9 @@ class SkillTest {
         @Test
         @DisplayName("test: getVariablesは変数定義リストを返す")
         void testGetVariables() {
-            List<Skill.VariableDefinition> variables = new ArrayList<>();
-            variables.add(new Skill.VariableDefinition("base_mod", 1.0));
-            variables.add(new Skill.VariableDefinition("str_scale", 1.5));
+            List<VariableDefinition> variables = new ArrayList<>();
+            variables.add(new VariableDefinition("base_mod", 1.0));
+            variables.add(new VariableDefinition("str_scale", 1.5));
 
             Skill skill = new Skill(
                 "testSkill",
@@ -837,7 +853,7 @@ class SkillTest {
                 null
             );
 
-            List<Skill.VariableDefinition> result = skill.getVariables();
+            List<VariableDefinition> result = skill.getVariables();
             assertEquals(2, result.size());
             assertEquals("base_mod", result.get(0).getName());
             assertEquals(1.0, result.get(0).getValue());
@@ -848,8 +864,8 @@ class SkillTest {
         @Test
         @DisplayName("test: hasVariablesはtrueを返す（変数あり）")
         void testHasVariablesTrue() {
-            List<Skill.VariableDefinition> variables = new ArrayList<>();
-            variables.add(new Skill.VariableDefinition("test", 1.0));
+            List<VariableDefinition> variables = new ArrayList<>();
+            variables.add(new VariableDefinition("test", 1.0));
 
             Skill skill = new Skill(
                 "testSkill",
@@ -880,8 +896,8 @@ class SkillTest {
         @Test
         @DisplayName("test: getVariablesはコピーを返す")
         void testGetVariablesReturnsCopy() {
-            List<Skill.VariableDefinition> variables = new ArrayList<>();
-            variables.add(new Skill.VariableDefinition("test", 1.0));
+            List<VariableDefinition> variables = new ArrayList<>();
+            variables.add(new VariableDefinition("test", 1.0));
 
             Skill skill = new Skill(
                 "testSkill",
@@ -906,8 +922,8 @@ class SkillTest {
                 null
             );
 
-            List<Skill.VariableDefinition> vars1 = skill.getVariables();
-            List<Skill.VariableDefinition> vars2 = skill.getVariables();
+            List<VariableDefinition> vars1 = skill.getVariables();
+            List<VariableDefinition> vars2 = skill.getVariables();
 
             assertNotSame(vars1, vars2);
             assertEquals(vars1, vars2);
@@ -937,7 +953,7 @@ class SkillTest {
         @Test
         @DisplayName("test: getFormulaDamageは設定を返す")
         void testGetFormulaDamage() {
-            Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+            FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "STR * 2 + Lv * 5",
                 null
             );
@@ -972,7 +988,7 @@ class SkillTest {
         @Test
         @DisplayName("test: hasFormulaDamageはtrueを返す（設定あり）")
         void testHasFormulaDamageTrue() {
-            Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+            FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "STR * 2",
                 null
             );
@@ -1027,8 +1043,8 @@ class SkillTest {
         @Test
         @DisplayName("test: getTargetingは設定を返す")
         void testGetTargeting() {
-            Skill.TargetingConfig.TargetingParams params = new Skill.TargetingConfig.TargetingParams(5.0);
-            Skill.TargetingConfig targeting = new Skill.TargetingConfig("single", params);
+            TargetingConfig.TargetingParams params = new TargetingConfig.TargetingParams(5.0);
+            TargetingConfig targeting = new TargetingConfig("single", params);
 
             Skill skill = new Skill(
                 "testSkill",
@@ -1060,7 +1076,7 @@ class SkillTest {
         @Test
         @DisplayName("test: hasTargetingはtrueを返す（設定あり）")
         void testHasTargetingTrue() {
-            Skill.TargetingConfig targeting = new Skill.TargetingConfig("cone", null);
+            TargetingConfig targeting = new TargetingConfig("cone", null);
 
             Skill skill = new Skill(
                 "testSkill",
@@ -1208,7 +1224,7 @@ class SkillTest {
         @Test
         @DisplayName("test: コンストラクタでダメージ計算を作成")
         void testConstructor() {
-            Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, null, 1.5, 2.0);
+            DamageCalculation damage = new DamageCalculation(10.0, null, 1.5, 2.0);
 
             assertEquals(10.0, damage.getBase());
             assertNull(damage.getStatMultiplier());
@@ -1219,7 +1235,7 @@ class SkillTest {
         @Test
         @DisplayName("test: calculateDamageでダメージ計算")
         void testCalculateDamage() {
-            Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, null, 1.5, 2.0);
+            DamageCalculation damage = new DamageCalculation(10.0, null, 1.5, 2.0);
 
             // damage = base + (statValue * multiplierValue) + (skillLevel * levelMultiplier)
             // = 10.0 + (100.0 * 1.5) + (5 * 2.0)
@@ -1231,7 +1247,7 @@ class SkillTest {
         @Test
         @DisplayName("test: calculateDamageでステータスなし")
         void testCalculateDamageNoStat() {
-            Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, null, 0.0, 2.0);
+            DamageCalculation damage = new DamageCalculation(10.0, null, 0.0, 2.0);
 
             double result = damage.calculateDamage(0.0, 5);
             assertEquals(20.0, result, 0.001); // 10.0 + (0 * 0) + (5 * 2.0)
@@ -1240,7 +1256,7 @@ class SkillTest {
         @Test
         @DisplayName("test: calculateDamageでレベル0")
         void testCalculateDamageLevelZero() {
-            Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, null, 1.5, 2.0);
+            DamageCalculation damage = new DamageCalculation(10.0, null, 1.5, 2.0);
 
             double result = damage.calculateDamage(100.0, 0);
             assertEquals(160.0, result, 0.001); // 10.0 + (100 * 1.5) + (0 * 2.0)
@@ -1256,7 +1272,7 @@ class SkillTest {
         @Test
         @DisplayName("test: コンストラクタでスキルツリー設定を作成")
         void testConstructor() {
-            Skill.SkillTreeConfig config = new Skill.SkillTreeConfig(
+            SkillTreeConfig config = new SkillTreeConfig(
                 "parentSkill",
                 new ArrayList<>(),
                 5,
@@ -1273,7 +1289,7 @@ class SkillTest {
         @Test
         @DisplayName("test: nullのunlockRequirementsは空リストになる")
         void testConstructorWithNullUnlockRequirements() {
-            Skill.SkillTreeConfig config = new Skill.SkillTreeConfig(
+            SkillTreeConfig config = new SkillTreeConfig(
                 "parentSkill",
                 null,
                 5,
@@ -1287,18 +1303,18 @@ class SkillTest {
         @Test
         @DisplayName("test: getUnlockRequirementsは同じインスタンスを返す")
         void testGetUnlockRequirementsReturnsSame() {
-            List<Skill.UnlockRequirement> requirements = new ArrayList<>();
-            requirements.add(new Skill.UnlockRequirement("stat", null, 10.0));
+            List<UnlockRequirement> requirements = new ArrayList<>();
+            requirements.add(new UnlockRequirement("stat", null, 10.0));
 
-            Skill.SkillTreeConfig config = new Skill.SkillTreeConfig(
+            SkillTreeConfig config = new SkillTreeConfig(
                 "parent",
                 requirements,
                 5,
                 "DIAMOND"
             );
 
-            List<Skill.UnlockRequirement> reqs1 = config.getUnlockRequirements();
-            List<Skill.UnlockRequirement> reqs2 = config.getUnlockRequirements();
+            List<UnlockRequirement> reqs1 = config.getUnlockRequirements();
+            List<UnlockRequirement> reqs2 = config.getUnlockRequirements();
 
             // 実装では同じインスタンスを返す
             assertSame(reqs1, reqs2);
@@ -1315,7 +1331,7 @@ class SkillTest {
         @Test
         @DisplayName("test: コンストラクタで習得要件を作成")
         void testConstructor() {
-            Skill.UnlockRequirement requirement = new Skill.UnlockRequirement(
+            UnlockRequirement requirement = new UnlockRequirement(
                 "stat",
                 null,
                 10.0
@@ -1329,7 +1345,7 @@ class SkillTest {
         @Test
         @DisplayName("test: Stat付きで習得要件を作成")
         void testConstructorWithStat() {
-            Skill.UnlockRequirement requirement = new Skill.UnlockRequirement(
+            UnlockRequirement requirement = new UnlockRequirement(
                 "stat",
                 com.example.rpgplugin.stats.Stat.STRENGTH,
                 50.0
@@ -1349,7 +1365,7 @@ class SkillTest {
         @Test
         @DisplayName("test: コンストラクタで変数定義を作成")
         void testConstructor() {
-            Skill.VariableDefinition variable = new Skill.VariableDefinition("base_mod", 1.5);
+            VariableDefinition variable = new VariableDefinition("base_mod", 1.5);
 
             assertEquals("base_mod", variable.getName());
             assertEquals(1.5, variable.getValue());
@@ -1358,7 +1374,7 @@ class SkillTest {
         @Test
         @DisplayName("test: 負の値も設定可能")
         void testConstructorWithNegativeValue() {
-            Skill.VariableDefinition variable = new Skill.VariableDefinition("penalty", -0.5);
+            VariableDefinition variable = new VariableDefinition("penalty", -0.5);
 
             assertEquals(-0.5, variable.getValue());
         }
@@ -1366,7 +1382,7 @@ class SkillTest {
         @Test
         @DisplayName("test: ゼロ値")
         void testConstructorWithZero() {
-            Skill.VariableDefinition variable = new Skill.VariableDefinition("zero", 0.0);
+            VariableDefinition variable = new VariableDefinition("zero", 0.0);
 
             assertEquals(0.0, variable.getValue());
         }
@@ -1382,7 +1398,7 @@ class SkillTest {
         @DisplayName("test: コンストラクタでコスト設定を作成")
         void testConstructor() {
             LevelDependentParameter param = new LevelDependentParameter(10.0, 1.0, 0.0);
-            Skill.CostConfig config = new Skill.CostConfig(SkillCostType.MANA, param);
+            CostConfig config = new CostConfig(SkillCostType.MANA, param);
 
             assertEquals(SkillCostType.MANA, config.getType());
             assertEquals(param, config.getParameter());
@@ -1392,7 +1408,7 @@ class SkillTest {
         @DisplayName("test: nullタイプはMANAがデフォルト")
         void testConstructorWithNullType() {
             LevelDependentParameter param = new LevelDependentParameter(10.0, 1.0, 0.0);
-            Skill.CostConfig config = new Skill.CostConfig(null, param);
+            CostConfig config = new CostConfig(null, param);
 
             assertEquals(SkillCostType.MANA, config.getType());
         }
@@ -1401,7 +1417,7 @@ class SkillTest {
         @DisplayName("test: getCostでレベル別コスト取得")
         void testGetCost() {
             LevelDependentParameter param = new LevelDependentParameter(10.0, 2.0, 5.0);
-            Skill.CostConfig config = new Skill.CostConfig(SkillCostType.MANA, param);
+            CostConfig config = new CostConfig(SkillCostType.MANA, param);
 
             // Lv1: 10 + (2 * 0) = 10
             // Lv3: 10 + (2 * 2) = 14
@@ -1415,7 +1431,7 @@ class SkillTest {
         @Test
         @DisplayName("test: nullパラメータは0を返す")
         void testGetCostWithNullParam() {
-            Skill.CostConfig config = new Skill.CostConfig(SkillCostType.HP, null);
+            CostConfig config = new CostConfig(SkillCostType.HP, null);
 
             assertEquals(0, config.getCost(1));
             assertEquals(0, config.getCost(5));
@@ -1432,7 +1448,7 @@ class SkillTest {
         @DisplayName("test: コンストラクタでクールダウン設定を作成")
         void testConstructor() {
             LevelDependentParameter param = new LevelDependentParameter(5.0, -0.5, 1.0);
-            Skill.CooldownConfig config = new Skill.CooldownConfig(param);
+            CooldownConfig config = new CooldownConfig(param);
 
             assertEquals(param, config.getParameter());
         }
@@ -1441,7 +1457,7 @@ class SkillTest {
         @DisplayName("test: getCooldownでレベル別クールダウン取得")
         void testGetCooldown() {
             LevelDependentParameter param = new LevelDependentParameter(5.0, -0.5, 1.0);
-            Skill.CooldownConfig config = new Skill.CooldownConfig(param);
+            CooldownConfig config = new CooldownConfig(param);
 
             // Lv1: 5.0 + (-0.5 * 0) = 5.0
             // Lv3: 5.0 + (-0.5 * 2) = 4.0
@@ -1456,7 +1472,7 @@ class SkillTest {
         @Test
         @DisplayName("test: nullパラメータは0.0を返す")
         void testGetCooldownWithNullParam() {
-            Skill.CooldownConfig config = new Skill.CooldownConfig(null);
+            CooldownConfig config = new CooldownConfig(null);
 
             assertEquals(0.0, config.getCooldown(1), 0.001);
             assertEquals(0.0, config.getCooldown(5), 0.001);
@@ -1472,7 +1488,7 @@ class SkillTest {
         @Test
         @DisplayName("test: コンストラクタでターゲット設定を作成")
         void testConstructor() {
-            Skill.TargetingConfig config = new Skill.TargetingConfig("cone", null);
+            TargetingConfig config = new TargetingConfig("cone", null);
 
             assertEquals("cone", config.getType());
             assertNull(config.getParams());
@@ -1481,7 +1497,7 @@ class SkillTest {
         @Test
         @DisplayName("test: nullタイプはsingleがデフォルト")
         void testConstructorWithNullType() {
-            Skill.TargetingConfig config = new Skill.TargetingConfig(null, null);
+            TargetingConfig config = new TargetingConfig(null, null);
 
             assertEquals("single", config.getType());
         }
@@ -1489,8 +1505,8 @@ class SkillTest {
         @Test
         @DisplayName("test: パラメータ付きコンストラクタ")
         void testConstructorWithParams() {
-            Skill.TargetingConfig.TargetingParams params = new Skill.TargetingConfig.TargetingParams(5.0);
-            Skill.TargetingConfig config = new Skill.TargetingConfig("sphere", params);
+            TargetingConfig.TargetingParams params = new TargetingConfig.TargetingParams(5.0);
+            TargetingConfig config = new TargetingConfig("sphere", params);
 
             assertEquals("sphere", config.getType());
             assertEquals(params, config.getParams());
@@ -1504,7 +1520,7 @@ class SkillTest {
         @Test
         @DisplayName("test: TargetingParamsのrange取得")
         void testTargetingParamsGetRange() {
-            Skill.TargetingConfig.TargetingParams params = new Skill.TargetingConfig.TargetingParams(10.0);
+            TargetingConfig.TargetingParams params = new TargetingConfig.TargetingParams(10.0);
 
             assertEquals(10.0, params.getRange(), 0.001);
         }
@@ -1517,7 +1533,7 @@ class SkillTest {
         @Test
         @DisplayName("test: ConeParamsでangleとrange取得")
         void testConeParams() {
-            Skill.TargetingConfig.ConeParams params = new Skill.TargetingConfig.ConeParams(90.0, 5.0);
+            TargetingConfig.ConeParams params = new TargetingConfig.ConeParams(90.0, 5.0);
 
             assertEquals(90.0, params.getAngle(), 0.001);
             assertEquals(5.0, params.getRange(), 0.001);
@@ -1531,7 +1547,7 @@ class SkillTest {
         @Test
         @DisplayName("test: SphereParamsでradius取得")
         void testSphereParams() {
-            Skill.TargetingConfig.SphereParams params = new Skill.TargetingConfig.SphereParams(3.5);
+            TargetingConfig.SphereParams params = new TargetingConfig.SphereParams(3.5);
 
             assertEquals(3.5, params.getRadius(), 0.001);
             assertEquals(3.5, params.getRange(), 0.001); // radius is used as range
@@ -1545,7 +1561,7 @@ class SkillTest {
         @Test
         @DisplayName("test: SectorParamsでangleとradius取得")
         void testSectorParams() {
-            Skill.TargetingConfig.SectorParams params = new Skill.TargetingConfig.SectorParams(45.0, 6.0);
+            TargetingConfig.SectorParams params = new TargetingConfig.SectorParams(45.0, 6.0);
 
             assertEquals(45.0, params.getAngle(), 0.001);
             assertEquals(6.0, params.getRadius(), 0.001);
@@ -1562,7 +1578,7 @@ class SkillTest {
         @Test
         @DisplayName("test: コンストラクタで数式ダメージ設定を作成")
         void testConstructor() {
-            Skill.FormulaDamageConfig config = new Skill.FormulaDamageConfig("STR * 2", null);
+            FormulaDamageConfig config = new FormulaDamageConfig("STR * 2", null);
 
             assertEquals("STR * 2", config.getFormula());
             assertNotNull(config.getLevelFormulas());
@@ -1576,7 +1592,7 @@ class SkillTest {
             levelFormulas.put(5, "STR * 3");
             levelFormulas.put(10, "STR * 5");
 
-            Skill.FormulaDamageConfig config = new Skill.FormulaDamageConfig("STR * 2", levelFormulas);
+            FormulaDamageConfig config = new FormulaDamageConfig("STR * 2", levelFormulas);
 
             assertEquals("STR * 2", config.getFormula());
             assertEquals(2, config.getLevelFormulas().size());
@@ -1590,7 +1606,7 @@ class SkillTest {
             levelFormulas.put(5, "STR * 3");
             levelFormulas.put(10, "STR * 5");
 
-            Skill.FormulaDamageConfig config = new Skill.FormulaDamageConfig("STR * 2", levelFormulas);
+            FormulaDamageConfig config = new FormulaDamageConfig("STR * 2", levelFormulas);
 
             assertEquals("STR * 2", config.getFormula(1)); // 基本数式
             assertEquals("STR * 3", config.getFormula(5)); // レベル別
@@ -1601,12 +1617,12 @@ class SkillTest {
         @Test
         @DisplayName("test: hasLevelFormulasで判定")
         void testHasLevelFormulas() {
-            Skill.FormulaDamageConfig config1 = new Skill.FormulaDamageConfig("STR * 2", null);
+            FormulaDamageConfig config1 = new FormulaDamageConfig("STR * 2", null);
             assertFalse(config1.hasLevelFormulas());
 
             Map<Integer, String> levelFormulas = new HashMap<>();
             levelFormulas.put(5, "STR * 3");
-            Skill.FormulaDamageConfig config2 = new Skill.FormulaDamageConfig("STR * 2", levelFormulas);
+            FormulaDamageConfig config2 = new FormulaDamageConfig("STR * 2", levelFormulas);
             assertTrue(config2.hasLevelFormulas());
         }
 
@@ -1616,7 +1632,7 @@ class SkillTest {
             Map<Integer, String> levelFormulas = new HashMap<>();
             levelFormulas.put(5, "STR * 3");
 
-            Skill.FormulaDamageConfig config = new Skill.FormulaDamageConfig("STR * 2", levelFormulas);
+            FormulaDamageConfig config = new FormulaDamageConfig("STR * 2", levelFormulas);
 
             Map<Integer, String> formulas1 = config.getLevelFormulas();
             Map<Integer, String> formulas2 = config.getLevelFormulas();
@@ -2258,7 +2274,7 @@ class SkillTest {
         @Test
         @DisplayName("test: calculateFormulaDamageはcalculatorがnullで0.0を返す")
         void testCalculateFormulaDamageNullCalculator() {
-            Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+            FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "10 + level * 5", new java.util.HashMap<>());
             Skill skill = new Skill(
                 "testSkill", "Test", "Test", SkillType.NORMAL,
@@ -2275,12 +2291,12 @@ class SkillTest {
         @Test
         @DisplayName("test: calculateFormulaDamageはカスタム変数を設定する")
         void testCalculateFormulaDamageWithCustomVariables() {
-            java.util.List<Skill.VariableDefinition> variables = new ArrayList<>();
-            variables.add(new Skill.VariableDefinition("str_mod", 2.5));
-            variables.add(new Skill.VariableDefinition("base_mod", 1.5));
+            java.util.List<VariableDefinition> variables = new ArrayList<>();
+            variables.add(new VariableDefinition("str_mod", 2.5));
+            variables.add(new VariableDefinition("base_mod", 1.5));
 
             // 変数を使用しないシンプルな数式でテスト
-            Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+            FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "100", new java.util.HashMap<>());
 
             Skill skill = new Skill(
@@ -2305,7 +2321,7 @@ class SkillTest {
         @Test
         @DisplayName("test: calculateFormulaDamageはエラー時に0.0を返す")
         void testCalculateFormulaDamageWithError() {
-            Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+            FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "undefined_var", new java.util.HashMap<>());
 
             Skill skill = new Skill(
@@ -2342,7 +2358,7 @@ class SkillTest {
         @Test
         @DisplayName("test: createFormulaDamageCalculatorはevaluatorがnullでnullを返す")
         void testCreateFormulaDamageCalculatorNullEvaluator() {
-            Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+            FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "10 + level * 5", new java.util.HashMap<>());
             Skill skill = new Skill(
                 "testSkill", "Test", "Test", SkillType.NORMAL,
@@ -2359,7 +2375,7 @@ class SkillTest {
         @Test
         @DisplayName("test: createFormulaDamageCalculatorは正常にCalculatorを作成")
         void testCreateFormulaDamageCalculatorSuccess() {
-            Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+            FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "10 + level * 5", new java.util.HashMap<>());
             Skill skill = new Skill(
                 "testSkill", "Test", "Test", SkillType.NORMAL,
@@ -2383,7 +2399,7 @@ class SkillTest {
             levelFormulas.put(5, "50");
             levelFormulas.put(10, "100");
 
-            Skill.FormulaDamageConfig formulaDamage = new Skill.FormulaDamageConfig(
+            FormulaDamageConfig formulaDamage = new FormulaDamageConfig(
                 "20", levelFormulas);
             Skill skill = new Skill(
                 "testSkill", "Test", "Test", SkillType.NORMAL,

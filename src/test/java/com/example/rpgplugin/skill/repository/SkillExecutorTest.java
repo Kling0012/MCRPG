@@ -1,5 +1,6 @@
 package com.example.rpgplugin.skill.repository;
 
+import com.example.rpgplugin.model.skill.DamageCalculation;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;
 import com.example.rpgplugin.skill.LevelDependentParameter;
@@ -33,6 +34,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.DamageCalculation;
 
 /**
  * SkillExecutorの単体テスト
@@ -91,7 +93,7 @@ class SkillExecutorTest {
     // ==================== ヘルパーメソッド ====================
 
     private Skill createTestSkill(String id, String displayName) {
-        Skill.DamageCalculation damage = new Skill.DamageCalculation(10.0, Stat.STRENGTH, 1.0, 0.0);
+        DamageCalculation damage = new DamageCalculation(10.0, Stat.STRENGTH, 1.0, 0.0);
         LevelDependentParameter cooldownParam = new LevelDependentParameter(5.0, 0.0, null, null);
         LevelDependentParameter costParam = new LevelDependentParameter(10.0, 0.0, null, null);
 
@@ -251,7 +253,7 @@ class SkillExecutorTest {
     @Test
     @DisplayName("calculateDamage: ステータスnull")
     void testCalculateDamage_NullStat() {
-        Skill.DamageCalculation damageConfig = new Skill.DamageCalculation(10.0, null, 1.0, 0.0);
+        DamageCalculation damageConfig = new DamageCalculation(10.0, null, 1.0, 0.0);
         Skill skillWithNullStat = new Skill(
                 "null_stat", "null_stat", "ステータスなし", SkillType.NORMAL, List.of(),
                 1, 0.0, 0, null, null, SkillCostType.MANA,

@@ -72,8 +72,8 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.CUSTOM_API_KEY }}
           github_token: ${{ github.token }}
-          track_progress: true
-          use_sticky_comment: true
+          track_progress: ${{ github.event_name == 'issues' }}
+          use_sticky_comment: ${{ github.event_name == 'issues' }}
           show_full_output: ${{ vars.CLAUDE_SHOW_FULL_OUTPUT == 'true' }}
           prompt: |
             REPO: ${{ github.repository }}

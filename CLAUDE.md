@@ -1,3 +1,36 @@
+# MCRPG Project Configuration
+
+## 🌿 作業ブランチルール
+
+**常に `Local50` ブランチで作業を行います。**
+
+### ブランチ戦略
+
+| ブランチ | 用途 | ルール |
+|---------|------|--------|
+| `Local50` | 作業用 | **すべての開発作業はこのブランチで実施** |
+| `main` | 本番 | マージ完了後の安定版のみ |
+
+### 必須ワークフロー
+
+1. **作業開始時**: `git checkout Local50`
+2. **作業中**: Local50でコミット
+3. **mainマージ時**:
+   ```bash
+   git checkout main
+   git merge Local50 --no-ff
+   git push origin main
+   git checkout Local50  # 戻る
+   ```
+4. **同期**: `git merge main` (Local50でmainを取り込む)
+
+### ⚠️ 禁止事項
+
+- **mainブランチでの直接コミット禁止**
+- **Local50以外のブランチ作成禁止**（特別な理由がある場合を除く）
+
+---
+
 # Claude Code Configuration - Claude Flow V3
 
 ## 🚨 AUTOMATIC SWARM ORCHESTRATION

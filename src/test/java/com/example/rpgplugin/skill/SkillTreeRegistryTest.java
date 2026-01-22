@@ -19,6 +19,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
 
 /**
  * SkillTreeRegistryのテストクラス

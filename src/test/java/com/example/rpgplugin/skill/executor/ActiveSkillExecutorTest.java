@@ -35,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.DamageCalculation;
 
 /**
  * ActiveSkillExecutorの単体テスト

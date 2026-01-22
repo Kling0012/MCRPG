@@ -23,6 +23,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 
 /**
  * SkillLoaderのテストクラス

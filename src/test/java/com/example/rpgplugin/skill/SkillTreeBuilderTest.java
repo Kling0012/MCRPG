@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
 
 /**
  * SkillTreeBuilderのテストクラス

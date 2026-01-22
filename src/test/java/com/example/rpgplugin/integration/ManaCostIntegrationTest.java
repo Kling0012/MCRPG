@@ -42,6 +42,12 @@ import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.CostConfig;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 
 /**
  * コスト消費連携の結合テスト

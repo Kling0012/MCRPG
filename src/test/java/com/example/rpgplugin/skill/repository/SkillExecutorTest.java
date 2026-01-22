@@ -34,6 +34,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import com.example.rpgplugin.model.skill.DamageCalculation;
 
 /**
  * SkillExecutorの単体テスト

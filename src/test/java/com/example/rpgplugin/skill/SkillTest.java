@@ -24,6 +24,14 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
+import com.example.rpgplugin.model.skill.CooldownConfig;
+import com.example.rpgplugin.model.skill.CostConfig;
+import com.example.rpgplugin.model.skill.DamageCalculation;
+import com.example.rpgplugin.model.skill.FormulaDamageConfig;
+import com.example.rpgplugin.model.skill.SkillTreeConfig;
+import com.example.rpgplugin.model.skill.TargetingConfig;
+import com.example.rpgplugin.model.skill.UnlockRequirement;
+import com.example.rpgplugin.model.skill.VariableDefinition;
 
 /**
  * Skillのテストクラス

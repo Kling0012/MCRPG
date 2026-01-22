@@ -79,7 +79,7 @@ jobs:
             - `gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` と `gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }}` を使って変更内容/文脈を把握する
             - レビューは `gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --comment -b "<本文>"` でPRに直接投稿する（`gh api /issues/.../comments` は使わない）
 
-            - 指摘がある場合は、重大度に関係なく Issue を自動作成して（`ai-fix,auto-generated` ラベル付与）
+            - 指摘がある場合は、重大度に関係なく各指摘ごとに Issue を自動作成して（`ai-fix,auto-generated` ラベル付与）
               - ai-issue-fix が自動実行できるよう、Issue本文の先頭に以下のブロックを必ず含める:
                 ---
                 PR_NUMBER: ${{ github.event.pull_request.number }}

@@ -1,5 +1,7 @@
 package com.example.rpgplugin.integration;
 
+import com.example.rpgplugin.model.skill.DamageCalculation;
+
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.model.skill.FormulaDamageConfig;
 import com.example.rpgplugin.model.skill.SkillTreeConfig;

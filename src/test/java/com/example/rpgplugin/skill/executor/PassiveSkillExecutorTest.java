@@ -1,5 +1,7 @@
 package com.example.rpgplugin.skill.executor;
 
+import com.example.rpgplugin.model.skill.DamageCalculation;
+
 import com.example.rpgplugin.RPGPlugin;
 import com.example.rpgplugin.player.PlayerManager;
 import com.example.rpgplugin.player.RPGPlayer;

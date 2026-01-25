@@ -115,11 +115,27 @@ class EvtRPGSkillCastTest {
     }
 
     @Test
-    @DisplayName("default damage is zero in the 5-arg constructor")
-    void defaultDamageIsZeroInConstructor() {
+    @DisplayName("default damage is zero in the 4-arg constructor")
+    void defaultDamageIsZeroInFourArgConstructor() {
         EvtRPGSkillCast.RPGSkillCastEvent event =
                 new EvtRPGSkillCast.RPGSkillCastEvent(player, "fireball", skill, 2, target);
         assertEquals(0.0, event.getDamage(), 0.0001);
+    }
+
+    @Test
+    @DisplayName("5-arg constructor with explicit zero damage")
+    void fiveArgConstructorWithZeroDamage() {
+        EvtRPGSkillCast.RPGSkillCastEvent event =
+                new EvtRPGSkillCast.RPGSkillCastEvent(player, "fireball", skill, 2, target, 0.0);
+        assertEquals(0.0, event.getDamage(), 0.0001);
+    }
+
+    @Test
+    @DisplayName("5-arg constructor with positive damage")
+    void fiveArgConstructorWithPositiveDamage() {
+        EvtRPGSkillCast.RPGSkillCastEvent event =
+                new EvtRPGSkillCast.RPGSkillCastEvent(player, "fireball", skill, 2, target, 15.5);
+        assertEquals(15.5, event.getDamage(), 0.0001);
     }
 
     @Test

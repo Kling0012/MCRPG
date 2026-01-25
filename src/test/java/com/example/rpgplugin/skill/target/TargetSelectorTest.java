@@ -505,9 +505,13 @@ class TargetSelectorTest {
         @Test
         @DisplayName("LINE: 直線上のエンティティを返すこと")
         void testSelectTargets_Line() {
-            SkillTarget config = new SkillTarget(TargetType.LINE, 10.0, 2.0,
-                    null, null,
-                    EntityTypeFilter.ALL, null);
+            // 7引数コンストラクタは存在しないため、16引数の全パラメータコンストラクタを使用
+            SkillTarget config = new SkillTarget(
+                    TargetType.LINE, AreaShape.SINGLE,
+                    null, null, null, null,
+                    EntityTypeFilter.ALL, null,
+                    TargetGroupFilter.BOTH, false, false, false,
+                    10.0, 2.0, null, null);
 
             List<Entity> candidates = List.of(mockEntity, mockZombie);
             List<Entity> result = TargetSelector.selectTargets(mockCaster, config, candidates, null);
@@ -519,11 +523,6 @@ class TargetSelectorTest {
         @Test
         @DisplayName("LINE: includeCaster=trueの場合はキャスターを含むこと")
         void testSelectTargets_Line_IncludeCaster() {
-            SkillTarget config = new SkillTarget(TargetType.LINE, 10.0, 2.0,
-                    null, null,
-                    EntityTypeFilter.ALL, null);
-
-            // includeCasterを設定するには拡張コンストラクタを使用
             SkillTarget configWithCaster = new SkillTarget(TargetType.LINE, AreaShape.SINGLE,
                     null, null, null, null,
                     EntityTypeFilter.ALL, null,
@@ -546,9 +545,13 @@ class TargetSelectorTest {
         @Test
         @DisplayName("CONE: 扇状範囲内のエンティティを返すこと")
         void testSelectTargets_Cone() {
-            SkillTarget config = new SkillTarget(TargetType.CONE, 10.0, 2.0,
-                    60.0, null,
-                    EntityTypeFilter.ALL, null);
+            // 7引数コンストラクタは存在しないため、16引数の全パラメータコンストラクタを使用
+            SkillTarget config = new SkillTarget(
+                    TargetType.CONE, AreaShape.SINGLE,
+                    null, null, null, null,
+                    EntityTypeFilter.ALL, null,
+                    TargetGroupFilter.BOTH, false, false, false,
+                    10.0, 2.0, 60.0, null);
 
             List<Entity> candidates = List.of(mockEntity, mockZombie);
             List<Entity> result = TargetSelector.selectTargets(mockCaster, config, candidates, null);
@@ -582,9 +585,13 @@ class TargetSelectorTest {
         @Test
         @DisplayName("LOOKING: 視線上のエンティティを返すこと")
         void testSelectTargets_Looking() {
-            SkillTarget config = new SkillTarget(TargetType.LOOKING, 10.0, 2.0,
-                    null, null,
-                    EntityTypeFilter.ALL, 3);
+            // 7引数コンストラクタは存在しないため、16引数の全パラメータコンストラクタを使用
+            SkillTarget config = new SkillTarget(
+                    TargetType.LOOKING, AreaShape.SINGLE,
+                    null, null, null, null,
+                    EntityTypeFilter.ALL, 3,
+                    TargetGroupFilter.BOTH, false, false, false,
+                    10.0, 2.0, null, null);
 
             List<Entity> candidates = List.of(mockEntity, mockZombie, mockZombie2);
             List<Entity> result = TargetSelector.selectTargets(mockCaster, config, candidates, null);
@@ -618,9 +625,13 @@ class TargetSelectorTest {
         @Test
         @DisplayName("SPHERE: 球形範囲内のエンティティを返すこと")
         void testSelectTargets_Sphere() {
-            SkillTarget config = new SkillTarget(TargetType.SPHERE, null, null,
-                    null, 10.0,
-                    EntityTypeFilter.ALL, null);
+            // 7引数コンストラクタは存在しないため、16引数の全パラメータコンストラクタを使用
+            SkillTarget config = new SkillTarget(
+                    TargetType.SPHERE, AreaShape.SINGLE,
+                    null, null, null, null,
+                    EntityTypeFilter.ALL, null,
+                    TargetGroupFilter.BOTH, false, false, false,
+                    10.0, null, null, null);
 
             List<Entity> candidates = List.of(mockZombie, mockEntity);
             List<Entity> result = TargetSelector.selectTargets(mockCaster, config, candidates, null);
@@ -635,7 +646,7 @@ class TargetSelectorTest {
                     null, null, null, null,
                     EntityTypeFilter.ALL, null,
                     TargetGroupFilter.BOTH, false, false, true,
-                    null, null, null, 10.0);
+                    10.0, null, null, null);
 
             List<Entity> candidates = List.of(mockZombie);
             List<Entity> result = TargetSelector.selectTargets(mockCaster, config, candidates, null);
@@ -646,9 +657,13 @@ class TargetSelectorTest {
         @Test
         @DisplayName("SPHERE: maxTargetsで結果数を制限すること")
         void testSelectTargets_Sphere_MaxTargets() {
-            SkillTarget config = new SkillTarget(TargetType.SPHERE, null, null,
-                    null, 10.0,
-                    EntityTypeFilter.ALL, 2);
+            // 7引数コンストラクタは存在しないため、16引数の全パラメータコンストラクタを使用
+            SkillTarget config = new SkillTarget(
+                    TargetType.SPHERE, AreaShape.SINGLE,
+                    null, null, null, null,
+                    EntityTypeFilter.ALL, 2,
+                    TargetGroupFilter.BOTH, false, false, false,
+                    10.0, null, null, null);
 
             List<Entity> candidates = List.of(mockZombie, mockZombie2, mockEntity);
             List<Entity> result = TargetSelector.selectTargets(mockCaster, config, candidates, null);
@@ -727,9 +742,13 @@ class TargetSelectorTest {
         @Test
         @DisplayName("LINE: maxTargetsで近い順に制限されること")
         void testMaxTargets_Line() {
-            // 簡易コンストラクタを使用
-            SkillTarget config = new SkillTarget(TargetType.LINE, 10.0, 1.0, null, null,
-                    EntityTypeFilter.ALL, 2);
+            // 7引数コンストラクタは存在しないため、16引数の全パラメータコンストラクタを使用
+            SkillTarget config = new SkillTarget(
+                    TargetType.LINE, AreaShape.SINGLE,
+                    null, null, null, null,
+                    EntityTypeFilter.ALL, 2,
+                    TargetGroupFilter.BOTH, false, false, false,
+                    10.0, 1.0, null, null);
 
             // 3つのエンティティを異なる距離に配置
             List<Entity> candidates = List.of(mockEntity, mockZombie, mockZombie2);
@@ -742,9 +761,13 @@ class TargetSelectorTest {
         @Test
         @DisplayName("CONE: maxTargetsで近い順に制限されること")
         void testMaxTargets_Cone() {
-            // 簡易コンストラクタを使用（coneAngleを指定）
-            SkillTarget config = new SkillTarget(TargetType.CONE, 10.0, 1.0, 90.0, null,
-                    EntityTypeFilter.ALL, 2);
+            // 7引数コンストラクタは存在しないため、16引数の全パラメータコンストラクタを使用
+            SkillTarget config = new SkillTarget(
+                    TargetType.CONE, AreaShape.SINGLE,
+                    null, null, null, null,
+                    EntityTypeFilter.ALL, 2,
+                    TargetGroupFilter.BOTH, false, false, false,
+                    10.0, 1.0, 90.0, null);
 
             // 3つのエンティティを範囲内に配置
             List<Entity> candidates = List.of(mockEntity, mockZombie, mockZombie2);
@@ -757,9 +780,13 @@ class TargetSelectorTest {
         @Test
         @DisplayName("LOOKING: maxTargetsで近い順に制限されること")
         void testMaxTargets_Looking() {
-            // 簡易コンストラクタを使用
-            SkillTarget config = new SkillTarget(TargetType.LOOKING, 10.0, 1.0, null, null,
-                    EntityTypeFilter.ALL, 2);
+            // 7引数コンストラクタは存在しないため、16引数の全パラメータコンストラクタを使用
+            SkillTarget config = new SkillTarget(
+                    TargetType.LOOKING, AreaShape.SINGLE,
+                    null, null, null, null,
+                    EntityTypeFilter.ALL, 2,
+                    TargetGroupFilter.BOTH, false, false, false,
+                    10.0, 1.0, null, null);
 
             // 3つのエンティティを視線上に配置
             List<Entity> candidates = List.of(mockEntity, mockZombie, mockZombie2);
@@ -772,9 +799,13 @@ class TargetSelectorTest {
         @Test
         @DisplayName("SPHERE: maxTargetsで近い順に制限されること")
         void testMaxTargets_Sphere() {
-            // 簡易コンストラクタを使用（sphereRadiusを指定）
-            SkillTarget config = new SkillTarget(TargetType.SPHERE, null, null, null, 10.0,
-                    EntityTypeFilter.ALL, 2);
+            // 7引数コンストラクタは存在しないため、16引数の全パラメータコンストラクタを使用
+            SkillTarget config = new SkillTarget(
+                    TargetType.SPHERE, AreaShape.SINGLE,
+                    null, null, null, null,
+                    EntityTypeFilter.ALL, 2,
+                    TargetGroupFilter.BOTH, false, false, false,
+                    null, null, null, 10.0);
 
             // 3つのエンティティを範囲内に配置
             List<Entity> candidates = List.of(mockEntity, mockZombie, mockZombie2);
